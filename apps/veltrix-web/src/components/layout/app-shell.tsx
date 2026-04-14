@@ -48,38 +48,38 @@ export function AppShell({
   const accountReady = Boolean(session);
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(192,255,0,0.12),_transparent_24%),radial-gradient(circle_at_top_right,_rgba(0,204,255,0.12),_transparent_22%),linear-gradient(180deg,_#071014_0%,_#09131a_45%,_#05090c_100%)] text-white">
+    <div className="hud-shell min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(192,255,0,0.12),_transparent_24%),radial-gradient(circle_at_top_right,_rgba(0,204,255,0.12),_transparent_22%),linear-gradient(180deg,_#071014_0%,_#09131a_45%,_#05090c_100%)] text-white">
       <div className="mx-auto flex min-h-screen max-w-[1600px]">
-        <aside className="hidden w-[272px] shrink-0 border-r border-white/8 bg-black/20 px-6 py-8 backdrop-blur-xl lg:flex lg:flex-col">
+        <aside className="hidden w-[292px] shrink-0 border-r border-cyan-300/8 bg-[#041017]/90 px-6 py-8 backdrop-blur-xl lg:flex lg:flex-col">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.4em] text-lime-300">
-              Veltrix
+            <p className="font-display text-xs font-bold uppercase tracking-[0.4em] text-cyan-300">
+              Veltrix // Grid
             </p>
-            <h1 className="mt-4 text-2xl font-black tracking-tight text-white">
-              Mission Control
+            <h1 className="font-display mt-4 text-3xl font-black tracking-[0.08em] text-white">
+              Raid Console
             </h1>
             <p className="mt-3 max-w-[18rem] text-sm leading-6 text-slate-300">
-              Consumer web surface for campaigns, quests, rewards and linked identity.
+              Gaming-style operations layer for quests, raids, rewards and linked identity.
             </p>
           </div>
 
           <div className="panel-card mt-8 rounded-[28px] p-4">
-            <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">
-              System read
+            <p className="font-display text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">
+              Console read
             </p>
             <div className="mt-4 grid gap-3">
               <div className="metric-card rounded-[20px] px-4 py-3">
                 <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
                   Surface
                 </p>
-                <p className="mt-2 text-sm font-semibold text-white">Consumer web parity</p>
+                <p className="mt-2 text-sm font-semibold text-white">Live operator surface</p>
               </div>
               <div className="metric-card rounded-[20px] px-4 py-3">
                 <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
                   Status
                 </p>
                 <p className="mt-2 text-sm font-semibold text-white">
-                  {accountReady ? "Authenticated" : "Public access shell"}
+                  {accountReady ? "Pilot authenticated" : "Public access shell"}
                 </p>
               </div>
             </div>
@@ -98,14 +98,14 @@ export function AppShell({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 rounded-[22px] px-4 py-3 text-sm font-semibold transition ${
+                  className={`flex items-center gap-3 rounded-[20px] px-4 py-3 text-sm font-semibold transition ${
                     active
-                      ? "bg-lime-300/14 text-lime-200 shadow-[0_0_0_1px_rgba(192,255,0,0.18)]"
+                      ? "bg-[linear-gradient(90deg,rgba(192,255,0,0.18),rgba(0,204,255,0.08))] text-lime-200 shadow-[0_0_0_1px_rgba(192,255,0,0.18)]"
                       : "text-slate-300 hover:bg-white/5 hover:text-white"
                   }`}
                 >
                   <Icon className="h-4 w-4" />
-                  <span>{item.label}</span>
+                  <span className="font-display text-[13px] uppercase tracking-[0.12em]">{item.label}</span>
                 </Link>
               );
             })}
@@ -131,8 +131,8 @@ export function AppShell({
               {!authConfigured
                 ? "Add Supabase publishable envs to switch the webapp on."
                 : accountReady
-                ? "Live auth is active. The next parity sprints can now build fully on real user state."
-                : "Sign in to unlock live profile, connected accounts and mission progress."}
+                  ? "Live auth is active. Quest progress, rewards and raids now sync against the same backend state as mobile."
+                  : "Sign in to unlock live profile, connected accounts and mission progress."}
             </p>
             {accountReady ? (
               <button
@@ -146,13 +146,13 @@ export function AppShell({
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-20 border-b border-white/8 bg-black/25 px-5 py-4 backdrop-blur-xl sm:px-7 lg:px-10">
+          <header className="sticky top-0 z-20 border-b border-cyan-300/8 bg-[#041017]/72 px-5 py-4 backdrop-blur-xl sm:px-7 lg:px-10">
             <div className="flex items-center justify-between gap-4">
               <div className="min-w-0">
-                <p className="text-[11px] font-bold uppercase tracking-[0.34em] text-lime-300">
+                <p className="font-display text-[11px] font-bold uppercase tracking-[0.34em] text-lime-300">
                   {eyebrow}
                 </p>
-                <h2 className="mt-2 truncate text-3xl font-black tracking-tight text-white sm:text-4xl">
+                <h2 className="font-display mt-2 truncate text-3xl font-black tracking-[0.05em] text-white sm:text-4xl">
                   {title}
                 </h2>
                 <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300 sm:text-base">

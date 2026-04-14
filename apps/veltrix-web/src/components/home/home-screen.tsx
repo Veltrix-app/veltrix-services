@@ -28,22 +28,22 @@ export function HomeScreen() {
 
   return (
     <div className="space-y-6">
-      <section className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
-        <div className="overflow-hidden rounded-[34px] border border-white/10 bg-[linear-gradient(135deg,rgba(192,255,0,0.12),rgba(0,0,0,0)_28%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:p-8">
-          <p className="text-[11px] font-bold uppercase tracking-[0.34em] text-lime-300">
-            Live Mission Layer
+      <section className="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
+        <div className="overflow-hidden rounded-[34px] border border-cyan-300/10 bg-[radial-gradient(circle_at_top_right,rgba(0,204,255,0.12),transparent_20%),linear-gradient(135deg,rgba(192,255,0,0.14),rgba(0,0,0,0)_28%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:p-8">
+          <p className="font-display text-[11px] font-bold uppercase tracking-[0.34em] text-lime-300">
+            Operative Layer
           </p>
-          <h3 className="mt-4 max-w-xl text-3xl font-black tracking-tight text-white sm:text-5xl">
+          <h3 className="font-display mt-4 max-w-2xl text-3xl font-black tracking-[0.04em] text-white sm:text-5xl">
             {profile
-              ? `${profile.username} is now running on live Veltrix data.`
-              : "Your mission stack is ready to run on live data."}
+              ? `${profile.username} is live in the Veltrix raid grid.`
+              : "Your mission stack is live in the Veltrix raid grid."}
           </h3>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-            This surface now reads from the real app backend: quests, campaigns, rewards,
-            notifications and connected identities instead of demo content.
+            Quests, raids, rewards, notifications and connected identities now render from the
+            real backend. The web layer should feel like a game platform, not a dashboard clone.
           </p>
-          <p className="mt-3 text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
-            Web parity rollout in progress
+          <p className="font-display mt-3 text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
+            Live command surface
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -64,13 +64,13 @@ export function HomeScreen() {
           <div className="mt-8 grid gap-3 md:grid-cols-3">
             <div className="metric-card rounded-[22px] px-4 py-4">
               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                Missions live
+                Mission queue
               </p>
               <p className="mt-2 text-2xl font-black text-white">{quests.length}</p>
             </div>
             <div className="metric-card rounded-[22px] px-4 py-4">
               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                Signals
+                Live signals
               </p>
               <p className="mt-2 text-2xl font-black text-white">{notifications.length}</p>
             </div>
@@ -157,7 +157,12 @@ export function HomeScreen() {
                       }
                     />
                   </div>
-                  <p className="mt-4 text-sm font-semibold text-lime-200">XP payout: +{mission.xp}</p>
+                  <div className="mt-4 flex items-center justify-between gap-3">
+                    <p className="text-sm font-semibold text-lime-200">XP payout: +{mission.xp}</p>
+                    <span className="font-display text-[11px] uppercase tracking-[0.22em] text-cyan-300">
+                      Open mission
+                    </span>
+                  </div>
                 </Link>
               ))}
             </div>
