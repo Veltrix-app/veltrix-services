@@ -43,7 +43,9 @@ export function RewardsScreen() {
       items = items.filter((reward) => reward.cost >= 500);
     }
 
-    return items.sort((left, right) => Number(right.claimable) - Number(left.claimable) || right.cost - left.cost);
+    return items.sort(
+      (left, right) => Number(right.claimable) - Number(left.claimable) || right.cost - left.cost
+    );
   }, [enrichedRewards, filter, query]);
 
   const highValueCount = enrichedRewards.filter((reward) => reward.cost >= 500).length;
@@ -59,8 +61,8 @@ export function RewardsScreen() {
             Rewards now come straight from the live backend.
           </h3>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-            This is the first real web reward vault: real costs, real rarity, real claimable state
-            and real campaign linkage instead of preview placeholders.
+            The reward vault now reads like a payoff surface instead of a raw list: real value,
+            real rarity, real claimability and clearer reward heat.
           </p>
         </div>
 
@@ -87,7 +89,7 @@ export function RewardsScreen() {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search rewards..."
-            className="w-full rounded-[22px] border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-amber-300/40 lg:max-w-md"
+            className="glass-button w-full rounded-[22px] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-amber-300/40 lg:max-w-md"
           />
 
           <div className="flex flex-wrap gap-2">
@@ -121,7 +123,7 @@ export function RewardsScreen() {
               <Link
                 key={reward.id}
                 href={`/rewards/${reward.id}`}
-                className="rounded-[28px] border border-white/8 bg-black/20 p-5 transition hover:border-amber-300/30 hover:bg-black/25"
+                className="panel-card rounded-[28px] p-5 transition hover:border-amber-300/30 hover:bg-black/25"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -154,7 +156,7 @@ export function RewardsScreen() {
 
 function MetricTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+    <div className="metric-card rounded-[24px] p-4">
       <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">{label}</p>
       <p className="mt-3 text-3xl font-black text-white">{value}</p>
     </div>
@@ -163,7 +165,7 @@ function MetricTile({ label, value }: { label: string; value: string }) {
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[20px] border border-white/8 bg-white/[0.03] px-4 py-3">
+    <div className="metric-card rounded-[20px] px-4 py-3">
       <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
       <p className="mt-2 text-sm font-semibold text-white">{value}</p>
     </div>

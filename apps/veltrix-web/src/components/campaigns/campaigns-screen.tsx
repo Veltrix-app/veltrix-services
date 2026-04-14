@@ -45,7 +45,9 @@ export function CampaignsScreen() {
       items = items.filter((campaign) => campaign.xpBudget >= 500);
     }
 
-    return items.sort((left, right) => Number(right.featured) - Number(left.featured) || right.xpBudget - left.xpBudget);
+    return items.sort(
+      (left, right) => Number(right.featured) - Number(left.featured) || right.xpBudget - left.xpBudget
+    );
   }, [enrichedCampaigns, filter, query]);
 
   const featuredCount = enrichedCampaigns.filter((campaign) => campaign.featured).length;
@@ -68,8 +70,8 @@ export function CampaignsScreen() {
             Campaign browsing is now reading from the live backend.
           </h3>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-            Real titles, real projects, real XP budgets and real quest counts are now feeding the
-            web mission board instead of placeholder copy.
+            Real titles, real projects, real XP budgets and real quest counts now feed a cleaner,
+            more tactical mission board instead of flat parity placeholders.
           </p>
         </div>
 
@@ -96,7 +98,7 @@ export function CampaignsScreen() {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search campaigns..."
-            className="w-full rounded-[22px] border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-lime-300/40 lg:max-w-md"
+            className="glass-button w-full rounded-[22px] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-lime-300/40 lg:max-w-md"
           />
 
           <div className="flex flex-wrap gap-2">
@@ -130,7 +132,7 @@ export function CampaignsScreen() {
               <Link
                 key={campaign.id}
                 href={`/campaigns/${campaign.id}`}
-                className="rounded-[28px] border border-white/8 bg-black/20 p-5 transition hover:border-lime-300/30 hover:bg-black/25"
+                className="panel-card rounded-[28px] p-5 transition hover:border-lime-300/30 hover:bg-black/25"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -166,7 +168,7 @@ export function CampaignsScreen() {
 
 function MetricTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+    <div className="metric-card rounded-[24px] p-4">
       <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">{label}</p>
       <p className="mt-3 text-3xl font-black text-white">{value}</p>
     </div>
@@ -175,7 +177,7 @@ function MetricTile({ label, value }: { label: string; value: string }) {
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[20px] border border-white/8 bg-white/[0.03] px-4 py-3">
+    <div className="metric-card rounded-[20px] px-4 py-3">
       <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
       <p className="mt-2 text-sm font-semibold text-white">{value}</p>
     </div>

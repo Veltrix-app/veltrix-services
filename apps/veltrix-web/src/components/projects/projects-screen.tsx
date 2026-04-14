@@ -61,8 +61,8 @@ export function ProjectsScreen() {
             Browse the live project worlds behind every campaign lane.
           </h3>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-            This is the first live web parity pass for project discovery: real backend projects,
-            real campaign counts and real categories instead of placeholder cards.
+            The web catalog now behaves more like a proper ecosystem radar: real backend projects,
+            real campaign density and cleaner scanability instead of placeholder rows.
           </p>
         </div>
 
@@ -89,15 +89,11 @@ export function ProjectsScreen() {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search projects..."
-            className="w-full rounded-[22px] border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/40 lg:max-w-md"
+            className="glass-button w-full rounded-[22px] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/40 lg:max-w-md"
           />
 
           <div className="flex flex-wrap gap-2">
-            <FilterButton
-              active={filter === "all"}
-              onClick={() => setFilter("all")}
-              label="All"
-            />
+            <FilterButton active={filter === "all"} onClick={() => setFilter("all")} label="All" />
             <FilterButton
               active={filter === "featured"}
               onClick={() => setFilter("featured")}
@@ -127,13 +123,13 @@ export function ProjectsScreen() {
               <Link
                 key={project.id}
                 href={`/projects/${project.id}`}
-                className="rounded-[28px] border border-white/8 bg-black/20 p-5 transition hover:border-cyan-300/30 hover:bg-black/25"
+                className="panel-card rounded-[28px] p-5 transition hover:border-cyan-300/30 hover:bg-black/25"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-lg font-black text-white">{project.name}</p>
                     <p className="mt-2 text-sm text-cyan-200">
-                      {project.chain ?? "Chain not set"} · {project.category ?? "General"}
+                      {project.chain ?? "Chain not set"} • {project.category ?? "General"}
                     </p>
                   </div>
                   <StatusChip
@@ -162,7 +158,7 @@ export function ProjectsScreen() {
 
 function MetricTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+    <div className="metric-card rounded-[24px] p-4">
       <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">{label}</p>
       <p className="mt-3 text-3xl font-black text-white">{value}</p>
     </div>
@@ -171,7 +167,7 @@ function MetricTile({ label, value }: { label: string; value: string }) {
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[20px] border border-white/8 bg-white/[0.03] px-4 py-3">
+    <div className="metric-card rounded-[20px] px-4 py-3">
       <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
       <p className="mt-2 text-sm font-semibold text-white">{value}</p>
     </div>

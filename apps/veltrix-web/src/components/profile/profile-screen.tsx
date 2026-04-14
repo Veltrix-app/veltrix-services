@@ -15,8 +15,7 @@ export function ProfileScreen() {
     loading,
     error,
     projectReputation,
-  } =
-    useLiveUserData();
+  } = useLiveUserData();
 
   return (
     <div className="space-y-6">
@@ -31,8 +30,8 @@ export function ProfileScreen() {
               : "Connected accounts become the switchboard for verification-aware quests."}
           </h3>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-            The profile is now wired to real Supabase auth, profile and linked-account reads, so
-            web parity can grow on top of actual user state.
+            The profile now behaves like a proper operator-grade identity hub: live auth, linked
+            providers, notification pressure and project-specific standing in one place.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
@@ -42,18 +41,24 @@ export function ProfileScreen() {
             >
               Edit profile
             </Link>
+            <Link
+              href="/notifications"
+              className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+            >
+              Open alerts
+            </Link>
           </div>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
-            <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+            <div className="metric-card rounded-[24px] p-4">
               <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">XP</p>
               <p className="mt-3 text-3xl font-black text-white">{profile?.xp ?? 0}</p>
             </div>
-            <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+            <div className="metric-card rounded-[24px] p-4">
               <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">Streak</p>
               <p className="mt-3 text-3xl font-black text-white">{profile?.streak ?? 0}</p>
             </div>
-            <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+            <div className="metric-card rounded-[24px] p-4">
               <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">Trust</p>
               <p className="mt-3 text-3xl font-black text-white">{profile?.trustScore ?? 50}</p>
             </div>
@@ -63,10 +68,10 @@ export function ProfileScreen() {
         <Surface
           eyebrow="Session"
           title="Auth foundation"
-          description="Sprint two replaces the preview profile with the real auth and identity layer."
+          description="The web app is now firmly anchored to the live auth and identity layer."
         >
           <div className="grid gap-4">
-            <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+            <div className="metric-card rounded-[24px] p-4">
               <p className="text-sm font-bold text-white">Supabase client</p>
               <p className="mt-2 text-sm leading-6 text-slate-300">
                 {authConfigured
@@ -74,13 +79,15 @@ export function ProfileScreen() {
                   : "Publishable Supabase envs are still missing, so this route cannot read live account data yet."}
               </p>
             </div>
-            <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+            <div className="metric-card rounded-[24px] p-4">
               <p className="text-sm font-bold text-white">Linked account source</p>
               <p className="mt-2 text-sm leading-6 text-slate-300">
-                Connected accounts read from <code className="rounded bg-white/8 px-1 py-0.5 text-xs">user_connected_accounts</code> and will gate verification-aware quests.
+                Connected accounts read from{" "}
+                <code className="rounded bg-white/8 px-1 py-0.5 text-xs">user_connected_accounts</code>{" "}
+                and gate verification-aware quests.
               </p>
             </div>
-            <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+            <div className="metric-card rounded-[24px] p-4">
               <p className="text-sm font-bold text-white">Notification pressure</p>
               <p className="mt-2 text-sm leading-6 text-slate-300">
                 {unreadNotificationCount} unread updates across {notifications.length} recent events.
@@ -93,7 +100,7 @@ export function ProfileScreen() {
       <Surface
         eyebrow="Connected Accounts"
         title="Provider readiness"
-        description="This is now reading from the real connected-account table instead of preview provider states."
+        description="This now reads from the real connected-account table instead of preview provider states."
       >
         {loading ? (
           <div className="rounded-[28px] border border-white/8 bg-black/20 px-5 py-6 text-sm text-slate-300">
@@ -106,10 +113,7 @@ export function ProfileScreen() {
         ) : connectedAccounts.length > 0 ? (
           <div className="grid gap-4 lg:grid-cols-3">
             {connectedAccounts.map((account) => (
-              <div
-                key={account.id}
-                className="rounded-[28px] border border-white/8 bg-black/20 p-5"
-              >
+              <div key={account.id} className="panel-card rounded-[28px] p-5">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-lg font-black text-white">{account.provider.toUpperCase()}</p>
                   <StatusChip
@@ -117,15 +121,15 @@ export function ProfileScreen() {
                       account.status === "connected"
                         ? "Connected"
                         : account.status === "expired"
-                        ? "Reconnect"
-                        : "Not connected"
+                          ? "Reconnect"
+                          : "Not connected"
                     }
                     tone={
                       account.status === "connected"
                         ? "positive"
                         : account.status === "expired"
-                        ? "warning"
-                        : "default"
+                          ? "warning"
+                          : "default"
                     }
                   />
                 </div>
@@ -135,12 +139,12 @@ export function ProfileScreen() {
                 <p className="mt-4 text-sm leading-6 text-slate-300">
                   Connected {new Date(account.connectedAt).toLocaleDateString("nl-NL")}.
                 </p>
-                <button className="mt-6 rounded-full border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]">
+                <button className="glass-button mt-6 rounded-full px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]">
                   {account.status === "connected"
                     ? `Manage ${account.provider}`
                     : account.status === "expired"
-                    ? `Reconnect ${account.provider}`
-                    : `Connect ${account.provider}`}
+                      ? `Reconnect ${account.provider}`
+                      : `Connect ${account.provider}`}
                 </button>
               </div>
             ))}
@@ -160,10 +164,7 @@ export function ProfileScreen() {
         {projectReputation.length > 0 ? (
           <div className="grid gap-4 xl:grid-cols-2">
             {projectReputation.map((item) => (
-              <div
-                key={item.projectId}
-                className="rounded-[28px] border border-white/8 bg-black/20 p-5"
-              >
+              <div key={item.projectId} className="panel-card rounded-[28px] p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-sm font-semibold text-cyan-200">{item.projectName}</p>
@@ -197,7 +198,7 @@ export function ProfileScreen() {
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[20px] border border-white/8 bg-white/[0.03] px-4 py-3">
+    <div className="metric-card rounded-[20px] px-4 py-3">
       <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
       <p className="mt-2 text-sm font-semibold text-white">{value}</p>
     </div>

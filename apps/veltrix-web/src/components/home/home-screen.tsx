@@ -47,12 +47,39 @@ export function HomeScreen() {
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <button className="rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99]">
+            <Link
+              href={campaigns[0] ? `/campaigns/${campaigns[0].id}` : "/projects"}
+              className="rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99]"
+            >
               {campaigns[0] ? "Resume mission" : "Explore projects"}
-            </button>
-            <button className="rounded-full border border-white/12 bg-white/[0.04] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]">
+            </Link>
+            <Link
+              href="/profile"
+              className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+            >
               Review connected accounts
-            </button>
+            </Link>
+          </div>
+
+          <div className="mt-8 grid gap-3 md:grid-cols-3">
+            <div className="metric-card rounded-[22px] px-4 py-4">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                Missions live
+              </p>
+              <p className="mt-2 text-2xl font-black text-white">{quests.length}</p>
+            </div>
+            <div className="metric-card rounded-[22px] px-4 py-4">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                Signals
+              </p>
+              <p className="mt-2 text-2xl font-black text-white">{notifications.length}</p>
+            </div>
+            <div className="metric-card rounded-[22px] px-4 py-4">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                Reward heat
+              </p>
+              <p className="mt-2 text-2xl font-black text-white">{claimableRewardCount}</p>
+            </div>
           </div>
         </div>
 
@@ -62,22 +89,22 @@ export function HomeScreen() {
           description="A lightweight but high-signal snapshot of where the user stands."
         >
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+            <div className="metric-card rounded-[24px] p-4">
               <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">Tier</p>
               <p className="mt-3 text-3xl font-black text-white">{profile?.contributionTier ?? "Explorer"}</p>
               <p className="mt-2 text-sm text-slate-300">Level {profile?.level ?? 1}</p>
             </div>
-            <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+            <div className="metric-card rounded-[24px] p-4">
               <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">Streak</p>
               <p className="mt-3 text-3xl font-black text-white">{profile?.streak ?? 0}</p>
               <p className="mt-2 text-sm text-slate-300">Current contribution streak</p>
             </div>
-            <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+            <div className="metric-card rounded-[24px] p-4">
               <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">Claimable</p>
               <p className="mt-3 text-3xl font-black text-white">{claimableRewardCount}</p>
               <p className="mt-2 text-sm text-slate-300">Rewards ready to claim</p>
             </div>
-            <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+            <div className="metric-card rounded-[24px] p-4">
               <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">Pending</p>
               <p className="mt-3 text-3xl font-black text-white">{pendingQuestCount}</p>
               <p className="mt-2 text-sm text-slate-300">Quest verifications in motion</p>
@@ -106,7 +133,7 @@ export function HomeScreen() {
                 <Link
                   key={mission.id}
                   href={`/quests/${mission.id}`}
-                  className="rounded-[26px] border border-white/8 bg-black/20 p-5 transition hover:border-lime-300/30 hover:bg-black/25"
+                  className="panel-card rounded-[26px] p-5 transition hover:border-lime-300/30 hover:bg-black/25"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
@@ -152,7 +179,7 @@ export function HomeScreen() {
                 rewardMoments.map((reward) => (
                   <div
                     key={reward.id}
-                    className="flex items-center justify-between gap-4 rounded-[24px] border border-white/8 bg-black/20 px-4 py-4"
+                    className="metric-card flex items-center justify-between gap-4 rounded-[24px] px-4 py-4"
                   >
                     <div>
                       <p className="font-bold text-white">{reward.title}</p>
@@ -182,7 +209,7 @@ export function HomeScreen() {
                 activityFeed.map((item) => (
                   <div
                     key={item.id}
-                    className="rounded-[22px] border border-white/8 bg-black/20 px-4 py-3 text-sm text-slate-200"
+                    className="metric-card rounded-[22px] px-4 py-3 text-sm text-slate-200"
                   >
                     <p className="font-semibold text-white">{item.title}</p>
                     <p className="mt-1 text-slate-300">{item.body}</p>
@@ -208,7 +235,7 @@ export function HomeScreen() {
             projectsPreview.map((project) => (
               <div
                 key={project.id}
-                className="rounded-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-5"
+                className="panel-card rounded-[28px] p-5"
               >
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-lg font-black text-white">{project.name}</p>
@@ -232,15 +259,15 @@ export function HomeScreen() {
         description="These numbers confirm the web shell is reading the same live product surfaces as the mobile app."
       >
         <div className="grid gap-4 sm:grid-cols-3">
-          <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+          <div className="metric-card rounded-[24px] p-4">
             <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">Approved quests</p>
             <p className="mt-3 text-3xl font-black text-white">{approvedQuestCount}</p>
           </div>
-          <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+          <div className="metric-card rounded-[24px] p-4">
             <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">Projects</p>
             <p className="mt-3 text-3xl font-black text-white">{projects.length}</p>
           </div>
-          <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+          <div className="metric-card rounded-[24px] p-4">
             <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">Campaigns</p>
             <p className="mt-3 text-3xl font-black text-white">{campaigns.length}</p>
           </div>

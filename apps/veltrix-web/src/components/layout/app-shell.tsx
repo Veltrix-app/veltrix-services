@@ -63,6 +63,28 @@ export function AppShell({
             </p>
           </div>
 
+          <div className="panel-card mt-8 rounded-[28px] p-4">
+            <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">
+              System read
+            </p>
+            <div className="mt-4 grid gap-3">
+              <div className="metric-card rounded-[20px] px-4 py-3">
+                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                  Surface
+                </p>
+                <p className="mt-2 text-sm font-semibold text-white">Consumer web parity</p>
+              </div>
+              <div className="metric-card rounded-[20px] px-4 py-3">
+                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                  Status
+                </p>
+                <p className="mt-2 text-sm font-semibold text-white">
+                  {accountReady ? "Authenticated" : "Public access shell"}
+                </p>
+              </div>
+            </div>
+          </div>
+
           <nav className="mt-10 space-y-2">
             {navItems.map((item) => {
               if (item.href === "/sign-in" && accountReady) {
@@ -138,7 +160,15 @@ export function AppShell({
                 </p>
               </div>
 
-              <div className="hidden items-center gap-3 sm:flex">
+              <div className="hidden items-center gap-3 lg:flex">
+                <div className="glass-button flex min-w-[250px] items-center gap-3 rounded-full px-4 py-3 text-sm text-slate-300">
+                  <span className="h-2 w-2 rounded-full bg-cyan-300 shadow-[0_0_18px_rgba(34,211,238,0.7)]" />
+                  <span className="truncate">
+                    {accountReady
+                      ? "Live mission state synced from Supabase"
+                      : "Sign in to unlock quest progress and linked identity"}
+                  </span>
+                </div>
                 <div className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-slate-300">
                   {accountReady ? "Live session" : "Public shell"}
                 </div>
@@ -152,9 +182,13 @@ export function AppShell({
           <main className="flex-1 px-5 py-6 sm:px-7 lg:px-10 lg:py-8">{children}</main>
 
           <nav className="sticky bottom-0 z-20 border-t border-white/8 bg-black/45 px-3 py-3 backdrop-blur-xl lg:hidden">
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
               {navItems.map((item) => {
                 if (item.href === "/sign-in" && accountReady) {
+                  return null;
+                }
+
+                if (item.href === "/notifications" && !accountReady) {
                   return null;
                 }
 
