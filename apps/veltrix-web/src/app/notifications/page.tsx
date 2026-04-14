@@ -6,8 +6,8 @@ export default function NotificationsPage() {
   return (
     <AppShell
       eyebrow="Notifications"
-      title="Activity feed"
-      description="Quest approvals, reward updates and live system messages for the signed-in user."
+      title="Signal Center"
+      description="Quest approvals, reward drops and live system pressure for the signed-in pilot."
     >
       <ProtectedState>
         <NotificationsScreen />

@@ -6,8 +6,8 @@ export default function ProfilePage() {
   return (
     <AppShell
       eyebrow="Profile"
-      title="Identity, status and connected accounts"
-      description="The profile is now driven by live auth, linked accounts and real user state."
+      title="Pilot Profile"
+      description="Track live identity, standing, connected systems and signal pressure from one hub."
     >
       <ProtectedState>
         <ProfileScreen />
