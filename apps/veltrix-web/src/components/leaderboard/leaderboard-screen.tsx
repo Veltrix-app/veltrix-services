@@ -17,8 +17,8 @@ export function LeaderboardScreen() {
           Top raiders from live backend data.
         </h3>
         <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-          Web now reads the same live leaderboard surface as mobile, so rankings, XP and current-user
-          highlighting stay consistent across both products.
+          Web now reads the same live leaderboard surface as mobile, but with a more ceremonial,
+          board-like desktop hierarchy for rankings, XP and current-user focus.
         </p>
       </section>
 
@@ -39,12 +39,12 @@ export function LeaderboardScreen() {
                 className={`rounded-[26px] border p-5 ${
                   user.isCurrentUser
                     ? "border-lime-300/30 bg-lime-300/10"
-                    : "border-white/8 bg-black/20"
+                    : "panel-card"
                 }`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] text-lg font-black text-white">
+                    <div className="metric-card flex h-12 w-12 items-center justify-center rounded-full text-lg font-black text-white">
                       {index + 1}
                     </div>
                     <div>

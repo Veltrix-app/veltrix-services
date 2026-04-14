@@ -28,7 +28,7 @@ export function NotificationsScreen() {
           </h3>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
             Quest approvals, verification waits, raids, rewards and system messages now land in the
-            same feed layer as the mobile app.
+            same feed layer as the mobile app, but in a cleaner desktop command-feed format.
           </p>
         </div>
 
@@ -57,10 +57,7 @@ export function NotificationsScreen() {
         ) : notifications.length > 0 ? (
           <div className="space-y-4">
             {notifications.map((item) => (
-              <article
-                key={item.id}
-                className="rounded-[26px] border border-white/8 bg-black/20 p-5"
-              >
+              <article key={item.id} className="panel-card rounded-[26px] p-5">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="text-lg font-black text-white">{item.title}</p>
@@ -91,10 +88,10 @@ export function NotificationsScreen() {
         description="Fast links into the rest of the live web parity layer."
       >
         <div className="flex flex-wrap gap-3">
-          <QuickLink href="/quests" label="Quest flows" disabled />
           <QuickLink href="/raids" label="Raids" />
           <QuickLink href="/leaderboard" label="Leaderboard" />
           <QuickLink href="/profile" label="Profile" />
+          <QuickLink href="/projects" label="Project worlds" />
         </div>
       </Surface>
     </div>
@@ -103,7 +100,7 @@ export function NotificationsScreen() {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+    <div className="metric-card rounded-[24px] p-4">
       <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">{label}</p>
       <p className="mt-3 text-3xl font-black text-white">{value}</p>
     </div>
@@ -113,24 +110,14 @@ function StatCard({ label, value }: { label: string; value: string }) {
 function QuickLink({
   href,
   label,
-  disabled = false,
 }: {
   href: string;
   label: string;
-  disabled?: boolean;
 }) {
-  if (disabled) {
-    return (
-      <span className="rounded-full border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-slate-400">
-        {label}
-      </span>
-    );
-  }
-
   return (
     <Link
       href={href}
-      className="rounded-full border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+      className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
     >
       {label}
     </Link>

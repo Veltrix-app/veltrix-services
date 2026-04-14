@@ -81,8 +81,9 @@ export function CommunityDetailScreen() {
               {currentCommunity.name}
             </h2>
             <p className="mt-3 text-sm text-lime-200">
-              {(currentCommunity.chain ?? "Community")}
-              {currentCommunity.category ? ` · ${currentCommunity.category}` : ""} · {currentCommunity.members.toLocaleString()} members
+              {currentCommunity.chain ?? "Community"}
+              {currentCommunity.category ? ` • ${currentCommunity.category}` : ""} •{" "}
+              {currentCommunity.members.toLocaleString()} members
             </p>
           </div>
           <StatusChip label={joined ? "Joined" : "Explore"} tone={joined ? "positive" : "info"} />
@@ -105,49 +106,49 @@ export function CommunityDetailScreen() {
               href={currentCommunity.website}
               target="_blank"
               rel="noreferrer"
-              className="rounded-full border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+              className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
             >
               Open website
             </a>
           ) : null}
         </div>
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-2">
+        <div className="mt-8 grid gap-4 sm:grid-cols-4">
           <MetricTile label="Reward pool" value={`${highlightedRewards.length} live`} />
           <MetricTile label="Campaigns" value={String(communityCampaigns.length)} />
+          <MetricTile label="Joined" value={joined ? "Yes" : "No"} />
+          <MetricTile label="Trust" value={String(communityReputation?.trustScore ?? 50)} />
         </div>
       </section>
 
-      <Surface
-        eyebrow="Story"
-        title="What this project stands for"
-        description="Web now has the same stronger ecosystem framing as the mobile community screen."
-      >
-        <p className="text-sm leading-7 text-slate-300">
-          {currentCommunity.description ||
-            "This community uses Veltrix to run campaigns, highlight contributors and convert engagement into visible reputation."}
-        </p>
-      </Surface>
+      <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+        <Surface
+          eyebrow="Story"
+          title="What this project stands for"
+          description="Web now has the same stronger ecosystem framing as the mobile community screen."
+        >
+          <p className="text-sm leading-7 text-slate-300">
+            {currentCommunity.description ||
+              "This community uses Veltrix to run campaigns, highlight contributors and convert engagement into visible reputation."}
+          </p>
+        </Surface>
 
-      <Surface
-        eyebrow="Reputation"
-        title="Project reputation"
-        description="Your momentum inside this ecosystem is tracked separately from your global Veltrix score."
-      >
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <MetricTile
-            label="Tier"
-            value={communityReputation ? communityReputation.contributionTier.toUpperCase() : "NOT STARTED"}
-          />
-          <MetricTile label="Rank" value={communityReputation?.rank ? `#${communityReputation.rank}` : "-"} />
-          <MetricTile label="Project XP" value={communityReputation ? communityReputation.xp.toLocaleString() : "0"} />
-          <MetricTile label="Trust" value={String(communityReputation?.trustScore ?? 50)} />
-        </div>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <MetricTile label="Approved quests" value={String(communityReputation?.questsCompleted ?? 0)} />
-          <MetricTile label="Confirmed raids" value={String(communityReputation?.raidsCompleted ?? 0)} />
-        </div>
-      </Surface>
+        <Surface
+          eyebrow="Reputation"
+          title="Project reputation"
+          description="Your momentum inside this ecosystem is tracked separately from your global Veltrix score."
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <MetricTile
+              label="Tier"
+              value={communityReputation ? communityReputation.contributionTier.toUpperCase() : "NOT STARTED"}
+            />
+            <MetricTile label="Rank" value={communityReputation?.rank ? `#${communityReputation.rank}` : "-"} />
+            <MetricTile label="Project XP" value={communityReputation ? communityReputation.xp.toLocaleString() : "0"} />
+            <MetricTile label="Trust" value={String(communityReputation?.trustScore ?? 50)} />
+          </div>
+        </Surface>
+      </div>
 
       <Surface
         eyebrow="Campaigns"
@@ -160,7 +161,7 @@ export function CommunityDetailScreen() {
               <Link
                 key={campaign.id}
                 href={`/campaigns/${campaign.id}`}
-                className="rounded-[26px] border border-white/8 bg-black/20 p-5 transition hover:border-lime-300/30 hover:bg-black/25"
+                className="panel-card rounded-[26px] p-5 transition hover:border-lime-300/30 hover:bg-black/25"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -195,7 +196,7 @@ export function CommunityDetailScreen() {
               <Link
                 key={campaign.id}
                 href={`/campaigns/${campaign.id}`}
-                className="rounded-[26px] border border-white/8 bg-black/20 p-5 transition hover:border-cyan-300/30 hover:bg-black/25"
+                className="panel-card rounded-[26px] p-5 transition hover:border-cyan-300/30 hover:bg-black/25"
               >
                 <p className="text-sm font-semibold text-cyan-200">
                   {campaign.featured ? "Momentum" : "Start here"}
@@ -221,12 +222,12 @@ export function CommunityDetailScreen() {
                 className={`rounded-[26px] border p-5 ${
                   item.isCurrentUser
                     ? "border-lime-300/30 bg-lime-300/10"
-                    : "border-white/8 bg-black/20"
+                    : "panel-card"
                 }`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] text-lg font-black text-white">
+                    <div className="metric-card flex h-12 w-12 items-center justify-center rounded-full text-lg font-black text-white">
                       {item.rank}
                     </div>
                     <div>
@@ -252,7 +253,7 @@ export function CommunityDetailScreen() {
 
 function MetricTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+    <div className="metric-card rounded-[24px] p-4">
       <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">{label}</p>
       <p className="mt-3 text-3xl font-black text-white">{value}</p>
     </div>
@@ -261,7 +262,7 @@ function MetricTile({ label, value }: { label: string; value: string }) {
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[20px] border border-white/8 bg-white/[0.03] px-4 py-3">
+    <div className="metric-card rounded-[20px] px-4 py-3">
       <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
       <p className="mt-2 text-sm font-semibold text-white">{value}</p>
     </div>

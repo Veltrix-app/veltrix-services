@@ -19,7 +19,7 @@ export function RaidsScreen() {
         </h3>
         <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
           The raid layer now ships on web too, with the same live backend rows, timers, reward payouts
-          and instruction loops as mobile.
+          and instruction loops as mobile, but with a cleaner mission-board presentation.
         </p>
       </section>
 
@@ -38,7 +38,7 @@ export function RaidsScreen() {
               <Link
                 key={raid.id}
                 href={`/raids/${raid.id}`}
-                className="overflow-hidden rounded-[28px] border border-white/8 bg-black/20 transition hover:border-rose-300/30 hover:bg-black/25"
+                className="panel-card overflow-hidden rounded-[28px] transition hover:border-rose-300/30 hover:bg-black/25"
               >
                 <div className="h-44 bg-[linear-gradient(135deg,rgba(255,90,90,0.16),rgba(0,0,0,0.18))]">
                   {raid.banner ? (
@@ -74,7 +74,7 @@ export function RaidsScreen() {
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[20px] border border-white/8 bg-white/[0.03] px-4 py-3">
+    <div className="metric-card rounded-[20px] px-4 py-3">
       <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
       <p className="mt-2 text-sm font-semibold text-white">{value}</p>
     </div>

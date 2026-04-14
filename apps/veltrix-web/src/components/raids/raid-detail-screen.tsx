@@ -129,10 +129,11 @@ export function RaidDetailScreen() {
             <StatusChip label={`+${currentRaid.reward} XP`} tone="info" />
           </div>
 
-          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+          <div className="mt-8 grid gap-4 sm:grid-cols-4">
             <MetricTile label="Timer" value={currentRaid.timer} />
             <MetricTile label="Participants" value={String(currentRaid.participants)} />
             <MetricTile label="Progress" value={`${currentRaid.progress}%`} />
+            <MetricTile label="Steps" value={String(currentRaid.instructions.length)} />
           </div>
         </div>
       </section>
@@ -150,7 +151,7 @@ export function RaidDetailScreen() {
               currentRaid.instructions.map((step, index) => (
                 <div
                   key={`${currentRaid.id}-${index}`}
-                  className="flex items-start gap-4 rounded-[24px] border border-white/8 bg-black/20 px-4 py-4"
+                  className="metric-card flex items-start gap-4 rounded-[24px] px-4 py-4"
                 >
                   <div className="flex h-8 w-8 items-center justify-center rounded-full border border-rose-300/30 bg-rose-300/10 text-sm font-black text-rose-200">
                     {index + 1}
@@ -169,13 +170,18 @@ export function RaidDetailScreen() {
           title="Raid completion"
           description="Once the push is done, confirm it to write the live raid completion state."
         >
-          <button
-            onClick={() => void handleConfirm()}
-            disabled={busy}
-            className="rounded-full bg-rose-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {busy ? "Confirming..." : "Confirm raid"}
-          </button>
+          <div className="space-y-4">
+            <div className="metric-card rounded-[24px] p-4 text-sm leading-7 text-slate-300">
+              Confirming a raid writes the completion into the same live progress layer used by the mobile app.
+            </div>
+            <button
+              onClick={() => void handleConfirm()}
+              disabled={busy}
+              className="rounded-full bg-rose-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {busy ? "Confirming..." : "Confirm raid"}
+            </button>
+          </div>
         </Surface>
       </div>
     </div>
@@ -184,7 +190,7 @@ export function RaidDetailScreen() {
 
 function MetricTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+    <div className="metric-card rounded-[24px] p-4">
       <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">{label}</p>
       <p className="mt-3 text-3xl font-black text-white">{value}</p>
     </div>
@@ -204,8 +210,8 @@ function Notice({
         tone === "error"
           ? "border border-rose-400/20 bg-rose-500/10 text-rose-200"
           : tone === "success"
-          ? "border border-lime-300/20 bg-lime-400/10 text-lime-100"
-          : "border border-white/8 bg-black/20 text-slate-300"
+            ? "border border-lime-300/20 bg-lime-400/10 text-lime-100"
+            : "border border-white/8 bg-black/20 text-slate-300"
       }`}
     >
       {text}
