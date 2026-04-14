@@ -9,13 +9,14 @@ import { useLiveUserData } from "@/hooks/use-live-user-data";
 export function ProjectDetailScreen() {
   const params = useParams<{ id: string }>();
   const projectId = Array.isArray(params.id) ? params.id[0] : params.id;
-  const { loading, error, projects, campaigns, rewards } = useLiveUserData();
+  const { loading, error, projects, campaigns, rewards, projectReputation } = useLiveUserData();
 
   const project = projects.find((item) => item.id === projectId);
   const projectCampaigns = campaigns.filter((item) => item.projectId === projectId);
   const projectRewards = rewards.filter((reward) =>
     projectCampaigns.some((campaign) => campaign.id === reward.campaignId)
   );
+  const reputation = projectReputation.find((item) => item.projectId === projectId);
 
   if (loading) {
     return <Notice tone="default" text="Loading project..." />;
@@ -70,6 +71,19 @@ export function ProjectDetailScreen() {
             ? `Website linked: ${project.website}`
             : "No website linked yet. This project is still visible through its active campaign surface."}
         </p>
+      </Surface>
+
+      <Surface
+        eyebrow="Your Standing"
+        title="Project reputation"
+        description="Inside each project, your momentum is tracked separately from your global Veltrix profile."
+      >
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <MetricTile label="Tier" value={reputation ? reputation.contributionTier.toUpperCase() : "NOT STARTED"} />
+          <MetricTile label="Rank" value={reputation?.rank ? `#${reputation.rank}` : "-"} />
+          <MetricTile label="Project XP" value={reputation ? reputation.xp.toLocaleString() : "0"} />
+          <MetricTile label="Trust" value={String(reputation?.trustScore ?? 50)} />
+        </div>
       </Surface>
 
       <Surface

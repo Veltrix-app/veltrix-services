@@ -9,6 +9,7 @@ import type {
   LiveLeaderboardUser,
   LiveNotification,
   LiveProject,
+  LiveProjectReputation,
   LiveQuest,
   LiveRaid,
   LiveReward,
@@ -31,6 +32,7 @@ export function useLiveUserData() {
   const [notifications, setNotifications] = useState<LiveNotification[]>([]);
   const [leaderboard, setLeaderboard] = useState<LiveLeaderboardUser[]>([]);
   const [raids, setRaids] = useState<LiveRaid[]>([]);
+  const [projectReputation, setProjectReputation] = useState<LiveProjectReputation[]>([]);
   const supabase = useMemo(
     () => (authConfigured ? createSupabaseBrowserClient() : null),
     [authConfigured]
@@ -46,6 +48,7 @@ export function useLiveUserData() {
       setNotifications([]);
       setLeaderboard([]);
       setRaids([]);
+      setProjectReputation([]);
       setError(null);
       return;
     }
@@ -63,6 +66,7 @@ export function useLiveUserData() {
       userProgressResult,
       leaderboardResult,
       raidsResult,
+      projectReputationResult,
     ] = await Promise.all([
       supabase
         .from("user_connected_accounts")
@@ -103,6 +107,11 @@ export function useLiveUserData() {
         .select("*")
         .eq("status", "active")
         .order("created_at", { ascending: false }),
+      supabase
+        .from("user_project_reputation")
+        .select("*")
+        .eq("auth_user_id", authUserId)
+        .order("xp", { ascending: false }),
     ]);
 
     const firstError =
@@ -114,7 +123,8 @@ export function useLiveUserData() {
       notificationsResult.error ??
       userProgressResult.error ??
       leaderboardResult.error ??
-      raidsResult.error;
+      raidsResult.error ??
+      projectReputationResult.error;
 
     if (firstError) {
       setError(firstError.message);
@@ -252,6 +262,23 @@ export function useLiveUserData() {
       }))
     );
 
+    setProjectReputation(
+      (projectReputationResult.data ?? []).map((row) => ({
+        projectId: row.project_id,
+        projectName:
+          projectsResult.data?.find((project) => project.id === row.project_id)?.name ?? "Project",
+        xp: row.xp ?? 0,
+        level: row.level ?? 1,
+        streak: row.streak ?? 0,
+        trustScore: row.trust_score ?? 50,
+        contributionTier: row.contribution_tier ?? "explorer",
+        questsCompleted: row.quests_completed ?? 0,
+        raidsCompleted: row.raids_completed ?? 0,
+        rewardsClaimed: row.rewards_claimed ?? 0,
+        rank: row.rank ?? 0,
+      }))
+    );
+
     setLoading(false);
   }
 
@@ -314,6 +341,7 @@ export function useLiveUserData() {
     notifications,
     leaderboard,
     raids,
+    projectReputation,
     ...derived,
     reload,
     markNotificationsRead,

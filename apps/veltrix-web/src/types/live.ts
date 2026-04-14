@@ -84,3 +84,17 @@ export type LiveRaid = {
   banner: string;
   instructions: string[];
 };
+
+export type LiveProjectReputation = {
+  projectId: string;
+  projectName: string;
+  xp: number;
+  level: number;
+  streak: number;
+  trustScore: number;
+  contributionTier: string;
+  questsCompleted: number;
+  raidsCompleted: number;
+  rewardsClaimed: number;
+  rank: number;
+};

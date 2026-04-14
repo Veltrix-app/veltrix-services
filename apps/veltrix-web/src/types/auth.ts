@@ -30,3 +30,13 @@ export type ConnectedAccount = {
   connectedAt: string;
   updatedAt: string;
 };
+
+export type ProfileUpdateInput = {
+  username: string;
+  avatarUrl: string;
+  bannerUrl: string;
+  title: string;
+  faction: string;
+  bio: string;
+  wallet: string;
+};

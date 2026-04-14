@@ -11,7 +11,7 @@ import type { Session } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { publicEnv } from "@/lib/env";
 import { mapProfile } from "@/lib/auth";
-import type { UserProfile } from "@/types/auth";
+import type { ProfileUpdateInput, UserProfile } from "@/types/auth";
 
 type AuthContextValue = {
   initialized: boolean;
@@ -26,6 +26,9 @@ type AuthContextValue = {
     email: string,
     password: string,
     username: string
+  ) => Promise<{ ok: boolean; error?: string }>;
+  updateProfile: (
+    input: ProfileUpdateInput
   ) => Promise<{ ok: boolean; error?: string }>;
   signOut: () => Promise<void>;
   reloadProfile: () => Promise<void>;
@@ -268,6 +271,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   }
 
+  async function updateProfile(input: ProfileUpdateInput) {
+    if (!publicEnv.authConfigured || !supabase || !authUserId) {
+      return { ok: false, error: "You need an active session before updating your profile." };
+    }
+
+    setLoading(true);
+    setError(null);
+
+    const { error: updateError } = await supabase
+      .from("user_profiles")
+      .update({
+        username: input.username,
+        avatar_url: input.avatarUrl,
+        banner_url: input.bannerUrl,
+        title: input.title,
+        faction: input.faction,
+        bio: input.bio,
+        wallet: input.wallet,
+      })
+      .eq("auth_user_id", authUserId);
+
+    if (updateError) {
+      setLoading(false);
+      setError(updateError.message);
+      return { ok: false, error: updateError.message };
+    }
+
+    await reloadProfile();
+    setLoading(false);
+    return { ok: true };
+  }
+
   const value = useMemo<AuthContextValue>(
     () => ({
       initialized,
@@ -279,6 +314,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       authConfigured: publicEnv.authConfigured,
       signIn,
       signUp,
+      updateProfile,
       signOut,
       reloadProfile,
       clearError: () => setError(null),

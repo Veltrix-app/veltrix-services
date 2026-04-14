@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -7,7 +8,14 @@ import { useLiveUserData } from "@/hooks/use-live-user-data";
 
 export function ProfileScreen() {
   const { profile, authConfigured } = useAuth();
-  const { connectedAccounts, notifications, unreadNotificationCount, loading, error } =
+  const {
+    connectedAccounts,
+    notifications,
+    unreadNotificationCount,
+    loading,
+    error,
+    projectReputation,
+  } =
     useLiveUserData();
 
   return (
@@ -26,6 +34,15 @@ export function ProfileScreen() {
             The profile is now wired to real Supabase auth, profile and linked-account reads, so
             web parity can grow on top of actual user state.
           </p>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link
+              href="/profile/edit"
+              className="rounded-full bg-cyan-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99]"
+            >
+              Edit profile
+            </Link>
+          </div>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
             <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
@@ -134,6 +151,55 @@ export function ProfileScreen() {
           </div>
         )}
       </Surface>
+
+      <Surface
+        eyebrow="Reputation"
+        title="Project standing"
+        description="Your global Veltrix score is only half the story. This is the project-level reputation layer that governs ecosystem-specific momentum."
+      >
+        {projectReputation.length > 0 ? (
+          <div className="grid gap-4 xl:grid-cols-2">
+            {projectReputation.map((item) => (
+              <div
+                key={item.projectId}
+                className="rounded-[28px] border border-white/8 bg-black/20 p-5"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-semibold text-cyan-200">{item.projectName}</p>
+                    <p className="mt-2 text-xl font-black text-white">
+                      {item.contributionTier.toUpperCase()}
+                    </p>
+                  </div>
+                  <StatusChip
+                    label={item.rank > 0 ? `#${item.rank}` : "Unranked"}
+                    tone={item.rank > 0 ? "positive" : "default"}
+                  />
+                </div>
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <MiniStat label="Project XP" value={item.xp.toLocaleString()} />
+                  <MiniStat label="Trust" value={String(item.trustScore)} />
+                  <MiniStat label="Approved quests" value={String(item.questsCompleted)} />
+                  <MiniStat label="Confirmed raids" value={String(item.raidsCompleted)} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-[28px] border border-white/8 bg-black/20 px-5 py-6 text-sm text-slate-300">
+            No project-specific reputation yet. Start completing quests and raids to build standing inside each ecosystem.
+          </div>
+        )}
+      </Surface>
+    </div>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[20px] border border-white/8 bg-white/[0.03] px-4 py-3">
+      <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
+      <p className="mt-2 text-sm font-semibold text-white">{value}</p>
     </div>
   );
 }
