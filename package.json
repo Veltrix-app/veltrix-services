@@ -2,10 +2,12 @@
   "name": "veltrix-infra-workspace",
   "private": true,
   "workspaces": [
-    "services/*"
+    "services/*",
+    "apps/*"
   ],
   "scripts": {
-    "typecheck": "npm run typecheck --workspace veltrix-community-bot",
-    "build": "npm run build --workspace veltrix-community-bot"
+    "typecheck": "npm run typecheck --workspace veltrix-community-bot && npm run typecheck --workspace veltrix-web",
+    "build": "npm run build --workspace veltrix-community-bot && npm run build --workspace veltrix-web",
+    "dev:web": "npm run dev --workspace veltrix-web"
   }
 }
