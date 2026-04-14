@@ -3,7 +3,7 @@ import { publicEnv } from "../env";
 
 export function createSupabaseBrowserClient() {
   if (!publicEnv.authConfigured) {
-    return null;
+    throw new Error("Supabase public envs are not configured.");
   }
 
   return createClient(publicEnv.supabaseUrl, publicEnv.supabasePublishableKey, {

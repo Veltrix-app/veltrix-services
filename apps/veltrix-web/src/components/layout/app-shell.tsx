@@ -11,7 +11,7 @@ import {
   ShieldCheck,
   UserRound,
 } from "lucide-react";
-import { publicEnv } from "@/lib/env";
+import { useAuth } from "@/components/providers/auth-provider";
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
@@ -19,6 +19,7 @@ const navItems = [
   { href: "/campaigns", label: "Campaigns", icon: Layers3 },
   { href: "/rewards", label: "Rewards", icon: Gem },
   { href: "/profile", label: "Profile", icon: UserRound },
+  { href: "/sign-in", label: "Access", icon: ShieldCheck },
 ];
 
 function isActivePath(pathname: string, href: string) {
@@ -37,6 +38,9 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { authConfigured, session, profile, signOut } = useAuth();
+  const identityLabel = profile?.username ?? session?.user?.email ?? "Guest";
+  const accountReady = Boolean(session);
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(192,255,0,0.12),_transparent_24%),radial-gradient(circle_at_top_right,_rgba(0,204,255,0.12),_transparent_22%),linear-gradient(180deg,_#071014_0%,_#09131a_45%,_#05090c_100%)] text-white">
@@ -56,6 +60,10 @@ export function AppShell({
 
           <nav className="mt-10 space-y-2">
             {navItems.map((item) => {
+              if (item.href === "/sign-in" && accountReady) {
+                return null;
+              }
+
               const Icon = item.icon;
               const active = isActivePath(pathname, item.href);
 
@@ -81,18 +89,32 @@ export function AppShell({
               <ShieldCheck className="h-5 w-5 text-cyan-300" />
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">
-                  Auth
+                  Session
                 </p>
                 <p className="mt-1 text-sm font-semibold text-white">
-                  {publicEnv.authConfigured ? "Supabase wired" : "Env not configured yet"}
+                  {!authConfigured
+                    ? "Env not configured yet"
+                    : accountReady
+                    ? identityLabel
+                    : "Signed out"}
                 </p>
               </div>
             </div>
             <p className="mt-4 text-sm leading-6 text-slate-300">
-              {publicEnv.authConfigured
-                ? "Next step is wiring live profile, progress and connected account reads."
-                : "Add Supabase publishable envs to switch this shell from preview data to live user sessions."}
+              {!authConfigured
+                ? "Add Supabase publishable envs to switch the webapp on."
+                : accountReady
+                ? "Live auth is active. The next parity sprints can now build fully on real user state."
+                : "Sign in to unlock live profile, connected accounts and mission progress."}
             </p>
+            {accountReady ? (
+              <button
+                onClick={() => void signOut()}
+                className="mt-5 rounded-full border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+              >
+                Sign out
+              </button>
+            ) : null}
           </div>
         </aside>
 
@@ -113,7 +135,7 @@ export function AppShell({
 
               <div className="hidden items-center gap-3 sm:flex">
                 <div className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-slate-300">
-                  Signed-in preview
+                  {accountReady ? "Live session" : "Public shell"}
                 </div>
                 <button className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-200 transition hover:bg-white/[0.08]">
                   <Bell className="h-4 w-4" />
@@ -127,6 +149,10 @@ export function AppShell({
           <nav className="sticky bottom-0 z-20 border-t border-white/8 bg-black/45 px-3 py-3 backdrop-blur-xl lg:hidden">
             <div className="grid grid-cols-5 gap-2">
               {navItems.map((item) => {
+                if (item.href === "/sign-in" && accountReady) {
+                  return null;
+                }
+
                 const Icon = item.icon;
                 const active = isActivePath(pathname, item.href);
 

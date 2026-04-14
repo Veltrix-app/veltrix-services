@@ -1,9 +1,15 @@
-import { connectedAccounts } from "@/lib/demo-data";
-import { publicEnv } from "@/lib/env";
+"use client";
+
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
+import { useAuth } from "@/components/providers/auth-provider";
+import { useLiveUserData } from "@/hooks/use-live-user-data";
 
 export function ProfileScreen() {
+  const { profile, authConfigured } = useAuth();
+  const { connectedAccounts, notifications, unreadNotificationCount, loading, error } =
+    useLiveUserData();
+
   return (
     <div className="space-y-6">
       <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
@@ -12,25 +18,27 @@ export function ProfileScreen() {
             Identity Hub
           </p>
           <h3 className="mt-4 text-3xl font-black tracking-tight text-white sm:text-5xl">
-            Connected accounts become the switchboard for verification-aware quests.
+            {profile
+              ? `${profile.username} now drives web identity from the same live account layer as mobile.`
+              : "Connected accounts become the switchboard for verification-aware quests."}
           </h3>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-            This is the first web version of the user profile: tier, XP, streak, trust posture and
-            provider linking all live in one place so web and mobile can share the same identity layer.
+            The profile is now wired to real Supabase auth, profile and linked-account reads, so
+            web parity can grow on top of actual user state.
           </p>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
             <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
               <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">XP</p>
-              <p className="mt-3 text-3xl font-black text-white">1,480</p>
+              <p className="mt-3 text-3xl font-black text-white">{profile?.xp ?? 0}</p>
             </div>
             <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
               <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">Streak</p>
-              <p className="mt-3 text-3xl font-black text-white">7</p>
+              <p className="mt-3 text-3xl font-black text-white">{profile?.streak ?? 0}</p>
             </div>
             <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
               <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">Trust</p>
-              <p className="mt-3 text-3xl font-black text-white">92</p>
+              <p className="mt-3 text-3xl font-black text-white">{profile?.trustScore ?? 50}</p>
             </div>
           </div>
         </div>
@@ -38,21 +46,27 @@ export function ProfileScreen() {
         <Surface
           eyebrow="Session"
           title="Auth foundation"
-          description="Sprint one wires the auth surface first, then we swap preview data for live Supabase session state."
+          description="Sprint two replaces the preview profile with the real auth and identity layer."
         >
           <div className="grid gap-4">
             <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
               <p className="text-sm font-bold text-white">Supabase client</p>
               <p className="mt-2 text-sm leading-6 text-slate-300">
-                {publicEnv.authConfigured
-                  ? "Publishable Supabase envs are present, so the web app can graduate to live sign-in and user session reads next."
-                  : "Publishable Supabase envs are still missing, so this MVP currently renders preview data for the first shell and profile surfaces."}
+                {authConfigured
+                  ? "Publishable Supabase envs are present and the profile route is already using live session state."
+                  : "Publishable Supabase envs are still missing, so this route cannot read live account data yet."}
               </p>
             </div>
             <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
               <p className="text-sm font-bold text-white">Linked account source</p>
               <p className="mt-2 text-sm leading-6 text-slate-300">
-                Connected accounts will read from <code className="rounded bg-white/8 px-1 py-0.5 text-xs">user_connected_accounts</code> and control which quests can start verification.
+                Connected accounts read from <code className="rounded bg-white/8 px-1 py-0.5 text-xs">user_connected_accounts</code> and will gate verification-aware quests.
+              </p>
+            </div>
+            <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+              <p className="text-sm font-bold text-white">Notification pressure</p>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                {unreadNotificationCount} unread updates across {notifications.length} recent events.
               </p>
             </div>
           </div>
@@ -62,45 +76,63 @@ export function ProfileScreen() {
       <Surface
         eyebrow="Connected Accounts"
         title="Provider readiness"
-        description="This is the first UX pass for identity linking on web: clear states, clear next action, no hidden dependencies."
+        description="This is now reading from the real connected-account table instead of preview provider states."
       >
-        <div className="grid gap-4 lg:grid-cols-3">
-          {connectedAccounts.map((account) => (
-            <div
-              key={account.provider}
-              className="rounded-[28px] border border-white/8 bg-black/20 p-5"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-lg font-black text-white">{account.label}</p>
-                <StatusChip
-                  label={
-                    account.state === "connected"
-                      ? "Connected"
-                      : account.state === "reconnect_needed"
-                      ? "Reconnect"
-                      : "Not connected"
-                  }
-                  tone={
-                    account.state === "connected"
-                      ? "positive"
-                      : account.state === "reconnect_needed"
-                      ? "warning"
-                      : "default"
-                  }
-                />
+        {loading ? (
+          <div className="rounded-[28px] border border-white/8 bg-black/20 px-5 py-6 text-sm text-slate-300">
+            Loading connected accounts...
+          </div>
+        ) : error ? (
+          <div className="rounded-[28px] border border-rose-400/20 bg-rose-500/10 px-5 py-6 text-sm text-rose-200">
+            {error}
+          </div>
+        ) : connectedAccounts.length > 0 ? (
+          <div className="grid gap-4 lg:grid-cols-3">
+            {connectedAccounts.map((account) => (
+              <div
+                key={account.id}
+                className="rounded-[28px] border border-white/8 bg-black/20 p-5"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-lg font-black text-white">{account.provider.toUpperCase()}</p>
+                  <StatusChip
+                    label={
+                      account.status === "connected"
+                        ? "Connected"
+                        : account.status === "expired"
+                        ? "Reconnect"
+                        : "Not connected"
+                    }
+                    tone={
+                      account.status === "connected"
+                        ? "positive"
+                        : account.status === "expired"
+                        ? "warning"
+                        : "default"
+                    }
+                  />
+                </div>
+                <p className="mt-3 text-sm text-cyan-200">
+                  {account.username ?? account.providerUserId}
+                </p>
+                <p className="mt-4 text-sm leading-6 text-slate-300">
+                  Connected {new Date(account.connectedAt).toLocaleDateString("nl-NL")}.
+                </p>
+                <button className="mt-6 rounded-full border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]">
+                  {account.status === "connected"
+                    ? `Manage ${account.provider}`
+                    : account.status === "expired"
+                    ? `Reconnect ${account.provider}`
+                    : `Connect ${account.provider}`}
+                </button>
               </div>
-              <p className="mt-3 text-sm text-cyan-200">{account.handle}</p>
-              <p className="mt-4 text-sm leading-6 text-slate-300">{account.detail}</p>
-              <button className="mt-6 rounded-full border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]">
-                {account.state === "connected"
-                  ? `Manage ${account.label}`
-                  : account.state === "reconnect_needed"
-                  ? `Reconnect ${account.label}`
-                  : `Connect ${account.label}`}
-              </button>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-[28px] border border-white/8 bg-black/20 px-5 py-6 text-sm text-slate-300">
+            No connected accounts yet. Link X, Discord or Telegram before starting provider-verified quests.
+          </div>
+        )}
       </Surface>
     </div>
   );
