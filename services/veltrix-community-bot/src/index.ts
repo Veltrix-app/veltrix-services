@@ -1,6 +1,7 @@
 import express from "express";
 import { env } from "./config/env.js";
 import { healthRouter } from "./http/health.js";
+import { jobsRouter } from "./http/jobs.js";
 import { webhookRouter } from "./http/webhooks.js";
 import { createDiscordClient } from "./providers/discord/client.js";
 import { createTelegramBot } from "./providers/telegram/bot.js";
@@ -9,6 +10,7 @@ async function bootstrap() {
   const app = express();
   app.use(express.json());
   app.use("/health", healthRouter);
+  app.use("/jobs", jobsRouter);
   app.use("/webhooks", webhookRouter);
 
   const discordClient = createDiscordClient();

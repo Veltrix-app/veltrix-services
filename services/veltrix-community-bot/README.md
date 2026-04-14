@@ -26,6 +26,7 @@ This service is responsible for:
 
 - `GET /`
 - `GET /health`
+- `POST /jobs/retry-community-verifications`
 - `POST /webhooks/discord`
 - `POST /webhooks/discord/verify`
 - `POST /webhooks/telegram`
@@ -67,4 +68,4 @@ Copy `.env.example` to `.env` and fill in:
 The next real implementation step after this foundation is:
 - project-side Discord integration setup that stores `guildId`
 - project-side Telegram integration setup that stores `chatId`
-- a worker or cron that re-checks pending Discord requests automatically
+- wire a cron or worker to `POST /jobs/retry-community-verifications`

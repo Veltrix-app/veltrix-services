@@ -63,6 +63,24 @@ export async function verifyDiscordQuestMembership(params: {
     throw new Error("Quest is not configured for Discord integration verification.");
   }
 
+  const { data: approvedSubmission } = await supabaseAdmin
+    .from("quest_submissions")
+    .select("id")
+    .eq("auth_user_id", params.authUserId)
+    .eq("quest_id", quest.id)
+    .eq("status", "approved")
+    .limit(1)
+    .maybeSingle();
+
+  if (approvedSubmission?.id) {
+    return {
+      ok: true,
+      status: "approved" as const,
+      questId: quest.id,
+      message: "Quest was already approved earlier."
+    };
+  }
+
   const [{ data: connectedAccount, error: connectedAccountError }, { data: projectIntegration, error: integrationError }] =
     await Promise.all([
       supabaseAdmin
