@@ -13,6 +13,7 @@ export function HomeScreen() {
     error,
     projects,
     campaigns,
+    raids,
     rewards,
     quests,
     notifications,
@@ -25,10 +26,13 @@ export function HomeScreen() {
   const rewardMoments = rewards.slice(0, 3);
   const activityFeed = notifications.slice(0, 4);
   const projectsPreview = projects.slice(0, 3);
+  const featuredCampaign = campaigns[0];
+  const sideQueue = campaigns.slice(1, 4);
+  const liveRaids = raids.slice(0, 2);
 
   return (
     <div className="space-y-6">
-      <section className="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
+      <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <div className="overflow-hidden rounded-[34px] border border-cyan-300/10 bg-[radial-gradient(circle_at_top_right,rgba(0,204,255,0.12),transparent_20%),linear-gradient(135deg,rgba(192,255,0,0.14),rgba(0,0,0,0)_28%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:p-8">
           <p className="font-display text-[11px] font-bold uppercase tracking-[0.34em] text-lime-300">
             Operative Layer
@@ -48,10 +52,10 @@ export function HomeScreen() {
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link
-              href={campaigns[0] ? `/campaigns/${campaigns[0].id}` : "/projects"}
+              href={featuredCampaign ? `/campaigns/${featuredCampaign.id}` : "/projects"}
               className="rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99]"
             >
-              {campaigns[0] ? "Resume mission" : "Explore projects"}
+              {featuredCampaign ? "Resume mission" : "Explore projects"}
             </Link>
             <Link
               href="/profile"
@@ -83,35 +87,98 @@ export function HomeScreen() {
           </div>
         </div>
 
+        <div className="space-y-4">
+          <Surface
+            eyebrow="Featured Mission"
+            title={featuredCampaign?.title ?? "No featured mission yet"}
+            description={
+              featuredCampaign?.description ??
+              "Once campaigns go live, this column becomes your launcher-style mission focus."
+            }
+          >
+            <div className="space-y-4">
+              <div className="metric-card rounded-[26px] px-5 py-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="font-display text-[11px] uppercase tracking-[0.24em] text-cyan-300">
+                      Hot lane
+                    </p>
+                    <p className="mt-2 text-2xl font-black text-white">
+                      {featuredCampaign ? `${featuredCampaign.xpBudget} XP` : "Stand by"}
+                    </p>
+                    <p className="mt-2 text-sm text-slate-300">
+                      {featuredCampaign ? "Primary route with the strongest current mission pressure." : "No campaign selected."}
+                    </p>
+                  </div>
+                  {featuredCampaign ? (
+                    <StatusChip
+                      label={featuredCampaign.featured ? "Featured" : `${featuredCampaign.completionRate}% live`}
+                      tone={featuredCampaign.featured ? "positive" : "info"}
+                    />
+                  ) : null}
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="metric-card rounded-[24px] p-4">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">Tier</p>
+                  <p className="mt-3 text-3xl font-black text-white">{profile?.contributionTier ?? "Explorer"}</p>
+                  <p className="mt-2 text-sm text-slate-300">Level {profile?.level ?? 1}</p>
+                </div>
+                <div className="metric-card rounded-[24px] p-4">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">Streak</p>
+                  <p className="mt-3 text-3xl font-black text-white">{profile?.streak ?? 0}</p>
+                  <p className="mt-2 text-sm text-slate-300">Current contribution streak</p>
+                </div>
+              </div>
+            </div>
+          </Surface>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {liveRaids.map((raid) => (
+              <Link
+                key={raid.id}
+                href={`/raids/${raid.id}`}
+                className="panel-card rounded-[26px] p-5 transition hover:border-rose-300/30"
+              >
+                <p className="font-display text-[11px] uppercase tracking-[0.24em] text-rose-300">
+                  Live raid
+                </p>
+                <p className="mt-2 text-xl font-black text-white">{raid.title}</p>
+                <p className="mt-2 text-sm text-slate-300">{raid.community}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {sideQueue.length > 0 ? (
         <Surface
-          eyebrow="Progression"
-          title="Momentum stack"
-          description="A lightweight but high-signal snapshot of where the user stands."
+          eyebrow="Quick Queue"
+          title="Next mission lanes"
+          description="A launcher-style queue of live campaign entries you can jump into next."
         >
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="metric-card rounded-[24px] p-4">
-              <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">Tier</p>
-              <p className="mt-3 text-3xl font-black text-white">{profile?.contributionTier ?? "Explorer"}</p>
-              <p className="mt-2 text-sm text-slate-300">Level {profile?.level ?? 1}</p>
-            </div>
-            <div className="metric-card rounded-[24px] p-4">
-              <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">Streak</p>
-              <p className="mt-3 text-3xl font-black text-white">{profile?.streak ?? 0}</p>
-              <p className="mt-2 text-sm text-slate-300">Current contribution streak</p>
-            </div>
-            <div className="metric-card rounded-[24px] p-4">
-              <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">Claimable</p>
-              <p className="mt-3 text-3xl font-black text-white">{claimableRewardCount}</p>
-              <p className="mt-2 text-sm text-slate-300">Rewards ready to claim</p>
-            </div>
-            <div className="metric-card rounded-[24px] p-4">
-              <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">Pending</p>
-              <p className="mt-3 text-3xl font-black text-white">{pendingQuestCount}</p>
-              <p className="mt-2 text-sm text-slate-300">Quest verifications in motion</p>
-            </div>
+          <div className="grid gap-4 xl:grid-cols-3">
+            {sideQueue.map((campaign) => (
+              <Link
+                key={campaign.id}
+                href={`/campaigns/${campaign.id}`}
+                className="panel-card rounded-[26px] p-5 transition hover:border-cyan-300/30"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-lg font-black text-white">{campaign.title}</p>
+                    <p className="mt-2 text-sm text-slate-300">{campaign.description}</p>
+                  </div>
+                  <StatusChip
+                    label={campaign.featured ? "Featured" : `${campaign.completionRate}% live`}
+                    tone={campaign.featured ? "positive" : "info"}
+                  />
+                </div>
+              </Link>
+            ))}
           </div>
         </Surface>
-      </section>
+      ) : null}
 
       <div className="grid gap-6 xl:grid-cols-[1fr_0.95fr]">
         <Surface
