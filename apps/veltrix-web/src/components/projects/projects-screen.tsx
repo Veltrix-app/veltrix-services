@@ -80,9 +80,9 @@ export function ProjectsScreen() {
       </section>
 
       <Surface
-        eyebrow="Filters"
-        title="Project search"
-        description="Filter the live project catalog by name, category, chain or ecosystem readiness."
+        eyebrow="World Browser"
+        title="Project worlds"
+        description="Project cards should feel like selectable worlds inside the grid."
       >
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <input
@@ -106,51 +106,49 @@ export function ProjectsScreen() {
             />
           </div>
         </div>
-      </Surface>
 
-      <Surface
-        eyebrow="Catalog"
-        title="Live projects"
-        description="Every card here is powered by the same project data the mobile app reads."
-      >
-        {loading ? (
-          <EmptyNotice text="Loading live projects..." />
-        ) : error ? (
-          <ErrorNotice text={error} />
-        ) : filteredProjects.length > 0 ? (
-          <div className="grid gap-4 xl:grid-cols-2">
-            {filteredProjects.map((project) => (
-              <Link
-                key={project.id}
-                href={`/projects/${project.id}`}
-                className="panel-card rounded-[28px] p-5 transition hover:border-cyan-300/30 hover:bg-black/25"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-lg font-black text-white">{project.name}</p>
-                    <p className="mt-2 text-sm text-cyan-200">
-                      {project.chain ?? "Chain not set"} • {project.category ?? "General"}
-                    </p>
+        <div className="mt-6">
+          {loading ? (
+            <EmptyNotice text="Loading live projects..." />
+          ) : error ? (
+            <ErrorNotice text={error} />
+          ) : filteredProjects.length > 0 ? (
+            <div className="grid gap-4 xl:grid-cols-2">
+              {filteredProjects.map((project) => (
+                <Link
+                  key={project.id}
+                  href={`/projects/${project.id}`}
+                  className="panel-card rounded-[28px] p-5 transition hover:border-cyan-300/30 hover:bg-black/25"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-lg font-black text-white">{project.name}</p>
+                      <p className="mt-2 text-sm text-cyan-200">
+                        {project.chain ?? "Chain not set"} • {project.category ?? "General"}
+                      </p>
+                    </div>
+                    <div className="shrink-0 self-start">
+                      <StatusChip
+                        label={project.featured ? "Featured" : project.campaignCount > 0 ? "Live" : "Draft"}
+                        tone={project.featured ? "positive" : project.campaignCount > 0 ? "info" : "default"}
+                      />
+                    </div>
                   </div>
-                  <StatusChip
-                    label={project.featured ? "Featured" : project.campaignCount > 0 ? "Live" : "Draft"}
-                    tone={project.featured ? "positive" : project.campaignCount > 0 ? "info" : "default"}
-                  />
-                </div>
 
-                <p className="mt-4 text-sm leading-6 text-slate-300">{project.description}</p>
+                  <p className="mt-4 text-sm leading-6 text-slate-300">{project.description}</p>
 
-                <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                  <MiniStat label="Campaigns" value={String(project.campaignCount)} />
-                  <MiniStat label="Members" value={project.members.toLocaleString()} />
-                  <MiniStat label="Website" value={project.website ? "Linked" : "Missing"} />
-                </div>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <EmptyNotice text="No projects match this filter yet." />
-        )}
+                  <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                    <MiniStat label="Campaigns" value={String(project.campaignCount)} />
+                    <MiniStat label="Members" value={project.members.toLocaleString()} />
+                    <MiniStat label="Website" value={project.website ? "Linked" : "Missing"} />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <EmptyNotice text="No projects match this filter yet." />
+          )}
+        </div>
       </Surface>
     </div>
   );
