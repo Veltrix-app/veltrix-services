@@ -57,10 +57,10 @@ export function AppShell({
               Veltrix // Grid
             </p>
             <h1 className="font-display mt-4 text-3xl font-black tracking-[0.08em] text-white">
-              Raid Console
+              Grid Command
             </h1>
             <p className="mt-3 max-w-[18rem] text-sm leading-6 text-slate-300">
-              Gaming-style operations layer for quests, raids, rewards and linked identity.
+              Live launcher for mission lanes, raid pressure, vault drops and pilot systems.
             </p>
           </div>
 
@@ -121,7 +121,7 @@ export function AppShell({
                 </p>
                 <p className="mt-1 text-sm font-semibold text-white">
                   {!authConfigured
-                    ? "Env not configured yet"
+                    ? "Signal link offline"
                     : accountReady
                     ? identityLabel
                     : "Signed out"}
@@ -130,10 +130,10 @@ export function AppShell({
             </div>
             <p className="mt-4 text-sm leading-6 text-slate-300">
               {!authConfigured
-                ? "Add Supabase publishable envs to switch the webapp on."
+                ? "Wire the live auth signal to bring the grid fully online."
                 : accountReady
-                  ? "Live auth is active. Quest progress, rewards and raids now sync against the same backend state as mobile."
-                  : "Sign in to unlock live profile, connected accounts and mission progress."}
+                  ? "Live sync is online. Missions, raids, rewards and reputation now pull from the same state as mobile."
+                  : "Authenticate your pilot to unlock live progress, linked systems and mission state."}
             </p>
             {accountReady ? (
               <button
@@ -148,12 +148,12 @@ export function AppShell({
 
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="sticky top-0 z-30 border-b border-cyan-300/8 bg-[#041017]/82 px-5 py-4 backdrop-blur-xl sm:px-7 lg:px-10">
-            <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start">
+            <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(320px,420px)] xl:items-start">
               <div className="min-w-0">
                 <p className="font-display text-[11px] font-bold uppercase tracking-[0.34em] text-lime-300">
                   {eyebrow}
                 </p>
-                <h2 className="font-display mt-2 max-w-[14ch] text-balance text-3xl font-black leading-[0.92] tracking-[0.05em] text-white sm:text-4xl xl:max-w-[18ch]">
+                <h2 className="font-display mt-2 max-w-[16ch] text-balance text-3xl font-black leading-[0.92] tracking-[0.05em] text-white sm:text-4xl xl:max-w-[15ch] 2xl:max-w-[18ch]">
                   {title}
                 </h2>
                 <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300 sm:text-base">
@@ -161,12 +161,12 @@ export function AppShell({
                 </p>
               </div>
 
-              <div className="hidden xl:flex xl:flex-col xl:items-end xl:gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="glass-button flex min-w-[320px] items-center gap-3 rounded-full px-4 py-3 text-sm text-slate-300">
+              <div className="hidden xl:flex xl:min-w-0 xl:flex-col xl:gap-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="glass-button flex min-w-0 flex-1 items-center gap-3 rounded-full px-4 py-3 text-sm text-slate-300">
                     <Search className="h-4 w-4 text-slate-400" />
                     <span className="truncate text-slate-400">
-                      Search missions, worlds, rewards...
+                      Search missions, worlds, raids...
                     </span>
                   </div>
                   <button className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-200 transition hover:bg-white/[0.08]">
@@ -174,12 +174,17 @@ export function AppShell({
                   </button>
                 </div>
 
-                <div className="flex items-center justify-end gap-3">
-                  <div className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-slate-300">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="min-w-[112px] rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-center text-xs font-bold uppercase tracking-[0.22em] text-slate-300">
                     {accountReady ? "Live session" : "Public shell"}
                   </div>
-                  <div className="flex h-11 min-w-[152px] items-center justify-between gap-3 rounded-full border border-white/10 bg-white/[0.04] px-4">
-                    <span className="truncate text-sm font-semibold text-white">{identityLabel}</span>
+                  <div className="flex min-w-0 flex-1 items-center justify-between gap-3 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2.5">
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                        Pilot
+                      </p>
+                      <span className="block truncate text-sm font-semibold text-white">{identityLabel}</span>
+                    </div>
                     <span className="h-7 w-7 shrink-0 rounded-full bg-[linear-gradient(135deg,rgba(192,255,0,0.85),rgba(0,204,255,0.6))]" />
                   </div>
                 </div>
@@ -189,7 +194,7 @@ export function AppShell({
                 <div className="glass-button flex min-w-0 flex-1 items-center gap-3 rounded-full px-4 py-3 text-sm text-slate-300">
                   <Search className="h-4 w-4 text-slate-400" />
                   <span className="truncate text-slate-400">
-                    Search missions, worlds, rewards...
+                    Search missions, worlds, raids...
                   </span>
                 </div>
                 <button className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-200 transition hover:bg-white/[0.08]">
