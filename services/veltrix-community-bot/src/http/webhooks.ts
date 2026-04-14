@@ -3,6 +3,7 @@ import { z } from "zod";
 import { confirmDiscordMembership } from "../providers/discord/membership.js";
 import { verifyDiscordQuestMembership } from "../providers/discord/verification.js";
 import { confirmTelegramMembership } from "../providers/telegram/membership.js";
+import { verifyTelegramQuestMembership } from "../providers/telegram/verification.js";
 import { env } from "../config/env.js";
 
 export const webhookRouter = Router();
@@ -22,6 +23,11 @@ const telegramPayloadSchema = z.object({
 });
 
 const discordVerificationSchema = z.object({
+  authUserId: z.string().uuid(),
+  questId: z.string().uuid()
+});
+
+const telegramVerificationSchema = z.object({
   authUserId: z.string().uuid(),
   questId: z.string().uuid()
 });
@@ -105,6 +111,31 @@ webhookRouter.post("/telegram", async (req, res) => {
     return res.status(500).json({
       ok: false,
       error: error instanceof Error ? error.message : "Telegram confirmation failed."
+    });
+  }
+});
+
+webhookRouter.post("/telegram/verify", async (req, res) => {
+  if (!hasValidWebhookSecret(req.header("x-community-bot-secret") ?? undefined)) {
+    return res.status(401).json({ ok: false, error: "Invalid webhook secret." });
+  }
+
+  const parsed = telegramVerificationSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      ok: false,
+      error: "Invalid Telegram verification payload.",
+      details: parsed.error.flatten()
+    });
+  }
+
+  try {
+    const result = await verifyTelegramQuestMembership(parsed.data);
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : "Telegram membership verification failed."
     });
   }
 });
