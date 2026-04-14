@@ -12,6 +12,11 @@ import type {
   LiveReward,
 } from "@/types/live";
 
+type UserProgressRow = {
+  quest_statuses: Record<string, LiveQuest["status"]> | null;
+  claimed_rewards: string[] | null;
+};
+
 export function useLiveUserData() {
   const { authUserId, initialized, authConfigured } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -49,6 +54,7 @@ export function useLiveUserData() {
       rewardsResult,
       questsResult,
       notificationsResult,
+      userProgressResult,
     ] = await Promise.all([
       supabase
         .from("user_connected_accounts")
@@ -73,6 +79,11 @@ export function useLiveUserData() {
         .eq("auth_user_id", authUserId)
         .order("created_at", { ascending: false })
         .limit(12),
+      supabase
+        .from("user_progress")
+        .select("quest_statuses, claimed_rewards")
+        .eq("auth_user_id", authUserId)
+        .maybeSingle(),
     ]);
 
     const firstError =
@@ -81,13 +92,22 @@ export function useLiveUserData() {
       campaignsResult.error ??
       rewardsResult.error ??
       questsResult.error ??
-      notificationsResult.error;
+      notificationsResult.error ??
+      userProgressResult.error;
 
     if (firstError) {
       setError(firstError.message);
       setLoading(false);
       return;
     }
+
+    const questStatuses =
+      ((userProgressResult.data as UserProgressRow | null)?.quest_statuses as
+        | Record<string, LiveQuest["status"]>
+        | null) ?? {};
+    const claimedRewardIds = new Set(
+      ((userProgressResult.data as UserProgressRow | null)?.claimed_rewards ?? []) as string[]
+    );
 
     setConnectedAccounts(
       (connectedAccountsResult.data ?? []).map((row) => ({
@@ -137,7 +157,7 @@ export function useLiveUserData() {
         description: row.description ?? "Reward from backend.",
         cost: row.cost ?? 0,
         rarity: row.rarity ?? "common",
-        claimable: row.claimable ?? false,
+        claimable: (row.claimable ?? false) && !claimedRewardIds.has(row.id),
         rewardType: row.reward_type ?? row.type ?? "reward",
       }))
     );
@@ -145,12 +165,26 @@ export function useLiveUserData() {
     setQuests(
       (questsResult.data ?? []).map((row) => ({
         id: row.id,
+        projectId: row.project_id ?? null,
         campaignId: row.campaign_id ?? null,
         title: row.title ?? "Quest",
-        status: row.status ?? "open",
+        description: row.description ?? "",
+        type: row.type ?? row.quest_type ?? "Task",
+        questType: row.quest_type ?? "custom",
+        status: questStatuses[row.id] ?? row.status ?? "open",
         xp: row.xp ?? 0,
+        actionLabel: row.action_label ?? "Open Task",
+        actionUrl: row.action_url ?? null,
+        proofRequired: row.proof_required ?? false,
+        proofType: row.proof_type ?? "none",
+        verificationType: row.verification_type ?? "manual_review",
         verificationProvider: row.verification_provider ?? null,
-        completionMode: row.completion_mode ?? null,
+        completionMode:
+          row.completion_mode ?? ((row.auto_approve ?? false) ? "rule_auto" : "manual"),
+        verificationConfig:
+          row.verification_config && typeof row.verification_config === "object"
+            ? (row.verification_config as Record<string, unknown>)
+            : null,
       }))
     );
 

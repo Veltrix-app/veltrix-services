@@ -34,12 +34,22 @@ export type LiveReward = {
 
 export type LiveQuest = {
   id: string;
+  projectId: string | null;
   campaignId: string | null;
   title: string;
+  description: string;
+  type: string;
+  questType: string;
   status: "open" | "pending" | "approved" | "rejected";
   xp: number;
+  actionLabel: string | null;
+  actionUrl: string | null;
+  proofRequired: boolean;
+  proofType: string;
+  verificationType: string;
   verificationProvider: string | null;
   completionMode: string | null;
+  verificationConfig: Record<string, unknown> | null;
 };
 
 export type LiveNotification = {

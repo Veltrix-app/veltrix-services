@@ -69,8 +69,9 @@ export function CampaignDetailScreen() {
         {campaignQuests.length > 0 ? (
           <div className="grid gap-4 xl:grid-cols-2">
             {campaignQuests.map((quest) => (
-              <article
+              <Link
                 key={quest.id}
+                href={`/quests/${quest.id}`}
                 className="rounded-[26px] border border-white/8 bg-black/20 p-5"
               >
                 <div className="flex items-start justify-between gap-4">
@@ -99,7 +100,7 @@ export function CampaignDetailScreen() {
                   <MiniStat label="XP" value={`+${quest.xp}`} />
                   <MiniStat label="Mode" value={quest.completionMode ?? "manual"} />
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         ) : (

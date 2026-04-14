@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -102,8 +103,9 @@ export function HomeScreen() {
           ) : activeMissions.length > 0 ? (
             <div className="space-y-4">
               {activeMissions.map((mission) => (
-                <div
+                <Link
                   key={mission.id}
+                  href={`/quests/${mission.id}`}
                   className="rounded-[26px] border border-white/8 bg-black/20 p-5 transition hover:border-lime-300/30 hover:bg-black/25"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3">
@@ -129,7 +131,7 @@ export function HomeScreen() {
                     />
                   </div>
                   <p className="mt-4 text-sm font-semibold text-lime-200">XP payout: +{mission.xp}</p>
-                </div>
+                </Link>
               ))}
             </div>
           ) : (

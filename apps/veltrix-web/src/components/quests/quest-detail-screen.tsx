@@ -1,0 +1,642 @@
+"use client";
+
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import { useParams } from "next/navigation";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { publicEnv } from "@/lib/env";
+import { Surface } from "@/components/ui/surface";
+import { StatusChip } from "@/components/ui/status-chip";
+import { useAuth } from "@/components/providers/auth-provider";
+import { useLiveUserData } from "@/hooks/use-live-user-data";
+
+function getStatusTone(status: string) {
+  if (status === "approved") return "positive";
+  if (status === "pending") return "warning";
+  if (status === "rejected") return "danger";
+  return "info";
+}
+
+function getProofGuidance(params: {
+  proofRequired: boolean;
+  proofType: string;
+  verificationType: string;
+  verificationProvider: string | null;
+  completionMode: string | null;
+  questType: string;
+}) {
+  const {
+    proofRequired,
+    proofType,
+    verificationType,
+    verificationProvider,
+    completionMode,
+    questType,
+  } = params;
+
+  if (
+    questType === "social_follow" &&
+    verificationProvider === "x" &&
+    completionMode === "integration_auto"
+  ) {
+    return "Link your X account, follow the project profile and let Veltrix wait for follow confirmation instead of asking for manual proof.";
+  }
+
+  if (
+    questType === "telegram_join" &&
+    verificationProvider === "telegram" &&
+    completionMode === "integration_auto"
+  ) {
+    return "Link your Telegram account, join the group and let Veltrix wait for membership confirmation instead of asking for manual proof.";
+  }
+
+  if (
+    questType === "discord_join" &&
+    verificationProvider === "discord" &&
+    completionMode === "integration_auto"
+  ) {
+    return "Link your Discord account, join the server and let Veltrix wait for membership confirmation instead of asking for manual proof.";
+  }
+
+  if (
+    questType === "url_visit" &&
+    verificationProvider === "website" &&
+    completionMode === "integration_auto"
+  ) {
+    return "Open the tracked destination and Veltrix will complete this quest automatically after the website visit is confirmed.";
+  }
+
+  if (!proofRequired || proofType === "none") {
+    return "No proof upload is required here. Complete the action and submit when you are done.";
+  }
+
+  if (proofType === "url") {
+    return "Paste the direct URL that proves you completed the action.";
+  }
+
+  if (proofType === "tx_hash") {
+    return "Paste the onchain transaction hash so Veltrix can verify the action cleanly.";
+  }
+
+  if (proofType === "wallet") {
+    return "Use your connected wallet context or paste the relevant wallet address if requested.";
+  }
+
+  if (proofType === "image") {
+    return "Paste a clear screenshot note or image proof reference that a reviewer can understand quickly.";
+  }
+
+  if (questType === "referral" || verificationType === "hybrid") {
+    return "This quest mixes automation and review, so be as explicit as possible in your proof.";
+  }
+
+  return "Add the clearest proof you can so review is fast and predictable.";
+}
+
+async function updateQuestStatus(
+  authUserId: string,
+  questId: string,
+  nextStatus: "pending" | "approved"
+) {
+  const supabase = createSupabaseBrowserClient();
+  const { data: existing } = await supabase
+    .from("user_progress")
+    .select(
+      "joined_communities, confirmed_raids, claimed_rewards, opened_lootbox_ids, unlocked_reward_ids, quest_statuses"
+    )
+    .eq("auth_user_id", authUserId)
+    .maybeSingle();
+
+  const questStatuses =
+    existing?.quest_statuses && typeof existing.quest_statuses === "object"
+      ? (existing.quest_statuses as Record<string, string>)
+      : {};
+
+  const { error } = await supabase.from("user_progress").upsert({
+    auth_user_id: authUserId,
+    joined_communities: existing?.joined_communities ?? [],
+    confirmed_raids: existing?.confirmed_raids ?? [],
+    claimed_rewards: existing?.claimed_rewards ?? [],
+    opened_lootbox_ids: existing?.opened_lootbox_ids ?? [],
+    unlocked_reward_ids: existing?.unlocked_reward_ids ?? [],
+    quest_statuses: {
+      ...questStatuses,
+      [questId]: nextStatus,
+    },
+  });
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function createQuestSubmission(params: {
+  authUserId: string;
+  questId: string;
+  proofText: string;
+  status: "pending" | "approved";
+}) {
+  const supabase = createSupabaseBrowserClient();
+  const { error } = await supabase.from("quest_submissions").insert({
+    auth_user_id: params.authUserId,
+    quest_id: params.questId,
+    proof_text: params.proofText,
+    status: params.status,
+  });
+
+  if (error) {
+    throw error;
+  }
+}
+
+export function QuestDetailScreen() {
+  const params = useParams<{ id: string }>();
+  const questId = Array.isArray(params.id) ? params.id[0] : params.id;
+  const { session, authUserId } = useQuestAuth();
+  const { loading, error, quests, campaigns, rewards, projects, connectedAccounts, reload } =
+    useLiveUserData();
+  const [proof, setProof] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<{ tone: "default" | "error" | "success"; text: string } | null>(
+    null
+  );
+
+  const quest = quests.find((item) => item.id === questId);
+  const linkedCampaign = campaigns.find((item) => item.id === quest?.campaignId);
+  const linkedProject = projects.find((item) => item.id === (quest?.projectId ?? linkedCampaign?.projectId));
+  const linkedRewards = rewards.filter((item) => item.campaignId === quest?.campaignId).slice(0, 3);
+
+  const usesWebsiteVerification =
+    quest?.questType === "url_visit" &&
+    quest.verificationProvider === "website" &&
+    quest.completionMode === "integration_auto";
+  const usesDiscordVerification =
+    quest?.questType === "discord_join" &&
+    quest.verificationProvider === "discord" &&
+    quest.completionMode === "integration_auto";
+  const usesTelegramVerification =
+    quest?.questType === "telegram_join" &&
+    quest.verificationProvider === "telegram" &&
+    quest.completionMode === "integration_auto";
+  const usesXVerification =
+    quest?.questType === "social_follow" &&
+    quest.verificationProvider === "x" &&
+    quest.completionMode === "integration_auto";
+
+  const requiredAccount = useMemo(() => {
+    if (usesDiscordVerification) return "discord";
+    if (usesTelegramVerification) return "telegram";
+    if (usesXVerification) return "x";
+    return null;
+  }, [usesDiscordVerification, usesTelegramVerification, usesXVerification]);
+
+  const providerAccountConnected = requiredAccount
+    ? connectedAccounts.some(
+        (account) => account.provider === requiredAccount && account.status === "connected"
+      )
+    : true;
+
+  if (loading) {
+    return <Notice tone="default" text="Loading quest..." />;
+  }
+
+  if (error) {
+    return <Notice tone="error" text={error} />;
+  }
+
+  if (!quest) {
+    return <Notice tone="default" text="Quest not found." />;
+  }
+
+  const currentQuest = quest;
+
+  const proofGuidance = getProofGuidance({
+    proofRequired: currentQuest.proofRequired,
+    proofType: currentQuest.proofType,
+    verificationType: currentQuest.verificationType,
+    verificationProvider: currentQuest.verificationProvider,
+    completionMode: currentQuest.completionMode,
+    questType: currentQuest.questType,
+  });
+
+  async function handleOpenTask() {
+    if (!currentQuest.actionUrl) {
+      setMessage({
+        tone: "error",
+        text: "This quest does not have a live destination configured yet.",
+      });
+      return;
+    }
+
+    if (!session?.access_token) {
+      setMessage({
+        tone: "error",
+        text: "Please sign in again before starting this verification flow.",
+      });
+      return;
+    }
+
+    if (!providerAccountConnected) {
+      setMessage({
+        tone: "error",
+        text: `Connect ${requiredAccount?.toUpperCase()} first so this quest can verify against the linked account.`,
+      });
+      return;
+    }
+
+    const integrationRoute = usesWebsiteVerification
+      ? "/api/verify/visit"
+      : usesDiscordVerification
+      ? "/api/verify/discord"
+      : usesTelegramVerification
+      ? "/api/verify/telegram"
+      : usesXVerification
+      ? "/api/verify/x-follow"
+      : null;
+
+    setBusy(true);
+    setMessage(null);
+
+    try {
+      if (integrationRoute) {
+        const response = await fetch(`${publicEnv.portalUrl}${integrationRoute}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            questId: currentQuest.id,
+          }),
+        });
+
+        const payload = await response.json().catch(() => null);
+
+        if (!response.ok || !payload?.ok || typeof payload?.targetUrl !== "string") {
+          throw new Error(payload?.error || "Veltrix could not start this verification flow.");
+        }
+
+        if (!usesWebsiteVerification && authUserId) {
+          await createQuestSubmission({
+            authUserId,
+            questId: currentQuest.id,
+            proofText:
+              usesDiscordVerification
+                ? "discord_membership_requested"
+                : usesTelegramVerification
+                ? "telegram_membership_requested"
+                : "x_follow_requested",
+            status: "pending",
+          });
+          await updateQuestStatus(authUserId, currentQuest.id, "pending");
+        }
+
+        if (usesWebsiteVerification) {
+          await reload();
+          setMessage({
+            tone: "success",
+            text: payload?.message || "Website verification completed. Opening the tracked destination now.",
+          });
+        } else {
+          await reload();
+          setMessage({
+            tone: "success",
+            text:
+              payload?.message ||
+              "Verification started. Join the destination and let Veltrix keep this quest pending until confirmation lands.",
+          });
+        }
+
+        window.open(payload.targetUrl, "_blank", "noopener,noreferrer");
+        return;
+      }
+
+      window.open(currentQuest.actionUrl, "_blank", "noopener,noreferrer");
+    } catch (nextError) {
+      setMessage({
+        tone: "error",
+        text:
+          nextError instanceof Error
+            ? nextError.message
+            : "Veltrix could not start this quest action.",
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleSubmit() {
+    if (!authUserId) {
+      setMessage({
+        tone: "error",
+        text: "You need an active session before submitting a quest.",
+      });
+      return;
+    }
+
+    if (usesWebsiteVerification) {
+      setMessage({
+        tone: "default",
+        text: "This quest completes automatically after Veltrix confirms the website visit.",
+      });
+      return;
+    }
+
+    if (currentQuest.status === "approved") {
+      setMessage({
+        tone: "default",
+        text: "This quest is already approved.",
+      });
+      return;
+    }
+
+    if (currentQuest.proofRequired && currentQuest.proofType !== "none" && !proof.trim()) {
+      setMessage({
+        tone: "error",
+        text: "Please add your proof before submitting.",
+      });
+      return;
+    }
+
+    setBusy(true);
+    setMessage(null);
+
+    try {
+      await createQuestSubmission({
+        authUserId,
+        questId: currentQuest.id,
+        proofText: proof.trim(),
+        status: "pending",
+      });
+      await updateQuestStatus(authUserId, currentQuest.id, "pending");
+      await reload();
+      setMessage({
+        tone: "success",
+        text: "Your quest proof has been submitted and is now waiting for verification.",
+      });
+      setProof("");
+    } catch (nextError) {
+      setMessage({
+        tone: "error",
+        text:
+          nextError instanceof Error
+            ? nextError.message
+            : "Veltrix could not submit this quest yet.",
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <section className="overflow-hidden rounded-[34px] border border-white/10 bg-[linear-gradient(135deg,rgba(192,255,0,0.12),rgba(0,204,255,0.1),rgba(0,0,0,0)_34%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:p-8">
+        <p className="text-[11px] font-bold uppercase tracking-[0.34em] text-lime-300">
+          Quest Detail
+        </p>
+        <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 className="text-3xl font-black tracking-tight text-white sm:text-5xl">
+              {currentQuest.title}
+            </h2>
+            <p className="mt-3 text-sm text-lime-200">
+              {linkedProject?.name ?? "Project"}{linkedCampaign ? ` · ${linkedCampaign.title}` : ""}
+            </p>
+          </div>
+          <StatusChip
+            label={currentQuest.status}
+            tone={getStatusTone(currentQuest.status)}
+          />
+        </div>
+        <p className="mt-5 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
+          {currentQuest.description || "No description yet for this quest."}
+        </p>
+
+        <div className="mt-8 grid gap-4 sm:grid-cols-4">
+          <MetricTile label="Type" value={currentQuest.type} />
+          <MetricTile label="XP" value={`+${currentQuest.xp}`} />
+          <MetricTile label="Mode" value={currentQuest.completionMode ?? "manual"} />
+          <MetricTile
+            label="Provider"
+            value={currentQuest.verificationProvider ?? "custom"}
+          />
+        </div>
+      </section>
+
+      {message ? <Notice tone={message.tone} text={message.text} /> : null}
+
+      <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+        <Surface
+          eyebrow="Execution"
+          title="Action flow"
+          description="Open the task, complete the action and let the verification path determine whether this resolves automatically or waits for review."
+        >
+          <div className="space-y-4">
+            <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+              <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">
+                Guidance
+              </p>
+              <p className="mt-3 text-sm leading-7 text-slate-300">{proofGuidance}</p>
+            </div>
+
+            {requiredAccount && !providerAccountConnected ? (
+              <div className="rounded-[24px] border border-amber-400/20 bg-amber-500/10 p-4 text-sm text-amber-100">
+                This quest needs a connected {requiredAccount.toUpperCase()} account before the
+                verification route can start. Link it from{" "}
+                <Link href="/profile" className="font-semibold text-white underline underline-offset-4">
+                  Profile
+                </Link>
+                .
+              </div>
+            ) : null}
+
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={() => void handleOpenTask()}
+                disabled={!currentQuest.actionUrl || busy}
+                className="rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {busy
+                  ? "Processing..."
+                  : currentQuest.actionUrl
+                  ? currentQuest.actionLabel ?? "Open task"
+                  : "No destination yet"}
+              </button>
+
+              {requiredAccount ? (
+                <Link
+                  href="/profile"
+                  className="rounded-full border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+                >
+                  Review connected accounts
+                </Link>
+              ) : null}
+            </div>
+
+            {!usesWebsiteVerification &&
+            !usesDiscordVerification &&
+            !usesTelegramVerification &&
+            !usesXVerification ? (
+              <div className="space-y-4">
+                <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">
+                    Proof / Notes
+                  </p>
+                  <textarea
+                    value={proof}
+                    onChange={(event) => setProof(event.target.value)}
+                    placeholder="Paste proof here..."
+                    className="mt-4 min-h-36 w-full rounded-[22px] border border-white/10 bg-white/[0.03] px-4 py-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-lime-300/50 focus:bg-white/[0.05]"
+                  />
+                </div>
+                <button
+                  onClick={() => void handleSubmit()}
+                  disabled={busy || currentQuest.status === "approved"}
+                  className="rounded-full border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {currentQuest.status === "approved" ? "Quest approved" : "Submit quest"}
+                </button>
+              </div>
+            ) : (
+              <div className="rounded-[24px] border border-white/8 bg-black/20 p-4 text-sm leading-7 text-slate-300">
+                {usesWebsiteVerification
+                  ? "This website quest verifies through a tracked visit and should complete without manual proof."
+                  : usesDiscordVerification
+                  ? "This Discord quest starts with a verification request and then waits for membership confirmation."
+                  : usesTelegramVerification
+                  ? "This Telegram quest starts with a verification request and then waits for membership confirmation."
+                  : "This X quest starts with a verification request and then waits for follow confirmation."}
+              </div>
+            )}
+          </div>
+        </Surface>
+
+        <div className="space-y-6">
+          <Surface
+            eyebrow="Verification"
+            title="Routing state"
+            description="Web uses the same provider-aware verification language as mobile."
+          >
+            <div className="grid gap-4 sm:grid-cols-2">
+              <MiniStat label="Status" value={currentQuest.status} />
+              <MiniStat label="Verification" value={currentQuest.verificationType} />
+              <MiniStat label="Proof" value={currentQuest.proofType} />
+              <MiniStat
+                label="Connected account"
+                value={
+                  requiredAccount
+                    ? providerAccountConnected
+                      ? "Ready"
+                      : "Missing"
+                    : "Not required"
+                }
+              />
+            </div>
+          </Surface>
+
+          {linkedCampaign ? (
+            <Surface
+              eyebrow="Campaign Link"
+              title="Linked campaign"
+              description="See how this quest contributes to the larger mission lane."
+            >
+              <Link
+                href={`/campaigns/${linkedCampaign.id}`}
+                className="block rounded-[26px] border border-white/8 bg-black/20 p-5 transition hover:border-lime-300/30 hover:bg-black/25"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-lg font-black text-white">{linkedCampaign.title}</p>
+                    <p className="mt-2 text-sm text-slate-300">{linkedCampaign.description}</p>
+                  </div>
+                  <StatusChip
+                    label={linkedCampaign.featured ? "Featured" : `${linkedCampaign.completionRate}% live`}
+                    tone={linkedCampaign.featured ? "positive" : "info"}
+                  />
+                </div>
+              </Link>
+            </Surface>
+          ) : null}
+
+          <Surface
+            eyebrow="Reward Outcome"
+            title="What this can unlock"
+            description="Rewards connected to the same campaign loop."
+          >
+            {linkedRewards.length > 0 ? (
+              <div className="space-y-4">
+                {linkedRewards.map((reward) => (
+                  <Link
+                    key={reward.id}
+                    href={`/rewards/${reward.id}`}
+                    className="flex items-start justify-between gap-4 rounded-[24px] border border-white/8 bg-black/20 px-4 py-4 transition hover:border-lime-300/30 hover:bg-black/25"
+                  >
+                    <div>
+                      <p className="font-bold text-white">{reward.title}</p>
+                      <p className="mt-1 text-sm text-slate-300">{reward.description}</p>
+                    </div>
+                    <StatusChip
+                      label={reward.claimable ? "Claimable" : "Locked"}
+                      tone={reward.claimable ? "positive" : "default"}
+                    />
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <Notice tone="default" text="No rewards are linked to this quest yet." />
+            )}
+          </Surface>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function useQuestAuth() {
+  const { session, authUserId } = useAuth();
+
+  return {
+    session,
+    authUserId,
+  };
+}
+
+function MetricTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+      <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">{label}</p>
+      <p className="mt-3 text-3xl font-black capitalize text-white">{value}</p>
+    </div>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[20px] border border-white/8 bg-white/[0.03] px-4 py-3">
+      <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
+      <p className="mt-2 text-sm font-semibold capitalize text-white">{value}</p>
+    </div>
+  );
+}
+
+function Notice({
+  text,
+  tone,
+}: {
+  text: string;
+  tone: "default" | "error" | "success";
+}) {
+  return (
+    <div
+      className={`rounded-[24px] px-4 py-6 text-sm ${
+        tone === "error"
+          ? "border border-rose-400/20 bg-rose-500/10 text-rose-200"
+          : tone === "success"
+          ? "border border-lime-300/20 bg-lime-400/10 text-lime-100"
+          : "border border-white/8 bg-black/20 text-slate-300"
+      }`}
+    >
+      {text}
+    </div>
+  );
+}
