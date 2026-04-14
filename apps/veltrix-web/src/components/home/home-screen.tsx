@@ -43,6 +43,10 @@ export function HomeScreen() {
     <div className="space-y-6">
       <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <div className="overflow-hidden rounded-[36px] border border-cyan-300/10 bg-[radial-gradient(circle_at_85%_18%,rgba(0,204,255,0.2),transparent_18%),radial-gradient(circle_at_15%_0%,rgba(192,255,0,0.16),transparent_26%),linear-gradient(135deg,rgba(10,24,30,0.96),rgba(5,12,16,0.95))] p-6 shadow-[0_30px_90px_rgba(0,0,0,0.3)] sm:p-8">
+          <HeroArtwork
+            src={featuredCampaign?.bannerUrl ?? featuredCampaign?.thumbnailUrl ?? featuredProject?.bannerUrl ?? null}
+            alt={featuredCampaign?.title ?? featuredProject?.name ?? "Veltrix"}
+          />
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="max-w-3xl">
               <p className="font-display text-[11px] font-bold uppercase tracking-[0.34em] text-lime-300">
@@ -128,6 +132,7 @@ export function HomeScreen() {
                   href={`/campaigns/${campaign.id}`}
                   className="panel-card rounded-[26px] p-5 transition hover:border-cyan-300/30"
                 >
+                  <MiniArtwork src={campaign.thumbnailUrl ?? campaign.bannerUrl} alt={campaign.title} accent="cyan" className="mb-4 h-28" />
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-lg font-black text-white">{campaign.title}</p>
@@ -208,12 +213,13 @@ export function HomeScreen() {
             {liveRaids.length > 0 ? (
               <div className="space-y-4">
                 {liveRaids.map((raid) => (
-                  <Link
-                    key={raid.id}
-                    href={`/raids/${raid.id}`}
-                    className="panel-card rounded-[24px] p-4 transition hover:border-rose-300/30"
-                  >
-                    <div className="flex items-start justify-between gap-3">
+                <Link
+                  key={raid.id}
+                  href={`/raids/${raid.id}`}
+                  className="panel-card rounded-[24px] p-4 transition hover:border-rose-300/30"
+                >
+                  <MiniArtwork src={raid.banner} alt={raid.title} accent="rose" className="mb-4 h-24" />
+                  <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="text-sm font-semibold text-rose-200">{raid.community}</p>
                         <p className="mt-1 text-lg font-black text-white">{raid.title}</p>
@@ -241,6 +247,7 @@ export function HomeScreen() {
               {rewardMoments.length > 0 ? (
                 rewardMoments.map((reward) => (
                   <div key={reward.id} className="metric-card rounded-[24px] px-4 py-4">
+                    <MiniArtwork src={reward.imageUrl} alt={reward.title} accent="amber" className="mb-4 h-24" />
                     <div className="flex items-center justify-between gap-4">
                       <div>
                         <p className="font-bold text-white">{reward.title}</p>
@@ -290,6 +297,7 @@ export function HomeScreen() {
             {projectsPreview.length > 0 ? (
               projectsPreview.map((project) => (
                 <Link key={project.id} href={`/projects/${project.id}`} className="panel-card rounded-[28px] p-5 transition hover:border-cyan-300/30">
+                  <MiniArtwork src={project.bannerUrl} alt={project.name} accent="cyan" className="mb-4 h-28" />
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-lg font-black text-white">{project.name}</p>
                     <StatusChip label={project.chain ?? "Live"} tone="info" />
@@ -316,6 +324,50 @@ export function HomeScreen() {
           <FeatureStat label="Campaigns" value={String(campaigns.length)} />
         </div>
       </Surface>
+    </div>
+  );
+}
+
+function HeroArtwork({ src, alt }: { src: string | null; alt: string }) {
+  if (!src) {
+    return null;
+  }
+
+  return (
+    <>
+      <img
+        src={src}
+        alt={alt}
+        className="pointer-events-none absolute right-6 top-6 h-44 w-[38%] rounded-[30px] object-cover opacity-75 shadow-[0_24px_80px_rgba(0,0,0,0.45)] max-xl:hidden"
+      />
+      <div className="pointer-events-none absolute right-4 top-4 h-52 w-[42%] rounded-[36px] bg-[radial-gradient(circle_at_top_left,rgba(0,204,255,0.14),transparent_42%)] max-xl:hidden" />
+    </>
+  );
+}
+
+function MiniArtwork({
+  src,
+  alt,
+  accent,
+  className,
+}: {
+  src: string | null;
+  alt: string;
+  accent: "cyan" | "rose" | "amber";
+  className?: string;
+}) {
+  const accentLayer =
+    accent === "rose"
+      ? "bg-[radial-gradient(circle_at_top_left,rgba(251,113,133,0.24),transparent_42%)]"
+      : accent === "amber"
+        ? "bg-[radial-gradient(circle_at_top_left,rgba(255,196,0,0.24),transparent_42%)]"
+        : "bg-[radial-gradient(circle_at_top_left,rgba(0,204,255,0.24),transparent_42%)]";
+
+  return (
+    <div className={`relative overflow-hidden rounded-[22px] border border-white/10 bg-slate-950/70 ${className ?? "h-24"}`}>
+      {src ? <img src={src} alt={alt} className="absolute inset-0 h-full w-full object-cover opacity-82" /> : null}
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,7,12,0.04),rgba(3,7,12,0.82))]" />
+      <div className={`absolute inset-0 ${accentLayer}`} />
     </div>
   );
 }

@@ -184,6 +184,8 @@ export function useLiveUserData() {
         title: row.title ?? "Campaign",
         description:
           row.short_description ?? row.long_description ?? "Live campaign from backend.",
+        bannerUrl: row.banner_url ?? null,
+        thumbnailUrl: row.thumbnail_url ?? null,
         xpBudget: row.xp_budget ?? 0,
         featured: row.featured ?? false,
         completionRate: row.completion_rate ?? 0,
@@ -197,6 +199,7 @@ export function useLiveUserData() {
         campaignId: row.campaign_id ?? null,
         title: row.title ?? "Reward",
         description: row.description ?? "Reward from backend.",
+        imageUrl: row.image_url ?? null,
         cost: row.cost ?? 0,
         rarity: row.rarity ?? "common",
         claimable: (row.claimable ?? false) && !claimedRewardIds.has(row.id),

@@ -15,6 +15,8 @@ export type LiveCampaign = {
   projectId: string | null;
   title: string;
   description: string;
+  bannerUrl: string | null;
+  thumbnailUrl: string | null;
   xpBudget: number;
   featured: boolean;
   completionRate: number;
@@ -26,6 +28,7 @@ export type LiveReward = {
   campaignId: string | null;
   title: string;
   description: string;
+  imageUrl: string | null;
   cost: number;
   rarity: "common" | "rare" | "epic" | "legendary";
   claimable: boolean;

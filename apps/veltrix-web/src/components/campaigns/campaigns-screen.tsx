@@ -89,6 +89,12 @@ export function CampaignsScreen() {
           {featuredCampaign ? (
             <div className="mt-6 grid gap-6 xl:grid-cols-[1.18fr_0.82fr]">
               <div className="space-y-5">
+                <ArtworkPanel
+                  src={featuredCampaign.bannerUrl ?? featuredCampaign.thumbnailUrl}
+                  alt={featuredCampaign.title}
+                  badge={featuredCampaign.projectName}
+                  className="h-56"
+                />
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="space-y-3">
                     <div className="flex flex-wrap gap-2">
@@ -147,6 +153,7 @@ export function CampaignsScreen() {
                     href={`/campaigns/${campaign.id}`}
                     className="panel-card flex items-center justify-between gap-4 rounded-[24px] p-4 transition hover:border-lime-300/24 hover:bg-black/24"
                   >
+                    <QueueThumb src={campaign.thumbnailUrl ?? campaign.bannerUrl} alt={campaign.title} />
                     <div className="min-w-0">
                       <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-500">
                         Queue {index + 1}
@@ -255,6 +262,12 @@ export function CampaignsScreen() {
                   href={`/campaigns/${campaign.id}`}
                   className="panel-card rounded-[30px] p-5 transition hover:-translate-y-0.5 hover:border-lime-300/28 hover:bg-black/24"
                 >
+                  <ArtworkPanel
+                    src={campaign.bannerUrl ?? campaign.thumbnailUrl}
+                    alt={campaign.title}
+                    badge={campaign.projectName}
+                    className="mb-5 h-40"
+                  />
                   <div className="flex min-h-[94px] items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap gap-2">
@@ -303,6 +316,39 @@ export function CampaignsScreen() {
           )}
         </div>
       </Surface>
+    </div>
+  );
+}
+
+function ArtworkPanel({
+  src,
+  alt,
+  badge,
+  className,
+}: {
+  src: string | null;
+  alt: string;
+  badge: string;
+  className?: string;
+}) {
+  return (
+    <div className={`relative overflow-hidden rounded-[28px] border border-white/10 bg-slate-950/70 ${className ?? "h-44"}`}>
+      {src ? <img src={src} alt={alt} className="absolute inset-0 h-full w-full object-cover opacity-80" /> : null}
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,7,12,0.06),rgba(3,7,12,0.8)_56%,rgba(3,7,12,0.96))]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(192,255,0,0.24),transparent_38%)]" />
+      <div className="absolute left-4 top-4 rounded-full border border-lime-300/20 bg-black/45 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.24em] text-lime-100">
+        {badge}
+      </div>
+    </div>
+  );
+}
+
+function QueueThumb({ src, alt }: { src: string | null; alt: string }) {
+  return (
+    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-[18px] border border-white/10 bg-slate-950/80">
+      {src ? <img src={src} alt={alt} className="absolute inset-0 h-full w-full object-cover opacity-80" /> : null}
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,7,12,0.04),rgba(3,7,12,0.82))]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(192,255,0,0.24),transparent_40%)]" />
     </div>
   );
 }
