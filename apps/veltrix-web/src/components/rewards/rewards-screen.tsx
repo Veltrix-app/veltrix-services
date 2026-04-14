@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
@@ -117,8 +118,9 @@ export function RewardsScreen() {
         ) : filteredRewards.length > 0 ? (
           <div className="grid gap-4 xl:grid-cols-2">
             {filteredRewards.map((reward) => (
-              <article
+              <Link
                 key={reward.id}
+                href={`/rewards/${reward.id}`}
                 className="rounded-[28px] border border-white/8 bg-black/20 p-5 transition hover:border-amber-300/30 hover:bg-black/25"
               >
                 <div className="flex items-start justify-between gap-4">
@@ -139,7 +141,7 @@ export function RewardsScreen() {
                   <MiniStat label="Rarity" value={reward.rarity} />
                   <MiniStat label="Type" value={reward.rewardType} />
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         ) : (
