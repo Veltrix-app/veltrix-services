@@ -1,0 +1,11 @@
+{
+  "name": "veltrix-infra-workspace",
+  "private": true,
+  "workspaces": [
+    "services/*"
+  ],
+  "scripts": {
+    "typecheck": "npm run typecheck --workspace veltrix-community-bot",
+    "build": "npm run build --workspace veltrix-community-bot"
+  }
+}
