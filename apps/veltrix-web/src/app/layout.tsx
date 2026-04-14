@@ -15,7 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Veltrix Web",
-  description: "Consumer mission-control web app for campaigns, quests and rewards.",
+  description:
+    "Consumer mission-control web app for campaigns, quests, rewards and live progress.",
 };
 
 export default function RootLayout({
