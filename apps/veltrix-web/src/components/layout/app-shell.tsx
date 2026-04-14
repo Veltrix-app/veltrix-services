@@ -147,13 +147,13 @@ export function AppShell({
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-20 border-b border-cyan-300/8 bg-[#041017]/72 px-5 py-4 backdrop-blur-xl sm:px-7 lg:px-10">
-            <div className="flex items-center justify-between gap-4">
+          <header className="sticky top-0 z-30 border-b border-cyan-300/8 bg-[#041017]/82 px-5 py-4 backdrop-blur-xl sm:px-7 lg:px-10">
+            <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start">
               <div className="min-w-0">
                 <p className="font-display text-[11px] font-bold uppercase tracking-[0.34em] text-lime-300">
                   {eyebrow}
                 </p>
-                <h2 className="font-display mt-2 truncate text-3xl font-black tracking-[0.05em] text-white sm:text-4xl">
+                <h2 className="font-display mt-2 max-w-[14ch] text-balance text-3xl font-black leading-[0.92] tracking-[0.05em] text-white sm:text-4xl xl:max-w-[18ch]">
                   {title}
                 </h2>
                 <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300 sm:text-base">
@@ -161,23 +161,40 @@ export function AppShell({
                 </p>
               </div>
 
-              <div className="hidden items-center gap-3 lg:flex">
-                <div className="glass-button flex min-w-[280px] items-center gap-3 rounded-full px-4 py-3 text-sm text-slate-300">
+              <div className="hidden xl:flex xl:flex-col xl:items-end xl:gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="glass-button flex min-w-[320px] items-center gap-3 rounded-full px-4 py-3 text-sm text-slate-300">
+                    <Search className="h-4 w-4 text-slate-400" />
+                    <span className="truncate text-slate-400">
+                      Search missions, worlds, rewards...
+                    </span>
+                  </div>
+                  <button className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-200 transition hover:bg-white/[0.08]">
+                    <Bell className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-end gap-3">
+                  <div className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-slate-300">
+                    {accountReady ? "Live session" : "Public shell"}
+                  </div>
+                  <div className="flex h-11 min-w-[152px] items-center justify-between gap-3 rounded-full border border-white/10 bg-white/[0.04] px-4">
+                    <span className="truncate text-sm font-semibold text-white">{identityLabel}</span>
+                    <span className="h-7 w-7 shrink-0 rounded-full bg-[linear-gradient(135deg,rgba(192,255,0,0.85),rgba(0,204,255,0.6))]" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 xl:hidden">
+                <div className="glass-button flex min-w-0 flex-1 items-center gap-3 rounded-full px-4 py-3 text-sm text-slate-300">
                   <Search className="h-4 w-4 text-slate-400" />
                   <span className="truncate text-slate-400">
                     Search missions, worlds, rewards...
                   </span>
                 </div>
-                <div className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-slate-300">
-                  {accountReady ? "Live session" : "Public shell"}
-                </div>
                 <button className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-200 transition hover:bg-white/[0.08]">
                   <Bell className="h-4 w-4" />
                 </button>
-                <div className="flex h-11 min-w-[120px] items-center justify-between rounded-full border border-white/10 bg-white/[0.04] px-4">
-                  <span className="truncate text-sm font-semibold text-white">{identityLabel}</span>
-                  <span className="h-7 w-7 rounded-full bg-[linear-gradient(135deg,rgba(192,255,0,0.85),rgba(0,204,255,0.6))]" />
-                </div>
               </div>
             </div>
           </header>

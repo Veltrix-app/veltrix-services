@@ -108,3 +108,7 @@ body::before {
   padding: 1px;
   opacity: 0.7;
 }
+
+.text-balance {
+  text-wrap: balance;
+}

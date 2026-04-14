@@ -42,17 +42,17 @@ export function HomeScreen() {
   return (
     <div className="space-y-6">
       <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <div className="overflow-hidden rounded-[36px] border border-cyan-300/10 bg-[radial-gradient(circle_at_85%_18%,rgba(0,204,255,0.2),transparent_18%),radial-gradient(circle_at_15%_0%,rgba(192,255,0,0.16),transparent_26%),linear-gradient(135deg,rgba(10,24,30,0.96),rgba(5,12,16,0.95))] p-6 shadow-[0_30px_90px_rgba(0,0,0,0.3)] sm:p-8">
+        <div className="relative overflow-hidden rounded-[36px] border border-cyan-300/10 bg-[radial-gradient(circle_at_85%_18%,rgba(0,204,255,0.2),transparent_18%),radial-gradient(circle_at_15%_0%,rgba(192,255,0,0.16),transparent_26%),linear-gradient(135deg,rgba(10,24,30,0.96),rgba(5,12,16,0.95))] p-6 shadow-[0_30px_90px_rgba(0,0,0,0.3)] sm:p-8">
           <HeroArtwork
             src={featuredCampaign?.bannerUrl ?? featuredCampaign?.thumbnailUrl ?? featuredProject?.bannerUrl ?? null}
             alt={featuredCampaign?.title ?? featuredProject?.name ?? "Veltrix"}
           />
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="max-w-3xl">
+          <div className="relative z-10 flex flex-wrap items-start justify-between gap-4">
+            <div className="max-w-3xl xl:max-w-[58%]">
               <p className="font-display text-[11px] font-bold uppercase tracking-[0.34em] text-lime-300">
                 Featured Mission
               </p>
-              <h3 className="font-display mt-4 max-w-2xl text-3xl font-black tracking-[0.04em] text-white sm:text-5xl">
+              <h3 className="font-display mt-4 max-w-[11ch] text-balance text-3xl font-black leading-[0.92] tracking-[0.04em] text-white sm:max-w-[12ch] sm:text-5xl">
                 {featuredCampaign?.title ?? "Your raid console is armed and waiting."}
               </h3>
               <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
@@ -74,7 +74,7 @@ export function HomeScreen() {
             </div>
           </div>
 
-          <div className="mt-8 flex flex-wrap items-center gap-3">
+          <div className="relative z-10 mt-8 flex flex-wrap items-center gap-3">
             <Link
               href={featuredCampaign ? `/campaigns/${featuredCampaign.id}` : "/projects"}
               className="rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99]"
@@ -89,7 +89,7 @@ export function HomeScreen() {
             </Link>
           </div>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-4">
+          <div className="relative z-10 mt-8 grid gap-4 md:grid-cols-4">
             <FeatureStat label="XP budget" value={featuredCampaign ? String(featuredCampaign.xpBudget) : "0"} />
             <FeatureStat label="Mission queue" value={String(quests.length)} />
             <FeatureStat label="Signals" value={String(notifications.length)} />
@@ -338,9 +338,9 @@ function HeroArtwork({ src, alt }: { src: string | null; alt: string }) {
       <img
         src={src}
         alt={alt}
-        className="pointer-events-none absolute right-6 top-6 h-44 w-[38%] rounded-[30px] object-cover opacity-75 shadow-[0_24px_80px_rgba(0,0,0,0.45)] max-xl:hidden"
+        className="pointer-events-none absolute right-6 top-6 h-[min(18rem,52%)] w-[min(34rem,42%)] rounded-[30px] object-cover opacity-75 shadow-[0_24px_80px_rgba(0,0,0,0.45)] max-xl:hidden"
       />
-      <div className="pointer-events-none absolute right-4 top-4 h-52 w-[42%] rounded-[36px] bg-[radial-gradient(circle_at_top_left,rgba(0,204,255,0.14),transparent_42%)] max-xl:hidden" />
+      <div className="pointer-events-none absolute right-4 top-4 h-[19rem] w-[44%] rounded-[36px] bg-[radial-gradient(circle_at_top_left,rgba(0,204,255,0.14),transparent_42%)] max-xl:hidden" />
     </>
   );
 }
