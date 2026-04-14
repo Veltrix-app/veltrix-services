@@ -260,7 +260,7 @@ export function useLiveUserData() {
         title: row.title ?? "Raid",
         community: row.community ?? "Community",
         timer: row.timer ?? "Live",
-        reward: row.reward ?? 0,
+        reward: row.reward ?? row.reward_xp ?? 0,
         participants: row.participants ?? 0,
         progress: row.progress ?? 0,
         target: row.target ?? "",
