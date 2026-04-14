@@ -61,6 +61,46 @@ export function CampaignDetailScreen() {
         </div>
       </section>
 
+      <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+        <Surface
+          eyebrow="Mission Read"
+          title="Campaign posture"
+          description="This mission lane should read like an active operation, not just a stack of rows."
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <MetricTile label="Project" value={project?.name ?? "Unlinked"} />
+            <MetricTile label="Completion" value={`${campaign.completionRate}%`} />
+            <MetricTile label="Featured" value={campaign.featured ? "Yes" : "No"} />
+            <MetricTile label="Window" value={campaign.endsAt ? "Timed" : "Open"} />
+          </div>
+        </Surface>
+
+        <Surface
+          eyebrow="Action"
+          title="Mission routing"
+          description="Jump directly into the connected project or community context around this campaign."
+        >
+          <div className="flex flex-wrap gap-3">
+            {project ? (
+              <Link
+                href={`/projects/${project.id}`}
+                className="rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99]"
+              >
+                Open project
+              </Link>
+            ) : null}
+            {project ? (
+              <Link
+                href={`/communities/${project.id}`}
+                className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+              >
+                Open community world
+              </Link>
+            ) : null}
+          </div>
+        </Surface>
+      </div>
+
       <Surface
         eyebrow="Quest Flow"
         title="Live quests"
@@ -72,7 +112,7 @@ export function CampaignDetailScreen() {
               <Link
                 key={quest.id}
                 href={`/quests/${quest.id}`}
-                className="rounded-[26px] border border-white/8 bg-black/20 p-5"
+                className="panel-card rounded-[26px] p-5"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -89,10 +129,10 @@ export function CampaignDetailScreen() {
                       quest.status === "approved"
                         ? "positive"
                         : quest.status === "pending"
-                        ? "warning"
-                        : quest.status === "rejected"
-                        ? "danger"
-                        : "info"
+                          ? "warning"
+                          : quest.status === "rejected"
+                            ? "danger"
+                            : "info"
                     }
                   />
                 </div>
@@ -119,7 +159,7 @@ export function CampaignDetailScreen() {
               <Link
                 key={reward.id}
                 href={`/rewards/${reward.id}`}
-                className="rounded-[26px] border border-white/8 bg-black/20 p-5 transition hover:border-lime-300/30 hover:bg-black/25"
+                className="panel-card rounded-[26px] p-5 transition hover:border-lime-300/30 hover:bg-black/25"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -148,7 +188,7 @@ export function CampaignDetailScreen() {
 
 function MetricTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+    <div className="metric-card rounded-[24px] p-4">
       <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">{label}</p>
       <p className="mt-3 text-3xl font-black text-white">{value}</p>
     </div>
@@ -157,7 +197,7 @@ function MetricTile({ label, value }: { label: string; value: string }) {
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[20px] border border-white/8 bg-white/[0.03] px-4 py-3">
+    <div className="metric-card rounded-[20px] px-4 py-3">
       <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
       <p className="mt-2 text-sm font-semibold text-white">{value}</p>
     </div>

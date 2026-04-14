@@ -247,12 +247,12 @@ export function QuestDetailScreen() {
     const integrationRoute = usesWebsiteVerification
       ? "/api/verify/visit"
       : usesDiscordVerification
-      ? "/api/verify/discord"
-      : usesTelegramVerification
-      ? "/api/verify/telegram"
-      : usesXVerification
-      ? "/api/verify/x-follow"
-      : null;
+        ? "/api/verify/discord"
+        : usesTelegramVerification
+          ? "/api/verify/telegram"
+          : usesXVerification
+            ? "/api/verify/x-follow"
+            : null;
 
     setBusy(true);
     setMessage(null);
@@ -284,28 +284,22 @@ export function QuestDetailScreen() {
               usesDiscordVerification
                 ? "discord_membership_requested"
                 : usesTelegramVerification
-                ? "telegram_membership_requested"
-                : "x_follow_requested",
+                  ? "telegram_membership_requested"
+                  : "x_follow_requested",
             status: "pending",
           });
           await updateQuestStatus(authUserId, currentQuest.id, "pending");
         }
 
-        if (usesWebsiteVerification) {
-          await reload();
-          setMessage({
-            tone: "success",
-            text: payload?.message || "Website verification completed. Opening the tracked destination now.",
-          });
-        } else {
-          await reload();
-          setMessage({
-            tone: "success",
-            text:
-              payload?.message ||
-              "Verification started. Join the destination and let Veltrix keep this quest pending until confirmation lands.",
-          });
-        }
+        await reload();
+        setMessage({
+          tone: "success",
+          text:
+            payload?.message ||
+            (usesWebsiteVerification
+              ? "Website verification completed. Opening the tracked destination now."
+              : "Verification started. Join the destination and let Veltrix keep this quest pending until confirmation lands."),
+        });
 
         window.open(payload.targetUrl, "_blank", "noopener,noreferrer");
         return;
@@ -400,13 +394,10 @@ export function QuestDetailScreen() {
               {currentQuest.title}
             </h2>
             <p className="mt-3 text-sm text-lime-200">
-              {linkedProject?.name ?? "Project"}{linkedCampaign ? ` · ${linkedCampaign.title}` : ""}
+              {linkedProject?.name ?? "Project"}{linkedCampaign ? ` • ${linkedCampaign.title}` : ""}
             </p>
           </div>
-          <StatusChip
-            label={currentQuest.status}
-            tone={getStatusTone(currentQuest.status)}
-          />
+          <StatusChip label={currentQuest.status} tone={getStatusTone(currentQuest.status)} />
         </div>
         <p className="mt-5 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
           {currentQuest.description || "No description yet for this quest."}
@@ -416,10 +407,7 @@ export function QuestDetailScreen() {
           <MetricTile label="Type" value={currentQuest.type} />
           <MetricTile label="XP" value={`+${currentQuest.xp}`} />
           <MetricTile label="Mode" value={currentQuest.completionMode ?? "manual"} />
-          <MetricTile
-            label="Provider"
-            value={currentQuest.verificationProvider ?? "custom"}
-          />
+          <MetricTile label="Provider" value={currentQuest.verificationProvider ?? "custom"} />
         </div>
       </section>
 
@@ -432,11 +420,19 @@ export function QuestDetailScreen() {
           description="Open the task, complete the action and let the verification path determine whether this resolves automatically or waits for review."
         >
           <div className="space-y-4">
-            <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+            <div className="metric-card rounded-[24px] p-4">
               <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">
                 Guidance
               </p>
               <p className="mt-3 text-sm leading-7 text-slate-300">{proofGuidance}</p>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <MiniStat label="Quest status" value={currentQuest.status} />
+              <MiniStat
+                label="Account ready"
+                value={requiredAccount ? (providerAccountConnected ? "Ready" : "Missing") : "Not required"}
+              />
             </div>
 
             {requiredAccount && !providerAccountConnected ? (
@@ -459,14 +455,14 @@ export function QuestDetailScreen() {
                 {busy
                   ? "Processing..."
                   : currentQuest.actionUrl
-                  ? currentQuest.actionLabel ?? "Open task"
-                  : "No destination yet"}
+                    ? currentQuest.actionLabel ?? "Open task"
+                    : "No destination yet"}
               </button>
 
               {requiredAccount ? (
                 <Link
                   href="/profile"
-                  className="rounded-full border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+                  className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
                 >
                   Review connected accounts
                 </Link>
@@ -478,7 +474,7 @@ export function QuestDetailScreen() {
             !usesTelegramVerification &&
             !usesXVerification ? (
               <div className="space-y-4">
-                <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+                <div className="metric-card rounded-[24px] p-4">
                   <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">
                     Proof / Notes
                   </p>
@@ -492,20 +488,20 @@ export function QuestDetailScreen() {
                 <button
                   onClick={() => void handleSubmit()}
                   disabled={busy || currentQuest.status === "approved"}
-                  className="rounded-full border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {currentQuest.status === "approved" ? "Quest approved" : "Submit quest"}
                 </button>
               </div>
             ) : (
-              <div className="rounded-[24px] border border-white/8 bg-black/20 p-4 text-sm leading-7 text-slate-300">
+              <div className="metric-card rounded-[24px] p-4 text-sm leading-7 text-slate-300">
                 {usesWebsiteVerification
                   ? "This website quest verifies through a tracked visit and should complete without manual proof."
                   : usesDiscordVerification
-                  ? "This Discord quest starts with a verification request and then waits for membership confirmation."
-                  : usesTelegramVerification
-                  ? "This Telegram quest starts with a verification request and then waits for membership confirmation."
-                  : "This X quest starts with a verification request and then waits for follow confirmation."}
+                    ? "This Discord quest starts with a verification request and then waits for membership confirmation."
+                    : usesTelegramVerification
+                      ? "This Telegram quest starts with a verification request and then waits for membership confirmation."
+                      : "This X quest starts with a verification request and then waits for follow confirmation."}
               </div>
             )}
           </div>
@@ -524,11 +520,7 @@ export function QuestDetailScreen() {
               <MiniStat
                 label="Connected account"
                 value={
-                  requiredAccount
-                    ? providerAccountConnected
-                      ? "Ready"
-                      : "Missing"
-                    : "Not required"
+                  requiredAccount ? (providerAccountConnected ? "Ready" : "Missing") : "Not required"
                 }
               />
             </div>
@@ -542,7 +534,7 @@ export function QuestDetailScreen() {
             >
               <Link
                 href={`/campaigns/${linkedCampaign.id}`}
-                className="block rounded-[26px] border border-white/8 bg-black/20 p-5 transition hover:border-lime-300/30 hover:bg-black/25"
+                className="panel-card block rounded-[26px] p-5 transition hover:border-lime-300/30 hover:bg-black/25"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -569,7 +561,7 @@ export function QuestDetailScreen() {
                   <Link
                     key={reward.id}
                     href={`/rewards/${reward.id}`}
-                    className="flex items-start justify-between gap-4 rounded-[24px] border border-white/8 bg-black/20 px-4 py-4 transition hover:border-lime-300/30 hover:bg-black/25"
+                    className="metric-card flex items-start justify-between gap-4 rounded-[24px] px-4 py-4 transition hover:border-lime-300/30 hover:bg-black/25"
                   >
                     <div>
                       <p className="font-bold text-white">{reward.title}</p>
@@ -603,7 +595,7 @@ function useQuestAuth() {
 
 function MetricTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+    <div className="metric-card rounded-[24px] p-4">
       <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">{label}</p>
       <p className="mt-3 text-3xl font-black capitalize text-white">{value}</p>
     </div>
@@ -612,7 +604,7 @@ function MetricTile({ label, value }: { label: string; value: string }) {
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[20px] border border-white/8 bg-white/[0.03] px-4 py-3">
+    <div className="metric-card rounded-[20px] px-4 py-3">
       <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
       <p className="mt-2 text-sm font-semibold capitalize text-white">{value}</p>
     </div>
@@ -632,8 +624,8 @@ function Notice({
         tone === "error"
           ? "border border-rose-400/20 bg-rose-500/10 text-rose-200"
           : tone === "success"
-          ? "border border-lime-300/20 bg-lime-400/10 text-lime-100"
-          : "border border-white/8 bg-black/20 text-slate-300"
+            ? "border border-lime-300/20 bg-lime-400/10 text-lime-100"
+            : "border border-white/8 bg-black/20 text-slate-300"
       }`}
     >
       {text}

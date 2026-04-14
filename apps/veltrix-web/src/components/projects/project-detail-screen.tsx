@@ -42,7 +42,7 @@ export function ProjectDetailScreen() {
               {project.name}
             </h2>
             <p className="mt-3 text-sm text-cyan-200">
-              {project.chain ?? "Chain not set"} · {project.category ?? "General"}
+              {project.chain ?? "Chain not set"} • {project.category ?? "General"}
             </p>
           </div>
           <StatusChip
@@ -54,45 +54,66 @@ export function ProjectDetailScreen() {
           {project.description}
         </p>
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-3">
+        <div className="mt-8 grid gap-4 sm:grid-cols-4">
           <MetricTile label="Members" value={project.members.toLocaleString()} />
           <MetricTile label="Campaigns" value={String(projectCampaigns.length)} />
           <MetricTile label="Rewards" value={String(projectRewards.length)} />
+          <MetricTile label="Website" value={project.website ? "Linked" : "Missing"} />
         </div>
       </section>
 
-      <Surface
-        eyebrow="Project Story"
-        title="Public profile"
-        description="The web detail surface gives each project a clearer branded mission-world feel."
-      >
-        <p className="text-sm leading-7 text-slate-300">
-          {project.website
-            ? `Website linked: ${project.website}`
-            : "No website linked yet. This project is still visible through its active campaign surface."}
-        </p>
-        <div className="mt-5">
-          <Link
-            href={`/communities/${project.id}`}
-            className="rounded-full border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
-          >
-            Open community world
-          </Link>
-        </div>
-      </Surface>
+      <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+        <Surface
+          eyebrow="Project Story"
+          title="Public profile"
+          description="The detail surface should make each project feel like a world with its own gravity."
+        >
+          <div className="space-y-4">
+            <div className="metric-card rounded-[24px] p-4">
+              <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-500">
+                Website
+              </p>
+              <p className="mt-3 text-sm leading-7 text-slate-300">
+                {project.website
+                  ? project.website
+                  : "No website linked yet. This project is still visible through its active campaign surface."}
+              </p>
+            </div>
 
-      <Surface
-        eyebrow="Your Standing"
-        title="Project reputation"
-        description="Inside each project, your momentum is tracked separately from your global Veltrix profile."
-      >
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <MetricTile label="Tier" value={reputation ? reputation.contributionTier.toUpperCase() : "NOT STARTED"} />
-          <MetricTile label="Rank" value={reputation?.rank ? `#${reputation.rank}` : "-"} />
-          <MetricTile label="Project XP" value={reputation ? reputation.xp.toLocaleString() : "0"} />
-          <MetricTile label="Trust" value={String(reputation?.trustScore ?? 50)} />
-        </div>
-      </Surface>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href={`/communities/${project.id}`}
+                className="rounded-full bg-cyan-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99]"
+              >
+                Open community world
+              </Link>
+              {project.website ? (
+                <a
+                  href={project.website}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+                >
+                  Visit website
+                </a>
+              ) : null}
+            </div>
+          </div>
+        </Surface>
+
+        <Surface
+          eyebrow="Your Standing"
+          title="Project reputation"
+          description="Inside each project, your momentum is tracked separately from your global Veltrix profile."
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <MetricTile label="Tier" value={reputation ? reputation.contributionTier.toUpperCase() : "NOT STARTED"} />
+            <MetricTile label="Rank" value={reputation?.rank ? `#${reputation.rank}` : "-"} />
+            <MetricTile label="Project XP" value={reputation ? reputation.xp.toLocaleString() : "0"} />
+            <MetricTile label="Trust" value={String(reputation?.trustScore ?? 50)} />
+          </div>
+        </Surface>
+      </div>
 
       <Surface
         eyebrow="Campaigns"
@@ -105,7 +126,7 @@ export function ProjectDetailScreen() {
               <Link
                 key={campaign.id}
                 href={`/campaigns/${campaign.id}`}
-                className="rounded-[26px] border border-white/8 bg-black/20 p-5 transition hover:border-cyan-300/30 hover:bg-black/25"
+                className="panel-card rounded-[26px] p-5 transition hover:border-cyan-300/30 hover:bg-black/25"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -143,7 +164,7 @@ export function ProjectDetailScreen() {
               <Link
                 key={reward.id}
                 href={`/rewards/${reward.id}`}
-                className="rounded-[26px] border border-white/8 bg-black/20 p-5 transition hover:border-cyan-300/30 hover:bg-black/25"
+                className="panel-card rounded-[26px] p-5 transition hover:border-cyan-300/30 hover:bg-black/25"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -172,7 +193,7 @@ export function ProjectDetailScreen() {
 
 function MetricTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+    <div className="metric-card rounded-[24px] p-4">
       <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">{label}</p>
       <p className="mt-3 text-3xl font-black text-white">{value}</p>
     </div>
@@ -181,7 +202,7 @@ function MetricTile({ label, value }: { label: string; value: string }) {
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[20px] border border-white/8 bg-white/[0.03] px-4 py-3">
+    <div className="metric-card rounded-[20px] px-4 py-3">
       <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
       <p className="mt-2 text-sm font-semibold text-white">{value}</p>
     </div>

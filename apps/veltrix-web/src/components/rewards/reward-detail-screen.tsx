@@ -39,7 +39,7 @@ export function RewardDetailScreen() {
               {reward.title}
             </h2>
             <p className="mt-3 text-sm text-amber-200">
-              {project?.name ?? "Project"}{campaign ? ` · ${campaign.title}` : ""}
+              {project?.name ?? "Project"}{campaign ? ` • ${campaign.title}` : ""}
             </p>
           </div>
           <StatusChip
@@ -51,24 +51,60 @@ export function RewardDetailScreen() {
           {reward.description}
         </p>
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-3">
+        <div className="mt-8 grid gap-4 sm:grid-cols-4">
           <MetricTile label="Cost" value={`${reward.cost} XP`} />
           <MetricTile label="Rarity" value={reward.rarity} />
           <MetricTile label="Type" value={reward.rewardType} />
+          <MetricTile label="State" value={reward.claimable ? "Ready" : "Locked"} />
         </div>
       </section>
 
-      <Surface
-        eyebrow="Claim Readiness"
-        title="Reward status"
-        description="A cleaner web detail view for payoff, eligibility and linked mission context."
-      >
-        <div className="grid gap-4 sm:grid-cols-3">
-          <MetricTile label="State" value={reward.claimable ? "Claimable" : "Locked"} />
-          <MetricTile label="Campaign" value={campaign ? "Linked" : "Direct"} />
-          <MetricTile label="Project" value={project ? "Linked" : "Unknown"} />
-        </div>
-      </Surface>
+      <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+        <Surface
+          eyebrow="Claim Readiness"
+          title="Reward status"
+          description="A cleaner detail view for payoff, eligibility and linked mission context."
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <MetricTile label="State" value={reward.claimable ? "Claimable" : "Locked"} />
+            <MetricTile label="Campaign" value={campaign ? "Linked" : "Direct"} />
+            <MetricTile label="Project" value={project ? "Linked" : "Unknown"} />
+            <MetricTile label="Rarity" value={reward.rarity} />
+          </div>
+        </Surface>
+
+        <Surface
+          eyebrow="Action"
+          title="Next move"
+          description="Rewards should communicate what to do next instead of just repeating metadata."
+        >
+          <div className="space-y-4">
+            <div className="metric-card rounded-[24px] p-4 text-sm leading-7 text-slate-300">
+              {reward.claimable
+                ? "This reward is now in reach on web. The next iteration should wire the final live claim action into this surface."
+                : "This reward is still locked. Keep progressing in the linked campaign and quest flow to move it into claimable territory."}
+            </div>
+            <div className="flex flex-wrap gap-3">
+              {campaign ? (
+                <Link
+                  href={`/campaigns/${campaign.id}`}
+                  className="rounded-full bg-amber-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99]"
+                >
+                  Open linked campaign
+                </Link>
+              ) : null}
+              {project ? (
+                <Link
+                  href={`/projects/${project.id}`}
+                  className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+                >
+                  Open project
+                </Link>
+              ) : null}
+            </div>
+          </div>
+        </Surface>
+      </div>
 
       {campaign ? (
         <Surface
@@ -78,7 +114,7 @@ export function RewardDetailScreen() {
         >
           <Link
             href={`/campaigns/${campaign.id}`}
-            className="block rounded-[26px] border border-white/8 bg-black/20 p-5 transition hover:border-amber-300/30 hover:bg-black/25"
+            className="panel-card block rounded-[26px] p-5 transition hover:border-amber-300/30 hover:bg-black/25"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -106,7 +142,7 @@ export function RewardDetailScreen() {
 
 function MetricTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+    <div className="metric-card rounded-[24px] p-4">
       <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">{label}</p>
       <p className="mt-3 text-3xl font-black text-white">{value}</p>
     </div>
@@ -115,7 +151,7 @@ function MetricTile({ label, value }: { label: string; value: string }) {
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[20px] border border-white/8 bg-white/[0.03] px-4 py-3">
+    <div className="metric-card rounded-[20px] px-4 py-3">
       <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
       <p className="mt-2 text-sm font-semibold text-white">{value}</p>
     </div>
