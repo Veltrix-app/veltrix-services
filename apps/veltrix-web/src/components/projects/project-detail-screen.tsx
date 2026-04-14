@@ -18,65 +18,62 @@ export function ProjectDetailScreen() {
   );
   const reputation = projectReputation.find((item) => item.projectId === projectId);
 
-  if (loading) {
-    return <Notice tone="default" text="Loading project..." />;
-  }
-
-  if (error) {
-    return <Notice tone="error" text={error} />;
-  }
-
-  if (!project) {
-    return <Notice tone="default" text="Project not found." />;
-  }
+  if (loading) return <Notice tone="default" text="Loading world..." />;
+  if (error) return <Notice tone="error" text={error} />;
+  if (!project) return <Notice tone="default" text="World not found." />;
 
   return (
     <div className="space-y-6">
-      <section className="overflow-hidden rounded-[34px] border border-white/10 bg-[linear-gradient(135deg,rgba(0,204,255,0.12),rgba(0,0,0,0)_28%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:p-8">
-        <p className="text-[11px] font-bold uppercase tracking-[0.34em] text-cyan-300">
-          Project Detail
-        </p>
-        <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h2 className="text-3xl font-black tracking-tight text-white sm:text-5xl">
-              {project.name}
-            </h2>
-            <p className="mt-3 text-sm text-cyan-200">
-              {project.chain ?? "Chain not set"} • {project.category ?? "General"}
-            </p>
+      <section className="overflow-hidden rounded-[38px] border border-white/10 bg-[linear-gradient(135deg,rgba(0,204,255,0.12),rgba(0,0,0,0)_28%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
+        {project.bannerUrl ? (
+          <div className="relative h-64 bg-[linear-gradient(135deg,rgba(0,204,255,0.14),rgba(0,0,0,0.18))]">
+            <img src={project.bannerUrl} alt={project.name} className="h-full w-full object-cover opacity-80" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
           </div>
-          <StatusChip
-            label={projectCampaigns.length > 0 ? "Live ecosystem" : "Public profile"}
-            tone={projectCampaigns.length > 0 ? "positive" : "info"}
-          />
-        </div>
-        <p className="mt-5 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
-          {project.description}
-        </p>
+        ) : null}
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-4">
-          <MetricTile label="Members" value={project.members.toLocaleString()} />
-          <MetricTile label="Campaigns" value={String(projectCampaigns.length)} />
-          <MetricTile label="Rewards" value={String(projectRewards.length)} />
-          <MetricTile label="Website" value={project.website ? "Linked" : "Missing"} />
+        <div className="p-6 sm:p-8">
+          <p className="text-[11px] font-bold uppercase tracking-[0.34em] text-cyan-300">World Detail</p>
+          <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
+            <div className="max-w-[14ch]">
+              <h2 className="font-display text-balance text-[clamp(2.2rem,4vw,4.5rem)] font-black leading-[0.92] tracking-[0.04em] text-white">
+                {project.name}
+              </h2>
+              <p className="mt-3 text-sm text-cyan-200">
+                {project.chain ?? "Chain not set"} • {project.category ?? "General"}
+              </p>
+            </div>
+            <StatusChip
+              label={projectCampaigns.length > 0 ? "Live ecosystem" : "Public world"}
+              tone={projectCampaigns.length > 0 ? "positive" : "info"}
+            />
+          </div>
+          <p className="mt-5 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
+            {project.description}
+          </p>
+
+          <div className="mt-8 grid gap-4 sm:grid-cols-4">
+            <MetricTile label="Members" value={project.members.toLocaleString()} />
+            <MetricTile label="Campaigns" value={String(projectCampaigns.length)} />
+            <MetricTile label="Rewards" value={String(projectRewards.length)} />
+            <MetricTile label="Website" value={project.website ? "Linked" : "Missing"} />
+          </div>
         </div>
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <Surface
-          eyebrow="Project Story"
-          title="Public profile"
-          description="The detail surface should make each project feel like a world with its own gravity."
+          eyebrow="World Story"
+          title="Ecosystem posture"
+          description="This world should feel alive, connected and worth entering."
         >
           <div className="space-y-4">
             <div className="metric-card rounded-[24px] p-4">
-              <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-500">
-                Website
-              </p>
+              <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-500">Website</p>
               <p className="mt-3 text-sm leading-7 text-slate-300">
                 {project.website
                   ? project.website
-                  : "No website linked yet. This project is still visible through its active campaign surface."}
+                  : "No website linked yet. This world is still visible through its live campaign surface."}
               </p>
             </div>
 
@@ -103,8 +100,8 @@ export function ProjectDetailScreen() {
 
         <Surface
           eyebrow="Your Standing"
-          title="Project reputation"
-          description="Inside each project, your momentum is tracked separately from your global Veltrix profile."
+          title="World reputation"
+          description="Your momentum compounds separately inside each world."
         >
           <div className="grid gap-4 sm:grid-cols-2">
             <MetricTile label="Tier" value={reputation ? reputation.contributionTier.toUpperCase() : "NOT STARTED"} />
@@ -116,9 +113,9 @@ export function ProjectDetailScreen() {
       </div>
 
       <Surface
-        eyebrow="Campaigns"
-        title="Live campaigns"
-        description="All campaigns currently tied to this project."
+        eyebrow="Live Campaigns"
+        title="Mission lanes in this world"
+        description="Campaign lanes currently active inside this world."
       >
         {projectCampaigns.length > 0 ? (
           <div className="grid gap-4 xl:grid-cols-2">
@@ -126,7 +123,7 @@ export function ProjectDetailScreen() {
               <Link
                 key={campaign.id}
                 href={`/campaigns/${campaign.id}`}
-                className="panel-card rounded-[26px] p-5 transition hover:border-cyan-300/30 hover:bg-black/25"
+                className="panel-card rounded-[30px] p-5 transition hover:border-cyan-300/30 hover:bg-black/25"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -134,29 +131,26 @@ export function ProjectDetailScreen() {
                     <p className="mt-2 text-sm text-slate-300">{campaign.description}</p>
                   </div>
                   <StatusChip
-                    label={campaign.featured ? "Featured" : `${campaign.completionRate}% live`}
+                    label={campaign.featured ? "Prime" : `${campaign.completionRate}% live`}
                     tone={campaign.featured ? "positive" : "info"}
                   />
                 </div>
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
                   <MiniStat label="XP budget" value={String(campaign.xpBudget)} />
-                  <MiniStat
-                    label="Ends"
-                    value={campaign.endsAt ? new Date(campaign.endsAt).toLocaleDateString("nl-NL") : "Open"}
-                  />
+                  <MiniStat label="Ends" value={campaign.endsAt ? new Date(campaign.endsAt).toLocaleDateString("nl-NL") : "Open"} />
                 </div>
               </Link>
             ))}
           </div>
         ) : (
-          <Notice tone="default" text="No live campaigns are tied to this project yet." />
+          <Notice tone="default" text="No live campaigns are tied to this world yet." />
         )}
       </Surface>
 
       <Surface
-        eyebrow="Rewards"
-        title="Reward surface"
-        description="Rewards linked through this project's campaigns."
+        eyebrow="Vault Surface"
+        title="Rewards in this world"
+        description="Vault items currently linked through this world's active lanes."
       >
         {projectRewards.length > 0 ? (
           <div className="grid gap-4 xl:grid-cols-2">
@@ -164,17 +158,14 @@ export function ProjectDetailScreen() {
               <Link
                 key={reward.id}
                 href={`/rewards/${reward.id}`}
-                className="panel-card rounded-[26px] p-5 transition hover:border-cyan-300/30 hover:bg-black/25"
+                className="panel-card rounded-[30px] p-5 transition hover:border-cyan-300/30 hover:bg-black/25"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-lg font-black text-white">{reward.title}</p>
                     <p className="mt-2 text-sm text-slate-300">{reward.description}</p>
                   </div>
-                  <StatusChip
-                    label={reward.claimable ? "Claimable" : "Locked"}
-                    tone={reward.claimable ? "positive" : "default"}
-                  />
+                  <StatusChip label={reward.claimable ? "Claimable" : "Locked"} tone={reward.claimable ? "positive" : "default"} />
                 </div>
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
                   <MiniStat label="Cost" value={`${reward.cost} XP`} />
@@ -184,7 +175,7 @@ export function ProjectDetailScreen() {
             ))}
           </div>
         ) : (
-          <Notice tone="default" text="No rewards are linked to this project yet." />
+          <Notice tone="default" text="No rewards are linked to this world yet." />
         )}
       </Surface>
     </div>

@@ -33,9 +33,7 @@ async function confirmRaidForUser(authUserId: string, raidId: string) {
     quest_statuses: existing?.quest_statuses ?? {},
   });
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
 
   const { error: completionError } = await supabase.from("raid_completions").insert({
     auth_user_id: authUserId,
@@ -53,32 +51,18 @@ export function RaidDetailScreen() {
   const { authUserId } = useAuth();
   const { raids, loading, error, reload } = useLiveUserData();
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState<{ tone: "default" | "error" | "success"; text: string } | null>(
-    null
-  );
+  const [message, setMessage] = useState<{ tone: "default" | "error" | "success"; text: string } | null>(null);
 
   const raid = raids.find((item) => item.id === raidId);
 
-  if (loading) {
-    return <Notice tone="default" text="Loading raid..." />;
-  }
-
-  if (error) {
-    return <Notice tone="error" text={error} />;
-  }
-
-  if (!raid) {
-    return <Notice tone="default" text="Raid not found." />;
-  }
-
+  if (loading) return <Notice tone="default" text="Loading raid..." />;
+  if (error) return <Notice tone="error" text={error} />;
+  if (!raid) return <Notice tone="default" text="Raid not found." />;
   const currentRaid = raid;
 
   async function handleConfirm() {
     if (!authUserId) {
-      setMessage({
-        tone: "error",
-        text: "You need an active session before confirming a raid.",
-      });
+      setMessage({ tone: "error", text: "You need an active session before confirming a raid." });
       return;
     }
 
@@ -88,15 +72,11 @@ export function RaidDetailScreen() {
     try {
       await confirmRaidForUser(authUserId, currentRaid.id);
       await reload();
-      setMessage({
-        tone: "success",
-        text: "Your raid has been confirmed.",
-      });
+      setMessage({ tone: "success", text: "Your raid has been confirmed." });
     } catch (nextError) {
       setMessage({
         tone: "error",
-        text:
-          nextError instanceof Error ? nextError.message : "Veltrix could not confirm this raid yet.",
+        text: nextError instanceof Error ? nextError.message : "Veltrix could not confirm this raid yet.",
       });
     } finally {
       setBusy(false);
@@ -105,26 +85,19 @@ export function RaidDetailScreen() {
 
   return (
     <div className="space-y-6">
-      <section className="overflow-hidden rounded-[34px] border border-white/10 bg-[linear-gradient(135deg,rgba(255,80,80,0.14),rgba(0,0,0,0)_32%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
+      <section className="overflow-hidden rounded-[38px] border border-white/10 bg-[linear-gradient(135deg,rgba(255,80,80,0.14),rgba(0,0,0,0)_32%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
         <div className="h-64 bg-[linear-gradient(135deg,rgba(255,90,90,0.16),rgba(0,0,0,0.18))]">
-          {raid.banner ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={currentRaid.banner} alt={currentRaid.title} className="h-full w-full object-cover opacity-80" />
-          ) : null}
+          {currentRaid.banner ? <img src={currentRaid.banner} alt={currentRaid.title} className="h-full w-full object-cover opacity-80" /> : null}
         </div>
         <div className="p-6 sm:p-8">
-          <p className="text-[11px] font-bold uppercase tracking-[0.34em] text-rose-300">
-            Raid Detail
-          </p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.34em] text-rose-300">Raid Detail</p>
           <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
-            <div>
+            <div className="max-w-[14ch]">
               <p className="text-sm font-semibold text-rose-200">{currentRaid.community}</p>
-              <h2 className="mt-2 text-3xl font-black tracking-tight text-white sm:text-5xl">
+              <h2 className="font-display mt-2 text-balance text-[clamp(2.2rem,4vw,4.5rem)] font-black leading-[0.92] tracking-[0.04em] text-white">
                 {currentRaid.title}
               </h2>
-              <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
-                {currentRaid.target}
-              </p>
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">{currentRaid.target}</p>
             </div>
             <StatusChip label={`+${currentRaid.reward} XP`} tone="info" />
           </div>
@@ -144,15 +117,12 @@ export function RaidDetailScreen() {
         <Surface
           eyebrow="Instructions"
           title="Complete these steps"
-          description="This mirrors the mobile raid loop: follow the coordinated push, then confirm it."
+          description="Follow the push, complete the live operation, then write it back into your progress layer."
         >
           <div className="space-y-3">
             {currentRaid.instructions.length > 0 ? (
               currentRaid.instructions.map((step, index) => (
-                <div
-                  key={`${currentRaid.id}-${index}`}
-                  className="metric-card flex items-start gap-4 rounded-[24px] px-4 py-4"
-                >
+                <div key={`${currentRaid.id}-${index}`} className="metric-card flex items-start gap-4 rounded-[24px] px-4 py-4">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full border border-rose-300/30 bg-rose-300/10 text-sm font-black text-rose-200">
                     {index + 1}
                   </div>
@@ -168,11 +138,11 @@ export function RaidDetailScreen() {
         <Surface
           eyebrow="Confirm"
           title="Raid completion"
-          description="Once the push is done, confirm it to write the live raid completion state."
+          description="Once the push is done, confirm it to write the live completion state."
         >
           <div className="space-y-4">
             <div className="metric-card rounded-[24px] p-4 text-sm leading-7 text-slate-300">
-              Confirming a raid writes the completion into the same live progress layer used by the mobile app.
+              Confirming a raid writes the completion into the same live progress layer used by the mobile app and web board.
             </div>
             <button
               onClick={() => void handleConfirm()}
@@ -197,13 +167,7 @@ function MetricTile({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Notice({
-  text,
-  tone,
-}: {
-  text: string;
-  tone: "default" | "error" | "success";
-}) {
+function Notice({ text, tone }: { text: string; tone: "default" | "error" | "success" }) {
   return (
     <div
       className={`rounded-[24px] px-4 py-6 text-sm ${
