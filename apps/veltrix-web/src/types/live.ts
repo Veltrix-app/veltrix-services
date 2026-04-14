@@ -60,3 +60,27 @@ export type LiveNotification = {
   type: string;
   createdAt: string;
 };
+
+export type LiveLeaderboardUser = {
+  id: string;
+  username: string;
+  xp: number;
+  level: number;
+  avatarUrl: string;
+  bannerUrl: string;
+  isCurrentUser: boolean;
+};
+
+export type LiveRaid = {
+  id: string;
+  campaignId: string | null;
+  title: string;
+  community: string;
+  timer: string;
+  reward: number;
+  participants: number;
+  progress: number;
+  target: string;
+  banner: string;
+  instructions: string[];
+};

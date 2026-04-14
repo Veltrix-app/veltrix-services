@@ -7,7 +7,9 @@ import {
   Compass,
   Gem,
   Home,
+  Swords,
   Layers3,
+  Trophy,
   ShieldCheck,
   UserRound,
 } from "lucide-react";
@@ -17,7 +19,10 @@ const navItems = [
   { href: "/", label: "Home", icon: Home },
   { href: "/projects", label: "Projects", icon: Compass },
   { href: "/campaigns", label: "Campaigns", icon: Layers3 },
+  { href: "/raids", label: "Raids", icon: Swords },
+  { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
   { href: "/rewards", label: "Rewards", icon: Gem },
+  { href: "/notifications", label: "Notifications", icon: Bell },
   { href: "/profile", label: "Profile", icon: UserRound },
   { href: "/sign-in", label: "Access", icon: ShieldCheck },
 ];

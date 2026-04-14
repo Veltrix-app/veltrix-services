@@ -6,9 +6,11 @@ import { useAuth } from "@/components/providers/auth-provider";
 import type { ConnectedAccount } from "@/types/auth";
 import type {
   LiveCampaign,
+  LiveLeaderboardUser,
   LiveNotification,
   LiveProject,
   LiveQuest,
+  LiveRaid,
   LiveReward,
 } from "@/types/live";
 
@@ -27,6 +29,8 @@ export function useLiveUserData() {
   const [rewards, setRewards] = useState<LiveReward[]>([]);
   const [quests, setQuests] = useState<LiveQuest[]>([]);
   const [notifications, setNotifications] = useState<LiveNotification[]>([]);
+  const [leaderboard, setLeaderboard] = useState<LiveLeaderboardUser[]>([]);
+  const [raids, setRaids] = useState<LiveRaid[]>([]);
   const supabase = useMemo(
     () => (authConfigured ? createSupabaseBrowserClient() : null),
     [authConfigured]
@@ -40,6 +44,8 @@ export function useLiveUserData() {
       setRewards([]);
       setQuests([]);
       setNotifications([]);
+      setLeaderboard([]);
+      setRaids([]);
       setError(null);
       return;
     }
@@ -55,6 +61,8 @@ export function useLiveUserData() {
       questsResult,
       notificationsResult,
       userProgressResult,
+      leaderboardResult,
+      raidsResult,
     ] = await Promise.all([
       supabase
         .from("user_connected_accounts")
@@ -84,6 +92,17 @@ export function useLiveUserData() {
         .select("quest_statuses, claimed_rewards")
         .eq("auth_user_id", authUserId)
         .maybeSingle(),
+      supabase
+        .from("user_profiles")
+        .select("*")
+        .eq("status", "active")
+        .order("xp", { ascending: false })
+        .order("level", { ascending: false }),
+      supabase
+        .from("raids")
+        .select("*")
+        .eq("status", "active")
+        .order("created_at", { ascending: false }),
     ]);
 
     const firstError =
@@ -93,7 +112,9 @@ export function useLiveUserData() {
       rewardsResult.error ??
       questsResult.error ??
       notificationsResult.error ??
-      userProgressResult.error;
+      userProgressResult.error ??
+      leaderboardResult.error ??
+      raidsResult.error;
 
     if (firstError) {
       setError(firstError.message);
@@ -199,7 +220,68 @@ export function useLiveUserData() {
       }))
     );
 
+    setLeaderboard(
+      (leaderboardResult.data ?? []).map((row) => ({
+        id: row.id,
+        username: row.username ?? "Raider",
+        xp: row.xp ?? 0,
+        level: row.level ?? 1,
+        avatarUrl: row.avatar_url ?? "",
+        bannerUrl: row.banner_url ?? "",
+        isCurrentUser: row.auth_user_id === authUserId,
+      }))
+    );
+
+    setRaids(
+      (raidsResult.data ?? []).map((row) => ({
+        id: row.id,
+        campaignId: row.campaign_id ?? null,
+        title: row.title ?? "Raid",
+        community: row.community ?? "Community",
+        timer: row.timer ?? "Live",
+        reward: row.reward ?? 0,
+        participants: row.participants ?? 0,
+        progress: row.progress ?? 0,
+        target: row.target ?? "",
+        banner: row.banner ?? "",
+        instructions: Array.isArray(row.instructions)
+          ? (row.instructions as unknown[]).filter(
+              (item): item is string => typeof item === "string"
+            )
+          : [],
+      }))
+    );
+
     setLoading(false);
+  }
+
+  async function markNotificationsRead() {
+    if (!authConfigured || !authUserId || !supabase) {
+      return;
+    }
+
+    const unreadIds = notifications.filter((item) => !item.read).map((item) => item.id);
+    if (unreadIds.length === 0) {
+      return;
+    }
+
+    const { error: updateError } = await supabase
+      .from("app_notifications")
+      .update({ read: true })
+      .in("id", unreadIds)
+      .eq("auth_user_id", authUserId);
+
+    if (updateError) {
+      setError(updateError.message);
+      return;
+    }
+
+    setNotifications((current) =>
+      current.map((item) => ({
+        ...item,
+        read: true,
+      }))
+    );
   }
 
   useEffect(() => {
@@ -230,7 +312,10 @@ export function useLiveUserData() {
     rewards,
     quests,
     notifications,
+    leaderboard,
+    raids,
     ...derived,
     reload,
+    markNotificationsRead,
   };
 }
