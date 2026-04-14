@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Radar, Swords, Trophy } from "lucide-react";
+import { ArrowRight, Radar, Shield, Sparkles, Swords, Trophy } from "lucide-react";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -32,163 +32,174 @@ export function HomeScreen() {
 
   const featuredCampaign = campaigns[0] ?? null;
   const featuredProject = projects.find((project) => project.id === featuredCampaign?.projectId) ?? null;
-  const quickQueue = campaigns.slice(1, 5);
-  const activeMissions = quests.slice(0, 4);
+  const quickQueue = campaigns.slice(1, 4);
   const liveRaids = raids.slice(0, 3);
   const rewardMoments = rewards.slice(0, 3);
   const activityFeed = notifications.slice(0, 4);
   const projectsPreview = projects.slice(0, 3);
+  const activeMissions = quests.slice(0, 4);
 
   return (
     <div className="space-y-6">
-      <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <div className="relative overflow-hidden rounded-[36px] border border-cyan-300/10 bg-[radial-gradient(circle_at_85%_18%,rgba(0,204,255,0.2),transparent_18%),radial-gradient(circle_at_15%_0%,rgba(192,255,0,0.16),transparent_26%),linear-gradient(135deg,rgba(10,24,30,0.96),rgba(5,12,16,0.95))] p-6 shadow-[0_30px_90px_rgba(0,0,0,0.3)] sm:p-8">
+      <section className="grid gap-6 2xl:grid-cols-[minmax(0,1.28fr)_420px]">
+        <div className="relative overflow-hidden rounded-[38px] border border-cyan-300/10 bg-[radial-gradient(circle_at_top_left,rgba(192,255,0,0.18),transparent_22%),radial-gradient(circle_at_82%_18%,rgba(0,204,255,0.22),transparent_24%),linear-gradient(135deg,rgba(7,18,24,0.98),rgba(4,9,13,0.95))] p-6 shadow-[0_34px_120px_rgba(0,0,0,0.42)] sm:p-8">
           <HeroArtwork
             src={featuredCampaign?.bannerUrl ?? featuredCampaign?.thumbnailUrl ?? featuredProject?.bannerUrl ?? null}
             alt={featuredCampaign?.title ?? featuredProject?.name ?? "Veltrix"}
           />
+
           <div className="relative z-10 flex flex-wrap items-start justify-between gap-4">
-            <div className="max-w-3xl xl:max-w-[58%]">
+            <div className="max-w-[13ch]">
               <p className="font-display text-[11px] font-bold uppercase tracking-[0.34em] text-lime-300">
-                Featured Mission
+                Mission Launcher
               </p>
-              <h3 className="font-display mt-4 max-w-[11ch] text-balance text-3xl font-black leading-[0.92] tracking-[0.04em] text-white sm:max-w-[12ch] sm:text-5xl">
-                {featuredCampaign?.title ?? "Your raid console is armed and waiting."}
+              <h3 className="font-display mt-4 text-balance text-[clamp(2.4rem,5vw,5.2rem)] font-black leading-[0.9] tracking-[0.03em] text-white">
+                {featuredCampaign?.title ?? "Grid standing by"}
               </h3>
               <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
                 {featuredCampaign?.description ??
-                  "As soon as campaigns go live, this launcher becomes your main mission focus with live rewards, raids and verification pressure."}
+                  "The command layer is hot. As soon as live lanes hit your account, this board becomes your main launch surface."}
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
               {featuredProject ? <StatusChip label={featuredProject.name} tone="info" /> : null}
-              {featuredCampaign ? (
-                <StatusChip
-                  label={featuredCampaign.featured ? "Featured" : `${featuredCampaign.completionRate}% live`}
-                  tone={featuredCampaign.featured ? "positive" : "info"}
-                />
-              ) : (
-                <StatusChip label="Stand by" tone="default" />
-              )}
+              <StatusChip
+                label={featuredCampaign ? (featuredCampaign.featured ? "Prime lane" : "Live lane") : "Stand by"}
+                tone={featuredCampaign?.featured ? "positive" : "default"}
+              />
             </div>
           </div>
 
           <div className="relative z-10 mt-8 flex flex-wrap items-center gap-3">
             <Link
-              href={featuredCampaign ? `/campaigns/${featuredCampaign.id}` : "/projects"}
-              className="rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99]"
+              href={featuredCampaign ? `/campaigns/${featuredCampaign.id}` : "/campaigns"}
+              className="rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-lime-200"
             >
-              {featuredCampaign ? "Launch mission" : "Explore worlds"}
+              {featuredCampaign ? "Launch mission" : "Open board"}
             </Link>
             <Link
-              href="/profile"
+              href={featuredProject ? `/projects/${featuredProject.id}` : "/projects"}
               className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
             >
-              Open loadout
+              Enter world
             </Link>
           </div>
 
-          <div className="relative z-10 mt-8 grid gap-4 md:grid-cols-4">
-            <FeatureStat label="XP budget" value={featuredCampaign ? String(featuredCampaign.xpBudget) : "0"} />
-            <FeatureStat label="Mission queue" value={String(quests.length)} />
-            <FeatureStat label="Signals" value={String(notifications.length)} />
-            <FeatureStat label="Reward heat" value={String(claimableRewardCount)} />
+          <div className="relative z-10 mt-8 grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+            <div className="grid gap-4 sm:grid-cols-3">
+              <FeatureStat label="XP budget" value={featuredCampaign ? String(featuredCampaign.xpBudget) : "0"} />
+              <FeatureStat label="Mission heat" value={String(quests.length)} />
+              <FeatureStat label="Signals" value={String(notifications.length)} />
+            </div>
+
+            <div className="rounded-[28px] border border-white/10 bg-black/24 p-4">
+              <p className="font-display text-[11px] font-bold uppercase tracking-[0.28em] text-cyan-200">
+                Queue preview
+              </p>
+              <div className="mt-4 space-y-3">
+                {quickQueue.length > 0 ? (
+                  quickQueue.map((campaign, index) => (
+                    <Link
+                      key={campaign.id}
+                      href={`/campaigns/${campaign.id}`}
+                      className="flex items-center gap-3 rounded-[22px] border border-white/8 bg-white/[0.04] px-3 py-3 transition hover:border-cyan-300/20"
+                    >
+                      <MiniArtwork
+                        src={campaign.thumbnailUrl ?? campaign.bannerUrl}
+                        alt={campaign.title}
+                        accent="cyan"
+                        className="h-14 w-14 shrink-0"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
+                          Queue {index + 1}
+                        </p>
+                        <p className="mt-1 truncate text-sm font-semibold text-white">{campaign.title}</p>
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-cyan-300" />
+                    </Link>
+                  ))
+                ) : (
+                  <Notice text="No queued missions yet." tone="default" compact />
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
-        <Surface
-          eyebrow="Pilot Profile"
-          title={profile?.username ?? "Guest Pilot"}
-          description="Identity, streak and current mission posture at a glance."
-        >
-          <div className="grid gap-4 sm:grid-cols-2">
-            <MetricTile label="Tier" value={profile?.contributionTier ?? "Explorer"} />
-            <MetricTile label="Level" value={String(profile?.level ?? 1)} />
-            <MetricTile label="Streak" value={String(profile?.streak ?? 0)} />
-            <MetricTile label="Pending" value={String(pendingQuestCount)} />
-          </div>
+        <div className="space-y-6">
+          <Surface
+            eyebrow="Pilot Status"
+            title={profile?.username ?? "Guest Pilot"}
+            description="Identity, current standing and mission readiness."
+          >
+            <div className="grid gap-4 sm:grid-cols-2">
+              <MetricTile label="Tier" value={profile?.contributionTier ?? "Explorer"} />
+              <MetricTile label="Level" value={String(profile?.level ?? 1)} />
+              <MetricTile label="Streak" value={String(profile?.streak ?? 0)} />
+              <MetricTile label="Pending" value={String(pendingQuestCount)} />
+            </div>
 
-          <div className="mt-5 rounded-[24px] border border-cyan-300/10 bg-cyan-300/5 px-4 py-4 text-sm leading-7 text-slate-300">
-            Live auth, connected accounts and progress all run from the same backend as mobile, so this
-            screen can become a real launcher instead of a mocked dashboard.
-          </div>
-        </Surface>
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              <SignalPill icon={Shield} label="Clear" value={String(approvedQuestCount)} />
+              <SignalPill icon={Sparkles} label="Ready" value={String(claimableRewardCount)} />
+              <SignalPill icon={Radar} label="Feed" value={String(notifications.length)} />
+            </div>
+          </Surface>
+
+          <Surface
+            eyebrow="Signal Feed"
+            title="Command updates"
+            description="Recent approvals, waits and unlocks from the live grid."
+          >
+            <div className="space-y-3">
+              {activityFeed.length > 0 ? (
+                activityFeed.map((item) => (
+                  <div key={item.id} className="rounded-[22px] border border-white/8 bg-black/20 px-4 py-3">
+                    <p className="text-sm font-semibold text-white">{item.title}</p>
+                    <p className="mt-1 text-sm text-slate-300">{item.body}</p>
+                  </div>
+                ))
+              ) : (
+                <Notice text="No live notifications yet." tone="default" compact />
+              )}
+            </div>
+          </Surface>
+        </div>
       </section>
 
-      <Surface
-        eyebrow="Mission Queue"
-        title="Quick queue"
-        description="Launcher-style mission lanes you can jump into next."
-      >
-        {quickQueue.length > 0 ? (
-          <div className="grid gap-4 xl:grid-cols-4">
-            {quickQueue.map((campaign) => {
-              const linkedProject = projects.find((project) => project.id === campaign.projectId);
-
-              return (
-                <Link
-                  key={campaign.id}
-                  href={`/campaigns/${campaign.id}`}
-                  className="panel-card rounded-[26px] p-5 transition hover:border-cyan-300/30"
-                >
-                  <MiniArtwork src={campaign.thumbnailUrl ?? campaign.bannerUrl} alt={campaign.title} accent="cyan" className="mb-4 h-28" />
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-lg font-black text-white">{campaign.title}</p>
-                      <p className="mt-2 text-sm text-slate-300">{linkedProject?.name ?? "Project"}</p>
-                    </div>
-                    <ArrowRight className="mt-1 h-4 w-4 text-cyan-300" />
-                  </div>
-                  <div className="mt-5 flex items-center justify-between gap-3">
-                    <span className="font-display text-[11px] uppercase tracking-[0.22em] text-lime-300">
-                      {campaign.xpBudget} XP
-                    </span>
-                    <StatusChip
-                      label={campaign.featured ? "Featured" : `${campaign.completionRate}% live`}
-                      tone={campaign.featured ? "positive" : "info"}
-                    />
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        ) : (
-          <Notice text="No queued campaigns yet." tone="default" />
-        )}
-      </Surface>
-
-      <div className="grid gap-6 xl:grid-cols-[1fr_0.95fr]">
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
         <Surface
           eyebrow="Mission Board"
-          title="Active missions"
-          description="The next quest should be obvious and feel actionable."
+          title="Active mission lanes"
+          description="The next move should be obvious, rewarding and fast to open."
         >
           {loading ? (
             <Notice text="Loading live missions..." tone="default" />
           ) : error ? (
             <Notice text={error} tone="error" />
           ) : activeMissions.length > 0 ? (
-            <div className="space-y-4">
+            <div className="grid gap-4 lg:grid-cols-2">
               {activeMissions.map((mission) => (
                 <Link
                   key={mission.id}
                   href={`/quests/${mission.id}`}
-                  className="panel-card rounded-[26px] p-5 transition hover:border-lime-300/30 hover:bg-black/25"
+                  className="panel-card rounded-[28px] p-5 transition hover:border-lime-300/24"
                 >
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p className="text-lg font-bold text-white">{mission.title}</p>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-lg font-black text-white">{mission.title}</p>
                       <p className="mt-2 text-sm text-slate-300">
                         {mission.verificationProvider
-                          ? `${mission.verificationProvider} verification flow`
-                          : "Custom quest flow"}
+                          ? `${mission.verificationProvider} verification`
+                          : "Custom action flow"}
                       </p>
                     </div>
                     <StatusChip label={mission.status} tone={getQuestTone(mission.status)} />
                   </div>
-                  <div className="mt-4 flex items-center justify-between gap-3">
-                    <p className="text-sm font-semibold text-lime-200">XP payout: +{mission.xp}</p>
+                  <div className="mt-5 flex items-center justify-between border-t border-white/8 pt-4">
+                    <p className="text-sm font-semibold text-lime-200">+{mission.xp} XP payout</p>
                     <span className="font-display text-[11px] uppercase tracking-[0.22em] text-cyan-300">
                       Open mission
                     </span>
@@ -197,131 +208,134 @@ export function HomeScreen() {
               ))}
             </div>
           ) : (
-            <Notice
-              text="No live quests yet. Once a project assigns campaigns to your account, they will show here."
-              tone="default"
-            />
+            <Notice text="No active mission lanes yet." tone="default" />
           )}
-        </Surface>
-
-        <div className="space-y-6">
-          <Surface
-            eyebrow="Live Raids"
-            title="Squad pressure"
-            description="Urgent coordinated pushes happening right now."
-          >
-            {liveRaids.length > 0 ? (
-              <div className="space-y-4">
-                {liveRaids.map((raid) => (
-                <Link
-                  key={raid.id}
-                  href={`/raids/${raid.id}`}
-                  className="panel-card rounded-[24px] p-4 transition hover:border-rose-300/30"
-                >
-                  <MiniArtwork src={raid.banner} alt={raid.title} accent="rose" className="mb-4 h-24" />
-                  <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-semibold text-rose-200">{raid.community}</p>
-                        <p className="mt-1 text-lg font-black text-white">{raid.title}</p>
-                      </div>
-                      <Swords className="h-4 w-4 text-rose-300" />
-                    </div>
-                    <div className="mt-4 flex items-center justify-between gap-3 text-sm text-slate-300">
-                      <span>{raid.timer}</span>
-                      <span>+{raid.reward} XP</span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <Notice text="No live raids yet." tone="default" />
-            )}
-          </Surface>
-
-          <Surface
-            eyebrow="Reward Pressure"
-            title="Unlocks in reach"
-            description="Rewards should feel desirable, not like rows in a database."
-          >
-            <div className="space-y-4">
-              {rewardMoments.length > 0 ? (
-                rewardMoments.map((reward) => (
-                  <div key={reward.id} className="metric-card rounded-[24px] px-4 py-4">
-                    <MiniArtwork src={reward.imageUrl} alt={reward.title} accent="amber" className="mb-4 h-24" />
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <p className="font-bold text-white">{reward.title}</p>
-                        <p className="mt-1 text-sm text-slate-300">{reward.rarity}</p>
-                      </div>
-                      <StatusChip
-                        label={reward.claimable ? "Claimable" : "Locked"}
-                        tone={reward.claimable ? "positive" : "default"}
-                      />
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <Notice text="No live rewards yet." tone="default" />
-              )}
-            </div>
-          </Surface>
-        </div>
-      </div>
-
-      <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-        <Surface
-          eyebrow="Signal Feed"
-          title="Recent activity"
-          description="Recent approvals, waits and unlocks from the live feed."
-        >
-          <div className="space-y-3">
-            {activityFeed.length > 0 ? (
-              activityFeed.map((item) => (
-                <div key={item.id} className="metric-card rounded-[22px] px-4 py-3 text-sm text-slate-200">
-                  <p className="font-semibold text-white">{item.title}</p>
-                  <p className="mt-1 text-slate-300">{item.body}</p>
-                </div>
-              ))
-            ) : (
-              <Notice text="No live notifications yet." tone="default" />
-            )}
-          </div>
         </Surface>
 
         <Surface
           eyebrow="World Browser"
-          title="Project worlds"
-          description="Project cards should feel like selectable worlds inside the grid."
+          title="Hot worlds"
+          description="The quickest route into the most active ecosystems on the grid."
         >
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="space-y-4">
             {projectsPreview.length > 0 ? (
               projectsPreview.map((project) => (
-                <Link key={project.id} href={`/projects/${project.id}`} className="panel-card rounded-[28px] p-5 transition hover:border-cyan-300/30">
-                  <MiniArtwork src={project.bannerUrl} alt={project.name} accent="cyan" className="mb-4 h-28" />
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-lg font-black text-white">{project.name}</p>
-                    <StatusChip label={project.chain ?? "Live"} tone="info" />
+                <Link
+                  key={project.id}
+                  href={`/projects/${project.id}`}
+                  className="panel-card rounded-[26px] p-4 transition hover:border-cyan-300/24"
+                >
+                  <div className="grid gap-4 sm:grid-cols-[120px_minmax(0,1fr)]">
+                    <MiniArtwork
+                      src={project.bannerUrl}
+                      alt={project.name}
+                      accent="cyan"
+                      className="h-24 w-full"
+                    />
+                    <div className="min-w-0">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate text-lg font-black text-white">{project.name}</p>
+                          <p className="mt-1 text-sm text-lime-200">{project.category ?? "World"}</p>
+                        </div>
+                        <StatusChip label={project.chain ?? "Live"} tone="info" />
+                      </div>
+                      <p className="mt-3 line-clamp-2 text-sm leading-6 text-slate-300">
+                        {project.description}
+                      </p>
+                    </div>
                   </div>
-                  <p className="mt-2 text-sm text-lime-200">{project.category ?? "Project"}</p>
-                  <p className="mt-4 text-sm leading-6 text-slate-300">{project.description}</p>
                 </Link>
               ))
             ) : (
-              <Notice text="No live projects are visible yet." tone="default" />
+              <Notice text="No worlds online yet." tone="default" />
             )}
           </div>
         </Surface>
-      </div>
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+        <Surface
+          eyebrow="Live Raids"
+          title="Squad pressure"
+          description="High-urgency coordinated pushes happening right now."
+        >
+          <div className="grid gap-4 md:grid-cols-3">
+            {liveRaids.length > 0 ? (
+              liveRaids.map((raid) => (
+                <Link
+                  key={raid.id}
+                  href={`/raids/${raid.id}`}
+                  className="panel-card rounded-[28px] p-4 transition hover:border-rose-300/24"
+                >
+                  <MiniArtwork src={raid.banner} alt={raid.title} accent="rose" className="mb-4 h-28" />
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-rose-200">{raid.community}</p>
+                      <p className="mt-1 text-lg font-black text-white">{raid.title}</p>
+                    </div>
+                    <Swords className="h-4 w-4 shrink-0 text-rose-300" />
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <MiniMetric label="Timer" value={raid.timer} />
+                    <MiniMetric label="Reward" value={`+${raid.reward}`} />
+                  </div>
+                </Link>
+              ))
+            ) : (
+              <Notice text="No live raids yet." tone="default" />
+            )}
+          </div>
+        </Surface>
+
+        <Surface
+          eyebrow="Loot Vault"
+          title="Unlock pressure"
+          description="Claimable and high-desire rewards currently on your radar."
+        >
+          <div className="space-y-4">
+            {rewardMoments.length > 0 ? (
+              rewardMoments.map((reward) => (
+                <Link
+                  key={reward.id}
+                  href={`/rewards/${reward.id}`}
+                  className="panel-card rounded-[26px] p-4 transition hover:border-amber-300/24"
+                >
+                  <div className="grid gap-4 sm:grid-cols-[108px_minmax(0,1fr)]">
+                    <MiniArtwork src={reward.imageUrl} alt={reward.title} accent="amber" className="h-24 w-full" />
+                    <div className="min-w-0">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate text-lg font-black text-white">{reward.title}</p>
+                          <p className="mt-1 text-sm text-amber-200">{reward.rarity}</p>
+                        </div>
+                        <StatusChip label={reward.claimable ? "Claimable" : "Locked"} tone={reward.claimable ? "positive" : "default"} />
+                      </div>
+                      <div className="mt-4 grid grid-cols-2 gap-3">
+                        <MiniMetric label="Cost" value={`${reward.cost} XP`} />
+                        <MiniMetric label="Type" value={reward.rewardType} />
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))
+            ) : (
+              <Notice text="No reward pressure yet." tone="default" />
+            )}
+          </div>
+        </Surface>
+      </section>
 
       <Surface
-        eyebrow="Diagnostics"
-        title="Live parity foundation"
-        description="These numbers confirm the web shell is reading the same live product surfaces as the mobile app."
+        eyebrow="Grid Read"
+        title="Live board state"
+        description="A clean systems readout from the same live surfaces as the mobile app."
       >
-        <div className="grid gap-4 sm:grid-cols-3">
-          <FeatureStat label="Approved quests" value={String(approvedQuestCount)} />
+        <div className="grid gap-4 sm:grid-cols-4">
+          <FeatureStat label="Approved" value={String(approvedQuestCount)} />
           <FeatureStat label="Projects" value={String(projects.length)} />
           <FeatureStat label="Campaigns" value={String(campaigns.length)} />
+          <FeatureStat label="Rewards ready" value={String(claimableRewardCount)} />
         </div>
       </Surface>
     </div>
@@ -338,9 +352,9 @@ function HeroArtwork({ src, alt }: { src: string | null; alt: string }) {
       <img
         src={src}
         alt={alt}
-        className="pointer-events-none absolute right-6 top-6 h-[min(18rem,52%)] w-[min(34rem,42%)] rounded-[30px] object-cover opacity-75 shadow-[0_24px_80px_rgba(0,0,0,0.45)] max-xl:hidden"
+        className="pointer-events-none absolute right-6 top-6 hidden h-[18rem] w-[min(35rem,44%)] rounded-[32px] object-cover opacity-78 shadow-[0_30px_90px_rgba(0,0,0,0.46)] xl:block"
       />
-      <div className="pointer-events-none absolute right-4 top-4 h-[19rem] w-[44%] rounded-[36px] bg-[radial-gradient(circle_at_top_left,rgba(0,204,255,0.14),transparent_42%)] max-xl:hidden" />
+      <div className="pointer-events-none absolute right-4 top-4 hidden h-[19rem] w-[46%] rounded-[36px] bg-[radial-gradient(circle_at_top_left,rgba(0,204,255,0.14),transparent_42%)] xl:block" />
     </>
   );
 }
@@ -374,8 +388,8 @@ function MiniArtwork({
 
 function FeatureStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="metric-card rounded-[22px] px-4 py-4">
-      <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
+    <div className="metric-card rounded-[24px] px-4 py-4">
+      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">{label}</p>
       <p className="mt-2 text-2xl font-black text-white">{value}</p>
     </div>
   );
@@ -390,10 +404,47 @@ function MetricTile({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Notice({ text, tone }: { text: string; tone: "default" | "error" }) {
+function SignalPill({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Shield;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-4 py-3">
+      <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+        <Icon className="h-3.5 w-3.5" />
+        <span>{label}</span>
+      </div>
+      <p className="mt-2 text-lg font-black text-white">{value}</p>
+    </div>
+  );
+}
+
+function MiniMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[18px] border border-white/8 bg-white/[0.04] px-3 py-3">
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
+      <p className="mt-2 truncate text-sm font-semibold text-white">{value}</p>
+    </div>
+  );
+}
+
+function Notice({
+  text,
+  tone,
+  compact = false,
+}: {
+  text: string;
+  tone: "default" | "error";
+  compact?: boolean;
+}) {
   return (
     <div
-      className={`rounded-[24px] px-4 py-6 text-sm ${
+      className={`rounded-[24px] px-4 ${compact ? "py-4" : "py-6"} text-sm ${
         tone === "error"
           ? "border border-rose-400/20 bg-rose-500/10 text-rose-200"
           : "border border-white/8 bg-black/20 text-slate-300"
