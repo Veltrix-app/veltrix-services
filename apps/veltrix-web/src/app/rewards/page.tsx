@@ -6,8 +6,8 @@ export default function RewardsPage() {
   return (
     <AppShell
       eyebrow="Rewards"
-      title="Reward vault"
-      description="Track the live reward catalog with real claimable state, rarity and campaign linkage."
+      title="Loot Vault"
+      description="Track the live loot vault with real claimable state, rarity pressure and campaign linkage."
     >
       <ProtectedState>
         <RewardsScreen />

@@ -6,8 +6,8 @@ export default function RaidsPage() {
   return (
     <AppShell
       eyebrow="Raids"
-      title="Coordinated pushes"
-      description="Live raid opportunities, timers and XP payouts for the signed-in user."
+      title="Raid Board"
+      description="Track live coordinated pushes, timers and XP payouts for the signed-in user."
     >
       <ProtectedState>
         <RaidsScreen />
