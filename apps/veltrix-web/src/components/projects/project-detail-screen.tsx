@@ -71,6 +71,14 @@ export function ProjectDetailScreen() {
             ? `Website linked: ${project.website}`
             : "No website linked yet. This project is still visible through its active campaign surface."}
         </p>
+        <div className="mt-5">
+          <Link
+            href={`/communities/${project.id}`}
+            className="rounded-full border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+          >
+            Open community world
+          </Link>
+        </div>
       </Surface>
 
       <Surface

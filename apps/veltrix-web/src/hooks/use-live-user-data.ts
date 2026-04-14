@@ -18,6 +18,10 @@ import type {
 type UserProgressRow = {
   quest_statuses: Record<string, LiveQuest["status"]> | null;
   claimed_rewards: string[] | null;
+  joined_communities: string[] | null;
+  confirmed_raids: string[] | null;
+  opened_lootbox_ids: string[] | null;
+  unlocked_reward_ids: string[] | null;
 };
 
 export function useLiveUserData() {
@@ -33,6 +37,7 @@ export function useLiveUserData() {
   const [leaderboard, setLeaderboard] = useState<LiveLeaderboardUser[]>([]);
   const [raids, setRaids] = useState<LiveRaid[]>([]);
   const [projectReputation, setProjectReputation] = useState<LiveProjectReputation[]>([]);
+  const [joinedCommunityIds, setJoinedCommunityIds] = useState<string[]>([]);
   const supabase = useMemo(
     () => (authConfigured ? createSupabaseBrowserClient() : null),
     [authConfigured]
@@ -49,6 +54,7 @@ export function useLiveUserData() {
       setLeaderboard([]);
       setRaids([]);
       setProjectReputation([]);
+      setJoinedCommunityIds([]);
       setError(null);
       return;
     }
@@ -93,7 +99,9 @@ export function useLiveUserData() {
         .limit(12),
       supabase
         .from("user_progress")
-        .select("quest_statuses, claimed_rewards")
+        .select(
+          "joined_communities, confirmed_raids, claimed_rewards, opened_lootbox_ids, unlocked_reward_ids, quest_statuses"
+        )
         .eq("auth_user_id", authUserId)
         .maybeSingle(),
       supabase
@@ -136,9 +144,12 @@ export function useLiveUserData() {
       ((userProgressResult.data as UserProgressRow | null)?.quest_statuses as
         | Record<string, LiveQuest["status"]>
         | null) ?? {};
+    const joinedCommunities =
+      ((userProgressResult.data as UserProgressRow | null)?.joined_communities ?? []) as string[];
     const claimedRewardIds = new Set(
       ((userProgressResult.data as UserProgressRow | null)?.claimed_rewards ?? []) as string[]
     );
+    setJoinedCommunityIds(joinedCommunities);
 
     setConnectedAccounts(
       (connectedAccountsResult.data ?? []).map((row) => ({
@@ -282,6 +293,49 @@ export function useLiveUserData() {
     setLoading(false);
   }
 
+  async function joinCommunity(projectId: string) {
+    if (!authConfigured || !authUserId || !supabase) {
+      return;
+    }
+
+    const { data: existing, error: existingError } = await supabase
+      .from("user_progress")
+      .select(
+        "joined_communities, confirmed_raids, claimed_rewards, opened_lootbox_ids, unlocked_reward_ids, quest_statuses"
+      )
+      .eq("auth_user_id", authUserId)
+      .maybeSingle();
+
+    if (existingError) {
+      setError(existingError.message);
+      return;
+    }
+
+    const currentJoined = Array.isArray(existing?.joined_communities)
+      ? (existing.joined_communities as string[])
+      : [];
+    const nextJoined = currentJoined.includes(projectId)
+      ? currentJoined.filter((id) => id !== projectId)
+      : [...currentJoined, projectId];
+
+    const { error: updateError } = await supabase.from("user_progress").upsert({
+      auth_user_id: authUserId,
+      joined_communities: nextJoined,
+      confirmed_raids: existing?.confirmed_raids ?? [],
+      claimed_rewards: existing?.claimed_rewards ?? [],
+      opened_lootbox_ids: existing?.opened_lootbox_ids ?? [],
+      unlocked_reward_ids: existing?.unlocked_reward_ids ?? [],
+      quest_statuses: existing?.quest_statuses ?? {},
+    });
+
+    if (updateError) {
+      setError(updateError.message);
+      return;
+    }
+
+    setJoinedCommunityIds(nextJoined);
+  }
+
   async function markNotificationsRead() {
     if (!authConfigured || !authUserId || !supabase) {
       return;
@@ -342,8 +396,10 @@ export function useLiveUserData() {
     leaderboard,
     raids,
     projectReputation,
+    joinedCommunityIds,
     ...derived,
     reload,
     markNotificationsRead,
+    joinCommunity,
   };
 }
