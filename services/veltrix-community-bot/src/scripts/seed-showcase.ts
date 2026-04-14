@@ -246,14 +246,131 @@ function slugify(input: string) {
     .replace(/^-+|-+$/g, "");
 }
 
-function makeBanner(text: string, accent: string) {
-  const encoded = encodeURIComponent(text);
-  return `https://placehold.co/1600x900/07111a/${accent}/png?text=${encoded}`;
+function hexToRgb(hex: string) {
+  const normalized = hex.replace("#", "");
+  const value = normalized.length === 3
+    ? normalized
+        .split("")
+        .map((char) => `${char}${char}`)
+        .join("")
+    : normalized;
+
+  const parsed = Number.parseInt(value, 16);
+  return {
+    r: (parsed >> 16) & 255,
+    g: (parsed >> 8) & 255,
+    b: parsed & 255,
+  };
 }
 
-function makeThumb(text: string, accent: string) {
-  const encoded = encodeURIComponent(text);
-  return `https://placehold.co/900x900/07111a/${accent}/png?text=${encoded}`;
+function svgDataUri(svg: string) {
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+function makeBanner({
+  title,
+  subtitle,
+  eyebrow,
+  accent,
+}: {
+  title: string;
+  subtitle: string;
+  eyebrow: string;
+  accent: string;
+}) {
+  const { r, g, b } = hexToRgb(accent);
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" fill="none">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="900">
+          <stop stop-color="#07111A"/>
+          <stop offset="0.5" stop-color="#0B1621"/>
+          <stop offset="1" stop-color="#05090F"/>
+        </linearGradient>
+        <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1160 260) rotate(132) scale(600 420)">
+          <stop stop-color="rgb(${r} ${g} ${b})" stop-opacity="0.55"/>
+          <stop offset="1" stop-color="rgb(${r} ${g} ${b})" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="glow2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(320 680) rotate(12) scale(520 360)">
+          <stop stop-color="rgb(${r} ${g} ${b})" stop-opacity="0.22"/>
+          <stop offset="1" stop-color="rgb(${r} ${g} ${b})" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <rect width="1600" height="900" rx="48" fill="url(#bg)"/>
+      <rect width="1600" height="900" rx="48" fill="url(#glow)"/>
+      <rect width="1600" height="900" rx="48" fill="url(#glow2)"/>
+      <g opacity="0.16" stroke="rgb(${r} ${g} ${b})">
+        <path d="M0 170H1600"/>
+        <path d="M0 620H1600"/>
+        <path d="M230 0V900"/>
+        <path d="M1090 0V900"/>
+      </g>
+      <g opacity="0.9">
+        <rect x="84" y="84" width="238" height="42" rx="21" fill="rgba(${r}, ${g}, ${b}, 0.18)" stroke="rgba(${r}, ${g}, ${b}, 0.5)"/>
+        <text x="112" y="112" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" letter-spacing="5">${eyebrow}</text>
+      </g>
+      <text x="92" y="290" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="88" font-weight="800">${title}</text>
+      <text x="92" y="352" fill="rgba(255,255,255,0.84)" font-family="Arial, Helvetica, sans-serif" font-size="30">${subtitle}</text>
+      <g opacity="0.95">
+        <rect x="92" y="706" width="300" height="88" rx="28" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)"/>
+        <text x="124" y="744" fill="rgb(${r} ${g} ${b})" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700">LIVE WORLD</text>
+        <text x="124" y="782" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700">Veltrix showcase build</text>
+      </g>
+      <g>
+        <circle cx="1230" cy="332" r="178" fill="rgba(${r}, ${g}, ${b}, 0.11)" stroke="rgba(${r}, ${g}, ${b}, 0.42)" stroke-width="2"/>
+        <circle cx="1230" cy="332" r="128" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.12)"/>
+        <circle cx="1230" cy="332" r="88" fill="rgba(${r}, ${g}, ${b}, 0.22)"/>
+        <path d="M1152 332H1308" stroke="rgba(255,255,255,0.65)" stroke-width="2"/>
+        <path d="M1230 254V410" stroke="rgba(255,255,255,0.65)" stroke-width="2"/>
+      </g>
+    </svg>
+  `;
+  return svgDataUri(svg);
+}
+
+function makeThumb({
+  title,
+  subtitle,
+  accent,
+}: {
+  title: string;
+  subtitle: string;
+  accent: string;
+}) {
+  const { r, g, b } = hexToRgb(accent);
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="900" height="900" viewBox="0 0 900 900" fill="none">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="900" y2="900">
+          <stop stop-color="#07111A"/>
+          <stop offset="0.55" stop-color="#0C1520"/>
+          <stop offset="1" stop-color="#05090F"/>
+        </linearGradient>
+        <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(620 230) rotate(128) scale(300 250)">
+          <stop stop-color="rgb(${r} ${g} ${b})" stop-opacity="0.58"/>
+          <stop offset="1" stop-color="rgb(${r} ${g} ${b})" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <rect width="900" height="900" rx="40" fill="url(#bg)"/>
+      <rect width="900" height="900" rx="40" fill="url(#glow)"/>
+      <g opacity="0.16" stroke="rgb(${r} ${g} ${b})">
+        <path d="M0 188H900"/>
+        <path d="M0 676H900"/>
+        <path d="M188 0V900"/>
+        <path d="M706 0V900"/>
+      </g>
+      <rect x="60" y="60" width="220" height="40" rx="20" fill="rgba(${r}, ${g}, ${b}, 0.18)" stroke="rgba(${r}, ${g}, ${b}, 0.45)"/>
+      <text x="88" y="86" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" letter-spacing="4">VELTRIX</text>
+      <text x="68" y="612" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="64" font-weight="800">${title}</text>
+      <text x="68" y="666" fill="rgba(255,255,255,0.82)" font-family="Arial, Helvetica, sans-serif" font-size="24">${subtitle}</text>
+      <g>
+        <circle cx="650" cy="294" r="146" fill="rgba(${r}, ${g}, ${b}, 0.14)" stroke="rgba(${r}, ${g}, ${b}, 0.38)" stroke-width="2"/>
+        <circle cx="650" cy="294" r="104" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.12)"/>
+        <circle cx="650" cy="294" r="68" fill="rgba(${r}, ${g}, ${b}, 0.26)"/>
+      </g>
+    </svg>
+  `;
+  return svgDataUri(svg);
 }
 
 async function seed() {
@@ -299,7 +416,12 @@ async function seed() {
 
   const projectRows = showcaseProjects.map((project, index) => {
     const slug = `showcase-${slugify(project.name)}`;
-    const banner = makeBanner(project.name, project.accent);
+    const banner = makeBanner({
+      title: project.name,
+      subtitle: project.mood,
+      eyebrow: `${project.chain} / ${project.category}`.toUpperCase(),
+      accent: project.accent,
+    });
     return {
       id: randomUUID(),
       name: project.name,
@@ -340,8 +462,17 @@ async function seed() {
         slug: `${project.slug}-boot-sequence`,
         short_description: `Push the first launch wave for ${showcaseProjects[index].name} and unlock early grid momentum.`,
         long_description: `A launch-focused campaign lane for ${showcaseProjects[index].name}, tuned for discovery, operator onboarding and reward pressure.`,
-        banner_url: project.banner_url,
-        thumbnail_url: makeThumb(`${showcaseProjects[index].name} Launch`, showcaseProjects[index].accent),
+        banner_url: makeBanner({
+          title: `${showcaseProjects[index].name} Boot Sequence`,
+          subtitle: "Launch lane / discovery pressure / early momentum",
+          eyebrow: "CAMPAIGN / LAUNCH",
+          accent: showcaseProjects[index].accent,
+        }),
+        thumbnail_url: makeThumb({
+          title: "Boot",
+          subtitle: showcaseProjects[index].name,
+          accent: showcaseProjects[index].accent,
+        }),
         campaign_type: "social_growth",
         xp_budget: 1200 + index * 40,
         participants: 240 + index * 9,
@@ -359,8 +490,17 @@ async function seed() {
         slug: `${project.slug}-squad-surge`,
         short_description: `Join a higher-pressure mission lane with raid pushes, social tasks and premium reward heat.`,
         long_description: `This campaign turns ${showcaseProjects[index].name} into a squad-first mission lane with raids, coordinated pushes and stronger payoff pacing.`,
-        banner_url: project.banner_url,
-        thumbnail_url: makeThumb(`${showcaseProjects[index].name} Raid`, showcaseProjects[index].accent),
+        banner_url: makeBanner({
+          title: `${showcaseProjects[index].name} Squad Surge`,
+          subtitle: "Raid lane / squad pressure / premium reward heat",
+          eyebrow: "CAMPAIGN / RAID",
+          accent: showcaseProjects[index].accent,
+        }),
+        thumbnail_url: makeThumb({
+          title: "Surge",
+          subtitle: showcaseProjects[index].name,
+          accent: showcaseProjects[index].accent,
+        }),
         campaign_type: "community_growth",
         xp_budget: 1800 + index * 55,
         participants: 320 + index * 11,
@@ -458,7 +598,11 @@ async function seed() {
     rarity: index % 7 === 0 ? "legendary" : index % 5 === 0 ? "epic" : index % 3 === 0 ? "rare" : "common",
     cost: 120 + index * 18,
     claimable: index % 4 === 0,
-    image_url: makeThumb(campaign.title, showcaseProjects[index % showcaseProjects.length].accent),
+    image_url: makeThumb({
+      title: index % 2 === 0 ? "Access" : "Vault",
+      subtitle: campaign.title,
+      accent: showcaseProjects[index % showcaseProjects.length].accent,
+    }),
   }));
 
   const insertRewards = await supabaseAdmin.from("rewards").insert(rewardRows);
@@ -480,7 +624,12 @@ async function seed() {
       participants: 40 + index * 6,
       progress: 18 + (index * 7) % 81,
       target: `Coordinate a fast squad push for ${showcaseProjects[index].name} across its live mission lane.`,
-      banner: project.banner_url,
+      banner: makeBanner({
+        title: `${showcaseProjects[index].name} Raid Window`,
+        subtitle: "Coordinated push / signal burst / XP payout",
+        eyebrow: "RAID / LIVE",
+        accent: showcaseProjects[index].accent,
+      }),
       platform: "x",
       verification_type: "manual_confirm",
       instructions: [
