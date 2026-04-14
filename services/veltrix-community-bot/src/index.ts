@@ -17,7 +17,9 @@ async function bootstrap() {
       console.log(`[discord] ready as ${discordClient.user?.tag ?? "unknown bot"}`);
     });
 
-    void discordClient.login(env.DISCORD_BOT_TOKEN);
+    void discordClient.login(env.DISCORD_BOT_TOKEN).catch((error) => {
+      console.error("[discord] failed to connect", error);
+    });
   } else {
     console.log("[discord] skipped because DISCORD_BOT_TOKEN is not configured");
   }

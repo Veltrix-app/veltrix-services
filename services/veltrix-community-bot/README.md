@@ -27,11 +27,19 @@ This service is responsible for:
 - `GET /`
 - `GET /health`
 - `POST /webhooks/discord`
+- `POST /webhooks/discord/verify`
 - `POST /webhooks/telegram`
 
 The webhook routes accept confirmed membership payloads and then:
 1. store a provider verification event in Supabase
 2. call the Veltrix confirm callback
+
+The Discord verify route is the first real provider-owned verification endpoint:
+1. load the linked Discord account from Supabase
+2. load the project Discord integration from Supabase
+3. resolve `guildId` or `serverId` from integration config
+4. check live guild membership through the Discord bot
+5. auto-confirm the quest if membership is real
 
 ## Required env
 
@@ -48,6 +56,7 @@ Copy `.env.example` to `.env` and fill in:
 
 ## Next step
 
-The next real implementation step is to replace manual webhook calls with provider-native membership confirmation:
-- Discord guild membership verification
+The next real implementation step after this foundation is:
+- project-side Discord integration setup that stores `guildId`
 - Telegram group membership verification
+- a worker or cron that re-checks pending Discord requests automatically

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { confirmDiscordMembership } from "../providers/discord/membership.js";
+import { verifyDiscordQuestMembership } from "../providers/discord/verification.js";
 import { confirmTelegramMembership } from "../providers/telegram/membership.js";
 import { env } from "../config/env.js";
 
@@ -18,6 +19,11 @@ const telegramPayloadSchema = z.object({
   questId: z.string().uuid(),
   chatId: z.string().min(1),
   telegramUserId: z.string().min(1)
+});
+
+const discordVerificationSchema = z.object({
+  authUserId: z.string().uuid(),
+  questId: z.string().uuid()
 });
 
 function hasValidWebhookSecret(secretHeader: string | undefined) {
@@ -49,6 +55,31 @@ webhookRouter.post("/discord", async (req, res) => {
     return res.status(500).json({
       ok: false,
       error: error instanceof Error ? error.message : "Discord confirmation failed."
+    });
+  }
+});
+
+webhookRouter.post("/discord/verify", async (req, res) => {
+  if (!hasValidWebhookSecret(req.header("x-community-bot-secret") ?? undefined)) {
+    return res.status(401).json({ ok: false, error: "Invalid webhook secret." });
+  }
+
+  const parsed = discordVerificationSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      ok: false,
+      error: "Invalid Discord verification payload.",
+      details: parsed.error.flatten()
+    });
+  }
+
+  try {
+    const result = await verifyDiscordQuestMembership(parsed.data);
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : "Discord membership verification failed."
     });
   }
 });
