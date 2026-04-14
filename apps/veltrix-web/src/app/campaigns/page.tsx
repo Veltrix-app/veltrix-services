@@ -6,8 +6,8 @@ export default function CampaignsPage() {
   return (
     <AppShell
       eyebrow="Campaigns"
-      title="Campaign missions"
-      description="Browse the live campaign catalog with real XP budgets, progress and quest counts."
+      title="Mission Select"
+      description="Launch into live campaign lanes with real XP budgets, steps and clear-rate pressure."
     >
       <ProtectedState>
         <CampaignsScreen />
