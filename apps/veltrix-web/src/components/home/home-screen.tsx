@@ -41,6 +41,9 @@ export function HomeScreen() {
             This surface now reads from the real app backend: quests, campaigns, rewards,
             notifications and connected identities instead of demo content.
           </p>
+          <p className="mt-3 text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
+            Web parity rollout in progress
+          </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <button className="rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99]">
