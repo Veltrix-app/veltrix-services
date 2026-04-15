@@ -236,6 +236,23 @@ async function syncManagedConnectedAccounts(params: {
   }
 }
 
+async function syncManagedConnectedAccountsViaApi(params: {
+  accessToken: string;
+}) {
+  const response = await fetch("/api/identity/sync", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${params.accessToken}`,
+    },
+  });
+
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok || !payload?.ok) {
+    throw new Error(payload?.error || "Identity sync route failed.");
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [initialized, setInitialized] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -606,7 +623,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function syncConnectedAccounts() {
-    if (!publicEnv.authConfigured || !supabase || !authUserId) {
+    if (!publicEnv.authConfigured || !supabase || !authUserId || !session?.access_token) {
       return { ok: false, error: "You need an active session before refreshing linked systems." };
     }
 
@@ -614,10 +631,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
 
     try {
-      await syncManagedConnectedAccounts({
-        authUserId,
-        supabase,
-        user: session?.user ?? null,
+      await syncManagedConnectedAccountsViaApi({
+        accessToken: session.access_token,
       });
       setLoading(false);
       return { ok: true };
