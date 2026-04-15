@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 function getBearerToken(request: NextRequest) {
   const header = request.headers.get("authorization") || "";
@@ -40,6 +41,19 @@ function getSupabaseClient(accessToken: string) {
   });
 }
 
+function getServiceSupabaseClient() {
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error("SUPABASE_SERVICE_ROLE_KEY is missing for website verification.");
+  }
+
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
 export async function POST(request: NextRequest) {
   const accessToken = getBearerToken(request);
   if (!accessToken) {
@@ -55,6 +69,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const supabase = getSupabaseClient(accessToken);
+    const serviceSupabase = getServiceSupabaseClient();
 
     const {
       data: { user },
@@ -113,7 +128,7 @@ export async function POST(request: NextRequest) {
 
     const now = new Date().toISOString();
 
-    const { error: eventError } = await supabase.from("verification_events").insert({
+    const { error: eventError } = await serviceSupabase.from("verification_events").insert({
       auth_user_id: user.id,
       project_id: quest.project_id ?? null,
       quest_id: quest.id,
@@ -133,7 +148,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data: existingSubmission } = await supabase
+    const { data: existingSubmission } = await serviceSupabase
       .from("quest_submissions")
       .select("id, status")
       .eq("auth_user_id", user.id)
@@ -145,7 +160,7 @@ export async function POST(request: NextRequest) {
     let submissionId = existingSubmission?.id ?? null;
 
     if (existingSubmission?.id) {
-      const { error: updateSubmissionError } = await supabase
+      const { error: updateSubmissionError } = await serviceSupabase
         .from("quest_submissions")
         .update({
           status: "approved",
@@ -161,7 +176,7 @@ export async function POST(request: NextRequest) {
         );
       }
     } else {
-      const { data: createdSubmission, error: createSubmissionError } = await supabase
+      const { data: createdSubmission, error: createSubmissionError } = await serviceSupabase
         .from("quest_submissions")
         .insert({
           auth_user_id: user.id,
@@ -189,7 +204,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await supabase.from("verification_results").insert({
+    await serviceSupabase.from("verification_results").insert({
       auth_user_id: user.id,
       project_id: quest.project_id ?? null,
       quest_id: quest.id,
@@ -211,7 +226,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const { data: userProgress } = await supabase
+    const { data: userProgress } = await serviceSupabase
       .from("user_progress")
       .select("id, quest_statuses")
       .eq("auth_user_id", user.id)
@@ -223,7 +238,7 @@ export async function POST(request: NextRequest) {
           ? { ...(userProgress.quest_statuses as Record<string, string>), [quest.id]: "approved" }
           : { [quest.id]: "approved" };
 
-      await supabase
+      await serviceSupabase
         .from("user_progress")
         .update({
           quest_statuses: nextQuestStatuses,
@@ -232,7 +247,7 @@ export async function POST(request: NextRequest) {
         .eq("id", userProgress.id);
     }
 
-    await supabase.from("app_notifications").insert({
+    await serviceSupabase.from("app_notifications").insert({
       auth_user_id: user.id,
       title: "Quest auto-approved",
       body: `${quest.title} completed automatically after Veltrix confirmed the website visit.`,
