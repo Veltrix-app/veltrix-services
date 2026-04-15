@@ -39,7 +39,12 @@ type AuthContextValue = {
     telegramUserId: string;
     username?: string;
   }) => Promise<{ ok: boolean; error?: string }>;
-  syncConnectedAccounts: () => Promise<{ ok: boolean; error?: string; identities?: number }>;
+  syncConnectedAccounts: () => Promise<{
+    ok: boolean;
+    error?: string;
+    identities?: number;
+    accounts?: ConnectedAccount[];
+  }>;
   signOut: () => Promise<void>;
   reloadProfile: () => Promise<void>;
   clearError: () => void;
@@ -254,6 +259,7 @@ async function syncManagedConnectedAccountsViaApi(params: {
 
   return {
     identities: typeof payload.identities === "number" ? payload.identities : 0,
+    accounts: Array.isArray(payload.accounts) ? (payload.accounts as ConnectedAccount[]) : [],
   };
 }
 
@@ -639,7 +645,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         accessToken: session.access_token,
       });
       setLoading(false);
-      return { ok: true, identities: result.identities };
+      return { ok: true, identities: result.identities, accounts: result.accounts };
     } catch (nextError) {
       const message =
         nextError instanceof Error ? nextError.message : "Failed to refresh linked systems.";

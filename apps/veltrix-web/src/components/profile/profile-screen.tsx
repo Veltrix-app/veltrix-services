@@ -41,8 +41,23 @@ export function ProfileScreen() {
   } | null>(null);
   const [linkedSyncHandled, setLinkedSyncHandled] = useState<string | null>(null);
   const [syncingLoadout, setSyncingLoadout] = useState(false);
+  const [linkedAccountOverrides, setLinkedAccountOverrides] = useState<ConnectedAccount[]>([]);
 
-  const connectedCount = connectedAccounts.filter((account) => account.status === "connected").length;
+  const effectiveConnectedAccounts = useMemo(() => {
+    const providerMap = new Map(
+      connectedAccounts.map((account) => [account.provider, account] as const)
+    );
+
+    for (const account of linkedAccountOverrides) {
+      providerMap.set(account.provider, account);
+    }
+
+    return Array.from(providerMap.values());
+  }, [connectedAccounts, linkedAccountOverrides]);
+
+  const connectedCount = effectiveConnectedAccounts.filter(
+    (account) => account.status === "connected"
+  ).length;
   const providerMissionPressure = useMemo(() => {
     const pressure = {
       discord: 0,
@@ -72,7 +87,9 @@ export function ProfileScreen() {
   }, [quests]);
 
   const providerCards = useMemo(() => {
-    const providerMap = new Map(connectedAccounts.map((account) => [account.provider, account]));
+    const providerMap = new Map(
+      effectiveConnectedAccounts.map((account) => [account.provider, account])
+    );
 
     return [
       {
@@ -115,7 +132,7 @@ export function ProfileScreen() {
         account: providerMap.get("x") ?? null,
       },
     ];
-  }, [connectedAccounts, providerMissionPressure]);
+  }, [effectiveConnectedAccounts, providerMissionPressure]);
 
   async function handleProviderLink(provider: "discord" | "x") {
     setProviderMessage(null);
@@ -156,7 +173,7 @@ export function ProfileScreen() {
       return;
     }
 
-    await reload();
+    void reload();
     setProviderMessage({
       tone: "success",
       text: "Telegram id armed. Telegram join missions can now verify against this identity.",
@@ -181,7 +198,10 @@ export function ProfileScreen() {
       return;
     }
 
-    await reload();
+    if (result.accounts) {
+      setLinkedAccountOverrides(result.accounts);
+    }
+    void reload();
     setProviderMessage({
       tone: "success",
       text:
@@ -240,7 +260,10 @@ export function ProfileScreen() {
         return;
       }
 
-      await reload();
+      if (result.accounts) {
+        setLinkedAccountOverrides(result.accounts);
+      }
+      void reload();
 
       if (!cancelled) {
         setProviderMessage({

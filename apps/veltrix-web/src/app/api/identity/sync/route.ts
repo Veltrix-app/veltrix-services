@@ -83,6 +83,26 @@ function deriveIdentityUsername(identity: UserIdentity) {
   return typeof username === "string" && username.length > 0 ? username : null;
 }
 
+function normalizeConnectedAccountRow(row: {
+  id: string;
+  provider: "discord" | "x" | "telegram";
+  provider_user_id: string;
+  username: string | null;
+  status: "connected" | "expired" | "revoked";
+  connected_at: string;
+  updated_at: string;
+}) {
+  return {
+    id: row.id,
+    provider: row.provider,
+    providerUserId: row.provider_user_id,
+    username: row.username,
+    status: row.status,
+    connectedAt: row.connected_at,
+    updatedAt: row.updated_at,
+  };
+}
+
 export async function POST(request: NextRequest) {
   const accessToken = getBearerToken(request);
   if (!accessToken) {
@@ -112,9 +132,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const linkedIdentities = (Array.isArray(adminUserResult.user.identities)
+    const sessionIdentities = Array.isArray(user.identities) ? user.identities : [];
+    const adminIdentities = Array.isArray(adminUserResult.user.identities)
       ? adminUserResult.user.identities
-      : [])
+      : [];
+    const dedupedIdentityMap = new Map<string, UserIdentity>();
+
+    for (const identity of [...sessionIdentities, ...adminIdentities]) {
+      const provider = mapIdentityProvider(identity.provider);
+      const providerUserId = deriveIdentityUserId(identity);
+
+      if (!provider || !providerUserId) {
+        continue;
+      }
+
+      dedupedIdentityMap.set(`${provider}:${providerUserId}`, identity);
+    }
+
+    const linkedIdentities = Array.from(dedupedIdentityMap.values())
       .map((identity) => {
         const provider = mapIdentityProvider(identity.provider);
         const providerUserId = deriveIdentityUserId(identity);
@@ -135,16 +170,6 @@ export async function POST(request: NextRequest) {
       })
       .filter((identity): identity is NonNullable<typeof identity> => Boolean(identity));
 
-    const { error: deleteError } = await serviceSupabase
-      .from("user_connected_accounts")
-      .delete()
-      .eq("auth_user_id", user.id)
-      .in("provider", ["discord", "x"]);
-
-    if (deleteError) {
-      return NextResponse.json({ ok: false, error: deleteError.message }, { status: 500 });
-    }
-
     if (linkedIdentities.length > 0) {
       const { error: insertError } = await serviceSupabase
         .from("user_connected_accounts")
@@ -157,9 +182,23 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const { data: finalAccounts, error: finalAccountsError } = await serviceSupabase
+      .from("user_connected_accounts")
+      .select("id, provider, provider_user_id, username, status, connected_at, updated_at")
+      .eq("auth_user_id", user.id)
+      .in("provider", ["discord", "x", "telegram"])
+      .order("connected_at", { ascending: false });
+
+    if (finalAccountsError) {
+      return NextResponse.json({ ok: false, error: finalAccountsError.message }, { status: 500 });
+    }
+
+    const normalizedAccounts = (finalAccounts ?? []).map(normalizeConnectedAccountRow);
+
     return NextResponse.json({
       ok: true,
-      identities: linkedIdentities.length,
+      identities: normalizedAccounts.length,
+      accounts: normalizedAccounts,
     });
   } catch (error) {
     return NextResponse.json(
