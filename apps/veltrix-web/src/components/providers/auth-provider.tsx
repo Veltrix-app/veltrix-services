@@ -36,13 +36,70 @@ type AuthContextValue = {
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+function deriveUsername(email?: string | null) {
+  if (!email) {
+    return "pilot";
+  }
+
+  return email.split("@")[0] || "pilot";
+}
+
+async function ensureUserScaffold(params: {
+  authUserId: string;
+  email?: string | null;
+  supabase: ReturnType<typeof createSupabaseBrowserClient>;
+}) {
+  const username = deriveUsername(params.email);
+
+  await Promise.all([
+    params.supabase.from("user_profiles").upsert({
+      auth_user_id: params.authUserId,
+      username,
+      avatar_url: "",
+      banner_url: "",
+      title: "Explorer",
+      faction: "Unassigned",
+      bio: "No bio set yet.",
+      wallet: "",
+      xp: 0,
+      level: 1,
+      streak: 0,
+      status: "active",
+    }),
+    params.supabase.from("user_global_reputation").upsert({
+      auth_user_id: params.authUserId,
+      total_xp: 0,
+      level: 1,
+      streak: 0,
+      trust_score: 50,
+      sybil_score: 0,
+      contribution_tier: "explorer",
+      reputation_rank: 0,
+      quests_completed: 0,
+      raids_completed: 0,
+      rewards_claimed: 0,
+      status: "active",
+    }),
+    params.supabase.from("user_progress").upsert({
+      auth_user_id: params.authUserId,
+      joined_communities: [],
+      confirmed_raids: [],
+      claimed_rewards: [],
+      opened_lootbox_ids: [],
+      unlocked_reward_ids: [],
+      quest_statuses: {},
+    }),
+  ]);
+}
+
 async function fetchProfileWithReputation(
   authUserId: string,
   supabase: ReturnType<typeof createSupabaseBrowserClient>
 ) {
   const [{ data: profile, error: profileError }, { data: reputation, error: reputationError }] =
     await Promise.all([
-      supabase.from("user_profiles").select("*").eq("auth_user_id", authUserId).single(),
+      supabase.from("user_profiles").select("*").eq("auth_user_id", authUserId).maybeSingle(),
       supabase
         .from("user_global_reputation")
         .select("*")
@@ -56,6 +113,10 @@ async function fetchProfileWithReputation(
 
   if (reputationError) {
     throw reputationError;
+  }
+
+  if (!profile) {
+    throw new Error("PROFILE_MISSING");
   }
 
   return {
@@ -89,7 +150,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const data = await fetchProfileWithReputation(authUserId, supabase);
+      let data;
+
+      try {
+        data = await fetchProfileWithReputation(authUserId, supabase);
+      } catch (nextError) {
+        if (nextError instanceof Error && nextError.message === "PROFILE_MISSING") {
+          await ensureUserScaffold({
+            authUserId,
+            email: session?.user?.email,
+            supabase,
+          });
+          data = await fetchProfileWithReputation(authUserId, supabase);
+        } else {
+          throw nextError;
+        }
+      }
+
       setProfile(mapProfile(data));
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : "Failed to load profile.");
