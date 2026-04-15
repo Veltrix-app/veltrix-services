@@ -7,11 +7,13 @@ import {
   useMemo,
   useState,
 } from "react";
-import type { Session } from "@supabase/supabase-js";
+import type { Session, UserIdentity } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { publicEnv } from "@/lib/env";
 import { mapProfile } from "@/lib/auth";
-import type { ProfileUpdateInput, UserProfile } from "@/types/auth";
+import type { ConnectedAccount, ProfileUpdateInput, UserProfile } from "@/types/auth";
+
+type LinkableProvider = "discord" | "x";
 
 type AuthContextValue = {
   initialized: boolean;
@@ -30,6 +32,14 @@ type AuthContextValue = {
   updateProfile: (
     input: ProfileUpdateInput
   ) => Promise<{ ok: boolean; error?: string }>;
+  linkProvider: (
+    provider: LinkableProvider
+  ) => Promise<{ ok: boolean; error?: string }>;
+  saveTelegramIdentity: (input: {
+    telegramUserId: string;
+    username?: string;
+  }) => Promise<{ ok: boolean; error?: string }>;
+  syncConnectedAccounts: () => Promise<{ ok: boolean; error?: string }>;
   signOut: () => Promise<void>;
   reloadProfile: () => Promise<void>;
   clearError: () => void;
@@ -125,6 +135,97 @@ async function fetchProfileWithReputation(
   };
 }
 
+function mapIdentityProvider(provider: string): ConnectedAccount["provider"] | null {
+  if (provider === "discord") {
+    return "discord";
+  }
+
+  if (provider === "twitter") {
+    return "x";
+  }
+
+  return null;
+}
+
+function deriveIdentityUserId(identity: UserIdentity) {
+  const identityData = identity.identity_data ?? {};
+  const rawValue =
+    identityData.sub ??
+    identityData.user_id ??
+    identityData.id ??
+    identityData.provider_id ??
+    identity.identity_id;
+
+  return rawValue ? String(rawValue) : "";
+}
+
+function deriveIdentityUsername(identity: UserIdentity) {
+  const identityData = identity.identity_data ?? {};
+  const username =
+    identityData.user_name ??
+    identityData.preferred_username ??
+    identityData.username ??
+    identityData.nick ??
+    identityData.name ??
+    null;
+
+  return typeof username === "string" && username.length > 0 ? username : null;
+}
+
+async function syncManagedConnectedAccounts(params: {
+  authUserId: string;
+  supabase: ReturnType<typeof createSupabaseBrowserClient>;
+}) {
+  const { data, error } = await params.supabase.auth.getUserIdentities();
+
+  if (error) {
+    throw error;
+  }
+
+  const linkedIdentities = (data.identities ?? [])
+    .map((identity) => {
+      const provider = mapIdentityProvider(identity.provider);
+      const providerUserId = deriveIdentityUserId(identity);
+
+      if (!provider || !providerUserId) {
+        return null;
+      }
+
+      return {
+        auth_user_id: params.authUserId,
+        provider,
+        provider_user_id: providerUserId,
+        username: deriveIdentityUsername(identity),
+        status: "connected",
+        connected_at: identity.created_at ?? new Date().toISOString(),
+        updated_at: identity.updated_at ?? new Date().toISOString(),
+      };
+    })
+    .filter((identity): identity is NonNullable<typeof identity> => Boolean(identity));
+
+  const { error: deleteError } = await params.supabase
+    .from("user_connected_accounts")
+    .delete()
+    .eq("auth_user_id", params.authUserId)
+    .in("provider", ["discord", "x"]);
+
+  if (deleteError) {
+    throw deleteError;
+  }
+
+  if (linkedIdentities.length === 0) {
+    return;
+  }
+
+  const { error: insertError } = await params.supabase
+    .from("user_connected_accounts")
+    .insert(linkedIdentities);
+
+  if (insertError) {
+    throw insertError;
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [initialized, setInitialized] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -168,6 +269,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       setProfile(mapProfile(data));
+
+      try {
+        await syncManagedConnectedAccounts({
+          authUserId,
+          supabase,
+        });
+      } catch (syncError) {
+        setError(
+          syncError instanceof Error
+            ? syncError.message
+            : "Linked system sync failed."
+        );
+      }
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : "Failed to load profile.");
       setProfile(null);
@@ -394,6 +508,116 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { ok: true };
   }
 
+  async function linkProvider(provider: LinkableProvider) {
+    if (!publicEnv.authConfigured || !supabase || !authUserId) {
+      return { ok: false, error: "You need an active pilot session before linking providers." };
+    }
+
+    setLoading(true);
+    setError(null);
+
+    const nextProvider = provider === "x" ? "twitter" : "discord";
+    const redirectTo =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/profile?linked=${provider}`
+        : undefined;
+
+    const { data, error: linkError } = await supabase.auth.linkIdentity({
+      provider: nextProvider,
+      options: {
+        redirectTo,
+      },
+    });
+
+    if (linkError) {
+      setLoading(false);
+      setError(linkError.message);
+      return { ok: false, error: linkError.message };
+    }
+
+    if (data?.url && typeof window !== "undefined") {
+      window.location.assign(data.url);
+    }
+
+    setLoading(false);
+    return { ok: true };
+  }
+
+  async function saveTelegramIdentity(input: {
+    telegramUserId: string;
+    username?: string;
+  }) {
+    if (!publicEnv.authConfigured || !supabase || !authUserId) {
+      return { ok: false, error: "You need an active pilot session before linking Telegram." };
+    }
+
+    const sanitizedUserId = input.telegramUserId.replace(/[^\d]/g, "");
+    const sanitizedUsername = input.username?.trim().replace(/^@+/, "") ?? "";
+
+    if (!sanitizedUserId) {
+      return { ok: false, error: "Enter your Telegram numeric user id first." };
+    }
+
+    setLoading(true);
+    setError(null);
+
+    const { error: deleteError } = await supabase
+      .from("user_connected_accounts")
+      .delete()
+      .eq("auth_user_id", authUserId)
+      .eq("provider", "telegram");
+
+    if (deleteError) {
+      setLoading(false);
+      setError(deleteError.message);
+      return { ok: false, error: deleteError.message };
+    }
+
+    const timestamp = new Date().toISOString();
+    const { error: insertError } = await supabase.from("user_connected_accounts").insert({
+      auth_user_id: authUserId,
+      provider: "telegram",
+      provider_user_id: sanitizedUserId,
+      username: sanitizedUsername || null,
+      status: "connected",
+      connected_at: timestamp,
+      updated_at: timestamp,
+    });
+
+    if (insertError) {
+      setLoading(false);
+      setError(insertError.message);
+      return { ok: false, error: insertError.message };
+    }
+
+    setLoading(false);
+    return { ok: true };
+  }
+
+  async function syncConnectedAccounts() {
+    if (!publicEnv.authConfigured || !supabase || !authUserId) {
+      return { ok: false, error: "You need an active session before refreshing linked systems." };
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      await syncManagedConnectedAccounts({
+        authUserId,
+        supabase,
+      });
+      setLoading(false);
+      return { ok: true };
+    } catch (nextError) {
+      const message =
+        nextError instanceof Error ? nextError.message : "Failed to refresh linked systems.";
+      setLoading(false);
+      setError(message);
+      return { ok: false, error: message };
+    }
+  }
+
   const value = useMemo<AuthContextValue>(
     () => ({
       initialized,
@@ -406,6 +630,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signIn,
       signUp,
       updateProfile,
+      linkProvider,
+      saveTelegramIdentity,
+      syncConnectedAccounts,
       signOut,
       reloadProfile,
       clearError: () => setError(null),

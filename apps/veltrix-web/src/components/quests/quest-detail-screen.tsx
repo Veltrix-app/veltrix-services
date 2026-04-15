@@ -475,7 +475,10 @@ export function QuestDetailScreen() {
               <div className="rounded-[24px] border border-amber-400/20 bg-amber-500/10 p-4 text-sm text-amber-100">
                 This mission needs a connected {requiredAccount.toUpperCase()} account before the
                 verification route can start. Link it from{" "}
-                <Link href="/profile" className="font-semibold text-white underline underline-offset-4">
+                <Link
+                  href={`/profile#${requiredAccount}`}
+                  className="font-semibold text-white underline underline-offset-4"
+                >
                   Profile
                 </Link>
                 .
@@ -499,7 +502,7 @@ export function QuestDetailScreen() {
 
               {requiredAccount ? (
                 <Link
-                  href="/profile"
+                  href={`/profile#${requiredAccount}`}
                   className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
                 >
                   Review connected accounts

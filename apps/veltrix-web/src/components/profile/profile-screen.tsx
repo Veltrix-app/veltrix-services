@@ -1,14 +1,23 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo, useState } from "react";
 import { ShieldCheck, Signal, Trophy, UserRound, Zap } from "lucide-react";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
+import type { ConnectedAccount } from "@/types/auth";
 
 export function ProfileScreen() {
-  const { profile, authConfigured } = useAuth();
+  const {
+    profile,
+    authConfigured,
+    loading: authLoading,
+    linkProvider,
+    saveTelegramIdentity,
+    syncConnectedAccounts,
+  } = useAuth();
   const {
     connectedAccounts,
     notifications,
@@ -16,9 +25,160 @@ export function ProfileScreen() {
     loading,
     error,
     projectReputation,
+    quests,
+    reload,
   } = useLiveUserData();
+  const [telegramUserId, setTelegramUserId] = useState("");
+  const [telegramUsername, setTelegramUsername] = useState("");
+  const [activeProvider, setActiveProvider] = useState<ConnectedAccount["provider"] | null>(null);
+  const [providerMessage, setProviderMessage] = useState<{
+    tone: "default" | "error" | "success";
+    text: string;
+  } | null>(null);
 
   const connectedCount = connectedAccounts.filter((account) => account.status === "connected").length;
+  const providerMissionPressure = useMemo(() => {
+    const pressure = {
+      discord: 0,
+      telegram: 0,
+      x: 0,
+    };
+
+    for (const quest of quests) {
+      if (quest.completionMode !== "integration_auto") {
+        continue;
+      }
+
+      if (quest.verificationProvider === "discord") {
+        pressure.discord += 1;
+      }
+
+      if (quest.verificationProvider === "telegram") {
+        pressure.telegram += 1;
+      }
+
+      if (quest.verificationProvider === "x") {
+        pressure.x += 1;
+      }
+    }
+
+    return pressure;
+  }, [quests]);
+
+  const providerCards = useMemo(() => {
+    const providerMap = new Map(connectedAccounts.map((account) => [account.provider, account]));
+
+    return [
+      {
+        provider: "discord" as const,
+        label: "Discord",
+        eyebrow: "Squad comms",
+        hint: "Required for server joins, raid pressure and community-gated missions.",
+        accent: "text-cyan-200",
+        cta:
+          providerMap.get("discord")?.status === "connected"
+            ? "Refresh Discord link"
+            : "Link Discord",
+        missionCount: providerMissionPressure.discord,
+        account: providerMap.get("discord") ?? null,
+      },
+      {
+        provider: "telegram" as const,
+        label: "Telegram",
+        eyebrow: "Bot-assisted rail",
+        hint: "Telegram verification needs your numeric Telegram id because group membership checks resolve against the bot.",
+        accent: "text-lime-200",
+        cta:
+          providerMap.get("telegram")?.status === "connected"
+            ? "Update Telegram id"
+            : "Arm Telegram id",
+        missionCount: providerMissionPressure.telegram,
+        account: providerMap.get("telegram") ?? null,
+      },
+      {
+        provider: "x" as const,
+        label: "X",
+        eyebrow: "Signal graph",
+        hint: "Required for follow quests, social mission gating and signal-based campaign pressure.",
+        accent: "text-amber-200",
+        cta:
+          providerMap.get("x")?.status === "connected"
+            ? "Refresh X link"
+            : "Link X",
+        missionCount: providerMissionPressure.x,
+        account: providerMap.get("x") ?? null,
+      },
+    ];
+  }, [connectedAccounts, providerMissionPressure]);
+
+  async function handleProviderLink(provider: "discord" | "x") {
+    setProviderMessage(null);
+    setActiveProvider(provider);
+
+    const result = await linkProvider(provider);
+
+    if (!result.ok) {
+      setProviderMessage({
+        tone: "error",
+        text: result.error ?? `Could not link ${provider.toUpperCase()} right now.`,
+      });
+      setActiveProvider(null);
+      return;
+    }
+
+    setProviderMessage({
+      tone: "default",
+      text: `Routing ${provider.toUpperCase()} through the live identity link now.`,
+    });
+  }
+
+  async function handleTelegramSave() {
+    setProviderMessage(null);
+    setActiveProvider("telegram");
+
+    const result = await saveTelegramIdentity({
+      telegramUserId,
+      username: telegramUsername,
+    });
+
+    if (!result.ok) {
+      setProviderMessage({
+        tone: "error",
+        text: result.error ?? "Could not arm your Telegram identity yet.",
+      });
+      setActiveProvider(null);
+      return;
+    }
+
+    await reload();
+    setProviderMessage({
+      tone: "success",
+      text: "Telegram id armed. Telegram join missions can now verify against this identity.",
+    });
+    setTelegramUserId("");
+    setTelegramUsername("");
+    setActiveProvider(null);
+  }
+
+  async function handleRefreshLinks() {
+    setProviderMessage(null);
+    setActiveProvider(null);
+    const result = await syncConnectedAccounts();
+
+    if (!result.ok) {
+      setProviderMessage({
+        tone: "error",
+        text: result.error ?? "Could not refresh linked systems.",
+      });
+      return;
+    }
+
+    await reload();
+    setProviderMessage({
+      tone: "success",
+      text: "Linked systems refreshed against the live identity graph.",
+    });
+  }
 
   return (
     <div className="space-y-6">
@@ -80,6 +240,14 @@ export function ProfileScreen() {
                   >
                     Open signal feed
                   </Link>
+                  <button
+                    type="button"
+                    onClick={() => void handleRefreshLinks()}
+                    disabled={authLoading}
+                    className="glass-button inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:border-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    Refresh linked systems
+                  </button>
                 </div>
               </div>
 
@@ -107,25 +275,25 @@ export function ProfileScreen() {
         <div className="space-y-6">
           <Surface
             eyebrow="Identity Stack"
-            title="Session source"
-            description="This pilot hub is tied to the same live account surfaces as mobile."
+            title="Identity command"
+            description="Linking is now part of the mission system, not a buried settings afterthought."
           >
             <div className="grid gap-3">
               <InfoPanel
                 title="Auth foundation"
                 text={
                   authConfigured
-                    ? "Supabase auth is active, so this surface reads real profile and session state."
+                    ? "Pilot auth is armed, so Discord and X can route through live identity linking instead of fake toggles."
                     : "Publishable Supabase envs are still missing, so live account reads are not armed yet."
                 }
               />
               <InfoPanel
-                title="Provider source"
-                text="Verification readiness comes from user_connected_accounts, not demo toggles."
+                title="Mission pressure"
+                text={`${providerMissionPressure.discord + providerMissionPressure.telegram + providerMissionPressure.x} missions currently depend on linked provider state.`}
               />
               <InfoPanel
-                title="Signal pressure"
-                text={`${unreadNotificationCount} unread updates across ${notifications.length} recent events.`}
+                title="Provider source"
+                text="Verification readiness resolves from live linked identities and user_connected_accounts, not demo switches."
               />
             </div>
           </Surface>
@@ -148,51 +316,116 @@ export function ProfileScreen() {
       <Surface
         eyebrow="Linked Systems"
         title="Provider loadout"
-        description="Provider readiness should feel like a pilot loadout, not a settings table."
+        description="Link the systems that power mission verification before you jump into the next lane."
       >
+        {providerMessage ? (
+          <Notice tone={providerMessage.tone === "error" ? "error" : "default"} text={providerMessage.text} />
+        ) : null}
+
         {loading ? (
           <Notice tone="default" text="Loading connected systems..." />
         ) : error ? (
           <Notice tone="error" text={error} />
-        ) : connectedAccounts.length > 0 ? (
+        ) : (
           <div className="grid gap-4 lg:grid-cols-3">
-            {connectedAccounts.map((account) => (
-              <div key={account.id} className="panel-card rounded-[32px] p-5">
+            {providerCards.map((providerCard) => {
+              const account = providerCard.account;
+              const isConnected = account?.status === "connected";
+              const providerKey = providerCard.provider.toUpperCase();
+
+              return (
+              <div id={providerCard.provider} key={providerCard.provider} className="panel-card rounded-[32px] p-5 scroll-mt-32">
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-lg font-black text-white">{account.provider.toUpperCase()}</p>
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-500">
+                      {providerCard.eyebrow}
+                    </p>
+                    <p className="mt-3 text-lg font-black text-white">{providerCard.label}</p>
+                  </div>
                   <StatusChip
                     label={
-                      account.status === "connected"
+                      isConnected
                         ? "Ready"
-                        : account.status === "expired"
-                          ? "Reconnect"
-                          : "Offline"
+                        : providerCard.provider === "telegram"
+                          ? "Needs id"
+                          : "Not linked"
                     }
                     tone={
-                      account.status === "connected"
+                      isConnected
                         ? "positive"
-                        : account.status === "expired"
+                        : providerCard.provider === "telegram"
                           ? "warning"
                           : "default"
                     }
                   />
                 </div>
-                <p className="mt-3 text-sm text-cyan-200">{account.username ?? account.providerUserId}</p>
-                <p className="mt-4 text-sm leading-6 text-slate-300">
-                  Linked {new Date(account.connectedAt).toLocaleDateString("nl-NL")} and ready for provider-verified missions.
+                <p className={`mt-3 text-sm ${providerCard.accent}`}>
+                  {account?.username ?? account?.providerUserId ?? `${providerCard.missionCount} provider-gated missions live`}
                 </p>
-                <button className="glass-button mt-6 rounded-full px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]">
-                  {account.status === "connected"
-                    ? `Manage ${account.provider}`
-                    : account.status === "expired"
-                      ? `Reconnect ${account.provider}`
-                      : `Connect ${account.provider}`}
-                </button>
+                <p className="mt-4 text-sm leading-6 text-slate-300">
+                  {providerCard.hint}
+                </p>
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <MiniStat label="Mission pressure" value={String(providerCard.missionCount)} />
+                  <MiniStat
+                    label="Last sync"
+                    value={
+                      account?.updatedAt
+                        ? new Date(account.updatedAt).toLocaleDateString("nl-NL")
+                        : "Not linked"
+                    }
+                  />
+                </div>
+
+                {providerCard.provider === "telegram" ? (
+                  <div className="mt-6 space-y-3">
+                    <input
+                      className="w-full rounded-[20px] border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-lime-300/50"
+                      placeholder="Telegram numeric id"
+                      value={telegramUserId}
+                      onChange={(event) => setTelegramUserId(event.target.value)}
+                    />
+                    <input
+                      className="w-full rounded-[20px] border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-lime-300/50"
+                      placeholder="@username (optional)"
+                      value={telegramUsername}
+                      onChange={(event) => setTelegramUsername(event.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => void handleTelegramSave()}
+                      disabled={authLoading || activeProvider === "telegram"}
+                      className="glass-button w-full rounded-full px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {activeProvider === "telegram" ? "Arming Telegram..." : providerCard.cta}
+                    </button>
+                    <p className="text-xs leading-6 text-slate-400">
+                      Telegram membership checks use the numeric id that the community bot sees inside Telegram, not only the @username.
+                    </p>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => void handleProviderLink(providerCard.provider)}
+                    disabled={authLoading || activeProvider === providerCard.provider}
+                    className="glass-button mt-6 w-full rounded-full px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {activeProvider === providerCard.provider
+                      ? `Routing ${providerKey}...`
+                      : providerCard.cta}
+                  </button>
+                )}
+
+                <Link
+                  href={`/campaigns`}
+                  className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-cyan-100 underline underline-offset-4"
+                >
+                  Explore mission lanes
+                </Link>
               </div>
-            ))}
+              );
+            })}
           </div>
-        ) : (
-          <Notice tone="default" text="No connected systems yet. Link X, Discord or Telegram before starting provider-verified missions." />
         )}
       </Surface>
 
