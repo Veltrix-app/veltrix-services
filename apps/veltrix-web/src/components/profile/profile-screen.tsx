@@ -187,6 +187,7 @@ export function ProfileScreen() {
 
   useEffect(() => {
     const linkedProvider = searchParams.get("linked");
+    const errorCode = searchParams.get("error_code");
     if (!linkedProvider || linkedSyncHandled === linkedProvider) {
       return;
     }
@@ -197,7 +198,10 @@ export function ProfileScreen() {
     async function finalizeLinkedProvider() {
       setProviderMessage({
         tone: "default",
-        text: `Finalizing ${resolvedProvider.toUpperCase()} inside your live loadout...`,
+        text:
+          errorCode === "identity_already_exists"
+            ? `${resolvedProvider.toUpperCase()} was already present in auth. Syncing it into your live loadout now...`
+            : `Finalizing ${resolvedProvider.toUpperCase()} inside your live loadout...`,
       });
 
       const result = await syncConnectedAccounts();
@@ -217,7 +221,10 @@ export function ProfileScreen() {
       if (!cancelled) {
         setProviderMessage({
           tone: "success",
-          text: `${resolvedProvider.toUpperCase()} is now armed inside your identity loadout.`,
+          text:
+            errorCode === "identity_already_exists"
+              ? `${resolvedProvider.toUpperCase()} was already linked and is now synced into your identity loadout.`
+              : `${resolvedProvider.toUpperCase()} is now armed inside your identity loadout.`,
         });
         setLinkedSyncHandled(resolvedProvider);
         router.replace(pathname, { scroll: false });
