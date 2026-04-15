@@ -40,6 +40,7 @@ export function ProfileScreen() {
     text: string;
   } | null>(null);
   const [linkedSyncHandled, setLinkedSyncHandled] = useState<string | null>(null);
+  const [syncingLoadout, setSyncingLoadout] = useState(false);
 
   const connectedCount = connectedAccounts.filter((account) => account.status === "connected").length;
   const providerMissionPressure = useMemo(() => {
@@ -168,6 +169,7 @@ export function ProfileScreen() {
   async function handleRefreshLinks() {
     setProviderMessage(null);
     setActiveProvider(null);
+    setSyncingLoadout(true);
     const result = await syncConnectedAccounts();
 
     if (!result.ok) {
@@ -175,6 +177,7 @@ export function ProfileScreen() {
         tone: "error",
         text: result.error ?? "Could not refresh linked systems.",
       });
+      setSyncingLoadout(false);
       return;
     }
 
@@ -183,6 +186,7 @@ export function ProfileScreen() {
       tone: "success",
       text: "Linked systems refreshed against the live identity graph.",
     });
+    setSyncingLoadout(false);
   }
 
   useEffect(() => {
@@ -192,10 +196,12 @@ export function ProfileScreen() {
       return;
     }
     const resolvedProvider = linkedProvider;
+    setLinkedSyncHandled(resolvedProvider);
 
     let cancelled = false;
 
     async function finalizeLinkedProvider() {
+      setSyncingLoadout(true);
       setProviderMessage({
         tone: "default",
         text:
@@ -211,7 +217,7 @@ export function ProfileScreen() {
             tone: "error",
             text: result.error ?? `Could not finalize ${resolvedProvider.toUpperCase()} linking.`,
           });
-          setLinkedSyncHandled(resolvedProvider);
+          setSyncingLoadout(false);
         }
         return;
       }
@@ -226,7 +232,7 @@ export function ProfileScreen() {
               ? `${resolvedProvider.toUpperCase()} was already linked and is now synced into your identity loadout.`
               : `${resolvedProvider.toUpperCase()} is now armed inside your identity loadout.`,
         });
-        setLinkedSyncHandled(resolvedProvider);
+        setSyncingLoadout(false);
         router.replace(pathname, { scroll: false });
       }
     }
@@ -301,10 +307,10 @@ export function ProfileScreen() {
                   <button
                     type="button"
                     onClick={() => void handleRefreshLinks()}
-                    disabled={authLoading}
+                    disabled={authLoading || syncingLoadout}
                     className="glass-button inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:border-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    Refresh linked systems
+                    {syncingLoadout ? "Syncing loadout..." : "Refresh linked systems"}
                   </button>
                 </div>
               </div>

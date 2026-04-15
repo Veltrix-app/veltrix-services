@@ -7,7 +7,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import type { Session, UserIdentity } from "@supabase/supabase-js";
+import type { Session, User, UserIdentity } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { publicEnv } from "@/lib/env";
 import { mapProfile } from "@/lib/auth";
@@ -175,14 +175,24 @@ function deriveIdentityUsername(identity: UserIdentity) {
 async function syncManagedConnectedAccounts(params: {
   authUserId: string;
   supabase: ReturnType<typeof createSupabaseBrowserClient>;
+  user?: User | null;
 }) {
-  const { data, error } = await params.supabase.auth.getUserIdentities();
+  const fallbackUser =
+    params.user ??
+    (
+      await Promise.race([
+        params.supabase.auth.getUser(),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Identity lookup timed out.")), 8000)
+        ),
+      ])
+    ).data.user;
 
-  if (error) {
-    throw error;
-  }
+  const identityList = Array.isArray(fallbackUser?.identities)
+    ? fallbackUser.identities
+    : [];
 
-  const linkedIdentities = (data.identities ?? [])
+  const linkedIdentities = identityList
     .map((identity) => {
       const provider = mapIdentityProvider(identity.provider);
       const providerUserId = deriveIdentityUserId(identity);
@@ -274,6 +284,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await syncManagedConnectedAccounts({
           authUserId,
           supabase,
+          user: session?.user ?? null,
         });
       } catch (syncError) {
         setError(
@@ -606,6 +617,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await syncManagedConnectedAccounts({
         authUserId,
         supabase,
+        user: session?.user ?? null,
       });
       setLoading(false);
       return { ok: true };
