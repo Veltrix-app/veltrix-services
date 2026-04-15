@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ShieldCheck, Signal, Trophy, UserRound, Zap } from "lucide-react";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
@@ -10,6 +11,9 @@ import { useLiveUserData } from "@/hooks/use-live-user-data";
 import type { ConnectedAccount } from "@/types/auth";
 
 export function ProfileScreen() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const {
     profile,
     authConfigured,
@@ -35,6 +39,7 @@ export function ProfileScreen() {
     tone: "default" | "error" | "success";
     text: string;
   } | null>(null);
+  const [linkedSyncHandled, setLinkedSyncHandled] = useState<string | null>(null);
 
   const connectedCount = connectedAccounts.filter((account) => account.status === "connected").length;
   const providerMissionPressure = useMemo(() => {
@@ -179,6 +184,52 @@ export function ProfileScreen() {
       text: "Linked systems refreshed against the live identity graph.",
     });
   }
+
+  useEffect(() => {
+    const linkedProvider = searchParams.get("linked");
+    if (!linkedProvider || linkedSyncHandled === linkedProvider) {
+      return;
+    }
+    const resolvedProvider = linkedProvider;
+
+    let cancelled = false;
+
+    async function finalizeLinkedProvider() {
+      setProviderMessage({
+        tone: "default",
+        text: `Finalizing ${resolvedProvider.toUpperCase()} inside your live loadout...`,
+      });
+
+      const result = await syncConnectedAccounts();
+      if (!result.ok) {
+        if (!cancelled) {
+          setProviderMessage({
+            tone: "error",
+            text: result.error ?? `Could not finalize ${resolvedProvider.toUpperCase()} linking.`,
+          });
+          setLinkedSyncHandled(resolvedProvider);
+        }
+        return;
+      }
+
+      await reload();
+
+      if (!cancelled) {
+        setProviderMessage({
+          tone: "success",
+          text: `${resolvedProvider.toUpperCase()} is now armed inside your identity loadout.`,
+        });
+        setLinkedSyncHandled(resolvedProvider);
+        router.replace(pathname, { scroll: false });
+      }
+    }
+
+    void finalizeLinkedProvider();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [linkedSyncHandled, pathname, reload, router, searchParams, syncConnectedAccounts]);
 
   return (
     <div className="space-y-6">
