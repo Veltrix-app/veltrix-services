@@ -104,6 +104,7 @@ export function HomeScreen() {
                     <Link
                       key={campaign.id}
                       href={`/campaigns/${campaign.id}`}
+                      prefetch={false}
                       className="flex items-center gap-3 rounded-[22px] border border-white/8 bg-white/[0.04] px-3 py-3 transition hover:border-cyan-300/20"
                     >
                       <MiniArtwork
@@ -186,6 +187,7 @@ export function HomeScreen() {
                 <Link
                   key={mission.id}
                   href={`/quests/${mission.id}`}
+                  prefetch={false}
                   className="panel-card rounded-[28px] p-5 transition hover:border-lime-300/24"
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -224,6 +226,7 @@ export function HomeScreen() {
                 <Link
                   key={project.id}
                   href={`/projects/${project.id}`}
+                  prefetch={false}
                   className="panel-card rounded-[26px] p-4 transition hover:border-cyan-300/24"
                 >
                   <div className="grid gap-4 sm:grid-cols-[120px_minmax(0,1fr)]">
@@ -267,6 +270,7 @@ export function HomeScreen() {
                 <Link
                   key={raid.id}
                   href={`/raids/${raid.id}`}
+                  prefetch={false}
                   className="panel-card rounded-[28px] p-4 transition hover:border-rose-300/24"
                 >
                   <MiniArtwork src={raid.banner} alt={raid.title} accent="rose" className="mb-4 h-28" />
@@ -300,6 +304,7 @@ export function HomeScreen() {
                 <Link
                   key={reward.id}
                   href={`/rewards/${reward.id}`}
+                  prefetch={false}
                   className="panel-card rounded-[26px] p-4 transition hover:border-amber-300/24"
                 >
                   <div className="grid gap-4 sm:grid-cols-[108px_minmax(0,1fr)]">

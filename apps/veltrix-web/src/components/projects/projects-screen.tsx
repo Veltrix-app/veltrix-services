@@ -158,6 +158,7 @@ export function ProjectsScreen() {
                       <Link
                         key={project.id}
                         href={`/projects/${project.id}`}
+                        prefetch={false}
                         className="panel-card flex items-center gap-4 rounded-[24px] p-4 transition hover:border-cyan-300/24 hover:bg-black/24"
                       >
                         <QueueThumb src={project.bannerUrl} alt={project.name} />
@@ -182,6 +183,7 @@ export function ProjectsScreen() {
                   <Link
                     key={project.id}
                     href={`/projects/${project.id}`}
+                    prefetch={false}
                     className="rounded-[26px] border border-white/8 bg-white/[0.04] p-4 transition hover:border-cyan-300/20"
                   >
                     <div className="flex items-center justify-between gap-3">
@@ -279,6 +281,7 @@ export function ProjectsScreen() {
                 <Link
                   key={project.id}
                   href={`/projects/${project.id}`}
+                  prefetch={false}
                   className="panel-card rounded-[32px] p-5 transition hover:-translate-y-0.5 hover:border-cyan-300/28 hover:bg-black/24"
                 >
                   <ArtworkPanel
