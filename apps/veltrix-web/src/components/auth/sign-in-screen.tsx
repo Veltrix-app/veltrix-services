@@ -32,10 +32,10 @@ export function SignInScreen() {
         Veltrix Access
       </p>
       <h1 className="mt-4 text-3xl font-black tracking-tight text-white sm:text-5xl">
-        Sign in to the web mission layer
+        Enter the grid
       </h1>
       <p className="mt-4 text-sm leading-7 text-slate-300 sm:text-base">
-        Authenticate your pilot to track progress, claim vault drops and unlock live mission verification.
+        Activate your pilot to track mission progress, route vault claims and unlock verified actions.
       </p>
 
       <form className="mt-8" onSubmit={handleSubmit}>
@@ -93,7 +93,7 @@ export function SignInScreen() {
 
       {!authConfigured ? (
         <div className="mt-4 rounded-[22px] border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
-          Supabase envs ontbreken nog. Voeg eerst de publishable web envs toe in Vercel of lokaal.
+          The live auth signal is offline. Wire the web envs first to bring access online.
         </div>
       ) : null}
 

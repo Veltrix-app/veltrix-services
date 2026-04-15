@@ -257,9 +257,19 @@ export function QuestDetailScreen() {
             : null;
 
     setBusy(true);
-    setMessage(null);
+    setMessage({
+      tone: "default",
+      text: usesWebsiteVerification
+        ? "Veltrix is routing this website mission through tracked verification now."
+        : "Veltrix is opening the live verification route now.",
+    });
 
     try {
+      let missionWindow: Window | null = null;
+      if (typeof window !== "undefined" && currentQuest.actionUrl) {
+        missionWindow = window.open("", "_blank", "noopener,noreferrer");
+      }
+
       if (integrationRoute) {
         const response = await fetch(`${publicEnv.portalUrl}${integrationRoute}`, {
           method: "POST",
@@ -278,7 +288,9 @@ export function QuestDetailScreen() {
           throw new Error(payload?.error || "Veltrix could not start this verification flow.");
         }
 
-        if (!usesWebsiteVerification && authUserId) {
+        if (usesWebsiteVerification && authUserId) {
+          await updateQuestStatus(authUserId, currentQuest.id, "approved");
+        } else if (authUserId) {
           await createQuestSubmission({
             authUserId,
             questId: currentQuest.id,
@@ -303,11 +315,19 @@ export function QuestDetailScreen() {
               : "Verification started. Enter the destination and let Veltrix keep this mission pending until confirmation lands."),
         });
 
-        window.open(payload.targetUrl, "_blank", "noopener,noreferrer");
+        if (missionWindow) {
+          missionWindow.location.replace(payload.targetUrl);
+        } else if (typeof window !== "undefined") {
+          window.open(payload.targetUrl, "_blank", "noopener,noreferrer");
+        }
         return;
       }
 
-      window.open(currentQuest.actionUrl, "_blank", "noopener,noreferrer");
+      if (missionWindow) {
+        missionWindow.location.replace(currentQuest.actionUrl);
+      } else if (typeof window !== "undefined") {
+        window.open(currentQuest.actionUrl, "_blank", "noopener,noreferrer");
+      }
     } catch (nextError) {
       setMessage({
         tone: "error",
@@ -470,7 +490,9 @@ export function QuestDetailScreen() {
                 className="rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {busy
-                  ? "Processing..."
+                  ? usesWebsiteVerification
+                    ? "Routing launch..."
+                    : "Processing..."
                   : currentQuest.actionUrl
                     ? currentQuest.actionLabel ?? "Open mission"
                     : "No destination yet"}
@@ -525,11 +547,11 @@ export function QuestDetailScreen() {
         </Surface>
 
         <div className="space-y-6">
-          <Surface
-            eyebrow="Routing State"
-            title="Verification read"
-            description="Provider state, proof mode and account readiness all read from the same live backend state as mobile."
-          >
+        <Surface
+          eyebrow="Routing State"
+          title="Verification read"
+          description="Provider state, proof mode and account readiness all resolve inside the same live grid routing layer."
+        >
             <div className="grid gap-4 sm:grid-cols-2">
               <MiniStat label="Status" value={currentQuest.status} />
               <MiniStat label="Verification" value={currentQuest.verificationType} />

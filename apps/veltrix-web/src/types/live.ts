@@ -32,6 +32,8 @@ export type LiveReward = {
   cost: number;
   rarity: "common" | "rare" | "epic" | "legendary";
   claimable: boolean;
+  claimed?: boolean;
+  claimedAt?: string | null;
   rewardType: string;
 };
 

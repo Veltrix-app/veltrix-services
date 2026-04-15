@@ -56,9 +56,9 @@ export function AppShell({
             <p className="font-display text-xs font-bold uppercase tracking-[0.4em] text-cyan-300">
               Veltrix // Grid
             </p>
-            <h1 className="font-display mt-4 text-3xl font-black tracking-[0.08em] text-white">
+            <div className="font-display mt-4 text-3xl font-black tracking-[0.08em] text-white">
               Grid Command
-            </h1>
+            </div>
             <p className="mt-3 max-w-[18rem] text-sm leading-6 text-slate-300">
               Live launcher for mission lanes, raid pressure, vault drops and pilot systems.
             </p>
@@ -132,7 +132,7 @@ export function AppShell({
               {!authConfigured
                 ? "Wire the live auth signal to bring the grid fully online."
                 : accountReady
-                  ? "Live sync is online. Missions, raids, rewards and reputation now pull from the same state as mobile."
+                  ? "Pilot sync is online. Mission state, raid pressure and vault routing are now active across the grid."
                   : "Authenticate your pilot to unlock live progress, linked systems and mission state."}
             </p>
             {accountReady ? (
@@ -153,9 +153,9 @@ export function AppShell({
                 <p className="font-display text-[11px] font-bold uppercase tracking-[0.34em] text-lime-300">
                   {eyebrow}
                 </p>
-                <h2 className="font-display mt-2 max-w-[16ch] text-balance text-3xl font-black leading-[0.92] tracking-[0.05em] text-white sm:text-4xl xl:max-w-[15ch] 2xl:max-w-[18ch]">
+                <h1 className="font-display mt-2 max-w-[16ch] text-balance text-3xl font-black leading-[0.92] tracking-[0.05em] text-white sm:text-4xl xl:max-w-[15ch] 2xl:max-w-[18ch]">
                   {title}
-                </h2>
+                </h1>
                 <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300 sm:text-base">
                   {description}
                 </p>

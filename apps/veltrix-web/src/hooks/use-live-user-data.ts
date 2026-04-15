@@ -25,7 +25,7 @@ type UserProgressRow = {
 };
 
 export function useLiveUserData() {
-  const { authUserId, initialized, authConfigured } = useAuth();
+  const { authUserId, initialized, authConfigured, session, profile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [connectedAccounts, setConnectedAccounts] = useState<ConnectedAccount[]>([]);
@@ -339,6 +339,118 @@ export function useLiveUserData() {
     setJoinedCommunityIds(nextJoined);
   }
 
+  async function claimReward(rewardId: string) {
+    if (!authConfigured || !authUserId || !supabase) {
+      return { ok: false, error: "You need an active session before claiming a reward." };
+    }
+
+    const reward = rewards.find((item) => item.id === rewardId);
+    if (!reward) {
+      return { ok: false, error: "Reward not found." };
+    }
+
+    if (!reward.claimable) {
+      return { ok: false, error: "This reward is not ready to claim yet." };
+    }
+
+    const linkedCampaign = campaigns.find((campaign) => campaign.id === reward.campaignId);
+    const linkedProject = projects.find((project) => project.id === linkedCampaign?.projectId);
+
+    const { data: existing, error: existingError } = await supabase
+      .from("user_progress")
+      .select(
+        "joined_communities, confirmed_raids, claimed_rewards, opened_lootbox_ids, unlocked_reward_ids, quest_statuses"
+      )
+      .eq("auth_user_id", authUserId)
+      .maybeSingle();
+
+    if (existingError) {
+      setError(existingError.message);
+      return { ok: false, error: existingError.message };
+    }
+
+    const claimedRewards = Array.isArray(existing?.claimed_rewards)
+      ? (existing.claimed_rewards as string[])
+      : [];
+
+    if (claimedRewards.includes(rewardId)) {
+      setRewards((current) =>
+        current.map((item) => (item.id === rewardId ? { ...item, claimable: false } : item))
+      );
+      return { ok: true, alreadyClaimed: true };
+    }
+
+    const nextClaimedRewards = [...claimedRewards, rewardId];
+
+    const insertClaim = async () =>
+      supabase.from("reward_claims").insert({
+        auth_user_id: authUserId,
+        username: profile?.username ?? session?.user?.email?.split("@")[0] ?? "pilot",
+        reward_id: rewardId,
+        reward_title: reward.title,
+        project_id: linkedProject?.id ?? null,
+        project_name: linkedProject?.name ?? null,
+        campaign_id: linkedCampaign?.id ?? null,
+        campaign_title: linkedCampaign?.title ?? null,
+        claim_method: "manual_fulfillment",
+        status: "pending",
+      });
+
+    const { error: claimInsertError } = await insertClaim();
+
+    if (
+      claimInsertError &&
+      !claimInsertError.message.toLowerCase().includes("duplicate") &&
+      !claimInsertError.message.toLowerCase().includes("unique")
+    ) {
+      setError(claimInsertError.message);
+      return { ok: false, error: claimInsertError.message };
+    }
+
+    const { error: progressError } = await supabase.from("user_progress").upsert({
+      auth_user_id: authUserId,
+      joined_communities: existing?.joined_communities ?? [],
+      confirmed_raids: existing?.confirmed_raids ?? [],
+      claimed_rewards: nextClaimedRewards,
+      opened_lootbox_ids: existing?.opened_lootbox_ids ?? [],
+      unlocked_reward_ids: existing?.unlocked_reward_ids ?? [],
+      quest_statuses: existing?.quest_statuses ?? {},
+    });
+
+    if (progressError) {
+      setError(progressError.message);
+      return { ok: false, error: progressError.message };
+    }
+
+    const claimedAt = new Date().toISOString();
+    setRewards((current) =>
+      current.map((item) =>
+        item.id === rewardId
+          ? {
+              ...item,
+              claimable: false,
+              claimed: true,
+              claimedAt,
+            }
+          : item
+      )
+    );
+
+    setNotifications((current) => [
+      {
+        id: `local-claim-${rewardId}-${claimedAt}`,
+        title: "Vault claim routed",
+        body: `${reward.title} moved into the claim queue.`,
+        read: false,
+        type: "reward",
+        createdAt: claimedAt,
+      },
+      ...current,
+    ]);
+
+    return { ok: true };
+  }
+
   async function markNotificationsRead() {
     if (!authConfigured || !authUserId || !supabase) {
       return;
@@ -381,7 +493,7 @@ export function useLiveUserData() {
       unreadNotificationCount: notifications.filter((item) => !item.read).length,
       approvedQuestCount: quests.filter((item) => item.status === "approved").length,
       pendingQuestCount: quests.filter((item) => item.status === "pending").length,
-      claimableRewardCount: rewards.filter((item) => item.claimable).length,
+    claimableRewardCount: rewards.filter((item) => item.claimable).length,
       activeCampaignCount: campaigns.length,
       activeProjectCount: projects.length,
     };
@@ -404,5 +516,6 @@ export function useLiveUserData() {
     reload,
     markNotificationsRead,
     joinCommunity,
+    claimReward,
   };
 }

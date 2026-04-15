@@ -6,7 +6,7 @@ export default function SignInPage() {
     <AppShell
       eyebrow="Access"
       title="Sign in to Veltrix Web"
-      description="The web consumer app shares the same auth, profile and verification layer as mobile."
+      description="Authenticate your pilot to unlock mission state, linked systems and live vault routing."
     >
       <SignInScreen />
     </AppShell>
