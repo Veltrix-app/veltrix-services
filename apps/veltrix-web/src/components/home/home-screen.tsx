@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, Radar, Shield, Sparkles, Swords, Trophy } from "lucide-react";
+import { ArtworkImage } from "@/components/ui/artwork-image";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -349,10 +350,13 @@ function HeroArtwork({ src, alt }: { src: string | null; alt: string }) {
 
   return (
     <>
-      <img
+      <ArtworkImage
         src={src}
         alt={alt}
-        className="pointer-events-none absolute right-6 top-6 hidden h-[18rem] w-[min(35rem,44%)] rounded-[32px] object-cover opacity-78 shadow-[0_30px_90px_rgba(0,0,0,0.46)] xl:block"
+        tone="lime"
+        fallbackLabel="Mission art offline"
+        className="pointer-events-none absolute right-6 top-6 hidden h-[18rem] w-[min(35rem,44%)] rounded-[32px] xl:block"
+        imgClassName="h-full w-full rounded-[32px] object-cover opacity-78 shadow-[0_30px_90px_rgba(0,0,0,0.46)]"
       />
       <div className="pointer-events-none absolute right-4 top-4 hidden h-[19rem] w-[46%] rounded-[36px] bg-[radial-gradient(circle_at_top_left,rgba(0,204,255,0.14),transparent_42%)] xl:block" />
     </>
@@ -379,7 +383,14 @@ function MiniArtwork({
 
   return (
     <div className={`relative overflow-hidden rounded-[22px] border border-white/10 bg-slate-950/70 ${className ?? "h-24"}`}>
-      {src ? <img src={src} alt={alt} className="absolute inset-0 h-full w-full object-cover opacity-82" /> : null}
+      <ArtworkImage
+        src={src}
+        alt={alt}
+        tone={accent === "rose" ? "rose" : accent === "amber" ? "amber" : "cyan"}
+        fallbackLabel="Queue art offline"
+        className="absolute inset-0"
+        imgClassName="h-full w-full object-cover opacity-82"
+      />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,7,12,0.04),rgba(3,7,12,0.82))]" />
       <div className={`absolute inset-0 ${accentLayer}`} />
     </div>

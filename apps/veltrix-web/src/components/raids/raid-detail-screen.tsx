@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { ArtworkImage } from "@/components/ui/artwork-image";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -87,7 +88,15 @@ export function RaidDetailScreen() {
     <div className="space-y-6">
       <section className="overflow-hidden rounded-[38px] border border-white/10 bg-[linear-gradient(135deg,rgba(255,80,80,0.14),rgba(0,0,0,0)_32%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
         <div className="h-64 bg-[linear-gradient(135deg,rgba(255,90,90,0.16),rgba(0,0,0,0.18))]">
-          {currentRaid.banner ? <img src={currentRaid.banner} alt={currentRaid.title} className="h-full w-full object-cover opacity-80" /> : null}
+          {currentRaid.banner ? (
+            <ArtworkImage
+              src={currentRaid.banner}
+              alt={currentRaid.title}
+              tone="rose"
+              fallbackLabel="Raid art offline"
+              imgClassName="h-full w-full object-cover opacity-80"
+            />
+          ) : null}
         </div>
         <div className="p-6 sm:p-8">
           <p className="text-[11px] font-bold uppercase tracking-[0.34em] text-rose-300">Raid Detail</p>

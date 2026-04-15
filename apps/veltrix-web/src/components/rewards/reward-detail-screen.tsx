@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { ArtworkImage } from "@/components/ui/artwork-image";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
@@ -24,7 +25,13 @@ export function RewardDetailScreen() {
       <section className="overflow-hidden rounded-[38px] border border-white/10 bg-[linear-gradient(135deg,rgba(255,196,0,0.14),rgba(0,0,0,0)_30%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
         {reward.imageUrl ? (
           <div className="relative h-64 bg-[linear-gradient(135deg,rgba(255,196,0,0.16),rgba(0,0,0,0.18))]">
-            <img src={reward.imageUrl} alt={reward.title} className="h-full w-full object-cover opacity-82" />
+            <ArtworkImage
+              src={reward.imageUrl}
+              alt={reward.title}
+              tone="amber"
+              fallbackLabel="Vault art offline"
+              imgClassName="h-full w-full object-cover opacity-82"
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
           </div>
         ) : null}
@@ -40,7 +47,10 @@ export function RewardDetailScreen() {
                 {project?.name ?? "Project"}{campaign ? ` • ${campaign.title}` : ""}
               </p>
             </div>
-            <StatusChip label={reward.claimable ? "Claimable" : "Locked"} tone={reward.claimable ? "positive" : "default"} />
+            <StatusChip
+              label={reward.claimable ? "Claimable" : "Locked"}
+              tone={reward.claimable ? "positive" : "default"}
+            />
           </div>
           <p className="mt-5 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">{reward.description}</p>
 
@@ -80,12 +90,18 @@ export function RewardDetailScreen() {
             </div>
             <div className="flex flex-wrap gap-3">
               {campaign ? (
-                <Link href={`/campaigns/${campaign.id}`} className="rounded-full bg-amber-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99]">
+                <Link
+                  href={`/campaigns/${campaign.id}`}
+                  className="rounded-full bg-amber-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99]"
+                >
                   Open linked lane
                 </Link>
               ) : null}
               {project ? (
-                <Link href={`/projects/${project.id}`} className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]">
+                <Link
+                  href={`/projects/${project.id}`}
+                  className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+                >
                   Open world
                 </Link>
               ) : null}
@@ -100,17 +116,26 @@ export function RewardDetailScreen() {
           title="Linked campaign"
           description="This vault item is tied to an active mission lane."
         >
-          <Link href={`/campaigns/${campaign.id}`} className="panel-card block rounded-[30px] p-5 transition hover:border-amber-300/30 hover:bg-black/25">
+          <Link
+            href={`/campaigns/${campaign.id}`}
+            className="panel-card block rounded-[30px] p-5 transition hover:border-amber-300/30 hover:bg-black/25"
+          >
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-lg font-black text-white">{campaign.title}</p>
                 <p className="mt-2 text-sm text-slate-300">{campaign.description}</p>
               </div>
-              <StatusChip label={campaign.featured ? "Prime" : `${campaign.completionRate}% live`} tone={campaign.featured ? "positive" : "info"} />
+              <StatusChip
+                label={campaign.featured ? "Prime" : `${campaign.completionRate}% live`}
+                tone={campaign.featured ? "positive" : "info"}
+              />
             </div>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               <MiniStat label="XP budget" value={String(campaign.xpBudget)} />
-              <MiniStat label="Ends" value={campaign.endsAt ? new Date(campaign.endsAt).toLocaleDateString("nl-NL") : "Open"} />
+              <MiniStat
+                label="Ends"
+                value={campaign.endsAt ? new Date(campaign.endsAt).toLocaleDateString("nl-NL") : "Open"}
+              />
             </div>
           </Link>
         </Surface>

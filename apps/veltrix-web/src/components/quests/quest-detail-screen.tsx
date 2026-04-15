@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { publicEnv } from "@/lib/env";
+import { ArtworkImage } from "@/components/ui/artwork-image";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -388,10 +389,13 @@ export function QuestDetailScreen() {
       <section className="relative overflow-hidden rounded-[34px] border border-white/10 bg-[linear-gradient(135deg,rgba(192,255,0,0.12),rgba(0,204,255,0.1),rgba(0,0,0,0)_34%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:p-8">
         {heroVisual ? (
           <>
-            <img
+            <ArtworkImage
               src={heroVisual}
               alt={currentQuest.title}
-              className="pointer-events-none absolute right-6 top-6 hidden h-[15rem] w-[min(24rem,38%)] rounded-[30px] object-cover opacity-75 shadow-[0_28px_80px_rgba(0,0,0,0.42)] xl:block"
+              tone="lime"
+              fallbackLabel="Mission art offline"
+              className="pointer-events-none absolute right-6 top-6 hidden h-[15rem] w-[min(24rem,38%)] rounded-[30px] xl:block"
+              imgClassName="h-full w-full rounded-[30px] object-cover opacity-75 shadow-[0_28px_80px_rgba(0,0,0,0.42)]"
             />
             <div className="pointer-events-none absolute right-4 top-4 hidden h-[16rem] w-[42%] rounded-[32px] bg-[radial-gradient(circle_at_top_left,rgba(0,204,255,0.14),transparent_40%)] xl:block" />
           </>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { ArtworkImage } from "@/components/ui/artwork-image";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
@@ -27,7 +28,13 @@ export function ProjectDetailScreen() {
       <section className="overflow-hidden rounded-[38px] border border-white/10 bg-[linear-gradient(135deg,rgba(0,204,255,0.12),rgba(0,0,0,0)_28%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
         {project.bannerUrl ? (
           <div className="relative h-64 bg-[linear-gradient(135deg,rgba(0,204,255,0.14),rgba(0,0,0,0.18))]">
-            <img src={project.bannerUrl} alt={project.name} className="h-full w-full object-cover opacity-80" />
+            <ArtworkImage
+              src={project.bannerUrl}
+              alt={project.name}
+              tone="cyan"
+              fallbackLabel="World art offline"
+              imgClassName="h-full w-full object-cover opacity-80"
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
           </div>
         ) : null}
@@ -40,7 +47,7 @@ export function ProjectDetailScreen() {
                 {project.name}
               </h2>
               <p className="mt-3 text-sm text-cyan-200">
-                {project.chain ?? "Chain not set"} • {project.category ?? "General"}
+                {project.chain ?? "Chain not set"} {" • "} {project.category ?? "General"}
               </p>
             </div>
             <StatusChip
@@ -137,7 +144,10 @@ export function ProjectDetailScreen() {
                 </div>
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
                   <MiniStat label="XP budget" value={String(campaign.xpBudget)} />
-                  <MiniStat label="Ends" value={campaign.endsAt ? new Date(campaign.endsAt).toLocaleDateString("nl-NL") : "Open"} />
+                  <MiniStat
+                    label="Ends"
+                    value={campaign.endsAt ? new Date(campaign.endsAt).toLocaleDateString("nl-NL") : "Open"}
+                  />
                 </div>
               </Link>
             ))}
@@ -165,7 +175,10 @@ export function ProjectDetailScreen() {
                     <p className="text-lg font-black text-white">{reward.title}</p>
                     <p className="mt-2 text-sm text-slate-300">{reward.description}</p>
                   </div>
-                  <StatusChip label={reward.claimable ? "Claimable" : "Locked"} tone={reward.claimable ? "positive" : "default"} />
+                  <StatusChip
+                    label={reward.claimable ? "Claimable" : "Locked"}
+                    tone={reward.claimable ? "positive" : "default"}
+                  />
                 </div>
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
                   <MiniStat label="Cost" value={`${reward.cost} XP`} />

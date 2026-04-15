@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { AlertTriangle, ArrowRight, Flame, Radar, Swords } from "lucide-react";
+import { ArtworkImage } from "@/components/ui/artwork-image";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
@@ -247,7 +248,14 @@ function ArtworkPanel({
 }) {
   return (
     <div className={`relative overflow-hidden rounded-[30px] border border-white/10 bg-slate-950/70 ${className ?? "h-44"}`}>
-      {src ? <img src={src} alt={alt} className="absolute inset-0 h-full w-full object-cover opacity-84" /> : null}
+      <ArtworkImage
+        src={src}
+        alt={alt}
+        tone="rose"
+        fallbackLabel="Raid art offline"
+        className="absolute inset-0"
+        imgClassName="h-full w-full object-cover opacity-84"
+      />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,7,12,0.06),rgba(3,7,12,0.82)_58%,rgba(3,7,12,0.98))]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(251,113,133,0.24),transparent_38%)]" />
       <div className="absolute left-4 top-4 rounded-full border border-rose-300/20 bg-black/45 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.24em] text-rose-100">
@@ -260,7 +268,14 @@ function ArtworkPanel({
 function QueueThumb({ src, alt }: { src: string | null; alt: string }) {
   return (
     <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-[18px] border border-white/10 bg-slate-950/80">
-      {src ? <img src={src} alt={alt} className="absolute inset-0 h-full w-full object-cover opacity-85" /> : null}
+      <ArtworkImage
+        src={src}
+        alt={alt}
+        tone="rose"
+        fallbackLabel="Raid art offline"
+        className="absolute inset-0"
+        imgClassName="h-full w-full object-cover opacity-85"
+      />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,7,12,0.04),rgba(3,7,12,0.82))]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(251,113,133,0.24),transparent_40%)]" />
     </div>
