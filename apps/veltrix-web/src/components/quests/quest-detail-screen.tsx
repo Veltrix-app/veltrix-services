@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { publicEnv } from "@/lib/env";
 import { ArtworkImage } from "@/components/ui/artwork-image";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
@@ -260,7 +259,7 @@ export function QuestDetailScreen() {
     setMessage({
       tone: "default",
       text: usesWebsiteVerification
-        ? "Veltrix is routing this website mission through tracked verification now."
+        ? "Veltrix is routing this website mission through the live grid now."
         : "Veltrix is opening the live verification route now.",
     });
 
@@ -271,7 +270,7 @@ export function QuestDetailScreen() {
       }
 
       if (integrationRoute) {
-        const response = await fetch(`${publicEnv.portalUrl}${integrationRoute}`, {
+        const response = await fetch(integrationRoute, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

@@ -203,6 +203,7 @@ export function useLiveUserData() {
         cost: row.cost ?? 0,
         rarity: row.rarity ?? "common",
         claimable: (row.claimable ?? false) && !claimedRewardIds.has(row.id),
+        claimed: claimedRewardIds.has(row.id),
         rewardType: row.reward_type ?? row.type ?? "reward",
       }))
     );
