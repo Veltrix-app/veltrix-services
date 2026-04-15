@@ -9,7 +9,7 @@ export default function LeaderboardPage() {
       title="Top raiders"
       description="Live ranking surface powered by the same backend leaderboard as mobile."
     >
-      <ProtectedState>
+      <ProtectedState allowPreview previewLabel="Rank preview">
         <LeaderboardScreen />
       </ProtectedState>
     </AppShell>

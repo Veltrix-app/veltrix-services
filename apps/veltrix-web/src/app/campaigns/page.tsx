@@ -9,7 +9,7 @@ export default function CampaignsPage() {
       title="Mission Select"
       description="Launch into live campaign lanes with real XP budgets, steps and clear-rate pressure."
     >
-      <ProtectedState>
+      <ProtectedState allowPreview previewLabel="Mission preview">
         <CampaignsScreen />
       </ProtectedState>
     </AppShell>

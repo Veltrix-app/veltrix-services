@@ -7,9 +7,9 @@ export default function Home() {
     <AppShell
       eyebrow="Home"
       title="Momentum, missions and reward pressure"
-      description="The web app now starts on real auth and live backend reads instead of demo data."
+      description="Read the live grid, scout open mission lanes and step into the command layer when you are ready."
     >
-      <ProtectedState>
+      <ProtectedState allowPreview previewLabel="Grid preview">
         <HomeScreen />
       </ProtectedState>
     </AppShell>

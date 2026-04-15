@@ -9,7 +9,7 @@ export default function RaidsPage() {
       title="Raid Board"
       description="Track live coordinated pushes, timers and XP payouts for the signed-in user."
     >
-      <ProtectedState>
+      <ProtectedState allowPreview previewLabel="Raid preview">
         <RaidsScreen />
       </ProtectedState>
     </AppShell>

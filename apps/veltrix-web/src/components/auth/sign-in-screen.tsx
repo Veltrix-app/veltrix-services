@@ -12,7 +12,8 @@ export function SignInScreen() {
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
 
-  async function handleSubmit() {
+  async function handleSubmit(event?: React.FormEvent<HTMLFormElement>) {
+    event?.preventDefault();
     clearError();
 
     const result =
@@ -21,7 +22,7 @@ export function SignInScreen() {
         : await signUp(email, password, username);
 
     if (result.ok) {
-      router.push("/");
+      router.replace("/");
     }
   }
 
@@ -34,27 +35,30 @@ export function SignInScreen() {
         Sign in to the web mission layer
       </h1>
       <p className="mt-4 text-sm leading-7 text-slate-300 sm:text-base">
-        This webapp shares the same Supabase auth and profile layer as the mobile app.
+        Authenticate your pilot to track progress, claim vault drops and unlock live mission verification.
       </p>
 
-      <div className="mt-8 grid grid-cols-2 rounded-full border border-white/10 bg-black/20 p-1">
+      <form className="mt-8" onSubmit={handleSubmit}>
+        <div className="grid grid-cols-2 rounded-full border border-white/10 bg-black/20 p-1">
         <button
+          type="button"
           className={`rounded-full px-4 py-3 text-sm font-bold transition ${
             mode === "signin" ? "bg-lime-300 text-black" : "text-slate-300"
           }`}
           onClick={() => setMode("signin")}
         >
-          Sign In
+          Existing Pilot
         </button>
         <button
+          type="button"
           className={`rounded-full px-4 py-3 text-sm font-bold transition ${
             mode === "signup" ? "bg-lime-300 text-black" : "text-slate-300"
           }`}
           onClick={() => setMode("signup")}
         >
-          Create Account
+          New Pilot
         </button>
-      </div>
+        </div>
 
       <div className="mt-6 space-y-4">
         {mode === "signup" ? (
@@ -94,12 +98,13 @@ export function SignInScreen() {
       ) : null}
 
       <button
-        onClick={handleSubmit}
+        type="submit"
         disabled={loading || !authConfigured}
         className="mt-6 w-full rounded-full bg-lime-300 px-5 py-4 text-sm font-black text-black transition hover:scale-[0.99] disabled:cursor-not-allowed disabled:bg-lime-300/40"
       >
-        {loading ? "Please wait..." : mode === "signin" ? "Sign In" : "Create Account"}
+        {loading ? "Processing..." : mode === "signin" ? "Enter Grid" : "Create Pilot"}
       </button>
+      </form>
     </div>
   );
 }

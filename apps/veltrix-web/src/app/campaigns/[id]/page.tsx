@@ -9,7 +9,7 @@ export default function CampaignDetailPage() {
       title="Campaign detail"
       description="Quest flow, reward outcome and mission context for a single live campaign."
     >
-      <ProtectedState>
+      <ProtectedState allowPreview previewLabel="Mission preview">
         <CampaignDetailScreen />
       </ProtectedState>
     </AppShell>

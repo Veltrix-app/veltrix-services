@@ -9,7 +9,7 @@ export default function CommunityDetailPage() {
       title="Community world"
       description="Project story, standing, active campaigns and contributor ladder for a single ecosystem."
     >
-      <ProtectedState>
+      <ProtectedState allowPreview previewLabel="World preview">
         <CommunityDetailScreen />
       </ProtectedState>
     </AppShell>

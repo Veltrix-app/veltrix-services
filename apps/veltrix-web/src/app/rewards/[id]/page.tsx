@@ -9,7 +9,7 @@ export default function RewardDetailPage() {
       title="Reward detail"
       description="Payoff, claimability and linked mission context for a single reward."
     >
-      <ProtectedState>
+      <ProtectedState allowPreview previewLabel="Vault preview">
         <RewardDetailScreen />
       </ProtectedState>
     </AppShell>

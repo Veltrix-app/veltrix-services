@@ -9,7 +9,7 @@ export default function ProjectDetailPage() {
       title="Project detail"
       description="Branded project surfaces, linked campaigns and reward context for the web app."
     >
-      <ProtectedState>
+      <ProtectedState allowPreview previewLabel="World preview">
         <ProjectDetailScreen />
       </ProtectedState>
     </AppShell>

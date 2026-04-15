@@ -9,7 +9,7 @@ export default function QuestDetailPage() {
       title="Quest detail"
       description="Action flow, proof state and provider-aware verification for a single live quest."
     >
-      <ProtectedState>
+      <ProtectedState allowPreview previewLabel="Mission preview">
         <QuestDetailScreen />
       </ProtectedState>
     </AppShell>

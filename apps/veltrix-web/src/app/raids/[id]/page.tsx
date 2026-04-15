@@ -9,7 +9,7 @@ export default function RaidDetailPage() {
       title="Raid detail"
       description="Instructions, progress and confirmation flow for a single live raid."
     >
-      <ProtectedState>
+      <ProtectedState allowPreview previewLabel="Raid preview">
         <RaidDetailScreen />
       </ProtectedState>
     </AppShell>

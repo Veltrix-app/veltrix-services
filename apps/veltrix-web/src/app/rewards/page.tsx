@@ -9,7 +9,7 @@ export default function RewardsPage() {
       title="Loot Vault"
       description="Track the live loot vault with real claimable state, rarity pressure and campaign linkage."
     >
-      <ProtectedState>
+      <ProtectedState allowPreview previewLabel="Vault preview">
         <RewardsScreen />
       </ProtectedState>
     </AppShell>

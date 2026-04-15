@@ -166,17 +166,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     setError(null);
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    setLoading(false);
-
     if (signInError) {
+      setLoading(false);
       setError(signInError.message);
       return { ok: false, error: signInError.message };
     }
+
+    const nextSession =
+      data.session ??
+      (await supabase.auth.getSession()).data.session ??
+      null;
+
+    setSession(nextSession);
+    setLoading(false);
 
     return { ok: true };
   }
@@ -256,6 +263,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setError(persistenceError.message);
       return { ok: false, error: persistenceError.message };
     }
+
+    const nextSession =
+      data.session ??
+      (await supabase.auth.getSession()).data.session ??
+      null;
+
+    setSession(nextSession);
 
     return { ok: true };
   }

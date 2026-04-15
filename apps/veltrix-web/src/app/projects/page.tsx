@@ -9,7 +9,7 @@ export default function ProjectsPage() {
       title="World Browser"
       description="Scan the live worlds behind campaigns, reward lanes and faction progression."
     >
-      <ProtectedState>
+      <ProtectedState allowPreview previewLabel="World preview">
         <ProjectsScreen />
       </ProtectedState>
     </AppShell>
