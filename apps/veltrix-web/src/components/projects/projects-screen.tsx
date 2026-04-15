@@ -135,6 +135,7 @@ export function ProjectsScreen() {
                   <div className="flex flex-wrap gap-3">
                     <Link
                       href={`/projects/${featuredWorld.id}`}
+                      prefetch={false}
                       className="inline-flex items-center gap-2 rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
                     >
                       Enter world
@@ -142,6 +143,7 @@ export function ProjectsScreen() {
                     </Link>
                     <Link
                       href={`/communities/${featuredWorld.id}`}
+                      prefetch={false}
                       className="glass-button inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:border-cyan-300/30"
                     >
                       Open command view

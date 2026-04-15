@@ -13,6 +13,8 @@ const toneClasses: Record<ArtworkTone, string> = {
   neutral: "bg-[radial-gradient(circle_at_top_left,rgba(148,163,184,0.22),transparent_38%),linear-gradient(180deg,rgba(8,14,20,0.45),rgba(3,7,12,0.9))]",
 };
 
+const blockedHosts = ["cryptologos.cc", "www.cryptologos.cc"];
+
 export function ArtworkImage({
   src,
   alt,
@@ -30,7 +32,20 @@ export function ArtworkImage({
 }) {
   const normalizedSrc = useMemo(() => {
     const trimmed = src?.trim();
-    return trimmed ? trimmed : null;
+    if (!trimmed) {
+      return null;
+    }
+
+    try {
+      const url = new URL(trimmed);
+      if (blockedHosts.includes(url.hostname)) {
+        return null;
+      }
+    } catch {
+      // Keep non-URL values like data URIs or relative paths intact.
+    }
+
+    return trimmed;
   }, [src]);
   const [failed, setFailed] = useState(false);
 

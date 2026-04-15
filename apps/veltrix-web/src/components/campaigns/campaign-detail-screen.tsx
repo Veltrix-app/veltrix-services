@@ -80,12 +80,12 @@ export function CampaignDetailScreen() {
         >
           <div className="flex flex-wrap gap-3">
             {project ? (
-              <Link href={`/projects/${project.id}`} className="rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99]">
+              <Link href={`/projects/${project.id}`} prefetch={false} className="rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99]">
                 Open world
               </Link>
             ) : null}
             {project ? (
-              <Link href={`/communities/${project.id}`} className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]">
+              <Link href={`/communities/${project.id}`} prefetch={false} className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]">
                 Open community world
               </Link>
             ) : null}
@@ -101,7 +101,7 @@ export function CampaignDetailScreen() {
         {campaignQuests.length > 0 ? (
           <div className="grid gap-4 xl:grid-cols-2">
             {campaignQuests.map((quest) => (
-              <Link key={quest.id} href={`/quests/${quest.id}`} className="panel-card rounded-[30px] p-5">
+              <Link key={quest.id} href={`/quests/${quest.id}`} prefetch={false} className="panel-card rounded-[30px] p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-lg font-black text-white">{quest.title}</p>
@@ -142,7 +142,7 @@ export function CampaignDetailScreen() {
         {campaignRewards.length > 0 ? (
           <div className="grid gap-4 xl:grid-cols-2">
             {campaignRewards.map((reward) => (
-              <Link key={reward.id} href={`/rewards/${reward.id}`} className="panel-card rounded-[30px] p-5 transition hover:border-lime-300/30 hover:bg-black/25">
+              <Link key={reward.id} href={`/rewards/${reward.id}`} prefetch={false} className="panel-card rounded-[30px] p-5 transition hover:border-lime-300/30 hover:bg-black/25">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-lg font-black text-white">{reward.title}</p>

@@ -161,6 +161,7 @@ export function CommunityDetailScreen() {
               <Link
                 key={campaign.id}
                 href={`/campaigns/${campaign.id}`}
+                prefetch={false}
                 className="panel-card rounded-[26px] p-5 transition hover:border-lime-300/30 hover:bg-black/25"
               >
                 <div className="flex items-start justify-between gap-4">
@@ -196,6 +197,7 @@ export function CommunityDetailScreen() {
               <Link
                 key={campaign.id}
                 href={`/campaigns/${campaign.id}`}
+                prefetch={false}
                 className="panel-card rounded-[26px] p-5 transition hover:border-cyan-300/30 hover:bg-black/25"
               >
                 <p className="text-sm font-semibold text-cyan-200">

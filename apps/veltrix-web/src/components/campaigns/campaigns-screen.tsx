@@ -134,6 +134,7 @@ export function CampaignsScreen() {
                   <div className="flex flex-wrap gap-3">
                     <Link
                       href={`/campaigns/${featuredCampaign.id}`}
+                      prefetch={false}
                       className="inline-flex items-center gap-2 rounded-full bg-lime-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-lime-200"
                     >
                       Launch lane
@@ -141,6 +142,7 @@ export function CampaignsScreen() {
                     </Link>
                     <Link
                       href={`/projects/${featuredCampaign.projectId}`}
+                      prefetch={false}
                       className="glass-button inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:border-lime-300/30"
                     >
                       Open world

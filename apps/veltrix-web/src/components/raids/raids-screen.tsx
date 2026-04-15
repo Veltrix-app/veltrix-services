@@ -64,6 +64,7 @@ export function RaidsScreen() {
                   <div className="flex flex-wrap gap-3">
                     <Link
                       href={`/raids/${featuredRaid.id}`}
+                      prefetch={false}
                       className="inline-flex items-center gap-2 rounded-full bg-rose-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-rose-200"
                     >
                       Join raid

@@ -112,6 +112,7 @@ export function RewardsScreen() {
                   <div className="flex flex-wrap gap-3">
                     <Link
                       href={`/rewards/${featuredReward.id}`}
+                      prefetch={false}
                       className="inline-flex items-center gap-2 rounded-full bg-amber-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-amber-200"
                     >
                       Open vault item
@@ -119,6 +120,7 @@ export function RewardsScreen() {
                     </Link>
                     <Link
                       href={`/campaigns/${featuredReward.campaignId}`}
+                      prefetch={false}
                       className="glass-button inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:border-amber-300/30"
                     >
                       View source lane

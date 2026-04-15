@@ -75,12 +75,14 @@ export function HomeScreen() {
           <div className="relative z-10 mt-8 flex flex-wrap items-center gap-3">
             <Link
               href={featuredCampaign ? `/campaigns/${featuredCampaign.id}` : "/campaigns"}
+              prefetch={false}
               className="rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-lime-200"
             >
               {featuredCampaign ? "Launch mission" : "Open board"}
             </Link>
             <Link
               href={featuredProject ? `/projects/${featuredProject.id}` : "/projects"}
+              prefetch={false}
               className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
             >
               Enter world
