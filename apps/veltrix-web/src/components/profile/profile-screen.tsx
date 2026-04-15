@@ -184,7 +184,10 @@ export function ProfileScreen() {
     await reload();
     setProviderMessage({
       tone: "success",
-      text: "Linked systems refreshed against the live identity graph.",
+      text:
+        (result.identities ?? 0) > 0
+          ? "Linked systems refreshed against the live identity graph."
+          : "No new OAuth identities were found for this pilot session.",
     });
     setSyncingLoadout(false);
   }
@@ -218,6 +221,21 @@ export function ProfileScreen() {
             text: result.error ?? `Could not finalize ${resolvedProvider.toUpperCase()} linking.`,
           });
           setSyncingLoadout(false);
+        }
+        return;
+      }
+
+      if ((result.identities ?? 0) === 0) {
+        if (!cancelled) {
+          setProviderMessage({
+            tone: "error",
+            text:
+              errorCode === "identity_already_exists"
+                ? `${resolvedProvider.toUpperCase()} is already linked to a different Veltrix auth account, not this pilot.`
+                : `No ${resolvedProvider.toUpperCase()} identity was found on this pilot after the return flow.`,
+          });
+          setSyncingLoadout(false);
+          router.replace(pathname, { scroll: false });
         }
         return;
       }
