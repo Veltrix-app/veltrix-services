@@ -102,7 +102,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: false, error: "Invalid session." }, { status: 401 });
     }
 
-    const linkedIdentities = (Array.isArray(user.identities) ? user.identities : [])
+    const { data: adminUserResult, error: adminUserError } =
+      await serviceSupabase.auth.admin.getUserById(user.id);
+
+    if (adminUserError || !adminUserResult?.user) {
+      return NextResponse.json(
+        { ok: false, error: adminUserError?.message || "Could not load auth user identities." },
+        { status: 500 }
+      );
+    }
+
+    const linkedIdentities = (Array.isArray(adminUserResult.user.identities)
+      ? adminUserResult.user.identities
+      : [])
       .map((identity) => {
         const provider = mapIdentityProvider(identity.provider);
         const providerUserId = deriveIdentityUserId(identity);
@@ -136,7 +148,9 @@ export async function POST(request: NextRequest) {
     if (linkedIdentities.length > 0) {
       const { error: insertError } = await serviceSupabase
         .from("user_connected_accounts")
-        .insert(linkedIdentities);
+        .upsert(linkedIdentities, {
+          onConflict: "auth_user_id,provider",
+        });
 
       if (insertError) {
         return NextResponse.json({ ok: false, error: insertError.message }, { status: 500 });
