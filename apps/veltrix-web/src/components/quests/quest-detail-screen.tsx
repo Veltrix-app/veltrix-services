@@ -308,10 +308,15 @@ export function QuestDetailScreen() {
         : "Veltrix is opening the live verification route now.",
       });
 
-      try {
-        let missionWindow: Window | null = null;
+    try {
+      let missionWindow: Window | null = null;
+      const shouldOpenExternalImmediately =
+        Boolean(derivedActionUrl) && !usesWebsiteVerification;
+
       if (typeof window !== "undefined" && derivedActionUrl) {
-        missionWindow = window.open("", "_blank", "noopener,noreferrer");
+        missionWindow = shouldOpenExternalImmediately
+          ? window.open(derivedActionUrl, "_blank", "noopener,noreferrer")
+          : window.open("", "_blank", "noopener,noreferrer");
       }
 
       if (integrationRoute) {
@@ -365,7 +370,9 @@ export function QuestDetailScreen() {
         });
 
         if (missionWindow) {
-          missionWindow.location.replace(targetUrl);
+          if (!shouldOpenExternalImmediately || missionWindow.location.href === "about:blank") {
+            missionWindow.location.replace(targetUrl);
+          }
         } else if (typeof window !== "undefined") {
           window.open(targetUrl, "_blank", "noopener,noreferrer");
         }
