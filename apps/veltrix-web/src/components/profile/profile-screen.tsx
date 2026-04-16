@@ -173,6 +173,9 @@ export function ProfileScreen() {
       return;
     }
 
+    if (result.accounts) {
+      setLinkedAccountOverrides(result.accounts);
+    }
     void reload();
     setProviderMessage({
       tone: "success",

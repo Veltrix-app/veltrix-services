@@ -38,7 +38,7 @@ type AuthContextValue = {
   saveTelegramIdentity: (input: {
     telegramUserId: string;
     username?: string;
-  }) => Promise<{ ok: boolean; error?: string }>;
+  }) => Promise<{ ok: boolean; error?: string; accounts?: ConnectedAccount[] }>;
   syncConnectedAccounts: () => Promise<{
     ok: boolean;
     error?: string;
@@ -585,7 +585,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     telegramUserId: string;
     username?: string;
   }) {
-    if (!publicEnv.authConfigured || !supabase || !authUserId) {
+    if (!publicEnv.authConfigured || !supabase || !authUserId || !session?.access_token) {
       return { ok: false, error: "You need an active pilot session before linking Telegram." };
     }
 
@@ -599,37 +599,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     setError(null);
 
-    const { error: deleteError } = await supabase
-      .from("user_connected_accounts")
-      .delete()
-      .eq("auth_user_id", authUserId)
-      .eq("provider", "telegram");
-
-    if (deleteError) {
-      setLoading(false);
-      setError(deleteError.message);
-      return { ok: false, error: deleteError.message };
-    }
-
-    const timestamp = new Date().toISOString();
-    const { error: insertError } = await supabase.from("user_connected_accounts").insert({
-      auth_user_id: authUserId,
-      provider: "telegram",
-      provider_user_id: sanitizedUserId,
-      username: sanitizedUsername || null,
-      status: "connected",
-      connected_at: timestamp,
-      updated_at: timestamp,
+    const response = await fetch("/api/identity/telegram", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        telegramUserId: sanitizedUserId,
+        username: sanitizedUsername || undefined,
+      }),
     });
 
-    if (insertError) {
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok || !payload?.ok) {
+      const message = payload?.error || "Could not arm your Telegram identity.";
       setLoading(false);
-      setError(insertError.message);
-      return { ok: false, error: insertError.message };
+      setError(message);
+      return { ok: false, error: message };
     }
 
     setLoading(false);
-    return { ok: true };
+    return {
+      ok: true,
+      accounts: Array.isArray(payload.accounts) ? (payload.accounts as ConnectedAccount[]) : [],
+    };
   }
 
   async function syncConnectedAccounts() {
