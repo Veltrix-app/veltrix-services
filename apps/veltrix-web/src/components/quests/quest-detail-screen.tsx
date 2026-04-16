@@ -180,23 +180,57 @@ export function QuestDetailScreen() {
   const linkedProject = projects.find((item) => item.id === (quest?.projectId ?? linkedCampaign?.projectId));
   const linkedRewards = rewards.filter((item) => item.campaignId === quest?.campaignId).slice(0, 3);
   const heroVisual = linkedCampaign?.bannerUrl ?? linkedCampaign?.thumbnailUrl ?? linkedProject?.bannerUrl ?? null;
+  const verificationConfig =
+    quest?.verificationConfig && typeof quest.verificationConfig === "object"
+      ? quest.verificationConfig
+      : null;
 
   const usesWebsiteVerification =
-    quest?.questType === "url_visit" &&
-    quest.verificationProvider === "website" &&
-    quest.completionMode === "integration_auto";
+    Boolean(
+      quest &&
+        ((quest.questType === "url_visit" &&
+          quest.verificationProvider === "website" &&
+          quest.completionMode === "integration_auto") ||
+          (quest.verificationType === "event_check" &&
+            ((typeof verificationConfig?.targetUrl === "string" &&
+              verificationConfig.targetUrl.trim().length > 0) ||
+              typeof quest.actionUrl === "string")))
+    );
   const usesDiscordVerification =
-    quest?.questType === "discord_join" &&
-    quest.verificationProvider === "discord" &&
-    quest.completionMode === "integration_auto";
+    Boolean(
+      quest &&
+        ((quest.questType === "discord_join" &&
+          quest.verificationProvider === "discord" &&
+          quest.completionMode === "integration_auto") ||
+          (quest.verificationType === "bot_check" &&
+            ((typeof verificationConfig?.inviteUrl === "string" &&
+              verificationConfig.inviteUrl.trim().length > 0) ||
+              Boolean(linkedProject?.discordUrl))))
+    );
   const usesTelegramVerification =
-    quest?.questType === "telegram_join" &&
-    quest.verificationProvider === "telegram" &&
-    quest.completionMode === "integration_auto";
+    Boolean(
+      quest &&
+        ((quest.questType === "telegram_join" &&
+          quest.verificationProvider === "telegram" &&
+          quest.completionMode === "integration_auto") ||
+          (quest.verificationType === "bot_check" &&
+            ((typeof verificationConfig?.groupUrl === "string" &&
+              verificationConfig.groupUrl.trim().length > 0) ||
+              Boolean(linkedProject?.telegramUrl))))
+    );
   const usesXVerification =
-    quest?.questType === "social_follow" &&
-    quest.verificationProvider === "x" &&
-    quest.completionMode === "integration_auto";
+    Boolean(
+      quest &&
+        ((quest.questType === "social_follow" &&
+          quest.verificationProvider === "x" &&
+          quest.completionMode === "integration_auto") ||
+          (quest.verificationType === "api_check" &&
+            ((typeof verificationConfig?.profileUrl === "string" &&
+              verificationConfig.profileUrl.trim().length > 0) ||
+              (typeof verificationConfig?.handle === "string" &&
+                verificationConfig.handle.trim().length > 0) ||
+              typeof quest.actionUrl === "string")))
+    );
 
   const requiredAccount = useMemo(() => {
     if (usesDiscordVerification) return "discord";
