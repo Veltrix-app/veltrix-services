@@ -51,7 +51,7 @@ function mapIdentityProvider(provider: string): "discord" | "x" | null {
     return "discord";
   }
 
-  if (provider === "twitter") {
+  if (provider === "twitter" || provider === "x") {
     return "x";
   }
 

@@ -145,7 +145,7 @@ function mapIdentityProvider(provider: string): ConnectedAccount["provider"] | n
     return "discord";
   }
 
-  if (provider === "twitter") {
+  if (provider === "twitter" || provider === "x") {
     return "x";
   }
 
@@ -554,7 +554,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     setError(null);
 
-    const nextProvider = provider === "x" ? "twitter" : "discord";
+    const nextProvider = provider === "x" ? "x" : "discord";
     const redirectTo =
       typeof window !== "undefined"
         ? `${window.location.origin}/profile?linked=${provider}`
