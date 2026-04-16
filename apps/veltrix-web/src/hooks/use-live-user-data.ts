@@ -39,6 +39,26 @@ type LiveUserDataCacheEntry = {
 
 const liveUserDataCache = new Map<string, LiveUserDataCacheEntry>();
 
+export function seedLiveUserConnectedAccounts(
+  authUserId: string,
+  accounts: ConnectedAccount[]
+) {
+  const existing = liveUserDataCache.get(authUserId);
+
+  liveUserDataCache.set(authUserId, {
+    connectedAccounts: accounts,
+    projects: existing?.projects ?? [],
+    campaigns: existing?.campaigns ?? [],
+    rewards: existing?.rewards ?? [],
+    quests: existing?.quests ?? [],
+    notifications: existing?.notifications ?? [],
+    leaderboard: existing?.leaderboard ?? [],
+    raids: existing?.raids ?? [],
+    projectReputation: existing?.projectReputation ?? [],
+    joinedCommunityIds: existing?.joinedCommunityIds ?? [],
+  });
+}
+
 export function useLiveUserData() {
   const { authUserId, initialized, authConfigured, session, profile } = useAuth();
   const cachedState = authUserId ? liveUserDataCache.get(authUserId) : null;

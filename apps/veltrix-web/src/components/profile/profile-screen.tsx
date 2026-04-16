@@ -7,7 +7,7 @@ import { ShieldCheck, Signal, Trophy, UserRound, Zap } from "lucide-react";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useAuth } from "@/components/providers/auth-provider";
-import { useLiveUserData } from "@/hooks/use-live-user-data";
+import { seedLiveUserConnectedAccounts, useLiveUserData } from "@/hooks/use-live-user-data";
 import type { ConnectedAccount } from "@/types/auth";
 
 export function ProfileScreen() {
@@ -15,6 +15,7 @@ export function ProfileScreen() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const {
+    authUserId,
     profile,
     authConfigured,
     loading: authLoading,
@@ -174,6 +175,9 @@ export function ProfileScreen() {
     }
 
     if (result.accounts) {
+      if (authUserId) {
+        seedLiveUserConnectedAccounts(authUserId, result.accounts);
+      }
       setLinkedAccountOverrides(result.accounts);
     }
     void reload();
@@ -202,6 +206,9 @@ export function ProfileScreen() {
     }
 
     if (result.accounts) {
+      if (authUserId) {
+        seedLiveUserConnectedAccounts(authUserId, result.accounts);
+      }
       setLinkedAccountOverrides(result.accounts);
     }
     void reload();
@@ -264,6 +271,9 @@ export function ProfileScreen() {
       }
 
       if (result.accounts) {
+        if (authUserId) {
+          seedLiveUserConnectedAccounts(authUserId, result.accounts);
+        }
         setLinkedAccountOverrides(result.accounts);
       }
       void reload();
@@ -286,7 +296,7 @@ export function ProfileScreen() {
     return () => {
       cancelled = true;
     };
-  }, [linkedSyncHandled, pathname, reload, router, searchParams, syncConnectedAccounts]);
+  }, [authUserId, linkedSyncHandled, pathname, reload, router, searchParams, syncConnectedAccounts]);
 
   useEffect(() => {
     if (!linkedSyncHandled || syncingLoadout) {
