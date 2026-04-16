@@ -93,6 +93,20 @@ function getProofGuidance(params: {
   return "Add the clearest proof you can so review is fast and predictable.";
 }
 
+function getStringConfigValue(
+  config: Record<string, unknown> | null | undefined,
+  ...keys: string[]
+) {
+  for (const key of keys) {
+    const value = config?.[key];
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value.trim();
+    }
+  }
+
+  return "";
+}
+
 async function updateQuestStatus(
   authUserId: string,
   questId: string,
@@ -219,9 +233,40 @@ export function QuestDetailScreen() {
     completionMode: currentQuest.completionMode,
     questType: currentQuest.questType,
   });
+  const derivedActionUrl = (() => {
+    const config = currentQuest.verificationConfig;
+
+    if (usesTelegramVerification) {
+      return (
+        getStringConfigValue(config, "groupUrl", "telegramUrl", "targetUrl") ||
+        linkedProject?.telegramUrl ||
+        currentQuest.actionUrl ||
+        ""
+      );
+    }
+
+    if (usesDiscordVerification) {
+      return (
+        getStringConfigValue(config, "inviteUrl", "discordUrl", "targetUrl") ||
+        linkedProject?.discordUrl ||
+        currentQuest.actionUrl ||
+        ""
+      );
+    }
+
+    if (usesXVerification) {
+      return (
+        getStringConfigValue(config, "profileUrl", "targetUrl", "xUrl") ||
+        currentQuest.actionUrl ||
+        ""
+      );
+    }
+
+    return currentQuest.actionUrl || "";
+  })();
 
   async function handleOpenTask() {
-    if (!currentQuest.actionUrl) {
+    if (!derivedActionUrl) {
       setMessage({
         tone: "error",
         text: "This mission does not have a live destination configured yet.",
@@ -261,11 +306,11 @@ export function QuestDetailScreen() {
       text: usesWebsiteVerification
         ? "Veltrix is routing this website mission through the live grid now."
         : "Veltrix is opening the live verification route now.",
-    });
+      });
 
-    try {
-      let missionWindow: Window | null = null;
-      if (typeof window !== "undefined" && currentQuest.actionUrl) {
+      try {
+        let missionWindow: Window | null = null;
+      if (typeof window !== "undefined" && derivedActionUrl) {
         missionWindow = window.open("", "_blank", "noopener,noreferrer");
       }
 
@@ -283,9 +328,14 @@ export function QuestDetailScreen() {
 
         const payload = await response.json().catch(() => null);
 
-        if (!response.ok || !payload?.ok || typeof payload?.targetUrl !== "string") {
+        if (!response.ok || !payload?.ok) {
           throw new Error(payload?.error || "Veltrix could not start this verification flow.");
         }
+
+        const targetUrl =
+          typeof payload?.targetUrl === "string" && payload.targetUrl.trim().length > 0
+            ? payload.targetUrl.trim()
+            : derivedActionUrl;
 
         if (usesWebsiteVerification && authUserId) {
           await updateQuestStatus(authUserId, currentQuest.id, "approved");
@@ -315,17 +365,17 @@ export function QuestDetailScreen() {
         });
 
         if (missionWindow) {
-          missionWindow.location.replace(payload.targetUrl);
+          missionWindow.location.replace(targetUrl);
         } else if (typeof window !== "undefined") {
-          window.open(payload.targetUrl, "_blank", "noopener,noreferrer");
+          window.open(targetUrl, "_blank", "noopener,noreferrer");
         }
         return;
       }
 
       if (missionWindow) {
-        missionWindow.location.replace(currentQuest.actionUrl);
+        missionWindow.location.replace(derivedActionUrl);
       } else if (typeof window !== "undefined") {
-        window.open(currentQuest.actionUrl, "_blank", "noopener,noreferrer");
+        window.open(derivedActionUrl, "_blank", "noopener,noreferrer");
       }
     } catch (nextError) {
       setMessage({

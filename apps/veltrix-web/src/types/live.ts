@@ -8,6 +8,8 @@ export type LiveProject = {
   bannerUrl: string | null;
   members: number;
   website: string | null;
+  telegramUrl?: string | null;
+  discordUrl?: string | null;
 };
 
 export type LiveCampaign = {

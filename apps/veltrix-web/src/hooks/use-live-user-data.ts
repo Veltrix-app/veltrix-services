@@ -174,6 +174,8 @@ export function useLiveUserData() {
         bannerUrl: row.banner_url ?? null,
         members: row.members ?? 0,
         website: row.website ?? null,
+        telegramUrl: row.telegram_url ?? null,
+        discordUrl: row.discord_url ?? null,
       }))
     );
 
