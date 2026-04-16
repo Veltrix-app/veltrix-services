@@ -212,8 +212,12 @@ export function useLiveUserData() {
 
     setQuests(
       (questsResult.data ?? []).map((row) => {
-        const questType = row.quest_type ?? "custom";
+        const questType = row.quest_type ?? row.type ?? "custom";
         const verificationType = row.verification_type ?? "manual_review";
+        const verificationConfig =
+          row.verification_config && typeof row.verification_config === "object"
+            ? (row.verification_config as Record<string, unknown>)
+            : null;
         const verificationProvider =
           row.verification_provider ??
           (questType === "telegram_join"
@@ -224,6 +228,16 @@ export function useLiveUserData() {
                 ? "x"
                 : questType === "url_visit"
                   ? "website"
+                  : verificationType === "bot_check" &&
+                      typeof verificationConfig?.groupUrl === "string" &&
+                      verificationConfig.groupUrl.trim().length > 0
+                    ? "telegram"
+                    : verificationType === "bot_check" &&
+                        typeof verificationConfig?.inviteUrl === "string" &&
+                        verificationConfig.inviteUrl.trim().length > 0
+                      ? "discord"
+                      : verificationType === "api_check"
+                        ? "x"
                   : null);
         const completionMode =
           row.completion_mode ??
@@ -251,10 +265,7 @@ export function useLiveUserData() {
           verificationType,
           verificationProvider,
           completionMode,
-          verificationConfig:
-            row.verification_config && typeof row.verification_config === "object"
-              ? (row.verification_config as Record<string, unknown>)
-              : null,
+          verificationConfig,
         };
       })
     );
