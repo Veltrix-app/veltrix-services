@@ -167,7 +167,17 @@ export function QuestDetailScreen() {
   const params = useParams<{ id: string }>();
   const questId = Array.isArray(params.id) ? params.id[0] : params.id;
   const { session, authUserId } = useQuestAuth();
-  const { loading, error, quests, campaigns, rewards, projects, connectedAccounts, reload } =
+  const {
+    loading,
+    refreshing,
+    error,
+    quests,
+    campaigns,
+    rewards,
+    projects,
+    connectedAccounts,
+    reload,
+  } =
     useLiveUserData();
   const [proof, setProof] = useState("");
   const [busy, setBusy] = useState(false);
@@ -269,6 +279,13 @@ export function QuestDetailScreen() {
         (account) => account.provider === requiredAccount && account.status === "connected"
       )
     : true;
+  const accountReadyState = requiredAccount
+    ? providerAccountConnected
+      ? "Ready"
+      : refreshing
+        ? "Syncing"
+        : "Missing"
+    : "Not required";
 
   if (loading) {
     return <Notice tone="default" text="Loading mission..." />;
@@ -342,6 +359,14 @@ export function QuestDetailScreen() {
     }
 
     if (!providerAccountConnected) {
+      if (refreshing) {
+        setMessage({
+          tone: "default",
+          text: `Syncing ${requiredAccount?.toUpperCase()} readiness inside your live loadout now. Give Veltrix a second and try again.`,
+        });
+        return;
+      }
+
       setMessage({
         tone: "error",
         text: `Connect ${requiredAccount?.toUpperCase()} first so this mission can verify against the linked account.`,
@@ -581,13 +606,10 @@ export function QuestDetailScreen() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <MiniStat label="Status" value={currentQuest.status} />
-              <MiniStat
-                label="Account ready"
-                value={requiredAccount ? (providerAccountConnected ? "Ready" : "Missing") : "Not required"}
-              />
+              <MiniStat label="Account ready" value={accountReadyState} />
             </div>
 
-            {requiredAccount && !providerAccountConnected ? (
+            {requiredAccount && !providerAccountConnected && !refreshing ? (
               <div className="rounded-[24px] border border-amber-400/20 bg-amber-500/10 p-4 text-sm text-amber-100">
                 This mission needs a connected {requiredAccount.toUpperCase()} account before the
                 verification route can start. Link it from{" "}
@@ -598,6 +620,13 @@ export function QuestDetailScreen() {
                   Profile
                 </Link>
                 .
+              </div>
+            ) : null}
+
+            {requiredAccount && !providerAccountConnected && refreshing ? (
+              <div className="rounded-[24px] border border-cyan-300/20 bg-cyan-400/10 p-4 text-sm text-cyan-100">
+                Veltrix is syncing your {requiredAccount.toUpperCase()} account state across the
+                live grid. This mission will unlock as soon as that refresh settles.
               </div>
             ) : null}
 
@@ -674,10 +703,7 @@ export function QuestDetailScreen() {
               <MiniStat label="Status" value={currentQuest.status} />
               <MiniStat label="Verification" value={currentQuest.verificationType} />
               <MiniStat label="Proof" value={currentQuest.proofType} />
-              <MiniStat
-                label="Connected account"
-                value={requiredAccount ? (providerAccountConnected ? "Ready" : "Missing") : "Not required"}
-              />
+              <MiniStat label="Connected account" value={accountReadyState} />
             </div>
           </Surface>
 

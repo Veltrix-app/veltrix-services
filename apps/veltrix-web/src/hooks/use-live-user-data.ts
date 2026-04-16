@@ -39,6 +39,33 @@ type LiveUserDataCacheEntry = {
 
 const liveUserDataCache = new Map<string, LiveUserDataCacheEntry>();
 
+function applyLiveUserDataCacheEntry(
+  entry: LiveUserDataCacheEntry,
+  setters: {
+    setConnectedAccounts: (value: ConnectedAccount[]) => void;
+    setProjects: (value: LiveProject[]) => void;
+    setCampaigns: (value: LiveCampaign[]) => void;
+    setRewards: (value: LiveReward[]) => void;
+    setQuests: (value: LiveQuest[]) => void;
+    setNotifications: (value: LiveNotification[]) => void;
+    setLeaderboard: (value: LiveLeaderboardUser[]) => void;
+    setRaids: (value: LiveRaid[]) => void;
+    setProjectReputation: (value: LiveProjectReputation[]) => void;
+    setJoinedCommunityIds: (value: string[]) => void;
+  }
+) {
+  setters.setConnectedAccounts(entry.connectedAccounts);
+  setters.setProjects(entry.projects);
+  setters.setCampaigns(entry.campaigns);
+  setters.setRewards(entry.rewards);
+  setters.setQuests(entry.quests);
+  setters.setNotifications(entry.notifications);
+  setters.setLeaderboard(entry.leaderboard);
+  setters.setRaids(entry.raids);
+  setters.setProjectReputation(entry.projectReputation);
+  setters.setJoinedCommunityIds(entry.joinedCommunityIds);
+}
+
 export function seedLiveUserConnectedAccounts(
   authUserId: string,
   accounts: ConnectedAccount[]
@@ -63,6 +90,7 @@ export function useLiveUserData() {
   const { authUserId, initialized, authConfigured, session, profile } = useAuth();
   const cachedState = authUserId ? liveUserDataCache.get(authUserId) : null;
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [connectedAccounts, setConnectedAccounts] = useState<ConnectedAccount[]>(
     cachedState?.connectedAccounts ?? []
@@ -106,10 +134,31 @@ export function useLiveUserData() {
       setJoinedCommunityIds([]);
       setError(null);
       setLoading(false);
+      setRefreshing(false);
       return;
     }
 
-    setLoading(true);
+    const nextCachedState = liveUserDataCache.get(authUserId);
+
+    if (nextCachedState) {
+      applyLiveUserDataCacheEntry(nextCachedState, {
+        setConnectedAccounts,
+        setProjects,
+        setCampaigns,
+        setRewards,
+        setQuests,
+        setNotifications,
+        setLeaderboard,
+        setRaids,
+        setProjectReputation,
+        setJoinedCommunityIds,
+      });
+      setLoading(false);
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+      setRefreshing(false);
+    }
     setError(null);
 
     const [
@@ -187,6 +236,7 @@ export function useLiveUserData() {
     if (firstError) {
       setError(firstError.message);
       setLoading(false);
+      setRefreshing(false);
       return;
     }
 
@@ -385,6 +435,7 @@ export function useLiveUserData() {
     });
 
     setLoading(false);
+    setRefreshing(false);
   }
 
   async function joinCommunity(projectId: string) {
@@ -577,9 +628,23 @@ export function useLiveUserData() {
     }
 
     if (authConfigured && authUserId && liveUserDataCache.has(authUserId)) {
+      applyLiveUserDataCacheEntry(liveUserDataCache.get(authUserId)!, {
+        setConnectedAccounts,
+        setProjects,
+        setCampaigns,
+        setRewards,
+        setQuests,
+        setNotifications,
+        setLeaderboard,
+        setRaids,
+        setProjectReputation,
+        setJoinedCommunityIds,
+      });
       setLoading(false);
+      setRefreshing(true);
     } else {
       setLoading(true);
+      setRefreshing(false);
     }
 
     void reload();
@@ -598,6 +663,7 @@ export function useLiveUserData() {
 
   return {
     loading,
+    refreshing,
     error,
     connectedAccounts,
     projects,
