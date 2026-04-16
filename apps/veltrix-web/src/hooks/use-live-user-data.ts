@@ -24,20 +24,46 @@ type UserProgressRow = {
   unlocked_reward_ids: string[] | null;
 };
 
+type LiveUserDataCacheEntry = {
+  connectedAccounts: ConnectedAccount[];
+  projects: LiveProject[];
+  campaigns: LiveCampaign[];
+  rewards: LiveReward[];
+  quests: LiveQuest[];
+  notifications: LiveNotification[];
+  leaderboard: LiveLeaderboardUser[];
+  raids: LiveRaid[];
+  projectReputation: LiveProjectReputation[];
+  joinedCommunityIds: string[];
+};
+
+const liveUserDataCache = new Map<string, LiveUserDataCacheEntry>();
+
 export function useLiveUserData() {
   const { authUserId, initialized, authConfigured, session, profile } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const cachedState = authUserId ? liveUserDataCache.get(authUserId) : null;
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [connectedAccounts, setConnectedAccounts] = useState<ConnectedAccount[]>([]);
-  const [projects, setProjects] = useState<LiveProject[]>([]);
-  const [campaigns, setCampaigns] = useState<LiveCampaign[]>([]);
-  const [rewards, setRewards] = useState<LiveReward[]>([]);
-  const [quests, setQuests] = useState<LiveQuest[]>([]);
-  const [notifications, setNotifications] = useState<LiveNotification[]>([]);
-  const [leaderboard, setLeaderboard] = useState<LiveLeaderboardUser[]>([]);
-  const [raids, setRaids] = useState<LiveRaid[]>([]);
-  const [projectReputation, setProjectReputation] = useState<LiveProjectReputation[]>([]);
-  const [joinedCommunityIds, setJoinedCommunityIds] = useState<string[]>([]);
+  const [connectedAccounts, setConnectedAccounts] = useState<ConnectedAccount[]>(
+    cachedState?.connectedAccounts ?? []
+  );
+  const [projects, setProjects] = useState<LiveProject[]>(cachedState?.projects ?? []);
+  const [campaigns, setCampaigns] = useState<LiveCampaign[]>(cachedState?.campaigns ?? []);
+  const [rewards, setRewards] = useState<LiveReward[]>(cachedState?.rewards ?? []);
+  const [quests, setQuests] = useState<LiveQuest[]>(cachedState?.quests ?? []);
+  const [notifications, setNotifications] = useState<LiveNotification[]>(
+    cachedState?.notifications ?? []
+  );
+  const [leaderboard, setLeaderboard] = useState<LiveLeaderboardUser[]>(
+    cachedState?.leaderboard ?? []
+  );
+  const [raids, setRaids] = useState<LiveRaid[]>(cachedState?.raids ?? []);
+  const [projectReputation, setProjectReputation] = useState<LiveProjectReputation[]>(
+    cachedState?.projectReputation ?? []
+  );
+  const [joinedCommunityIds, setJoinedCommunityIds] = useState<string[]>(
+    cachedState?.joinedCommunityIds ?? []
+  );
   const supabase = useMemo(
     () => (authConfigured ? createSupabaseBrowserClient() : null),
     [authConfigured]
@@ -45,6 +71,9 @@ export function useLiveUserData() {
 
   async function reload() {
     if (!authConfigured || !authUserId || !supabase) {
+      if (authUserId) {
+        liveUserDataCache.delete(authUserId);
+      }
       setConnectedAccounts([]);
       setProjects([]);
       setCampaigns([]);
@@ -56,6 +85,7 @@ export function useLiveUserData() {
       setProjectReputation([]);
       setJoinedCommunityIds([]);
       setError(null);
+      setLoading(false);
       return;
     }
 
@@ -151,8 +181,7 @@ export function useLiveUserData() {
     );
     setJoinedCommunityIds(joinedCommunities);
 
-    setConnectedAccounts(
-      (connectedAccountsResult.data ?? []).map((row) => ({
+    const nextConnectedAccounts = (connectedAccountsResult.data ?? []).map((row) => ({
         id: row.id,
         provider: row.provider,
         providerUserId: row.provider_user_id,
@@ -160,11 +189,10 @@ export function useLiveUserData() {
         status: row.status,
         connectedAt: row.connected_at,
         updatedAt: row.updated_at,
-      }))
-    );
+      }));
+    setConnectedAccounts(nextConnectedAccounts);
 
-    setProjects(
-      (projectsResult.data ?? []).map((row) => ({
+    const nextProjects = (projectsResult.data ?? []).map((row) => ({
         id: row.id,
         name: row.name ?? "Project",
         description: row.description ?? "No description yet.",
@@ -176,11 +204,10 @@ export function useLiveUserData() {
         website: row.website ?? null,
         telegramUrl: row.telegram_url ?? null,
         discordUrl: row.discord_url ?? null,
-      }))
-    );
+      }));
+    setProjects(nextProjects);
 
-    setCampaigns(
-      (campaignsResult.data ?? []).map((row) => ({
+    const nextCampaigns = (campaignsResult.data ?? []).map((row) => ({
         id: row.id,
         projectId: row.project_id ?? null,
         title: row.title ?? "Campaign",
@@ -192,11 +219,10 @@ export function useLiveUserData() {
         featured: row.featured ?? false,
         completionRate: row.completion_rate ?? 0,
         endsAt: row.ends_at ?? null,
-      }))
-    );
+      }));
+    setCampaigns(nextCampaigns);
 
-    setRewards(
-      (rewardsResult.data ?? []).map((row) => ({
+    const nextRewards = (rewardsResult.data ?? []).map((row) => ({
         id: row.id,
         campaignId: row.campaign_id ?? null,
         title: row.title ?? "Reward",
@@ -207,11 +233,10 @@ export function useLiveUserData() {
         claimable: (row.claimable ?? false) && !claimedRewardIds.has(row.id),
         claimed: claimedRewardIds.has(row.id),
         rewardType: row.reward_type ?? row.type ?? "reward",
-      }))
-    );
+      }));
+    setRewards(nextRewards);
 
-    setQuests(
-      (questsResult.data ?? []).map((row) => {
+    const nextQuests = (questsResult.data ?? []).map((row) => {
         const questType = row.quest_type ?? row.type ?? "custom";
         const verificationType = row.verification_type ?? "manual_review";
         const verificationConfig =
@@ -267,22 +292,20 @@ export function useLiveUserData() {
           completionMode,
           verificationConfig,
         };
-      })
-    );
+      });
+    setQuests(nextQuests);
 
-    setNotifications(
-      (notificationsResult.data ?? []).map((row) => ({
+    const nextNotifications = (notificationsResult.data ?? []).map((row) => ({
         id: row.id,
         title: row.title ?? "Notification",
         body: row.body ?? "",
         read: row.read ?? false,
         type: row.type ?? "system",
         createdAt: row.created_at,
-      }))
-    );
+      }));
+    setNotifications(nextNotifications);
 
-    setLeaderboard(
-      (leaderboardResult.data ?? []).map((row) => ({
+    const nextLeaderboard = (leaderboardResult.data ?? []).map((row) => ({
         id: row.id,
         username: row.username ?? "Raider",
         xp: row.xp ?? 0,
@@ -290,11 +313,10 @@ export function useLiveUserData() {
         avatarUrl: row.avatar_url ?? "",
         bannerUrl: row.banner_url ?? "",
         isCurrentUser: row.auth_user_id === authUserId,
-      }))
-    );
+      }));
+    setLeaderboard(nextLeaderboard);
 
-    setRaids(
-      (raidsResult.data ?? []).map((row) => ({
+    const nextRaids = (raidsResult.data ?? []).map((row) => ({
         id: row.id,
         campaignId: row.campaign_id ?? null,
         title: row.title ?? "Raid",
@@ -310,11 +332,10 @@ export function useLiveUserData() {
               (item): item is string => typeof item === "string"
             )
           : [],
-      }))
-    );
+      }));
+    setRaids(nextRaids);
 
-    setProjectReputation(
-      (projectReputationResult.data ?? []).map((row) => ({
+    const nextProjectReputation = (projectReputationResult.data ?? []).map((row) => ({
         projectId: row.project_id,
         projectName:
           projectsResult.data?.find((project) => project.id === row.project_id)?.name ?? "Project",
@@ -327,8 +348,21 @@ export function useLiveUserData() {
         raidsCompleted: row.raids_completed ?? 0,
         rewardsClaimed: row.rewards_claimed ?? 0,
         rank: row.rank ?? 0,
-      }))
-    );
+      }));
+    setProjectReputation(nextProjectReputation);
+
+    liveUserDataCache.set(authUserId, {
+      connectedAccounts: nextConnectedAccounts,
+      projects: nextProjects,
+      campaigns: nextCampaigns,
+      rewards: nextRewards,
+      quests: nextQuests,
+      notifications: nextNotifications,
+      leaderboard: nextLeaderboard,
+      raids: nextRaids,
+      projectReputation: nextProjectReputation,
+      joinedCommunityIds: joinedCommunities,
+    });
 
     setLoading(false);
   }
@@ -520,6 +554,12 @@ export function useLiveUserData() {
   useEffect(() => {
     if (!initialized) {
       return;
+    }
+
+    if (authConfigured && authUserId && liveUserDataCache.has(authUserId)) {
+      setLoading(false);
+    } else {
+      setLoading(true);
     }
 
     void reload();
