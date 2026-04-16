@@ -285,6 +285,27 @@ export function ProfileScreen() {
     };
   }, [linkedSyncHandled, pathname, reload, router, searchParams, syncConnectedAccounts]);
 
+  useEffect(() => {
+    if (!linkedSyncHandled || syncingLoadout) {
+      return;
+    }
+
+    const resolvedAccount = effectiveConnectedAccounts.find(
+      (account) =>
+        account.provider === linkedSyncHandled &&
+        account.status === "connected"
+    );
+
+    if (!resolvedAccount) {
+      return;
+    }
+
+    setProviderMessage({
+      tone: "success",
+      text: `${linkedSyncHandled.toUpperCase()} is armed and ready for provider-gated missions.`,
+    });
+  }, [effectiveConnectedAccounts, linkedSyncHandled, syncingLoadout]);
+
   return (
     <div className="space-y-6">
       <section className="grid gap-6 2xl:grid-cols-[minmax(0,1.25fr)_380px]">
