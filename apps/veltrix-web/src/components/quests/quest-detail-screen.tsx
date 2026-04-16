@@ -545,14 +545,14 @@ export function QuestDetailScreen() {
             <div className="flex flex-wrap gap-3">
               <button
                 onClick={() => void handleOpenTask()}
-                disabled={!currentQuest.actionUrl || busy}
+                disabled={!derivedActionUrl || busy}
                 className="rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {busy
                   ? usesWebsiteVerification
                     ? "Routing launch..."
                     : "Processing..."
-                  : currentQuest.actionUrl
+                  : derivedActionUrl
                     ? currentQuest.actionLabel ?? "Open mission"
                     : "No destination yet"}
               </button>

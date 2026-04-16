@@ -211,29 +211,52 @@ export function useLiveUserData() {
     );
 
     setQuests(
-      (questsResult.data ?? []).map((row) => ({
-        id: row.id,
-        projectId: row.project_id ?? null,
-        campaignId: row.campaign_id ?? null,
-        title: row.title ?? "Quest",
-        description: row.description ?? "",
-        type: row.type ?? row.quest_type ?? "Task",
-        questType: row.quest_type ?? "custom",
-        status: questStatuses[row.id] ?? row.status ?? "open",
-        xp: row.xp ?? 0,
-        actionLabel: row.action_label ?? "Open Task",
-        actionUrl: row.action_url ?? null,
-        proofRequired: row.proof_required ?? false,
-        proofType: row.proof_type ?? "none",
-        verificationType: row.verification_type ?? "manual_review",
-        verificationProvider: row.verification_provider ?? null,
-        completionMode:
-          row.completion_mode ?? ((row.auto_approve ?? false) ? "rule_auto" : "manual"),
-        verificationConfig:
-          row.verification_config && typeof row.verification_config === "object"
-            ? (row.verification_config as Record<string, unknown>)
-            : null,
-      }))
+      (questsResult.data ?? []).map((row) => {
+        const questType = row.quest_type ?? "custom";
+        const verificationType = row.verification_type ?? "manual_review";
+        const verificationProvider =
+          row.verification_provider ??
+          (questType === "telegram_join"
+            ? "telegram"
+            : questType === "discord_join"
+              ? "discord"
+              : questType === "social_follow"
+                ? "x"
+                : questType === "url_visit"
+                  ? "website"
+                  : null);
+        const completionMode =
+          row.completion_mode ??
+          ((verificationProvider &&
+            ["bot_check", "api_check", "event_check"].includes(verificationType))
+            ? "integration_auto"
+            : (row.auto_approve ?? false)
+              ? "rule_auto"
+              : "manual");
+
+        return {
+          id: row.id,
+          projectId: row.project_id ?? null,
+          campaignId: row.campaign_id ?? null,
+          title: row.title ?? "Quest",
+          description: row.description ?? "",
+          type: row.type ?? row.quest_type ?? "Task",
+          questType,
+          status: questStatuses[row.id] ?? row.status ?? "open",
+          xp: row.xp ?? 0,
+          actionLabel: row.action_label ?? "Open Task",
+          actionUrl: row.action_url ?? null,
+          proofRequired: row.proof_required ?? false,
+          proofType: row.proof_type ?? "none",
+          verificationType,
+          verificationProvider,
+          completionMode,
+          verificationConfig:
+            row.verification_config && typeof row.verification_config === "object"
+              ? (row.verification_config as Record<string, unknown>)
+              : null,
+        };
+      })
     );
 
     setNotifications(
