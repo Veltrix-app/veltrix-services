@@ -166,19 +166,13 @@ async function createQuestSubmission(params: {
 export function QuestDetailScreen() {
   const params = useParams<{ id: string }>();
   const questId = Array.isArray(params.id) ? params.id[0] : params.id;
-  const { session, authUserId } = useQuestAuth();
   const {
-    loading,
-    refreshing,
-    error,
-    quests,
-    campaigns,
-    rewards,
-    projects,
+    session,
+    authUserId,
     connectedAccounts,
-    reload,
-  } =
-    useLiveUserData();
+    connectedAccountsState,
+  } = useQuestAuth();
+  const { loading, error, quests, campaigns, rewards, projects, reload } = useLiveUserData();
   const [proof, setProof] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ tone: "default" | "error" | "success"; text: string } | null>(
@@ -279,10 +273,11 @@ export function QuestDetailScreen() {
         (account) => account.provider === requiredAccount && account.status === "connected"
       )
     : true;
+  const accountSnapshotSettled = connectedAccountsState === "ready";
   const accountReadyState = requiredAccount
     ? providerAccountConnected
       ? "Ready"
-      : refreshing
+      : !accountSnapshotSettled
         ? "Syncing"
         : "Missing"
     : "Not required";
@@ -359,7 +354,7 @@ export function QuestDetailScreen() {
     }
 
     if (!providerAccountConnected) {
-      if (refreshing) {
+      if (!accountSnapshotSettled) {
         setMessage({
           tone: "default",
           text: `Syncing ${requiredAccount?.toUpperCase()} readiness inside your live loadout now. Give Veltrix a second and try again.`,
@@ -609,7 +604,7 @@ export function QuestDetailScreen() {
               <MiniStat label="Account ready" value={accountReadyState} />
             </div>
 
-            {requiredAccount && !providerAccountConnected && !refreshing ? (
+            {requiredAccount && !providerAccountConnected && accountSnapshotSettled ? (
               <div className="rounded-[24px] border border-amber-400/20 bg-amber-500/10 p-4 text-sm text-amber-100">
                 This mission needs a connected {requiredAccount.toUpperCase()} account before the
                 verification route can start. Link it from{" "}
@@ -623,7 +618,7 @@ export function QuestDetailScreen() {
               </div>
             ) : null}
 
-            {requiredAccount && !providerAccountConnected && refreshing ? (
+            {requiredAccount && !providerAccountConnected && !accountSnapshotSettled ? (
               <div className="rounded-[24px] border border-cyan-300/20 bg-cyan-400/10 p-4 text-sm text-cyan-100">
                 Veltrix is syncing your {requiredAccount.toUpperCase()} account state across the
                 live grid. This mission will unlock as soon as that refresh settles.
@@ -766,11 +761,13 @@ export function QuestDetailScreen() {
 }
 
 function useQuestAuth() {
-  const { session, authUserId } = useAuth();
+  const { session, authUserId, connectedAccounts, connectedAccountsState } = useAuth();
 
   return {
     session,
     authUserId,
+    connectedAccounts,
+    connectedAccountsState,
   };
 }
 

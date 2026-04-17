@@ -21,6 +21,8 @@ type AuthContextValue = {
   session: Session | null;
   authUserId: string | null;
   profile: UserProfile | null;
+  connectedAccounts: ConnectedAccount[];
+  connectedAccountsState: "unknown" | "syncing" | "ready";
   error: string | null;
   authConfigured: boolean;
   signIn: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
@@ -152,6 +154,31 @@ function mapIdentityProvider(provider: string): ConnectedAccount["provider"] | n
   return null;
 }
 
+function normalizeConnectedAccountRows(
+  rows:
+    | Array<{
+        id: string;
+        provider: ConnectedAccount["provider"];
+        provider_user_id: string;
+        username: string | null;
+        status: ConnectedAccount["status"];
+        connected_at: string;
+        updated_at: string;
+      }>
+    | null
+    | undefined
+) {
+  return (rows ?? []).map((row) => ({
+    id: row.id,
+    provider: row.provider,
+    providerUserId: row.provider_user_id,
+    username: row.username,
+    status: row.status,
+    connectedAt: row.connected_at,
+    updatedAt: row.updated_at,
+  }));
+}
+
 function deriveIdentityUserId(identity: UserIdentity) {
   const identityData = identity.identity_data ?? {};
   const rawValue =
@@ -175,70 +202,6 @@ function deriveIdentityUsername(identity: UserIdentity) {
     null;
 
   return typeof username === "string" && username.length > 0 ? username : null;
-}
-
-async function syncManagedConnectedAccounts(params: {
-  authUserId: string;
-  supabase: ReturnType<typeof createSupabaseBrowserClient>;
-  user?: User | null;
-}) {
-  const fallbackUser =
-    params.user ??
-    (
-      await Promise.race([
-        params.supabase.auth.getUser(),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("Identity lookup timed out.")), 8000)
-        ),
-      ])
-    ).data.user;
-
-  const identityList = Array.isArray(fallbackUser?.identities)
-    ? fallbackUser.identities
-    : [];
-
-  const linkedIdentities = identityList
-    .map((identity) => {
-      const provider = mapIdentityProvider(identity.provider);
-      const providerUserId = deriveIdentityUserId(identity);
-
-      if (!provider || !providerUserId) {
-        return null;
-      }
-
-      return {
-        auth_user_id: params.authUserId,
-        provider,
-        provider_user_id: providerUserId,
-        username: deriveIdentityUsername(identity),
-        status: "connected",
-        connected_at: identity.created_at ?? new Date().toISOString(),
-        updated_at: identity.updated_at ?? new Date().toISOString(),
-      };
-    })
-    .filter((identity): identity is NonNullable<typeof identity> => Boolean(identity));
-
-  const { error: deleteError } = await params.supabase
-    .from("user_connected_accounts")
-    .delete()
-    .eq("auth_user_id", params.authUserId)
-    .in("provider", ["discord", "x"]);
-
-  if (deleteError) {
-    throw deleteError;
-  }
-
-  if (linkedIdentities.length === 0) {
-    return;
-  }
-
-  const { error: insertError } = await params.supabase
-    .from("user_connected_accounts")
-    .insert(linkedIdentities);
-
-  if (insertError) {
-    throw insertError;
-  }
 }
 
 async function syncManagedConnectedAccountsViaApi(params: {
@@ -268,6 +231,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [connectedAccounts, setConnectedAccounts] = useState<ConnectedAccount[]>([]);
+  const [connectedAccountsState, setConnectedAccountsState] = useState<
+    "unknown" | "syncing" | "ready"
+  >("unknown");
   const [error, setError] = useState<string | null>(null);
   const supabase = useMemo(
     () => (publicEnv.authConfigured ? createSupabaseBrowserClient() : null),
@@ -275,6 +242,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const authUserId = session?.user?.id ?? null;
+
+  function applyConnectedAccountSnapshot(accounts: ConnectedAccount[]) {
+    setConnectedAccounts(accounts);
+    setConnectedAccountsState("ready");
+  }
+
+  async function reloadConnectedAccounts(params?: { preserveExisting?: boolean }) {
+    if (!publicEnv.authConfigured || !supabase || !authUserId) {
+      setConnectedAccounts([]);
+      setConnectedAccountsState("unknown");
+      return;
+    }
+
+    const preserveExisting = params?.preserveExisting ?? true;
+
+    if (!preserveExisting) {
+      setConnectedAccounts([]);
+    }
+
+    setConnectedAccountsState("syncing");
+
+    const { data, error: connectedAccountsError } = await supabase
+      .from("user_connected_accounts")
+      .select("id, provider, provider_user_id, username, status, connected_at, updated_at")
+      .eq("auth_user_id", authUserId)
+      .in("provider", ["discord", "x", "telegram"])
+      .order("connected_at", { ascending: false });
+
+    if (connectedAccountsError) {
+      setError(connectedAccountsError.message);
+      setConnectedAccountsState("ready");
+      return;
+    }
+
+    applyConnectedAccountSnapshot(normalizeConnectedAccountRows(data));
+  }
 
   async function reloadProfile() {
     if (!authUserId || !publicEnv.authConfigured) {
@@ -306,20 +309,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       setProfile(mapProfile(data));
-
-      try {
-        await syncManagedConnectedAccounts({
-          authUserId,
-          supabase,
-          user: session?.user ?? null,
-        });
-      } catch (syncError) {
-        setError(
-          syncError instanceof Error
-            ? syncError.message
-            : "Linked system sync failed."
-        );
-      }
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : "Failed to load profile.");
       setProfile(null);
@@ -381,10 +370,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (!authUserId) {
       setProfile(null);
+      setConnectedAccounts([]);
+      setConnectedAccountsState("unknown");
       return;
     }
 
     void reloadProfile();
+    void reloadConnectedAccounts();
   }, [initialized, authUserId]);
 
   async function signIn(email: string, password: string) {
@@ -511,6 +503,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     await supabase.auth.signOut();
     setProfile(null);
+    setConnectedAccounts([]);
+    setConnectedAccountsState("unknown");
     setLoading(false);
   }
 
@@ -620,6 +614,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { ok: false, error: message };
     }
 
+    applyConnectedAccountSnapshot(
+      Array.isArray(payload.accounts) ? (payload.accounts as ConnectedAccount[]) : []
+    );
     setLoading(false);
     return {
       ok: true,
@@ -639,6 +636,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const result = await syncManagedConnectedAccountsViaApi({
         accessToken: session.access_token,
       });
+      applyConnectedAccountSnapshot(result.accounts);
       setLoading(false);
       return { ok: true, identities: result.identities, accounts: result.accounts };
     } catch (nextError) {
@@ -657,6 +655,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       session,
       authUserId,
       profile,
+      connectedAccounts,
+      connectedAccountsState,
       error,
       authConfigured: publicEnv.authConfigured,
       signIn,
@@ -669,7 +669,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       reloadProfile,
       clearError: () => setError(null),
     }),
-    [initialized, loading, session, authUserId, profile, error]
+    [
+      initialized,
+      loading,
+      session,
+      authUserId,
+      profile,
+      connectedAccounts,
+      connectedAccountsState,
+      error,
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

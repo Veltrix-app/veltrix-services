@@ -7,7 +7,7 @@ import { ShieldCheck, Signal, Trophy, UserRound, Zap } from "lucide-react";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useAuth } from "@/components/providers/auth-provider";
-import { seedLiveUserConnectedAccounts, useLiveUserData } from "@/hooks/use-live-user-data";
+import { useLiveUserData } from "@/hooks/use-live-user-data";
 import type { ConnectedAccount } from "@/types/auth";
 
 export function ProfileScreen() {
@@ -15,16 +15,16 @@ export function ProfileScreen() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const {
-    authUserId,
     profile,
     authConfigured,
     loading: authLoading,
+    connectedAccounts,
+    connectedAccountsState,
     linkProvider,
     saveTelegramIdentity,
     syncConnectedAccounts,
   } = useAuth();
   const {
-    connectedAccounts,
     notifications,
     unreadNotificationCount,
     loading,
@@ -42,19 +42,8 @@ export function ProfileScreen() {
   } | null>(null);
   const [linkedSyncHandled, setLinkedSyncHandled] = useState<string | null>(null);
   const [syncingLoadout, setSyncingLoadout] = useState(false);
-  const [linkedAccountOverrides, setLinkedAccountOverrides] = useState<ConnectedAccount[]>([]);
-
-  const effectiveConnectedAccounts = useMemo(() => {
-    const providerMap = new Map(
-      connectedAccounts.map((account) => [account.provider, account] as const)
-    );
-
-    for (const account of linkedAccountOverrides) {
-      providerMap.set(account.provider, account);
-    }
-
-    return Array.from(providerMap.values());
-  }, [connectedAccounts, linkedAccountOverrides]);
+  const effectiveConnectedAccounts = connectedAccounts;
+  const loadoutSyncing = connectedAccountsState === "syncing" || syncingLoadout;
 
   const connectedCount = effectiveConnectedAccounts.filter(
     (account) => account.status === "connected"
@@ -174,12 +163,6 @@ export function ProfileScreen() {
       return;
     }
 
-    if (result.accounts) {
-      if (authUserId) {
-        seedLiveUserConnectedAccounts(authUserId, result.accounts);
-      }
-      setLinkedAccountOverrides(result.accounts);
-    }
     void reload();
     setProviderMessage({
       tone: "success",
@@ -205,12 +188,6 @@ export function ProfileScreen() {
       return;
     }
 
-    if (result.accounts) {
-      if (authUserId) {
-        seedLiveUserConnectedAccounts(authUserId, result.accounts);
-      }
-      setLinkedAccountOverrides(result.accounts);
-    }
     void reload();
     setProviderMessage({
       tone: "success",
@@ -270,12 +247,6 @@ export function ProfileScreen() {
         return;
       }
 
-      if (result.accounts) {
-        if (authUserId) {
-          seedLiveUserConnectedAccounts(authUserId, result.accounts);
-        }
-        setLinkedAccountOverrides(result.accounts);
-      }
       void reload();
 
       if (!cancelled) {
@@ -296,7 +267,7 @@ export function ProfileScreen() {
     return () => {
       cancelled = true;
     };
-  }, [authUserId, linkedSyncHandled, pathname, reload, router, searchParams, syncConnectedAccounts]);
+  }, [linkedSyncHandled, pathname, reload, router, searchParams, syncConnectedAccounts]);
 
   useEffect(() => {
     if (!linkedSyncHandled || syncingLoadout) {
@@ -461,9 +432,7 @@ export function ProfileScreen() {
           <Notice tone={providerMessage.tone === "error" ? "error" : "default"} text={providerMessage.text} />
         ) : null}
 
-        {loading ? (
-          <Notice tone="default" text="Loading connected systems..." />
-        ) : error ? (
+        {error ? (
           <Notice tone="error" text={error} />
         ) : (
           <div className="grid gap-4 lg:grid-cols-3">
@@ -485,6 +454,8 @@ export function ProfileScreen() {
                     label={
                       isConnected
                         ? "Ready"
+                        : loadoutSyncing
+                          ? "Syncing"
                         : providerCard.provider === "telegram"
                           ? "Needs id"
                           : "Not linked"
@@ -492,6 +463,8 @@ export function ProfileScreen() {
                     tone={
                       isConnected
                         ? "positive"
+                        : loadoutSyncing
+                          ? "info"
                         : providerCard.provider === "telegram"
                           ? "warning"
                           : "default"
@@ -508,12 +481,14 @@ export function ProfileScreen() {
                   <MiniStat label="Mission pressure" value={String(providerCard.missionCount)} />
                   <MiniStat
                     label="Last sync"
-                    value={
-                      account?.updatedAt
-                        ? new Date(account.updatedAt).toLocaleDateString("nl-NL")
-                        : "Not linked"
-                    }
-                  />
+                      value={
+                        account?.updatedAt
+                          ? new Date(account.updatedAt).toLocaleDateString("nl-NL")
+                          : loadoutSyncing
+                            ? "Syncing..."
+                          : "Not linked"
+                      }
+                    />
                 </div>
 
                 {providerCard.provider === "telegram" ? (
