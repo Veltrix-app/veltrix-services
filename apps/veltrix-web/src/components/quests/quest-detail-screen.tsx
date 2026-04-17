@@ -107,6 +107,10 @@ function getStringConfigValue(
   return "";
 }
 
+function isPlaceholderUrl(value: string) {
+  return value.includes("...");
+}
+
 async function updateQuestStatus(
   authUserId: string,
   questId: string,
@@ -308,26 +312,29 @@ export function QuestDetailScreen() {
     const config = currentQuest.verificationConfig;
 
     if (usesTelegramVerification) {
+      const configGroupUrl = getStringConfigValue(config, "groupUrl", "telegramUrl", "targetUrl");
       return (
-        getStringConfigValue(config, "groupUrl", "telegramUrl", "targetUrl") ||
-        linkedProject?.telegramUrl ||
+        (configGroupUrl && !isPlaceholderUrl(configGroupUrl) ? configGroupUrl : "") ||
         currentQuest.actionUrl ||
+        linkedProject?.telegramUrl ||
         ""
       );
     }
 
     if (usesDiscordVerification) {
+      const configInviteUrl = getStringConfigValue(config, "inviteUrl", "discordUrl", "targetUrl");
       return (
-        getStringConfigValue(config, "inviteUrl", "discordUrl", "targetUrl") ||
-        linkedProject?.discordUrl ||
+        (configInviteUrl && !isPlaceholderUrl(configInviteUrl) ? configInviteUrl : "") ||
         currentQuest.actionUrl ||
+        linkedProject?.discordUrl ||
         ""
       );
     }
 
     if (usesXVerification) {
+      const configProfileUrl = getStringConfigValue(config, "profileUrl", "targetUrl", "xUrl");
       return (
-        getStringConfigValue(config, "profileUrl", "targetUrl", "xUrl") ||
+        (configProfileUrl && !isPlaceholderUrl(configProfileUrl) ? configProfileUrl : "") ||
         currentQuest.actionUrl ||
         ""
       );
