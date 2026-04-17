@@ -301,6 +301,7 @@ export function QuestDetailScreen() {
   }
 
   const currentQuest = quest;
+  const missionClosed = currentQuest.status === "approved";
 
   const proofGuidance = getProofGuidance({
     proofRequired: currentQuest.proofRequired,
@@ -346,6 +347,14 @@ export function QuestDetailScreen() {
   })();
 
   async function handleOpenTask() {
+    if (missionClosed) {
+      setMessage({
+        tone: "success",
+        text: "This mission is already complete and closed. No further action is required.",
+      });
+      return;
+    }
+
     if (!derivedActionUrl) {
       setMessage({
         tone: "error",
@@ -445,7 +454,7 @@ export function QuestDetailScreen() {
             (usesWebsiteVerification
               ? "Website verification cleared. Opening the tracked destination now."
               : verificationStatus === "approved"
-                ? "Verification cleared immediately. Veltrix has already marked this mission as approved."
+                ? "Verification cleared immediately. Veltrix has marked this mission as approved and closed."
                 : "Verification started. Enter the destination and let Veltrix keep this mission pending until confirmation lands."),
         });
 
@@ -511,7 +520,7 @@ export function QuestDetailScreen() {
                 tone: "success",
                 text:
                   retryPayload?.message ||
-                  "Telegram membership confirmed after you returned. This mission has been auto-approved.",
+                  "Membership was confirmed after you returned. This mission is now approved and closed.",
               });
             } catch {
               // Leave the mission pending if the one-time return check cannot complete.
@@ -573,8 +582,8 @@ export function QuestDetailScreen() {
 
     if (currentQuest.status === "approved") {
       setMessage({
-        tone: "default",
-        text: "This mission is already approved.",
+        tone: "success",
+        text: "This mission is already complete and closed.",
       });
       return;
     }
@@ -706,10 +715,12 @@ export function QuestDetailScreen() {
             <div className="flex flex-wrap gap-3">
               <button
                 onClick={() => void handleOpenTask()}
-                disabled={!derivedActionUrl || busy}
+                disabled={!derivedActionUrl || busy || missionClosed}
                 className="rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {busy
+                {missionClosed
+                  ? "Mission closed"
+                  : busy
                   ? usesWebsiteVerification
                     ? "Routing launch..."
                     : "Processing..."
@@ -718,7 +729,7 @@ export function QuestDetailScreen() {
                     : "No destination yet"}
               </button>
 
-              {requiredAccount ? (
+              {requiredAccount && !missionClosed ? (
                 <Link
                   href={`/profile#${requiredAccount}`}
                   className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
@@ -754,13 +765,15 @@ export function QuestDetailScreen() {
               </div>
             ) : (
               <div className="metric-card rounded-[24px] p-4 text-sm leading-7 text-slate-300">
-                {usesWebsiteVerification
-                  ? "This website mission verifies through a tracked visit and should clear without manual proof."
-                  : usesDiscordVerification
-                    ? "This Discord mission starts with a verification request and then waits for membership confirmation."
-                    : usesTelegramVerification
-                      ? "This Telegram mission starts with a verification request and then waits for membership confirmation."
-                      : "This X mission starts with a verification request and then waits for follow confirmation."}
+                {missionClosed
+                  ? "This mission is closed. Verification landed successfully, the completion state is locked in, and no further action is required."
+                  : usesWebsiteVerification
+                    ? "This website mission verifies through a tracked visit and should clear without manual proof."
+                    : usesDiscordVerification
+                      ? "This Discord mission starts with a verification request and then waits for membership confirmation."
+                      : usesTelegramVerification
+                        ? "This Telegram mission starts with a verification request and then waits for membership confirmation."
+                        : "This X mission starts with a verification request and then waits for follow confirmation."}
               </div>
             )}
           </div>
