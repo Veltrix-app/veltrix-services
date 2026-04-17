@@ -70,6 +70,12 @@ type QuestRow = {
   verification_config: Record<string, unknown> | null;
 };
 
+type ProjectRow = {
+  id: string;
+  name: string | null;
+  slug: string | null;
+};
+
 function resolveTelegramQuestConfig(quest: QuestRow) {
   const verificationConfig =
     quest.verification_config && typeof quest.verification_config === "object"
@@ -166,7 +172,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const [{ data: connectedAccount }, { data: projectIntegration }] = await Promise.all([
+    const [{ data: connectedAccount }, { data: projectIntegration }, { data: project }] = await Promise.all([
       serviceSupabase
         .from("user_connected_accounts")
         .select("id, provider, status, username")
@@ -180,6 +186,13 @@ export async function POST(request: NextRequest) {
         .eq("project_id", quest.project_id)
         .eq("provider", "telegram")
         .maybeSingle(),
+      quest.project_id
+        ? serviceSupabase
+            .from("projects")
+            .select("id, name, slug")
+            .eq("id", quest.project_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
     ]);
 
     if (!connectedAccount) {
@@ -194,12 +207,17 @@ export async function POST(request: NextRequest) {
     }
 
     if (!projectIntegration || projectIntegration.status !== "connected") {
+      const projectLabel =
+        (project as ProjectRow | null)?.name ||
+        (project as ProjectRow | null)?.slug ||
+        "this quest's project";
+
       return NextResponse.json(
         {
           ok: false,
           status: "needs_project_integration",
           error:
-            "This project still needs an active Telegram integration before membership checks can run.",
+            `Telegram membership checks are not connected for ${projectLabel}. Open that exact project in the portal and save the Telegram chat ID there.`,
         },
         { status: 400 }
       );
