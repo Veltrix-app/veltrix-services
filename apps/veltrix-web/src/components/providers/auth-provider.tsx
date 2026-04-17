@@ -263,6 +263,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     setConnectedAccountsState("syncing");
 
+    if (session?.access_token) {
+      try {
+        const result = await syncManagedConnectedAccountsViaApi({
+          accessToken: session.access_token,
+        });
+        applyConnectedAccountSnapshot(result.accounts);
+        return;
+      } catch (nextError) {
+        setError(
+          nextError instanceof Error
+            ? nextError.message
+            : "Could not hydrate linked accounts from the live grid."
+        );
+      }
+    }
+
     const { data, error: connectedAccountsError } = await supabase
       .from("user_connected_accounts")
       .select("id, provider, provider_user_id, username, status, connected_at, updated_at")
@@ -375,9 +391,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    if (!session?.access_token) {
+      setConnectedAccountsState("syncing");
+      return;
+    }
+
     void reloadProfile();
     void reloadConnectedAccounts();
-  }, [initialized, authUserId]);
+  }, [initialized, authUserId, session?.access_token]);
 
   async function signIn(email: string, password: string) {
     if (!publicEnv.authConfigured || !supabase) {
