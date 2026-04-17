@@ -5,8 +5,8 @@ services:
     rootDir: services/veltrix-community-bot
     plan: starter
     autoDeploy: true
-    buildCommand: npm install --prefix services/veltrix-community-bot && npm --prefix services/veltrix-community-bot run build
-    startCommand: npm --prefix services/veltrix-community-bot run start
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
     healthCheckPath: /health
     envVars:
       - key: PORT
