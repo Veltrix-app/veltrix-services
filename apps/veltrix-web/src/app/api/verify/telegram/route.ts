@@ -4,6 +4,8 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const communityBotUrl = process.env.COMMUNITY_BOT_URL;
+const communityBotWebhookSecret = process.env.COMMUNITY_BOT_WEBHOOK_SECRET;
 
 function getBearerToken(request: NextRequest) {
   const header = request.headers.get("authorization") || "";
@@ -56,6 +58,52 @@ function getServiceSupabaseClient() {
       autoRefreshToken: false,
     },
   });
+}
+
+function getCommunityBotVerifyUrl() {
+  if (!communityBotUrl) {
+    throw new Error("COMMUNITY_BOT_URL is missing for Telegram verification.");
+  }
+
+  return `${communityBotUrl.replace(/\/+$/, "")}/webhooks/telegram/verify`;
+}
+
+async function runTelegramMembershipCheck(params: {
+  authUserId: string;
+  questId: string;
+}) {
+  const response = await fetch(getCommunityBotVerifyUrl(), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(communityBotWebhookSecret
+        ? { "x-community-bot-secret": communityBotWebhookSecret }
+        : {}),
+    },
+    body: JSON.stringify(params),
+    cache: "no-store",
+  });
+
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const errorMessage =
+      payload && typeof payload === "object" && "error" in payload && typeof payload.error === "string"
+        ? payload.error
+        : "Telegram community bot verification failed.";
+
+    throw new Error(errorMessage);
+  }
+
+  return payload as
+    | {
+        ok: true;
+        status: "approved" | "pending";
+        message?: string;
+        chatId?: string;
+        telegramUserId?: string;
+      }
+    | null;
 }
 
 type QuestRow = {
@@ -223,6 +271,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const botVerification = await runTelegramMembershipCheck({
+      authUserId: user.id,
+      questId: quest.id,
+    });
+
+    if (botVerification?.status === "approved") {
+      return NextResponse.json({
+        ok: true,
+        status: "approved",
+        questId: quest.id,
+        targetUrl: resolvedQuest.groupUrl,
+        message:
+          "Telegram membership confirmed immediately. This mission has been auto-approved.",
+      });
+    }
+
     const eventType =
       typeof resolvedQuest.verificationConfig.eventType === "string" &&
       resolvedQuest.verificationConfig.eventType.trim()
@@ -333,7 +397,9 @@ export async function POST(request: NextRequest) {
       status: "pending",
       questId: quest.id,
       targetUrl: resolvedQuest.groupUrl,
-      message: "Telegram verification request created. Membership confirmation is still pending.",
+      message:
+        botVerification?.message ||
+        "Telegram verification request created. Membership confirmation is still pending.",
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Telegram verification failed.";
