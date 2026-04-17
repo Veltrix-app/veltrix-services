@@ -62,10 +62,34 @@ Copy `.env.example` to `.env` and fill in:
 - `DISCORD_CLIENT_SECRET`
 - `TELEGRAM_BOT_TOKEN`
 - `COMMUNITY_BOT_WEBHOOK_SECRET`
+- `COMMUNITY_RETRY_JOB_SECRET`
+
+## Deploying on Render
+
+This service should run as a long-lived Node web service because the Discord client keeps an active gateway connection and the Telegram provider performs live membership checks.
+
+The repo root now includes [render.yaml](C:\Users\jordi\OneDrive\Documenten\New%20project\render.yaml), so you can create a Render Blueprint directly from the GitHub repo.
+
+Render settings:
+- service: `veltrix-community-bot`
+- root directory: `services/veltrix-community-bot`
+- build command: `npm ci && npm run build`
+- start command: `npm run start`
+- health check: `/health`
+
+After Render provisions the service, the public base URL becomes the bot URL you need in the web app, for example:
+- `https://veltrix-community-bot.onrender.com`
+
+Then the important live endpoints are:
+- `GET /health`
+- `POST /webhooks/telegram/verify`
+- `POST /webhooks/discord/verify`
+- `POST /jobs/retry-community-verifications`
 
 ## Next step
 
-The next real implementation step after this foundation is:
-- project-side Discord integration setup that stores `guildId`
-- project-side Telegram integration setup that stores `chatId`
+The next real implementation step after deployment is:
+- wire the web app to call the live bot URL for `telegram/verify` and `discord/verify`
+- keep project-side Discord integration setup storing `guildId`
+- keep project-side Telegram integration setup storing `chatId`
 - wire a cron or worker to `POST /jobs/retry-community-verifications`
