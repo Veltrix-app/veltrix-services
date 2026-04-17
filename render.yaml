@@ -5,7 +5,7 @@ services:
     rootDir: services/veltrix-community-bot
     plan: starter
     autoDeploy: true
-    buildCommand: npm ci --prefix services/veltrix-community-bot && npm --prefix services/veltrix-community-bot run build
+    buildCommand: npm install --prefix services/veltrix-community-bot && npm --prefix services/veltrix-community-bot run build
     startCommand: npm --prefix services/veltrix-community-bot run start
     healthCheckPath: /health
     envVars:
