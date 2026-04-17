@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { ArtworkImage } from "@/components/ui/artwork-image";
@@ -175,6 +175,7 @@ export function QuestDetailScreen() {
     authUserId,
     connectedAccounts,
     connectedAccountsState,
+    reloadProfile,
   } = useQuestAuth();
   const { loading, error, quests, campaigns, rewards, projects, reload } = useLiveUserData();
   const [proof, setProof] = useState("");
@@ -182,6 +183,7 @@ export function QuestDetailScreen() {
   const [message, setMessage] = useState<{ tone: "default" | "error" | "success"; text: string } | null>(
     null
   );
+  const returnRecheckCleanupRef = useRef<(() => void) | null>(null);
 
   const quest = quests.find((item) => item.id === questId);
   const linkedCampaign = campaigns.find((item) => item.id === quest?.campaignId);
@@ -427,32 +429,24 @@ export function QuestDetailScreen() {
           typeof payload?.targetUrl === "string" && payload.targetUrl.trim().length > 0
             ? payload.targetUrl.trim()
             : derivedActionUrl;
+        const verificationStatus = payload?.status === "approved" ? "approved" : "pending";
 
-        if (usesWebsiteVerification && authUserId) {
+        if ((usesWebsiteVerification || verificationStatus === "approved") && authUserId) {
           await updateQuestStatus(authUserId, currentQuest.id, "approved");
         } else if (authUserId) {
-          await createQuestSubmission({
-            authUserId,
-            questId: currentQuest.id,
-            proofText:
-              usesDiscordVerification
-                ? "discord_membership_requested"
-                : usesTelegramVerification
-                  ? "telegram_membership_requested"
-                  : "x_follow_requested",
-            status: "pending",
-          });
           await updateQuestStatus(authUserId, currentQuest.id, "pending");
         }
 
-        await reload();
+        await Promise.all([reload(), reloadProfile()]);
         setMessage({
-          tone: "success",
+          tone: verificationStatus === "approved" ? "success" : "default",
           text:
             payload?.message ||
             (usesWebsiteVerification
               ? "Website verification cleared. Opening the tracked destination now."
-              : "Verification started. Enter the destination and let Veltrix keep this mission pending until confirmation lands."),
+              : verificationStatus === "approved"
+                ? "Verification cleared immediately. Veltrix has already marked this mission as approved."
+                : "Verification started. Enter the destination and let Veltrix keep this mission pending until confirmation lands."),
         });
 
         if (missionWindow) {
@@ -461,6 +455,83 @@ export function QuestDetailScreen() {
           }
         } else if (typeof window !== "undefined") {
           window.open(targetUrl, "_blank", "noopener,noreferrer");
+        }
+
+        if (
+          verificationStatus === "pending" &&
+          !usesWebsiteVerification &&
+          typeof window !== "undefined"
+        ) {
+          returnRecheckCleanupRef.current?.();
+
+          let handled = false;
+          let timeoutId: number | null = null;
+
+          const cleanup = () => {
+            window.removeEventListener("focus", handleReturn);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+            if (timeoutId !== null) {
+              window.clearTimeout(timeoutId);
+            }
+            returnRecheckCleanupRef.current = null;
+          };
+
+          const runReturnCheck = async () => {
+            if (handled) {
+              return;
+            }
+
+            handled = true;
+            cleanup();
+
+            try {
+              const retryResponse = await fetch(integrationRoute, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${session.access_token}`,
+                },
+                body: JSON.stringify({
+                  questId: currentQuest.id,
+                }),
+              });
+
+              const retryPayload = await retryResponse.json().catch(() => null);
+
+              if (!retryResponse.ok || !retryPayload?.ok || retryPayload?.status !== "approved") {
+                return;
+              }
+
+              if (authUserId) {
+                await updateQuestStatus(authUserId, currentQuest.id, "approved");
+              }
+
+              await Promise.all([reload(), reloadProfile()]);
+              setMessage({
+                tone: "success",
+                text:
+                  retryPayload?.message ||
+                  "Telegram membership confirmed after you returned. This mission has been auto-approved.",
+              });
+            } catch {
+              // Leave the mission pending if the one-time return check cannot complete.
+            }
+          };
+
+          function handleReturn() {
+            void runReturnCheck();
+          }
+
+          function handleVisibilityChange() {
+            if (document.visibilityState === "visible") {
+              void runReturnCheck();
+            }
+          }
+
+          window.addEventListener("focus", handleReturn, { once: true });
+          document.addEventListener("visibilitychange", handleVisibilityChange);
+          timeoutId = window.setTimeout(cleanup, 90_000);
+          returnRecheckCleanupRef.current = cleanup;
         }
         return;
       }
@@ -768,13 +839,14 @@ export function QuestDetailScreen() {
 }
 
 function useQuestAuth() {
-  const { session, authUserId, connectedAccounts, connectedAccountsState } = useAuth();
+  const { session, authUserId, connectedAccounts, connectedAccountsState, reloadProfile } = useAuth();
 
   return {
     session,
     authUserId,
     connectedAccounts,
     connectedAccountsState,
+    reloadProfile,
   };
 }
 
