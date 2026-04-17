@@ -3,17 +3,25 @@ import { getDiscordClient } from "./client.js";
 import { supabaseAdmin } from "../../lib/supabase.js";
 import { confirmDiscordMembership } from "./membership.js";
 
+const optionalGuildIdSchema = z.preprocess((value) => {
+  if (typeof value === "string" && value.trim() === "") {
+    return undefined;
+  }
+
+  return value;
+}, z.string().min(1).optional());
+
 const integrationConfigSchema = z
   .object({
-    guildId: z.string().min(1).optional(),
-    serverId: z.string().min(1).optional()
+    guildId: optionalGuildIdSchema,
+    serverId: optionalGuildIdSchema
   })
   .passthrough();
 
 const questVerificationConfigSchema = z
   .object({
-    guildId: z.string().min(1).optional(),
-    serverId: z.string().min(1).optional(),
+    guildId: optionalGuildIdSchema,
+    serverId: optionalGuildIdSchema,
     inviteUrl: z.string().min(1).optional(),
     eventType: z.string().min(1).optional()
   })

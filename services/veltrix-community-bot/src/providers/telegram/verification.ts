@@ -3,17 +3,25 @@ import { getTelegramBot } from "./bot.js";
 import { supabaseAdmin } from "../../lib/supabase.js";
 import { confirmTelegramMembership } from "./membership.js";
 
+const optionalIdSchema = z.preprocess((value) => {
+  if (typeof value === "string" && value.trim() === "") {
+    return undefined;
+  }
+
+  return value;
+}, z.union([z.string().min(1), z.number()]).optional());
+
 const integrationConfigSchema = z
   .object({
-    chatId: z.union([z.string().min(1), z.number()]).optional(),
-    groupId: z.union([z.string().min(1), z.number()]).optional()
+    chatId: optionalIdSchema,
+    groupId: optionalIdSchema
   })
   .passthrough();
 
 const questVerificationConfigSchema = z
   .object({
-    chatId: z.union([z.string().min(1), z.number()]).optional(),
-    groupId: z.union([z.string().min(1), z.number()]).optional(),
+    chatId: optionalIdSchema,
+    groupId: optionalIdSchema,
     groupUrl: z.string().min(1).optional(),
     eventType: z.string().min(1).optional()
   })
