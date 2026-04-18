@@ -29,11 +29,50 @@ export async function ingestOnchainEvents(input: {
   events: OnchainIngressEvent[];
 }) {
   const results: Array<Record<string, unknown>> = [];
+  const { data: trackedAssets, error: trackedAssetsError } = await supabaseAdmin
+    .from("project_assets")
+    .select("id, chain, contract_address, symbol, asset_type")
+    .eq("project_id", input.projectId)
+    .eq("is_active", true);
+
+  if (trackedAssetsError) {
+    throw trackedAssetsError;
+  }
+
+  const activeTrackedAssets = trackedAssets ?? [];
+
+  if (activeTrackedAssets.length === 0) {
+    return {
+      ok: true,
+      processed: input.events.length,
+      results: input.events.map((event) => ({
+        ok: false,
+        txHash: event.txHash,
+        reason: "Project has no active tracked assets configured for on-chain scoring.",
+      })),
+    };
+  }
 
   for (const rawEvent of input.events) {
     const walletAddress = normalizeAddress(rawEvent.walletAddress);
     const contractAddress = normalizeAddress(rawEvent.contractAddress);
     const tokenAddress = rawEvent.tokenAddress ? normalizeAddress(rawEvent.tokenAddress) : null;
+    const matchedAsset =
+      activeTrackedAssets.find(
+        (asset) =>
+          asset.chain === rawEvent.chain &&
+          (asset.contract_address === contractAddress ||
+            (tokenAddress ? asset.contract_address === tokenAddress : false))
+      ) ?? null;
+
+    if (!matchedAsset) {
+      results.push({
+        ok: false,
+        txHash: rawEvent.txHash,
+        reason: "No active tracked project asset matched this on-chain event.",
+      });
+      continue;
+    }
 
     const { data: walletLink, error: walletLinkError } = await supabaseAdmin
       .from("wallet_links")
@@ -94,6 +133,9 @@ export async function ingestOnchainEvents(input: {
             ...(rawEvent.metadata ?? {}),
             walletAddress,
             riskFlags,
+            trackedAssetId: matchedAsset.id,
+            trackedAssetSymbol: matchedAsset.symbol,
+            trackedAssetType: matchedAsset.asset_type,
           },
           updated_at: timestamp,
         },
@@ -138,6 +180,9 @@ export async function ingestOnchainEvents(input: {
         tokenAddress,
         usdValue: rawEvent.usdValue ?? null,
         riskFlags,
+        trackedAssetId: matchedAsset.id,
+        trackedAssetSymbol: matchedAsset.symbol,
+        trackedAssetType: matchedAsset.asset_type,
       },
     });
 
