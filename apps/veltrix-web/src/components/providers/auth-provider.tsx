@@ -11,7 +11,12 @@ import type { Session, User, UserIdentity } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { publicEnv } from "@/lib/env";
 import { mapProfile } from "@/lib/auth";
-import type { ConnectedAccount, ProfileUpdateInput, UserProfile } from "@/types/auth";
+import type {
+  ConnectedAccount,
+  ProfileAssetKind,
+  ProfileUpdateInput,
+  UserProfile,
+} from "@/types/auth";
 
 type LinkableProvider = "discord" | "x";
 
@@ -34,6 +39,10 @@ type AuthContextValue = {
   updateProfile: (
     input: ProfileUpdateInput
   ) => Promise<{ ok: boolean; error?: string }>;
+  uploadProfileAsset: (
+    kind: ProfileAssetKind,
+    file: File
+  ) => Promise<{ ok: boolean; error?: string; url?: string }>;
   linkProvider: (
     provider: LinkableProvider
   ) => Promise<{ ok: boolean; error?: string }>;
@@ -561,6 +570,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { ok: true };
   }
 
+  async function uploadProfileAsset(kind: ProfileAssetKind, file: File) {
+    if (!publicEnv.authConfigured || !supabase || !authUserId || !session?.access_token) {
+      return { ok: false, error: "You need an active pilot session before uploading profile assets." };
+    }
+
+    if (!file) {
+      return { ok: false, error: "No file selected." };
+    }
+
+    setLoading(true);
+    setError(null);
+
+    const formData = new FormData();
+    formData.append("kind", kind);
+    formData.append("file", file);
+
+    const response = await fetch("/api/profile/upload", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: formData,
+    });
+
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok || !payload?.ok) {
+      const message = payload?.error || "Profile asset upload failed.";
+      setLoading(false);
+      setError(message);
+      return { ok: false, error: message };
+    }
+
+    setLoading(false);
+    return {
+      ok: true,
+      url: typeof payload.url === "string" ? payload.url : "",
+    };
+  }
+
   async function linkProvider(provider: LinkableProvider) {
     if (!publicEnv.authConfigured || !supabase || !authUserId) {
       return { ok: false, error: "You need an active pilot session before linking providers." };
@@ -683,6 +732,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signIn,
       signUp,
       updateProfile,
+      uploadProfileAsset,
       linkProvider,
       saveTelegramIdentity,
       syncConnectedAccounts,
@@ -699,6 +749,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       connectedAccounts,
       connectedAccountsState,
       error,
+      uploadProfileAsset,
     ]
   );
 

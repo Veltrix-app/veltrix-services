@@ -40,3 +40,5 @@ export type ProfileUpdateInput = {
   bio: string;
   wallet: string;
 };
+
+export type ProfileAssetKind = "avatar" | "banner";

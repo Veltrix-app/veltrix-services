@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ShieldCheck, Signal, Trophy, UserRound, Zap } from "lucide-react";
+import { Copy, ShieldCheck, Signal, Trophy, UserRound, Wallet, Zap } from "lucide-react";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -44,6 +44,7 @@ export function ProfileScreen() {
   const [syncingLoadout, setSyncingLoadout] = useState(false);
   const effectiveConnectedAccounts = connectedAccounts;
   const loadoutSyncing = connectedAccountsState === "syncing" || syncingLoadout;
+  const [walletCopied, setWalletCopied] = useState(false);
 
   const connectedCount = effectiveConnectedAccounts.filter(
     (account) => account.status === "connected"
@@ -290,6 +291,16 @@ export function ProfileScreen() {
     });
   }, [effectiveConnectedAccounts, linkedSyncHandled, syncingLoadout]);
 
+  async function handleCopyWallet() {
+    if (!profile?.wallet || typeof navigator === "undefined" || !navigator.clipboard) {
+      return;
+    }
+
+    await navigator.clipboard.writeText(profile.wallet);
+    setWalletCopied(true);
+    window.setTimeout(() => setWalletCopied(false), 1800);
+  }
+
   return (
     <div className="space-y-6">
       <section className="grid gap-6 2xl:grid-cols-[minmax(0,1.25fr)_380px]">
@@ -335,6 +346,40 @@ export function ProfileScreen() {
                   <FeatureStat label="Level" value={String(profile?.level ?? 1)} />
                   <FeatureStat label="Streak" value={String(profile?.streak ?? 0)} />
                   <FeatureStat label="Trust" value={String(profile?.trustScore ?? 50)} />
+                </div>
+
+                <div className="rounded-[26px] border border-white/8 bg-white/[0.04] p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
+                        Wallet link
+                      </p>
+                      <p className="mt-3 text-lg font-black text-white">
+                        {profile?.wallet
+                          ? `${profile.wallet.slice(0, 6)}...${profile.wallet.slice(-4)}`
+                          : "No wallet armed"}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                      <Link
+                        href="/profile/edit"
+                        className="glass-button inline-flex items-center gap-2 rounded-full px-4 py-3 text-sm font-semibold text-white transition hover:border-cyan-300/30"
+                      >
+                        <Wallet className="h-4 w-4" />
+                        {profile?.wallet ? "Manage wallet" : "Connect wallet"}
+                      </Link>
+                      {profile?.wallet ? (
+                        <button
+                          type="button"
+                          onClick={() => void handleCopyWallet()}
+                          className="glass-button inline-flex items-center gap-2 rounded-full px-4 py-3 text-sm font-semibold text-white transition hover:border-cyan-300/30"
+                        >
+                          <Copy className="h-4 w-4" />
+                          {walletCopied ? "Copied" : "Copy address"}
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex flex-wrap gap-3">
@@ -577,19 +622,48 @@ export function ProfileScreen() {
 }
 
 function IdentityBanner() {
+  const { profile } = useAuth();
+
   return (
-    <div className="relative overflow-hidden rounded-[30px] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(0,204,255,0.22),transparent_34%),linear-gradient(145deg,rgba(8,20,28,0.96),rgba(4,9,13,0.94))] p-6">
-      <div className="absolute right-4 top-4 flex h-20 w-20 items-center justify-center rounded-full border border-cyan-300/16 bg-cyan-300/10 text-cyan-200">
-        <UserRound className="h-8 w-8" />
+    <div
+      className="relative overflow-hidden rounded-[30px] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(0,204,255,0.22),transparent_34%),linear-gradient(145deg,rgba(8,20,28,0.96),rgba(4,9,13,0.94))] p-6"
+      style={
+        profile?.bannerUrl
+          ? {
+              backgroundImage: `linear-gradient(180deg,rgba(3,8,12,0.28),rgba(3,8,12,0.78)), url(${profile.bannerUrl})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }
+          : undefined
+      }
+    >
+      <div className="absolute right-4 top-4 flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-cyan-300/16 bg-cyan-300/10 text-cyan-200">
+        <ProfileIdentityAvatar />
       </div>
-      <p className="font-display text-[11px] font-bold uppercase tracking-[0.3em] text-cyan-200">
+      <p className="font-display relative z-10 text-[11px] font-bold uppercase tracking-[0.3em] text-cyan-200">
         Pilot Command
       </p>
-      <p className="mt-3 max-w-[18rem] text-sm leading-7 text-slate-300">
+      <p className="relative z-10 mt-3 max-w-[18rem] text-sm leading-7 text-slate-300">
         Identity, systems and reputation converge here before you jump back into the grid.
       </p>
     </div>
   );
+}
+
+function ProfileIdentityAvatar() {
+  const { profile } = useAuth();
+
+  if (profile?.avatarUrl) {
+    return (
+      <img
+        src={profile.avatarUrl}
+        alt="Pilot avatar"
+        className="h-full w-full object-cover"
+      />
+    );
+  }
+
+  return <UserRound className="h-8 w-8" />;
 }
 
 function FeatureStat({ label, value }: { label: string; value: string }) {
