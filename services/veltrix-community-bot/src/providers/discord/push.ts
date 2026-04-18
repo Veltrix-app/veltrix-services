@@ -1,10 +1,40 @@
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  EmbedBuilder,
+  type ColorResolvable,
+} from "discord.js";
 import { getDiscordClient } from "./client.js";
+
+type PushMeta = {
+  label: string;
+  value: string;
+};
+
+function toDiscordColor(input?: string) {
+  const normalized = input?.trim();
+  if (!normalized) {
+    return 0xc6ff2e as ColorResolvable;
+  }
+
+  const hex = normalized.startsWith("#") ? normalized.slice(1) : normalized;
+  return /^[0-9a-fA-F]{6}$/.test(hex)
+    ? (Number.parseInt(hex, 16) as ColorResolvable)
+    : (0xc6ff2e as ColorResolvable);
+}
 
 export async function sendDiscordPush(params: {
   targetChannelId: string;
   targetThreadId?: string;
   title: string;
   body: string;
+  eyebrow?: string;
+  projectName?: string;
+  campaignTitle?: string;
+  imageUrl?: string;
+  accentColor?: string;
+  meta?: PushMeta[];
   url?: string;
   buttonLabel?: string;
 }) {
@@ -32,14 +62,47 @@ export async function sendDiscordPush(params: {
     throw new Error("Discord target does not support sending messages.");
   }
 
-  const lines = [`**${params.title.trim()}**`, params.body.trim()];
+  const embed = new EmbedBuilder()
+    .setColor(toDiscordColor(params.accentColor))
+    .setAuthor({
+      name: params.eyebrow?.trim() || "VELTRIX UPDATE",
+    })
+    .setTitle(params.title.trim())
+    .setDescription(params.body.trim())
+    .setFooter({
+      text: params.campaignTitle?.trim()
+        ? `${params.projectName?.trim() || "Veltrix"} • ${params.campaignTitle.trim()}`
+        : params.projectName?.trim() || "Veltrix",
+    })
+    .addFields(
+      ...(params.meta ?? [])
+        .filter((item) => item.label.trim() && item.value.trim())
+        .slice(0, 4)
+        .map((item) => ({
+          name: item.label.trim(),
+          value: item.value.trim(),
+          inline: true,
+        }))
+    );
 
-  if (params.url?.trim()) {
-    lines.push(`${params.buttonLabel?.trim() || "Open in Veltrix"}: ${params.url.trim()}`);
+  if (params.imageUrl?.trim()) {
+    embed.setImage(params.imageUrl.trim());
   }
 
   const message = await channel.send({
-    content: lines.filter(Boolean).join("\n\n"),
+    embeds: [embed],
+    ...(params.url?.trim()
+      ? {
+          components: [
+            new ActionRowBuilder<ButtonBuilder>().addComponents(
+              new ButtonBuilder()
+                .setStyle(ButtonStyle.Link)
+                .setLabel(params.buttonLabel?.trim() || "Open in Veltrix")
+                .setURL(params.url.trim())
+            ),
+          ],
+        }
+      : {}),
   });
 
   return {

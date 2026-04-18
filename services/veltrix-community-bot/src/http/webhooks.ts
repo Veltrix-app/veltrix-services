@@ -39,6 +39,12 @@ const discordPushSchema = z.object({
   targetThreadId: z.string().optional(),
   title: z.string().min(1),
   body: z.string().min(1),
+  eyebrow: z.string().min(1).optional(),
+  projectName: z.string().min(1).optional(),
+  campaignTitle: z.string().min(1).optional(),
+  imageUrl: z.string().url().optional(),
+  accentColor: z.string().min(1).optional(),
+  meta: z.array(z.object({ label: z.string().min(1), value: z.string().min(1) })).optional(),
   url: z.string().url().optional(),
   buttonLabel: z.string().min(1).optional()
 });
@@ -47,6 +53,11 @@ const telegramPushSchema = z.object({
   targetChatId: z.string().min(1),
   title: z.string().min(1),
   body: z.string().min(1),
+  eyebrow: z.string().min(1).optional(),
+  projectName: z.string().min(1).optional(),
+  campaignTitle: z.string().min(1).optional(),
+  imageUrl: z.string().url().optional(),
+  meta: z.array(z.object({ label: z.string().min(1), value: z.string().min(1) })).optional(),
   url: z.string().url().optional(),
   buttonLabel: z.string().min(1).optional()
 });
