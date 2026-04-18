@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "../lib/supabase.js";
 import { verifyDiscordQuestMembership } from "../providers/discord/verification.js";
 import { verifyTelegramQuestMembership } from "../providers/telegram/verification.js";
+import { verifyXQuestFollow } from "../providers/x/verification.js";
 
 type RetryCommunityVerificationOptions = {
   limit?: number;
@@ -29,7 +30,7 @@ export async function retryPendingCommunityVerifications(
     .from("quest_verification_runs")
     .select("auth_user_id, quest_id, provider, created_at")
     .eq("result", "pending")
-    .in("provider", ["discord", "telegram"])
+    .in("provider", ["discord", "telegram", "x"])
     .order("created_at", { ascending: false })
     .limit(limit);
 
@@ -69,6 +70,20 @@ export async function retryPendingCommunityVerifications(
 
       if (run.provider === "telegram") {
         const result = await verifyTelegramQuestMembership({
+          authUserId: run.auth_user_id,
+          questId: run.quest_id
+        });
+
+        if (result.status === "approved") {
+          approved += 1;
+        } else {
+          stillPending += 1;
+        }
+        continue;
+      }
+
+      if (run.provider === "x") {
+        const result = await verifyXQuestFollow({
           authUserId: run.auth_user_id,
           questId: run.quest_id
         });
