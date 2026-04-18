@@ -135,6 +135,7 @@ export async function ingestOnchainEvents(input: {
             contractAddress: event.contractAddress,
             tokenAddress: event.tokenAddress ?? null,
             walletAddress: event.walletAddress,
+            rawEvent: event,
           },
         })
       )
@@ -178,6 +179,7 @@ export async function ingestOnchainEvents(input: {
           contractAddress,
           tokenAddress,
           walletAddress,
+          rawEvent: rawEvent,
         },
       });
       results.push({
@@ -213,6 +215,7 @@ export async function ingestOnchainEvents(input: {
           contractAddress,
           tokenAddress,
           walletAddress,
+          rawEvent: rawEvent,
         },
       });
       results.push({
@@ -335,6 +338,7 @@ export async function ingestOnchainEvents(input: {
           ...baseReviewMetadata,
           suspiciousSignals: trustAssessment.suspiciousSignals,
           reasons: trustAssessment.reasons,
+          rawEvent: rawEvent,
         },
       });
 
@@ -410,6 +414,7 @@ export async function ingestOnchainEvents(input: {
           contractAddress,
           tokenAddress,
           walletAddress,
+          rawEvent: rawEvent,
         },
       });
       throw onchainError;
