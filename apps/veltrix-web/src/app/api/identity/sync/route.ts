@@ -103,24 +103,68 @@ function normalizeConnectedAccountRow(row: {
   };
 }
 
-export async function POST(request: NextRequest) {
-  const accessToken = getBearerToken(request);
-  if (!accessToken) {
-    return NextResponse.json({ ok: false, error: "Missing bearer token." }, { status: 401 });
+async function loadCurrentAccounts(params: {
+  serviceSupabase: ReturnType<typeof getServiceSupabaseClient>;
+  authUserId: string;
+}) {
+  const { data: finalAccounts, error: finalAccountsError } = await params.serviceSupabase
+    .from("user_connected_accounts")
+    .select("id, provider, provider_user_id, username, status, connected_at, updated_at")
+    .eq("auth_user_id", params.authUserId)
+    .in("provider", ["discord", "x", "telegram"])
+    .order("connected_at", { ascending: false });
+
+  if (finalAccountsError) {
+    throw new Error(finalAccountsError.message);
   }
 
+  return (finalAccounts ?? []).map(normalizeConnectedAccountRow);
+}
+
+async function resolveRequestUser(request: NextRequest) {
+  const accessToken = getBearerToken(request);
+  if (!accessToken) {
+    throw new Error("Missing bearer token.");
+  }
+
+  const supabase = getSupabaseClient(accessToken);
+  const serviceSupabase = getServiceSupabaseClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser(accessToken);
+
+  if (userError || !user) {
+    throw new Error("Invalid session.");
+  }
+
+  return { user, serviceSupabase, supabase };
+}
+
+export async function GET(request: NextRequest) {
   try {
-    const supabase = getSupabaseClient(accessToken);
-    const serviceSupabase = getServiceSupabaseClient();
+    const { user, serviceSupabase } = await resolveRequestUser(request);
+    const normalizedAccounts = await loadCurrentAccounts({
+      serviceSupabase,
+      authUserId: user.id,
+    });
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser(accessToken);
+    return NextResponse.json({
+      ok: true,
+      identities: normalizedAccounts.length,
+      accounts: normalizedAccounts,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Identity snapshot failed.";
+    const status = message === "Missing bearer token." ? 401 : message === "Invalid session." ? 401 : 500;
+    return NextResponse.json({ ok: false, error: message }, { status });
+  }
+}
 
-    if (userError || !user) {
-      return NextResponse.json({ ok: false, error: "Invalid session." }, { status: 401 });
-    }
+export async function POST(request: NextRequest) {
+  try {
+    const { user, serviceSupabase, supabase } = await resolveRequestUser(request);
 
     const { data: adminUserResult, error: adminUserError } =
       await serviceSupabase.auth.admin.getUserById(user.id);
@@ -182,18 +226,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const { data: finalAccounts, error: finalAccountsError } = await serviceSupabase
-      .from("user_connected_accounts")
-      .select("id, provider, provider_user_id, username, status, connected_at, updated_at")
-      .eq("auth_user_id", user.id)
-      .in("provider", ["discord", "x", "telegram"])
-      .order("connected_at", { ascending: false });
-
-    if (finalAccountsError) {
-      return NextResponse.json({ ok: false, error: finalAccountsError.message }, { status: 500 });
-    }
-
-    const normalizedAccounts = (finalAccounts ?? []).map(normalizeConnectedAccountRow);
+    const normalizedAccounts = await loadCurrentAccounts({
+      serviceSupabase,
+      authUserId: user.id,
+    });
 
     return NextResponse.json({
       ok: true,

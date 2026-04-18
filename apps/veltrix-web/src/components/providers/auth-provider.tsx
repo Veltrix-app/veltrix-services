@@ -267,22 +267,32 @@ async function syncManagedConnectedAccountsViaApi(params: {
   }
 }
 
-async function fetchConnectedAccountsDirect(params: {
-  authUserId: string;
-  supabase: ReturnType<typeof createSupabaseBrowserClient>;
+async function fetchConnectedAccountsSnapshotViaApi(params: {
+  accessToken: string;
 }) {
-  const { data, error } = await params.supabase
-    .from("user_connected_accounts")
-    .select("id, provider, provider_user_id, username, status, connected_at, updated_at")
-    .eq("auth_user_id", params.authUserId)
-    .in("provider", ["discord", "x", "telegram"])
-    .order("connected_at", { ascending: false });
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 5000);
 
-  if (error) {
-    throw error;
+  try {
+    const response = await fetch("/api/identity/sync", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${params.accessToken}`,
+      },
+      signal: controller.signal,
+      cache: "no-store",
+    });
+
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok || !payload?.ok) {
+      throw new Error(payload?.error || "Identity snapshot route failed.");
+    }
+
+    return Array.isArray(payload.accounts) ? (payload.accounts as ConnectedAccount[]) : [];
+  } finally {
+    window.clearTimeout(timeout);
   }
-
-  return normalizeConnectedAccountRows(data);
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -322,11 +332,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     setConnectedAccountsState("syncing");
+    const accessToken = session?.access_token ?? null;
 
-    if (session?.access_token) {
+    if (accessToken) {
       try {
         const result = await syncManagedConnectedAccountsViaApi({
-          accessToken: session.access_token,
+          accessToken,
         });
         applyConnectedAccountSnapshot(result.accounts);
         return;
@@ -339,10 +350,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
+    if (!accessToken) {
+      setConnectedAccountsState("ready");
+      return;
+    }
+
     try {
-      const accounts = await fetchConnectedAccountsDirect({
-        authUserId,
-        supabase,
+      const accounts = await fetchConnectedAccountsSnapshotViaApi({
+        accessToken,
       });
       applyConnectedAccountSnapshot(accounts);
     } catch (nextError) {
@@ -825,9 +840,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { ok: true, identities: result.identities, accounts: result.accounts };
     } catch (nextError) {
       try {
-        const fallbackAccounts = await fetchConnectedAccountsDirect({
-          authUserId,
-          supabase,
+        const fallbackAccounts = await fetchConnectedAccountsSnapshotViaApi({
+          accessToken: session.access_token,
         });
         applyConnectedAccountSnapshot(fallbackAccounts);
         setLoading(false);
