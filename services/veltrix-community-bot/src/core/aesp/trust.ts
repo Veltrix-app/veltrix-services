@@ -11,6 +11,7 @@ export type SuspiciousSignal = {
 
 type TrustAssessmentInput = {
   event: OnchainIngressEvent;
+  trackedAssetMetadata?: Record<string, unknown>;
   latestTrustScore: number;
   walletVerifiedAt?: string | null;
   walletCreatedAt?: string | null;
@@ -71,6 +72,29 @@ function getEventTypeCap(eventType: SupportedOnchainEventType) {
   return EVENT_TYPE_DAILY_CAPS[eventType] ?? 12;
 }
 
+function asObject(value: unknown) {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function asNumber(value: unknown) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
+function asString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function asStringList(value: unknown) {
+  return Array.isArray(value)
+    ? value
+        .map((item) => (typeof item === "string" ? item.trim().toLowerCase() : ""))
+        .filter((item) => item.length > 0)
+    : [];
+}
+
 export function deriveOnchainTrustAssessment(input: TrustAssessmentInput): TrustAssessment {
   const scoreBonuses: string[] = [];
   const scorePenalties: string[] = [];
@@ -84,7 +108,18 @@ export function deriveOnchainTrustAssessment(input: TrustAssessmentInput): Trust
     input.event.eventType === "unstake" ||
     input.event.eventType === "lp_remove" ||
     input.event.eventType === "transfer_out";
+  const buyLike =
+    input.event.eventType === "buy" ||
+    input.event.eventType === "stake" ||
+    input.event.eventType === "lp_add";
   const eventTypeCap = getEventTypeCap(input.event.eventType);
+  const metadata = asObject(input.event.metadata);
+  const trackedAssetMetadata = asObject(input.trackedAssetMetadata);
+  const netUsdDelta = asNumber(metadata.netUsdDelta);
+  const holdDurationHours = asNumber(metadata.holdDurationHours);
+  const lpRetentionHours = asNumber(metadata.lpRetentionHours);
+  const functionName = asString(metadata.functionName).toLowerCase();
+  const allowedFunctions = asStringList(trackedAssetMetadata.allowedFunctions);
   let rejectReason: string | null = null;
 
   if (walletAgeDays !== null) {
@@ -204,6 +239,99 @@ export function deriveOnchainTrustAssessment(input: TrustAssessmentInput): Trust
     scoreBonuses.push("meaningful_value_activity");
   }
 
+  if (buyLike && netUsdDelta !== null && netUsdDelta <= 0) {
+    nextScore -= 14;
+    scorePenalties.push("net_buy_violation");
+    rejectReason = rejectReason ?? "This event did not increase the wallet's net exposure, so XP was not awarded.";
+    suspiciousSignals.push({
+      flagType: "net_buy_only_violation",
+      severity: "high",
+      reason: "A buy-like event was received without a positive net exposure delta.",
+      metadata: {
+        eventType: input.event.eventType,
+        netUsdDelta,
+      },
+    });
+  }
+
+  if (input.event.eventType === "hold" && holdDurationHours !== null) {
+    if (holdDurationHours < 24) {
+      nextScore -= 12;
+      scorePenalties.push("hold_duration_below_minimum");
+      rejectReason = rejectReason ?? "Hold activity did not meet the minimum duration threshold.";
+      suspiciousSignals.push({
+        flagType: "short_hold_duration",
+        severity: "high",
+        reason: "A hold event arrived before the minimum hold window was reached.",
+        metadata: {
+          holdDurationHours,
+        },
+      });
+    } else if (holdDurationHours < 72) {
+      nextScore -= 5;
+      scorePenalties.push("hold_duration_watch_band");
+      suspiciousSignals.push({
+        flagType: "watch_hold_duration",
+        severity: "medium",
+        reason: "A hold event barely cleared the minimum threshold and should stay in the watch band.",
+        metadata: {
+          holdDurationHours,
+        },
+      });
+    } else {
+      nextScore += 4;
+      scoreBonuses.push("meaningful_hold_duration");
+    }
+  }
+
+  if (input.event.eventType === "lp_remove" && lpRetentionHours !== null) {
+    if (lpRetentionHours < 48) {
+      nextScore -= 12;
+      scorePenalties.push("lp_retention_below_minimum");
+      rejectReason = rejectReason ?? "LP activity did not meet the minimum retention threshold.";
+      suspiciousSignals.push({
+        flagType: "short_lp_retention",
+        severity: "high",
+        reason: "An LP removal event happened before the minimum LP retention window.",
+        metadata: {
+          lpRetentionHours,
+        },
+      });
+    } else if (lpRetentionHours < 168) {
+      nextScore -= 5;
+      scorePenalties.push("lp_retention_watch_band");
+      suspiciousSignals.push({
+        flagType: "watch_lp_retention",
+        severity: "medium",
+        reason: "LP retention was short enough to stay in the watch band.",
+        metadata: {
+          lpRetentionHours,
+        },
+      });
+    }
+  }
+
+  if (input.event.eventType === "contract_call" && allowedFunctions.length > 0) {
+    if (!functionName || !allowedFunctions.includes(functionName)) {
+      nextScore -= 15;
+      scorePenalties.push("contract_call_allowlist_violation");
+      rejectReason =
+        rejectReason ?? "Contract call was not part of the tracked allowlist for this project asset.";
+      suspiciousSignals.push({
+        flagType: "contract_call_allowlist_violation",
+        severity: "high",
+        reason: "A contract call arrived outside the tracked allowlist for this asset.",
+        metadata: {
+          functionName: functionName || null,
+          allowedFunctions,
+        },
+      });
+    } else {
+      nextScore += 3;
+      scoreBonuses.push("allowlisted_contract_call");
+    }
+  }
+
   if (exitLike) {
     nextScore -= 5;
     scorePenalties.push("exit_like_activity");
@@ -261,6 +389,11 @@ export function deriveOnchainTrustAssessment(input: TrustAssessmentInput): Trust
       recentEventCount24h: input.recentEventCount24h,
       recentEventTypeCount24h: input.recentEventTypeCount24h,
       recentLowValueTransferCount24h: input.recentLowValueTransferCount24h,
+      netUsdDelta,
+      holdDurationHours,
+      lpRetentionHours,
+      functionName: functionName || null,
+      allowedFunctions,
       riskLabel: input.riskLabel ?? "unknown",
       score,
       previousScore: input.latestTrustScore,

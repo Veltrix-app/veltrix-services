@@ -109,7 +109,7 @@ export async function ingestOnchainEvents(input: {
   const results: Array<Record<string, unknown>> = [];
   const { data: trackedAssets, error: trackedAssetsError } = await supabaseAdmin
     .from("project_assets")
-    .select("id, chain, contract_address, symbol, asset_type")
+    .select("id, chain, contract_address, symbol, asset_type, metadata")
     .eq("project_id", input.projectId)
     .eq("is_active", true);
 
@@ -302,6 +302,10 @@ export async function ingestOnchainEvents(input: {
       recentEventCount24h: recentEventCount24h ?? 0,
       recentEventTypeCount24h: recentEventTypeCount24h ?? 0,
       recentLowValueTransferCount24h: recentLowValueTransferCount24h ?? 0,
+      trackedAssetMetadata:
+        matchedAsset.metadata && typeof matchedAsset.metadata === "object"
+          ? (matchedAsset.metadata as Record<string, unknown>)
+          : {},
       riskFlags,
     });
     const derivedTrustMultiplier = getTrustMultiplierFromScore(trustAssessment.score);
