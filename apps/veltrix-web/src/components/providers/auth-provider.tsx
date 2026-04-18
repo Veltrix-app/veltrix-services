@@ -240,23 +240,49 @@ function deriveIdentityUsername(identity: UserIdentity) {
 async function syncManagedConnectedAccountsViaApi(params: {
   accessToken: string;
 }) {
-  const response = await fetch("/api/identity/sync", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${params.accessToken}`,
-    },
-  });
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 8000);
 
-  const payload = await response.json().catch(() => null);
+  try {
+    const response = await fetch("/api/identity/sync", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${params.accessToken}`,
+      },
+      signal: controller.signal,
+    });
 
-  if (!response.ok || !payload?.ok) {
-    throw new Error(payload?.error || "Identity sync route failed.");
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok || !payload?.ok) {
+      throw new Error(payload?.error || "Identity sync route failed.");
+    }
+
+    return {
+      identities: typeof payload.identities === "number" ? payload.identities : 0,
+      accounts: Array.isArray(payload.accounts) ? (payload.accounts as ConnectedAccount[]) : [],
+    };
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
+
+async function fetchConnectedAccountsDirect(params: {
+  authUserId: string;
+  supabase: ReturnType<typeof createSupabaseBrowserClient>;
+}) {
+  const { data, error } = await params.supabase
+    .from("user_connected_accounts")
+    .select("id, provider, provider_user_id, username, status, connected_at, updated_at")
+    .eq("auth_user_id", params.authUserId)
+    .in("provider", ["discord", "x", "telegram"])
+    .order("connected_at", { ascending: false });
+
+  if (error) {
+    throw error;
   }
 
-  return {
-    identities: typeof payload.identities === "number" ? payload.identities : 0,
-    accounts: Array.isArray(payload.accounts) ? (payload.accounts as ConnectedAccount[]) : [],
-  };
+  return normalizeConnectedAccountRows(data);
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -277,6 +303,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const authUserId = session?.user?.id ?? null;
 
   function applyConnectedAccountSnapshot(accounts: ConnectedAccount[]) {
+    setError(null);
     setConnectedAccounts(accounts);
     setConnectedAccountsState("ready");
   }
@@ -312,20 +339,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    const { data, error: connectedAccountsError } = await supabase
-      .from("user_connected_accounts")
-      .select("id, provider, provider_user_id, username, status, connected_at, updated_at")
-      .eq("auth_user_id", authUserId)
-      .in("provider", ["discord", "x", "telegram"])
-      .order("connected_at", { ascending: false });
-
-    if (connectedAccountsError) {
-      setError(connectedAccountsError.message);
+    try {
+      const accounts = await fetchConnectedAccountsDirect({
+        authUserId,
+        supabase,
+      });
+      applyConnectedAccountSnapshot(accounts);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : "Could not load linked systems.");
       setConnectedAccountsState("ready");
-      return;
     }
-
-    applyConnectedAccountSnapshot(normalizeConnectedAccountRows(data));
   }
 
   async function reloadProfile() {
@@ -425,13 +448,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (!session?.access_token) {
-      setConnectedAccountsState("syncing");
+      setConnectedAccountsState(connectedAccounts.length > 0 ? "ready" : "unknown");
       return;
     }
 
     void reloadProfile();
     void reloadConnectedAccounts();
-  }, [initialized, authUserId, session?.access_token]);
+  }, [initialized, authUserId, connectedAccounts.length, session?.access_token]);
 
   async function signIn(email: string, password: string) {
     if (!publicEnv.authConfigured || !supabase) {
@@ -801,11 +824,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
       return { ok: true, identities: result.identities, accounts: result.accounts };
     } catch (nextError) {
-      const message =
-        nextError instanceof Error ? nextError.message : "Failed to refresh linked systems.";
-      setLoading(false);
-      setError(message);
-      return { ok: false, error: message };
+      try {
+        const fallbackAccounts = await fetchConnectedAccountsDirect({
+          authUserId,
+          supabase,
+        });
+        applyConnectedAccountSnapshot(fallbackAccounts);
+        setLoading(false);
+        return {
+          ok: true,
+          identities: fallbackAccounts.length,
+          accounts: fallbackAccounts,
+        };
+      } catch (fallbackError) {
+        const message =
+          fallbackError instanceof Error
+            ? fallbackError.message
+            : nextError instanceof Error
+              ? nextError.message
+              : "Failed to refresh linked systems.";
+        setLoading(false);
+        setError(message);
+        return { ok: false, error: message };
+      }
     }
   }
 
