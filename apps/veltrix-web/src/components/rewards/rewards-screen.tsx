@@ -11,7 +11,7 @@ import { useLiveUserData } from "@/hooks/use-live-user-data";
 type RewardFilter = "all" | "claimable" | "high-value";
 
 export function RewardsScreen() {
-  const { loading, error, rewards, campaigns, claimableRewardCount } = useLiveUserData();
+  const { loading, error, rewards, campaigns, claimableRewardCount, rewardDistributions } = useLiveUserData();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<RewardFilter>("all");
 
@@ -54,6 +54,27 @@ export function RewardsScreen() {
   const vaultPressure = enrichedRewards.slice(0, 3);
   const highValueCount = enrichedRewards.filter((reward) => reward.cost >= 500).length;
   const lockedCount = enrichedRewards.filter((reward) => !reward.claimable).length;
+  const claimableDistributionRows = useMemo(() => {
+    return rewardDistributions
+      .filter((distribution) => distribution.status === "claimable")
+      .map((distribution) => {
+        const linkedCampaign = campaigns.find((campaign) => campaign.id === distribution.campaignId);
+
+        return {
+          ...distribution,
+          campaignTitle: linkedCampaign?.title ?? "Campaign pool",
+          rewardAmountLabel: Number(distribution.rewardAmount.toFixed(2)).toString(),
+        };
+      })
+      .sort((left, right) => right.rewardAmount - left.rewardAmount);
+  }, [campaigns, rewardDistributions]);
+  const pendingDistributionCount = rewardDistributions.filter(
+    (distribution) => distribution.status !== "claimable"
+  ).length;
+  const totalClaimablePool = claimableDistributionRows.reduce(
+    (sum, distribution) => sum + distribution.rewardAmount,
+    0
+  );
 
   return (
     <div className="space-y-6">
@@ -226,6 +247,53 @@ export function RewardsScreen() {
                 <SignalTile label="Ready" value={String(claimableRewardCount)} accent="text-lime-200" compact />
                 <SignalTile label="Premium" value={String(highValueCount)} accent="text-amber-200" compact />
               </div>
+            </div>
+          </Surface>
+
+          <Surface
+            eyebrow="Campaign Pools"
+            title="Claimable AESP distributions"
+            description="Classic vault items now sit beside campaign pool payouts that become claimable when reward finalization lands."
+          >
+            <div className="grid gap-4 sm:grid-cols-3 2xl:grid-cols-1">
+              <MetricTile label="Claimable lanes" value={String(claimableDistributionRows.length)} />
+              <MetricTile
+                label="Claimable total"
+                value={Number(totalClaimablePool.toFixed(2)).toString()}
+              />
+              <MetricTile label="Waiting lanes" value={String(pendingDistributionCount)} />
+            </div>
+
+            <div className="mt-5 space-y-3">
+              {claimableDistributionRows.length > 0 ? (
+                claimableDistributionRows.slice(0, 4).map((distribution) => (
+                  <Link
+                    key={distribution.id}
+                    href={`/campaigns/${distribution.campaignId}`}
+                    prefetch={false}
+                    className="panel-card flex items-center justify-between gap-4 rounded-[24px] p-4 transition hover:border-lime-300/24 hover:bg-black/24"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-white">
+                        {distribution.campaignTitle}
+                      </p>
+                      <p className="mt-1 text-[11px] uppercase tracking-[0.22em] text-slate-500">
+                        {distribution.rewardAsset}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-black text-lime-200">
+                        {distribution.rewardAmountLabel}
+                      </p>
+                      <p className="mt-1 text-[11px] uppercase tracking-[0.22em] text-slate-500">
+                        Claimable
+                      </p>
+                    </div>
+                  </Link>
+                ))
+              ) : (
+                <EmptyNotice text="No claimable campaign pool distributions have landed in the vault yet." />
+              )}
             </div>
           </Surface>
         </div>
