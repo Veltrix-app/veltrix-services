@@ -11,6 +11,7 @@ export type UserProfile = {
   walletChain: string;
   walletVerified: boolean;
   xp: number;
+  activeXp: number;
   level: number;
   streak: number;
   trustScore: number;

@@ -1,4 +1,5 @@
 import express from "express";
+import { aespRouter } from "./http/aesp.js";
 import { env } from "./config/env.js";
 import { healthRouter } from "./http/health.js";
 import { jobsRouter } from "./http/jobs.js";
@@ -12,6 +13,7 @@ async function bootstrap() {
   app.use("/health", healthRouter);
   app.use("/jobs", jobsRouter);
   app.use("/webhooks", webhookRouter);
+  app.use("/aesp", aespRouter);
 
   const discordClient = createDiscordClient();
   if (discordClient && env.DISCORD_BOT_TOKEN) {

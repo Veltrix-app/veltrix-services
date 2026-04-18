@@ -25,6 +25,7 @@ export function mapProfile(row: Record<string, unknown>): UserProfile {
     walletChain: String(primaryWalletLink.chain ?? "evm"),
     walletVerified: Boolean(primaryWalletLink.verified ?? walletAddress),
     xp: Number(row.xp ?? 0),
+    activeXp: Number(reputation.active_xp ?? row.xp ?? 0),
     level: Number(row.level ?? 1),
     streak: Number(row.streak ?? 0),
     trustScore: Number(reputation.trust_score ?? 50),

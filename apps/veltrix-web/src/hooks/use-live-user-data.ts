@@ -12,7 +12,9 @@ import type {
   LiveProjectReputation,
   LiveQuest,
   LiveRaid,
+  LiveRewardDistribution,
   LiveReward,
+  LiveXpStake,
 } from "@/types/live";
 
 type UserProgressRow = {
@@ -35,6 +37,8 @@ type LiveUserDataCacheEntry = {
   raids: LiveRaid[];
   projectReputation: LiveProjectReputation[];
   joinedCommunityIds: string[];
+  xpStakes: LiveXpStake[];
+  rewardDistributions: LiveRewardDistribution[];
 };
 
 const liveUserDataCache = new Map<string, LiveUserDataCacheEntry>();
@@ -52,6 +56,8 @@ function applyLiveUserDataCacheEntry(
     setRaids: (value: LiveRaid[]) => void;
     setProjectReputation: (value: LiveProjectReputation[]) => void;
     setJoinedCommunityIds: (value: string[]) => void;
+    setXpStakes: (value: LiveXpStake[]) => void;
+    setRewardDistributions: (value: LiveRewardDistribution[]) => void;
   }
 ) {
   setters.setConnectedAccounts(entry.connectedAccounts);
@@ -64,6 +70,8 @@ function applyLiveUserDataCacheEntry(
   setters.setRaids(entry.raids);
   setters.setProjectReputation(entry.projectReputation);
   setters.setJoinedCommunityIds(entry.joinedCommunityIds);
+  setters.setXpStakes(entry.xpStakes);
+  setters.setRewardDistributions(entry.rewardDistributions);
 }
 
 export function seedLiveUserConnectedAccounts(
@@ -83,6 +91,8 @@ export function seedLiveUserConnectedAccounts(
     raids: existing?.raids ?? [],
     projectReputation: existing?.projectReputation ?? [],
     joinedCommunityIds: existing?.joinedCommunityIds ?? [],
+    xpStakes: existing?.xpStakes ?? [],
+    rewardDistributions: existing?.rewardDistributions ?? [],
   });
 }
 
@@ -112,6 +122,10 @@ export function useLiveUserData() {
   const [joinedCommunityIds, setJoinedCommunityIds] = useState<string[]>(
     cachedState?.joinedCommunityIds ?? []
   );
+  const [xpStakes, setXpStakes] = useState<LiveXpStake[]>(cachedState?.xpStakes ?? []);
+  const [rewardDistributions, setRewardDistributions] = useState<LiveRewardDistribution[]>(
+    cachedState?.rewardDistributions ?? []
+  );
   const supabase = useMemo(
     () => (authConfigured ? createSupabaseBrowserClient() : null),
     [authConfigured]
@@ -132,6 +146,8 @@ export function useLiveUserData() {
       setRaids([]);
       setProjectReputation([]);
       setJoinedCommunityIds([]);
+      setXpStakes([]);
+      setRewardDistributions([]);
       setError(null);
       setLoading(false);
       setRefreshing(false);
@@ -152,6 +168,8 @@ export function useLiveUserData() {
         setRaids,
         setProjectReputation,
         setJoinedCommunityIds,
+        setXpStakes,
+        setRewardDistributions,
       });
       setLoading(false);
       setRefreshing(true);
@@ -172,6 +190,8 @@ export function useLiveUserData() {
       leaderboardResult,
       raidsResult,
       projectReputationResult,
+      xpStakesResult,
+      rewardDistributionsResult,
     ] = await Promise.all([
       supabase
         .from("user_connected_accounts")
@@ -219,6 +239,16 @@ export function useLiveUserData() {
         .select("*")
         .eq("auth_user_id", authUserId)
         .order("xp", { ascending: false }),
+      supabase
+        .from("xp_stakes")
+        .select("*")
+        .eq("auth_user_id", authUserId)
+        .order("updated_at", { ascending: false }),
+      supabase
+        .from("reward_distributions")
+        .select("*")
+        .eq("auth_user_id", authUserId)
+        .order("updated_at", { ascending: false }),
     ]);
 
     const firstError =
@@ -231,7 +261,9 @@ export function useLiveUserData() {
       userProgressResult.error ??
       leaderboardResult.error ??
       raidsResult.error ??
-      projectReputationResult.error;
+      projectReputationResult.error ??
+      xpStakesResult.error ??
+      rewardDistributionsResult.error;
 
     if (firstError) {
       setError(firstError.message);
@@ -289,6 +321,12 @@ export function useLiveUserData() {
         featured: row.featured ?? false,
         completionRate: row.completion_rate ?? 0,
         endsAt: row.ends_at ?? null,
+        campaignMode: row.campaign_mode ?? null,
+        rewardType: row.reward_type ?? null,
+        rewardPoolAmount: row.reward_pool_amount ?? 0,
+        minXpRequired: row.min_xp_required ?? 0,
+        activityThreshold: row.activity_threshold ?? 0,
+        lockDays: row.lock_days ?? 0,
       }));
     setCampaigns(nextCampaigns);
 
@@ -421,6 +459,37 @@ export function useLiveUserData() {
       }));
     setProjectReputation(nextProjectReputation);
 
+    const nextXpStakes = (xpStakesResult.data ?? []).map((row) => ({
+      id: row.id,
+      campaignId: row.campaign_id,
+      stakedXp: row.staked_xp ?? 0,
+      activeMultiplier: row.active_multiplier ?? 1,
+      lockStartAt: row.lock_start_at ?? null,
+      lockEndAt: row.lock_end_at ?? null,
+      lastActivityAt: row.last_activity_at ?? null,
+      state: row.state ?? "active",
+      metadata:
+        row.metadata && typeof row.metadata === "object"
+          ? (row.metadata as Record<string, unknown>)
+          : {},
+    }));
+    setXpStakes(nextXpStakes);
+
+    const nextRewardDistributions = (rewardDistributionsResult.data ?? []).map((row) => ({
+      id: row.id,
+      campaignId: row.campaign_id,
+      rewardAsset: row.reward_asset ?? "campaign_pool",
+      rewardAmount: row.reward_amount ?? 0,
+      status: row.status ?? "pending",
+      calculationSnapshot:
+        row.calculation_snapshot && typeof row.calculation_snapshot === "object"
+          ? (row.calculation_snapshot as Record<string, unknown>)
+          : {},
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    }));
+    setRewardDistributions(nextRewardDistributions);
+
     liveUserDataCache.set(authUserId, {
       connectedAccounts: nextConnectedAccounts,
       projects: nextProjects,
@@ -432,6 +501,8 @@ export function useLiveUserData() {
       raids: nextRaids,
       projectReputation: nextProjectReputation,
       joinedCommunityIds: joinedCommunities,
+      xpStakes: nextXpStakes,
+      rewardDistributions: nextRewardDistributions,
     });
 
     setLoading(false);
@@ -639,6 +710,8 @@ export function useLiveUserData() {
         setRaids,
         setProjectReputation,
         setJoinedCommunityIds,
+        setXpStakes,
+        setRewardDistributions,
       });
       setLoading(false);
       setRefreshing(true);
@@ -655,11 +728,13 @@ export function useLiveUserData() {
       unreadNotificationCount: notifications.filter((item) => !item.read).length,
       approvedQuestCount: quests.filter((item) => item.status === "approved").length,
       pendingQuestCount: quests.filter((item) => item.status === "pending").length,
-    claimableRewardCount: rewards.filter((item) => item.claimable).length,
+      claimableRewardCount: rewards.filter((item) => item.claimable).length,
+      claimableDistributionCount: rewardDistributions.filter((item) => item.status === "claimable")
+        .length,
       activeCampaignCount: campaigns.length,
       activeProjectCount: projects.length,
     };
-  }, [notifications, quests, rewards, campaigns, projects]);
+  }, [notifications, quests, rewards, rewardDistributions, campaigns, projects]);
 
   return {
     loading,
@@ -675,6 +750,8 @@ export function useLiveUserData() {
     raids,
     projectReputation,
     joinedCommunityIds,
+    xpStakes,
+    rewardDistributions,
     ...derived,
     reload,
     markNotificationsRead,

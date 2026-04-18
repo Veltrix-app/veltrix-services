@@ -23,6 +23,12 @@ export type LiveCampaign = {
   featured: boolean;
   completionRate: number;
   endsAt: string | null;
+  campaignMode?: string | null;
+  rewardType?: string | null;
+  rewardPoolAmount?: number;
+  minXpRequired?: number;
+  activityThreshold?: number;
+  lockDays?: number;
 };
 
 export type LiveReward = {
@@ -104,4 +110,27 @@ export type LiveProjectReputation = {
   raidsCompleted: number;
   rewardsClaimed: number;
   rank: number;
+};
+
+export type LiveXpStake = {
+  id: string;
+  campaignId: string;
+  stakedXp: number;
+  activeMultiplier: number;
+  lockStartAt: string | null;
+  lockEndAt: string | null;
+  lastActivityAt: string | null;
+  state: string;
+  metadata: Record<string, unknown>;
+};
+
+export type LiveRewardDistribution = {
+  id: string;
+  campaignId: string;
+  rewardAsset: string;
+  rewardAmount: number;
+  status: string;
+  calculationSnapshot: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
 };
