@@ -13,6 +13,7 @@ import {
   Trophy,
   ShieldCheck,
   UserRound,
+  Wallet,
 } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 
@@ -32,6 +33,18 @@ function isActivePath(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
 
+function shortenWallet(address?: string | null) {
+  if (!address) {
+    return "No wallet";
+  }
+
+  if (address.length < 12) {
+    return address;
+  }
+
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
 export function AppShell({
   title,
   eyebrow,
@@ -47,6 +60,7 @@ export function AppShell({
   const { authConfigured, session, profile, signOut } = useAuth();
   const identityLabel = profile?.username ?? session?.user?.email ?? "Guest";
   const accountReady = Boolean(session);
+  const walletReady = Boolean(profile?.wallet);
 
   return (
     <div className="hud-shell min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(192,255,0,0.12),_transparent_24%),radial-gradient(circle_at_top_right,_rgba(0,204,255,0.12),_transparent_22%),linear-gradient(180deg,_#071014_0%,_#09131a_45%,_#05090c_100%)] text-white">
@@ -135,6 +149,29 @@ export function AppShell({
                   ? "Pilot sync is online. Mission state, raid pressure and vault routing are now active across the grid."
                   : "Authenticate your pilot to unlock live progress, linked systems and mission state."}
             </p>
+            <div className="mt-4 flex items-center justify-between gap-3 rounded-[22px] border border-white/8 bg-black/20 px-4 py-3">
+              <div className="flex items-center gap-3">
+                <Wallet className={`h-4 w-4 ${walletReady ? "text-lime-200" : "text-slate-500"}`} />
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                    Wallet
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-white">
+                    {shortenWallet(profile?.wallet)}
+                  </p>
+                </div>
+              </div>
+              <Link
+                href="/profile/edit"
+                className={`rounded-full px-3 py-2 text-[11px] font-bold uppercase tracking-[0.18em] transition ${
+                  walletReady
+                    ? "border border-lime-300/18 bg-lime-300/10 text-lime-200 hover:bg-lime-300/14"
+                    : "border border-white/10 bg-white/[0.05] text-white hover:bg-white/[0.08]"
+                }`}
+              >
+                {walletReady ? "Armed" : "Connect"}
+              </Link>
+            </div>
             {accountReady ? (
               <button
                 onClick={() => void signOut()}
@@ -175,6 +212,22 @@ export function AppShell({
                 </div>
 
                 <div className="flex min-w-0 items-center gap-3">
+                  <Link
+                    href="/profile/edit"
+                    className={`flex min-w-[154px] items-center justify-between gap-3 rounded-full border px-4 py-2.5 text-sm font-semibold transition ${
+                      walletReady
+                        ? "border-lime-300/18 bg-lime-300/10 text-lime-100 hover:bg-lime-300/14"
+                        : "border-white/10 bg-white/[0.04] text-slate-200 hover:bg-white/[0.08]"
+                    }`}
+                  >
+                    <span className="flex min-w-0 items-center gap-2">
+                      <Wallet className="h-4 w-4 shrink-0" />
+                      <span className="truncate">{shortenWallet(profile?.wallet)}</span>
+                    </span>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.18em]">
+                      {walletReady ? "On" : "Off"}
+                    </span>
+                  </Link>
                   <div className="min-w-[112px] rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-center text-xs font-bold uppercase tracking-[0.22em] text-slate-300">
                     {accountReady ? "Live session" : "Public shell"}
                   </div>
@@ -200,6 +253,20 @@ export function AppShell({
                 <button className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-200 transition hover:bg-white/[0.08]">
                   <Bell className="h-4 w-4" />
                 </button>
+                <Link
+                  href="/profile/edit"
+                  className={`inline-flex min-w-[122px] items-center justify-between gap-2 rounded-full border px-4 py-3 text-xs font-bold uppercase tracking-[0.16em] transition ${
+                    walletReady
+                      ? "border-lime-300/18 bg-lime-300/10 text-lime-100"
+                      : "border-white/10 bg-white/[0.04] text-slate-300"
+                  }`}
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <Wallet className="h-3.5 w-3.5" />
+                    Wallet
+                  </span>
+                  <span>{walletReady ? "On" : "Off"}</span>
+                </Link>
               </div>
             </div>
           </header>
