@@ -3,9 +3,11 @@ import { z } from "zod";
 import { env } from "../config/env.js";
 import { runActiveXpDecayJob } from "../jobs/active-xp-decay.js";
 import { runOnchainEnrichmentJob } from "../jobs/enrich-onchain-events.js";
+import { postCommunityLeaderboards } from "../jobs/post-community-leaderboards.js";
 import { refreshStakeStates } from "../jobs/refresh-stake-states.js";
 import { retryPendingCommunityVerifications } from "../jobs/retry-community-verifications.js";
 import { retryOnchainIngressJob } from "../jobs/retry-onchain-ingress.js";
+import { syncDiscordRanks } from "../jobs/sync-discord-ranks.js";
 import { runOnchainProviderSyncJob } from "../jobs/sync-onchain-provider.js";
 
 export const jobsRouter = Router();
@@ -20,6 +22,11 @@ const providerSyncSchema = z.object({
   projectId: z.string().uuid().optional(),
   limit: z.number().int().positive().max(200).optional(),
   maxBlocks: z.number().int().positive().max(100_000).optional()
+});
+const discordCommunitySchema = z.object({
+  projectId: z.string().uuid().optional(),
+  integrationId: z.string().uuid().optional(),
+  force: z.boolean().optional(),
 });
 
 function hasValidJobSecret(secretHeader: string | undefined) {
@@ -176,6 +183,56 @@ jobsRouter.post("/sync-onchain-provider", async (req, res) => {
     return res.status(500).json({
       ok: false,
       error: error instanceof Error ? error.message : "On-chain provider sync failed."
+    });
+  }
+});
+
+jobsRouter.post("/sync-discord-ranks", async (req, res) => {
+  if (!hasValidJobSecret(req.header("x-community-job-secret") ?? undefined)) {
+    return res.status(401).json({ ok: false, error: "Invalid job secret." });
+  }
+
+  const parsed = discordCommunitySchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    return res.status(400).json({
+      ok: false,
+      error: "Invalid Discord rank sync payload.",
+      details: parsed.error.flatten(),
+    });
+  }
+
+  try {
+    const result = await syncDiscordRanks(parsed.data);
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : "Discord rank sync failed.",
+    });
+  }
+});
+
+jobsRouter.post("/post-community-leaderboards", async (req, res) => {
+  if (!hasValidJobSecret(req.header("x-community-job-secret") ?? undefined)) {
+    return res.status(401).json({ ok: false, error: "Invalid job secret." });
+  }
+
+  const parsed = discordCommunitySchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    return res.status(400).json({
+      ok: false,
+      error: "Invalid community leaderboard payload.",
+      details: parsed.error.flatten(),
+    });
+  }
+
+  try {
+    const result = await postCommunityLeaderboards(parsed.data);
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : "Community leaderboard post failed.",
     });
   }
 });

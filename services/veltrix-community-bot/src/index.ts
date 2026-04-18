@@ -5,6 +5,10 @@ import { healthRouter } from "./http/health.js";
 import { jobsRouter } from "./http/jobs.js";
 import { webhookRouter } from "./http/webhooks.js";
 import { createDiscordClient } from "./providers/discord/client.js";
+import {
+  registerDiscordCommandHandlers,
+  syncDiscordGuildCommands,
+} from "./providers/discord/commands.js";
 import { createTelegramBot } from "./providers/telegram/bot.js";
 
 async function bootstrap() {
@@ -17,8 +21,19 @@ async function bootstrap() {
 
   const discordClient = createDiscordClient();
   if (discordClient && env.DISCORD_BOT_TOKEN) {
+    registerDiscordCommandHandlers(discordClient);
+
     discordClient.once("ready", () => {
       console.log(`[discord] ready as ${discordClient.user?.tag ?? "unknown bot"}`);
+      void syncDiscordGuildCommands(discordClient)
+        .then((result) => {
+          console.log(
+            `[discord] synced commands for ${result.guildsProcessed} guild(s); enabled=${result.guildsEnabled} cleared=${result.guildsCleared}`
+          );
+        })
+        .catch((error) => {
+          console.error("[discord] failed to sync guild commands", error);
+        });
     });
 
     void discordClient.login(env.DISCORD_BOT_TOKEN).catch((error) => {
