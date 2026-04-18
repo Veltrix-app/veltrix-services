@@ -63,6 +63,11 @@ Copy `.env.example` to `.env` and fill in:
 - `TELEGRAM_BOT_TOKEN`
 - `COMMUNITY_BOT_WEBHOOK_SECRET`
 - `COMMUNITY_RETRY_JOB_SECRET`
+- `ONCHAIN_EVM_RPC_URL`
+- `ONCHAIN_SYNC_CONFIRMATIONS`
+- `ONCHAIN_SYNC_BATCH_BLOCKS`
+- `ONCHAIN_SYNC_BACKFILL_BLOCKS`
+- `ONCHAIN_SYNC_DEFAULT_HOLD_THRESHOLD_HOURS`
 
 ## Deploying on Render
 
@@ -85,6 +90,31 @@ Then the important live endpoints are:
 - `POST /webhooks/telegram/verify`
 - `POST /webhooks/discord/verify`
 - `POST /jobs/retry-community-verifications`
+- `POST /jobs/sync-onchain-provider`
+- `POST /jobs/enrich-onchain-events`
+- `POST /jobs/retry-onchain-ingress`
+
+## On-chain provider sync
+
+The runtime can now pull live EVM activity from a managed RPC provider and normalize it into
+`POST /webhooks/onchain-events`-compatible events before scoring.
+
+For each active `project_asset`, the sync job uses:
+- `metadata.startBlock`
+- `metadata.marketMakerAddresses`
+- `metadata.stakingContractAddresses`
+- `metadata.lpContractAddresses`
+- `metadata.allowedFunctions`
+- `metadata.trackContractCalls`
+- `metadata.enableHoldTracking`
+- `metadata.holdThresholdHours`
+
+The latest cursor/status lands back in `project_assets.metadata.syncState`, so operators can see:
+- `lastSyncedBlock`
+- `lastSyncedAt`
+- `lastSyncStatus`
+- `lastSyncGenerated`
+- `lastSyncError`
 
 ## Next step
 

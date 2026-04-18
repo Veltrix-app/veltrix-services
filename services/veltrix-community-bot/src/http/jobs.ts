@@ -6,6 +6,7 @@ import { runOnchainEnrichmentJob } from "../jobs/enrich-onchain-events.js";
 import { refreshStakeStates } from "../jobs/refresh-stake-states.js";
 import { retryPendingCommunityVerifications } from "../jobs/retry-community-verifications.js";
 import { retryOnchainIngressJob } from "../jobs/retry-onchain-ingress.js";
+import { runOnchainProviderSyncJob } from "../jobs/sync-onchain-provider.js";
 
 export const jobsRouter = Router();
 
@@ -14,6 +15,11 @@ const retrySchema = z.object({
 });
 const maintenanceSchema = z.object({
   limit: z.number().int().positive().max(500).optional()
+});
+const providerSyncSchema = z.object({
+  projectId: z.string().uuid().optional(),
+  limit: z.number().int().positive().max(200).optional(),
+  maxBlocks: z.number().int().positive().max(100_000).optional()
 });
 
 function hasValidJobSecret(secretHeader: string | undefined) {
@@ -145,6 +151,31 @@ jobsRouter.post("/retry-onchain-ingress", async (req, res) => {
     return res.status(500).json({
       ok: false,
       error: error instanceof Error ? error.message : "On-chain retry job failed."
+    });
+  }
+});
+
+jobsRouter.post("/sync-onchain-provider", async (req, res) => {
+  if (!hasValidJobSecret(req.header("x-community-job-secret") ?? undefined)) {
+    return res.status(401).json({ ok: false, error: "Invalid job secret." });
+  }
+
+  const parsed = providerSyncSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    return res.status(400).json({
+      ok: false,
+      error: "Invalid on-chain provider sync payload.",
+      details: parsed.error.flatten()
+    });
+  }
+
+  try {
+    const result = await runOnchainProviderSyncJob(parsed.data);
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : "On-chain provider sync failed."
     });
   }
 });

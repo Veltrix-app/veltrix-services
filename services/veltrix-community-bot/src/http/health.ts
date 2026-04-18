@@ -25,6 +25,12 @@ healthRouter.get("/", (_req, res) => {
     service: "veltrix-community-bot",
     supabaseHost,
     callbackHost,
+    onchain: {
+      rpcConfigured: Boolean(env.ONCHAIN_EVM_RPC_URL),
+      confirmations: env.ONCHAIN_SYNC_CONFIRMATIONS,
+      batchBlocks: env.ONCHAIN_SYNC_BATCH_BLOCKS,
+      backfillBlocks: env.ONCHAIN_SYNC_BACKFILL_BLOCKS
+    },
     providers: {
       discord: Boolean(env.DISCORD_BOT_TOKEN),
       telegram: Boolean(env.TELEGRAM_BOT_TOKEN)
