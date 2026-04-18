@@ -35,6 +35,7 @@ export async function sendTelegramPush(params: {
   projectName?: string;
   campaignTitle?: string;
   imageUrl?: string;
+  fallbackImageUrl?: string;
   meta?: PushMeta[];
   url?: string;
   buttonLabel?: string;
@@ -90,6 +91,7 @@ export async function sendTelegramPush(params: {
   };
 
   const imageUrl = params.imageUrl?.trim() || "";
+  const fallbackImageUrl = params.fallbackImageUrl?.trim() || "";
 
   let message;
   if (imageUrl) {
@@ -99,8 +101,30 @@ export async function sendTelegramPush(params: {
         ...sharedOptions,
       });
     } catch {
-      // Many CMS/website URLs look like image assets but resolve to HTML.
-      // Fall back to a text push so delivery still succeeds.
+      if (fallbackImageUrl && fallbackImageUrl !== imageUrl) {
+        try {
+          message = await bot.telegram.sendPhoto(targetChatId, fallbackImageUrl, {
+            caption: text,
+            ...sharedOptions,
+          });
+        } catch {
+          // Many CMS/website URLs look like image assets but resolve to HTML.
+          // Fall back to a text push so delivery still succeeds.
+          message = await bot.telegram.sendMessage(targetChatId, text, sharedOptions);
+        }
+      } else {
+        // Many CMS/website URLs look like image assets but resolve to HTML.
+        // Fall back to a text push so delivery still succeeds.
+        message = await bot.telegram.sendMessage(targetChatId, text, sharedOptions);
+      }
+    }
+  } else if (fallbackImageUrl) {
+    try {
+      message = await bot.telegram.sendPhoto(targetChatId, fallbackImageUrl, {
+        caption: text,
+        ...sharedOptions,
+      });
+    } catch {
       message = await bot.telegram.sendMessage(targetChatId, text, sharedOptions);
     }
   } else {
