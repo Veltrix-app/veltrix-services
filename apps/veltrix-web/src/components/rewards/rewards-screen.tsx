@@ -11,9 +11,22 @@ import { useLiveUserData } from "@/hooks/use-live-user-data";
 type RewardFilter = "all" | "claimable" | "high-value";
 
 export function RewardsScreen() {
-  const { loading, error, rewards, campaigns, claimableRewardCount, rewardDistributions } = useLiveUserData();
+  const {
+    loading,
+    error,
+    rewards,
+    campaigns,
+    claimableRewardCount,
+    rewardDistributions,
+    claimRewardDistribution,
+  } = useLiveUserData();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<RewardFilter>("all");
+  const [activeDistributionId, setActiveDistributionId] = useState<string | null>(null);
+  const [distributionMessage, setDistributionMessage] = useState<{
+    tone: "default" | "error" | "success";
+    text: string;
+  } | null>(null);
 
   const enrichedRewards = useMemo(() => {
     return rewards
@@ -54,9 +67,8 @@ export function RewardsScreen() {
   const vaultPressure = enrichedRewards.slice(0, 3);
   const highValueCount = enrichedRewards.filter((reward) => reward.cost >= 500).length;
   const lockedCount = enrichedRewards.filter((reward) => !reward.claimable).length;
-  const claimableDistributionRows = useMemo(() => {
+  const payoutRows = useMemo(() => {
     return rewardDistributions
-      .filter((distribution) => distribution.status === "claimable")
       .map((distribution) => {
         const linkedCampaign = campaigns.find((campaign) => campaign.id === distribution.campaignId);
 
@@ -64,17 +76,67 @@ export function RewardsScreen() {
           ...distribution,
           campaignTitle: linkedCampaign?.title ?? "Campaign pool",
           rewardAmountLabel: Number(distribution.rewardAmount.toFixed(2)).toString(),
+          stateLabel:
+            distribution.status === "claimable"
+              ? "Claimable"
+              : distribution.status === "queued"
+                ? "Queued"
+                : distribution.status === "processing"
+                  ? "Processing"
+                  : distribution.status === "paid"
+                    ? "Paid"
+                    : distribution.status === "rejected"
+                      ? "Rejected"
+                      : distribution.status,
         };
       })
-      .sort((left, right) => right.rewardAmount - left.rewardAmount);
+      .sort((left, right) => {
+        const leftClaimable = left.status === "claimable" ? 1 : 0;
+        const rightClaimable = right.status === "claimable" ? 1 : 0;
+        return rightClaimable - leftClaimable || right.rewardAmount - left.rewardAmount;
+      });
   }, [campaigns, rewardDistributions]);
+  const claimableDistributionRows = payoutRows.filter((distribution) => distribution.status === "claimable");
   const pendingDistributionCount = rewardDistributions.filter(
-    (distribution) => distribution.status !== "claimable"
+    (distribution) => distribution.status === "queued" || distribution.status === "processing"
+  ).length;
+  const paidDistributionCount = rewardDistributions.filter(
+    (distribution) => distribution.status === "paid"
   ).length;
   const totalClaimablePool = claimableDistributionRows.reduce(
     (sum, distribution) => sum + distribution.rewardAmount,
     0
   );
+
+  async function handleClaimDistribution(distributionId: string) {
+    try {
+      setActiveDistributionId(distributionId);
+      setDistributionMessage({
+        tone: "default",
+        text: "Routing this campaign pool into the payout queue now.",
+      });
+
+      const result = await claimRewardDistribution(distributionId);
+      if (!result.ok) {
+        throw new Error(result.error ?? "Campaign payout claim failed.");
+      }
+
+      setDistributionMessage({
+        tone: "success",
+        text: result.alreadyQueued
+          ? "This campaign payout was already in the queue and has been re-synced into your vault state."
+          : "Campaign payout claim queued. Operators can now move it through processing and payout.",
+      });
+    } catch (error) {
+      setDistributionMessage({
+        tone: "error",
+        text:
+          error instanceof Error ? error.message : "Campaign payout claim failed.",
+      });
+    } finally {
+      setActiveDistributionId(null);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -261,38 +323,105 @@ export function RewardsScreen() {
                 label="Claimable total"
                 value={Number(totalClaimablePool.toFixed(2)).toString()}
               />
-              <MetricTile label="Waiting lanes" value={String(pendingDistributionCount)} />
+              <MetricTile label="In queue" value={String(pendingDistributionCount)} />
             </div>
 
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-1">
+              <SignalTile
+                label="Paid out"
+                value={String(paidDistributionCount)}
+                accent="text-cyan-200"
+                compact
+              />
+              <SignalTile
+                label="Pool lanes"
+                value={String(rewardDistributions.length)}
+                accent="text-white"
+                compact
+              />
+            </div>
+
+            {distributionMessage ? (
+              <div
+                className={`mt-5 rounded-[22px] px-4 py-3 text-sm ${
+                  distributionMessage.tone === "error"
+                    ? "border border-rose-400/20 bg-rose-500/10 text-rose-200"
+                    : distributionMessage.tone === "success"
+                      ? "border border-lime-300/20 bg-lime-400/10 text-lime-100"
+                      : "border border-white/8 bg-black/20 text-slate-300"
+                }`}
+              >
+                {distributionMessage.text}
+              </div>
+            ) : null}
+
             <div className="mt-5 space-y-3">
-              {claimableDistributionRows.length > 0 ? (
-                claimableDistributionRows.slice(0, 4).map((distribution) => (
-                  <Link
+              {payoutRows.length > 0 ? (
+                payoutRows.slice(0, 6).map((distribution) => (
+                  <div
                     key={distribution.id}
-                    href={`/campaigns/${distribution.campaignId}`}
-                    prefetch={false}
-                    className="panel-card flex items-center justify-between gap-4 rounded-[24px] p-4 transition hover:border-lime-300/24 hover:bg-black/24"
+                    className="panel-card rounded-[24px] p-4"
                   >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-white">
-                        {distribution.campaignTitle}
-                      </p>
-                      <p className="mt-1 text-[11px] uppercase tracking-[0.22em] text-slate-500">
-                        {distribution.rewardAsset}
-                      </p>
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-white">
+                          {distribution.campaignTitle}
+                        </p>
+                        <p className="mt-1 text-[11px] uppercase tracking-[0.22em] text-slate-500">
+                          {distribution.rewardAsset}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <StatusChip
+                          label={distribution.stateLabel}
+                          tone={
+                            distribution.status === "claimable"
+                              ? "positive"
+                              : distribution.status === "queued" || distribution.status === "processing"
+                                ? "warning"
+                                : distribution.status === "paid"
+                                  ? "info"
+                                  : distribution.status === "rejected"
+                                    ? "danger"
+                                    : "default"
+                          }
+                        />
+                        <p className="text-sm font-black text-lime-200">
+                          {distribution.rewardAmountLabel}
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-black text-lime-200">
-                        {distribution.rewardAmountLabel}
-                      </p>
-                      <p className="mt-1 text-[11px] uppercase tracking-[0.22em] text-slate-500">
-                        Claimable
-                      </p>
+
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      {distribution.status === "claimable" ? (
+                        <button
+                          onClick={() => void handleClaimDistribution(distribution.id)}
+                          disabled={activeDistributionId === distribution.id}
+                          className="rounded-full bg-lime-300 px-4 py-2 text-xs font-black text-slate-950 transition hover:bg-lime-200 disabled:cursor-not-allowed disabled:bg-lime-300/40"
+                        >
+                          {activeDistributionId === distribution.id ? "Queueing..." : "Queue payout"}
+                        </button>
+                      ) : (
+                        <span className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-slate-300">
+                          {distribution.status === "paid"
+                            ? "Already paid"
+                            : distribution.status === "rejected"
+                              ? "Needs operator follow-up"
+                              : "In operator queue"}
+                        </span>
+                      )}
+                      <Link
+                        href={`/campaigns/${distribution.campaignId}`}
+                        prefetch={false}
+                        className="glass-button rounded-full px-4 py-2 text-xs font-semibold text-white transition hover:border-lime-300/30"
+                      >
+                        Open campaign
+                      </Link>
                     </div>
-                  </Link>
+                  </div>
                 ))
               ) : (
-                <EmptyNotice text="No claimable campaign pool distributions have landed in the vault yet." />
+                <EmptyNotice text="No campaign pool distributions have landed in the vault yet." />
               )}
             </div>
           </Surface>

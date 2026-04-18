@@ -705,6 +705,14 @@ export function ProfileScreen() {
                 text="No claimable campaign pool distributions have landed for this pilot yet."
               />
             )}
+            <div className="pt-2">
+              <Link
+                href="/rewards"
+                className="glass-button inline-flex rounded-full px-4 py-2 text-xs font-semibold text-white transition hover:bg-white/[0.08]"
+              >
+                Open payout queue
+              </Link>
+            </div>
           </div>
 
           <div className="space-y-3 rounded-[28px] border border-white/10 bg-black/20 p-4">

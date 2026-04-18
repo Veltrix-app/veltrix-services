@@ -74,6 +74,20 @@ function applyLiveUserDataCacheEntry(
   setters.setRewardDistributions(entry.rewardDistributions);
 }
 
+function mapClaimStatusToDistributionStatus(status: string | null | undefined) {
+  switch (status) {
+    case "processing":
+      return "processing";
+    case "fulfilled":
+      return "paid";
+    case "rejected":
+      return "rejected";
+    case "pending":
+    default:
+      return "queued";
+  }
+}
+
 export function seedLiveUserConnectedAccounts(
   authUserId: string,
   accounts: ConnectedAccount[]
@@ -664,6 +678,135 @@ export function useLiveUserData() {
     return { ok: true };
   }
 
+  async function claimRewardDistribution(distributionId: string) {
+    if (!authConfigured || !authUserId || !supabase) {
+      return {
+        ok: false,
+        error: "You need an active session before routing a campaign payout claim.",
+      };
+    }
+
+    const distribution = rewardDistributions.find((item) => item.id === distributionId);
+    if (!distribution) {
+      return { ok: false, error: "Campaign pool distribution not found." };
+    }
+
+    if (distribution.status !== "claimable") {
+      return {
+        ok: false,
+        error: "This campaign pool distribution is not claimable right now.",
+      };
+    }
+
+    const linkedCampaign = campaigns.find((campaign) => campaign.id === distribution.campaignId);
+    const linkedProject = projects.find((project) => project.id === linkedCampaign?.projectId);
+    const rewardAmount = Number(distribution.rewardAmount ?? 0);
+    const rewardTitle = `${linkedCampaign?.title ?? "Campaign"} payout`;
+
+    const { data: existingClaims, error: existingClaimsError } = await supabase
+      .from("reward_claims")
+      .select("id, status, delivery_payload")
+      .eq("auth_user_id", authUserId)
+      .eq("campaign_id", distribution.campaignId)
+      .eq("claim_method", "campaign_distribution")
+      .order("created_at", { ascending: false });
+
+    if (existingClaimsError) {
+      setError(existingClaimsError.message);
+      return { ok: false, error: existingClaimsError.message };
+    }
+
+    const existingClaim = (existingClaims ?? []).find((claim) => {
+      const payload =
+        claim.delivery_payload && typeof claim.delivery_payload === "object"
+          ? (claim.delivery_payload as Record<string, unknown>)
+          : null;
+
+      return payload?.distributionId === distributionId;
+    });
+
+    if (existingClaim && existingClaim.status !== "rejected") {
+      const nextStatus = mapClaimStatusToDistributionStatus(existingClaim.status);
+      setRewardDistributions((current) =>
+        current.map((item) =>
+          item.id === distributionId
+            ? {
+                ...item,
+                status: nextStatus,
+              }
+            : item
+        )
+      );
+
+      return { ok: true, alreadyQueued: true, status: nextStatus };
+    }
+
+    const queuedAt = new Date().toISOString();
+    const { error: claimInsertError } = await supabase.from("reward_claims").insert({
+      auth_user_id: authUserId,
+      username: profile?.username ?? session?.user?.email?.split("@")[0] ?? "pilot",
+      reward_id: null,
+      reward_title: rewardTitle,
+      project_id: linkedProject?.id ?? null,
+      project_name: linkedProject?.name ?? null,
+      campaign_id: linkedCampaign?.id ?? distribution.campaignId,
+      campaign_title: linkedCampaign?.title ?? null,
+      claim_method: "campaign_distribution",
+      status: "pending",
+      delivery_payload: {
+        source: "reward_distribution",
+        distributionId,
+        rewardAsset: distribution.rewardAsset,
+        rewardAmount,
+      },
+    });
+
+    if (claimInsertError) {
+      setError(claimInsertError.message);
+      return { ok: false, error: claimInsertError.message };
+    }
+
+    const { error: distributionUpdateError } = await supabase
+      .from("reward_distributions")
+      .update({
+        status: "queued",
+        updated_at: queuedAt,
+      })
+      .eq("id", distributionId)
+      .eq("auth_user_id", authUserId);
+
+    if (distributionUpdateError) {
+      setError(distributionUpdateError.message);
+      return { ok: false, error: distributionUpdateError.message };
+    }
+
+    setRewardDistributions((current) =>
+      current.map((item) =>
+        item.id === distributionId
+          ? {
+              ...item,
+              status: "queued",
+              updatedAt: queuedAt,
+            }
+          : item
+      )
+    );
+
+    setNotifications((current) => [
+      {
+        id: `local-distribution-claim-${distributionId}-${queuedAt}`,
+        title: "Campaign payout queued",
+        body: `${rewardTitle} moved into the payout queue.`,
+        read: false,
+        type: "reward",
+        createdAt: queuedAt,
+      },
+      ...current,
+    ]);
+
+    return { ok: true };
+  }
+
   async function markNotificationsRead() {
     if (!authConfigured || !authUserId || !supabase) {
       return;
@@ -757,5 +900,6 @@ export function useLiveUserData() {
     markNotificationsRead,
     joinCommunity,
     claimReward,
+    claimRewardDistribution,
   };
 }
