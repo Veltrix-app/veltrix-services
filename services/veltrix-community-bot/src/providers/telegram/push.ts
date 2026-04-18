@@ -5,11 +5,26 @@ type PushMeta = {
   value: string;
 };
 
+function normalizeComparableText(value: string) {
+  return value.replace(/\s+/g, " ").trim().toLowerCase();
+}
+
 function escapeHtml(value: string) {
   return value
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
+}
+
+function isContextMeta(label: string) {
+  const normalized = label.trim().toLowerCase();
+  return normalized === "project" || normalized === "campaign" || normalized === "track";
+}
+
+function formatContextLine(projectName?: string, campaignTitle?: string) {
+  const project = projectName?.trim() || "Veltrix";
+  const campaign = campaignTitle?.trim() || "";
+  return campaign ? `${project} | ${campaign}` : project;
 }
 
 export async function sendTelegramPush(params: {
@@ -35,19 +50,23 @@ export async function sendTelegramPush(params: {
     throw new Error("Missing Telegram target chat id.");
   }
 
+  const title = params.title.trim();
+  const body = params.body.trim();
+  const hasDistinctBody =
+    body.length > 0 && normalizeComparableText(body) !== normalizeComparableText(title);
+  const visibleMeta = (params.meta ?? [])
+    .filter((item) => item.label.trim() && item.value.trim())
+    .filter((item) => !isContextMeta(item.label))
+    .slice(0, 4);
+
   const text = [
     params.eyebrow?.trim() ? `<b>${escapeHtml(params.eyebrow.trim())}</b>` : "<b>VELTRIX UPDATE</b>",
-    `<b>${escapeHtml(params.title.trim())}</b>`,
-    escapeHtml(params.body.trim()),
-    ...(params.meta ?? [])
-      .filter((item) => item.label.trim() && item.value.trim())
-      .slice(0, 4)
-      .map((item) => `<b>${escapeHtml(item.label.trim())}:</b> ${escapeHtml(item.value.trim())}`),
-    params.campaignTitle?.trim()
-      ? `<i>${escapeHtml(params.projectName?.trim() || "Veltrix")} • ${escapeHtml(
-          params.campaignTitle.trim()
-        )}</i>`
-      : `<i>${escapeHtml(params.projectName?.trim() || "Veltrix")}</i>`,
+    `<b>${escapeHtml(title)}</b>`,
+    ...(hasDistinctBody ? [escapeHtml(body)] : []),
+    ...visibleMeta.map(
+      (item) => `<b>${escapeHtml(item.label.trim())}:</b> ${escapeHtml(item.value.trim())}`
+    ),
+    `<i>${escapeHtml(formatContextLine(params.projectName, params.campaignTitle))}</i>`,
   ]
     .filter(Boolean)
     .join("\n\n");
@@ -79,7 +98,7 @@ export async function sendTelegramPush(params: {
         caption: text,
         ...sharedOptions,
       });
-    } catch (error) {
+    } catch {
       // Many CMS/website URLs look like image assets but resolve to HTML.
       // Fall back to a text push so delivery still succeeds.
       message = await bot.telegram.sendMessage(targetChatId, text, sharedOptions);

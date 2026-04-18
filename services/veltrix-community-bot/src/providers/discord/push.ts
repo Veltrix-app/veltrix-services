@@ -12,6 +12,10 @@ type PushMeta = {
   value: string;
 };
 
+function normalizeComparableText(value: string) {
+  return value.replace(/\s+/g, " ").trim().toLowerCase();
+}
+
 function toDiscordColor(input?: string) {
   const normalized = input?.trim();
   if (!normalized) {
@@ -22,6 +26,17 @@ function toDiscordColor(input?: string) {
   return /^[0-9a-fA-F]{6}$/.test(hex)
     ? (Number.parseInt(hex, 16) as ColorResolvable)
     : (0xc6ff2e as ColorResolvable);
+}
+
+function isContextMeta(label: string) {
+  const normalized = label.trim().toLowerCase();
+  return normalized === "project" || normalized === "campaign" || normalized === "track";
+}
+
+function formatContextLine(projectName?: string, campaignTitle?: string) {
+  const project = projectName?.trim() || "Veltrix";
+  const campaign = campaignTitle?.trim() || "";
+  return campaign ? `${project} | ${campaign}` : project;
 }
 
 export async function sendDiscordPush(params: {
@@ -62,28 +77,35 @@ export async function sendDiscordPush(params: {
     throw new Error("Discord target does not support sending messages.");
   }
 
+  const title = params.title.trim();
+  const body = params.body.trim();
+  const hasDistinctBody =
+    body.length > 0 && normalizeComparableText(body) !== normalizeComparableText(title);
+  const visibleMeta = (params.meta ?? [])
+    .filter((item) => item.label.trim() && item.value.trim())
+    .filter((item) => !isContextMeta(item.label))
+    .slice(0, 4);
+
   const embed = new EmbedBuilder()
     .setColor(toDiscordColor(params.accentColor))
     .setAuthor({
       name: params.eyebrow?.trim() || "VELTRIX UPDATE",
     })
-    .setTitle(params.title.trim())
-    .setDescription(params.body.trim())
+    .setTitle(title)
     .setFooter({
-      text: params.campaignTitle?.trim()
-        ? `${params.projectName?.trim() || "Veltrix"} • ${params.campaignTitle.trim()}`
-        : params.projectName?.trim() || "Veltrix",
+      text: formatContextLine(params.projectName, params.campaignTitle),
     })
     .addFields(
-      ...(params.meta ?? [])
-        .filter((item) => item.label.trim() && item.value.trim())
-        .slice(0, 4)
-        .map((item) => ({
-          name: item.label.trim(),
-          value: item.value.trim(),
-          inline: true,
-        }))
+      ...visibleMeta.map((item) => ({
+        name: item.label.trim(),
+        value: item.value.trim(),
+        inline: true,
+      }))
     );
+
+  if (hasDistinctBody) {
+    embed.setDescription(body);
+  }
 
   if (params.imageUrl?.trim()) {
     embed.setImage(params.imageUrl.trim());
