@@ -173,6 +173,7 @@ export function QuestDetailScreen() {
   const {
     session,
     authUserId,
+    profile,
     connectedAccounts,
     connectedAccountsState,
     reloadProfile,
@@ -266,23 +267,42 @@ export function QuestDetailScreen() {
           quest.questType === "social_follow" ||
           typeof quest.actionUrl === "string")
     );
+  const usesWalletVerification =
+    Boolean(
+      quest &&
+        ((quest.proofType === "wallet" && quest.proofRequired) ||
+          inferredVerificationProvider === "wallet" ||
+          quest.verificationType === "wallet_check" ||
+          quest.questType === "wallet_connect" ||
+          quest.questType === "onchain_action")
+    );
 
   const requiredAccount = useMemo(() => {
     if (usesDiscordVerification) return "discord";
     if (usesTelegramVerification) return "telegram";
     if (usesXVerification) return "x";
+    if (usesWalletVerification) return "wallet";
     return null;
-  }, [usesDiscordVerification, usesTelegramVerification, usesXVerification]);
+  }, [usesDiscordVerification, usesTelegramVerification, usesWalletVerification, usesXVerification]);
+
+  const walletConnected = Boolean(profile?.wallet);
+  const walletSnapshotSettled = Boolean(profile);
 
   const providerAccountConnected = requiredAccount
-    ? connectedAccounts.some(
-        (account) => account.provider === requiredAccount && account.status === "connected"
-      )
+    ? requiredAccount === "wallet"
+      ? walletConnected
+      : connectedAccounts.some(
+          (account) => account.provider === requiredAccount && account.status === "connected"
+        )
     : true;
   const accountSnapshotSettled = connectedAccountsState === "ready";
   const accountReadyState = requiredAccount
     ? providerAccountConnected
       ? "Ready"
+      : requiredAccount === "wallet"
+        ? walletSnapshotSettled
+          ? "Missing"
+          : "Syncing"
       : !accountSnapshotSettled
         ? "Syncing"
         : "Missing"
@@ -372,6 +392,22 @@ export function QuestDetailScreen() {
     }
 
     if (!providerAccountConnected) {
+      if (requiredAccount === "wallet") {
+        if (!walletSnapshotSettled) {
+          setMessage({
+            tone: "default",
+            text: "Veltrix is syncing your wallet readiness inside the live loadout now. Give it a second and try again.",
+          });
+          return;
+        }
+
+        setMessage({
+          tone: "error",
+          text: "Connect your wallet first so this mission can verify against the armed wallet identity.",
+        });
+        return;
+      }
+
       if (!accountSnapshotSettled) {
         setMessage({
           tone: "default",
@@ -691,24 +727,33 @@ export function QuestDetailScreen() {
               <MiniStat label="Account ready" value={accountReadyState} />
             </div>
 
-            {requiredAccount && !providerAccountConnected && accountSnapshotSettled ? (
+            {requiredAccount &&
+            !providerAccountConnected &&
+            (requiredAccount === "wallet" ? walletSnapshotSettled : accountSnapshotSettled) ? (
               <div className="rounded-[24px] border border-amber-400/20 bg-amber-500/10 p-4 text-sm text-amber-100">
                 This mission needs a connected {requiredAccount.toUpperCase()} account before the
                 verification route can start. Link it from{" "}
                 <Link
-                  href={`/profile#${requiredAccount}`}
+                  href={requiredAccount === "wallet" ? "/profile/edit" : `/profile#${requiredAccount}`}
                   className="font-semibold text-white underline underline-offset-4"
                 >
-                  Profile
+                  {requiredAccount === "wallet" ? "Profile edit" : "Profile"}
                 </Link>
                 .
               </div>
             ) : null}
 
-            {requiredAccount && !providerAccountConnected && !accountSnapshotSettled ? (
+            {requiredAccount &&
+            !providerAccountConnected &&
+            ((requiredAccount === "wallet" && !walletSnapshotSettled) ||
+              (requiredAccount !== "wallet" && !accountSnapshotSettled)) ? (
               <div className="rounded-[24px] border border-cyan-300/20 bg-cyan-400/10 p-4 text-sm text-cyan-100">
-                Veltrix is syncing your {requiredAccount.toUpperCase()} account state across the
-                live grid. This mission will unlock as soon as that refresh settles.
+                Veltrix is syncing your{" "}
+                {requiredAccount === "wallet"
+                  ? "wallet"
+                  : requiredAccount.toUpperCase()}{" "}
+                account state across the live grid. This mission will unlock as soon as that
+                refresh settles.
               </div>
             ) : null}
 
@@ -731,10 +776,10 @@ export function QuestDetailScreen() {
 
               {requiredAccount && !missionClosed ? (
                 <Link
-                  href={`/profile#${requiredAccount}`}
+                  href={requiredAccount === "wallet" ? "/profile/edit" : `/profile#${requiredAccount}`}
                   className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
                 >
-                  Review connected accounts
+                  {requiredAccount === "wallet" ? "Manage wallet" : "Review connected accounts"}
                 </Link>
               ) : null}
             </div>
@@ -852,11 +897,19 @@ export function QuestDetailScreen() {
 }
 
 function useQuestAuth() {
-  const { session, authUserId, connectedAccounts, connectedAccountsState, reloadProfile } = useAuth();
+  const {
+    session,
+    authUserId,
+    profile,
+    connectedAccounts,
+    connectedAccountsState,
+    reloadProfile,
+  } = useAuth();
 
   return {
     session,
     authUserId,
+    profile,
     connectedAccounts,
     connectedAccountsState,
     reloadProfile,
