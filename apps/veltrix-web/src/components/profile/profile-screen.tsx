@@ -29,8 +29,12 @@ export function ProfileScreen() {
     unreadNotificationCount,
     loading,
     error,
+    campaigns,
     projectReputation,
     quests,
+    xpStakes,
+    rewardDistributions,
+    claimableDistributionCount,
     reload,
   } = useLiveUserData();
   const [telegramUserId, setTelegramUserId] = useState("");
@@ -76,6 +80,44 @@ export function ProfileScreen() {
 
     return pressure;
   }, [quests]);
+
+  const activeStakeCount = useMemo(
+    () => xpStakes.filter((stake) => stake.state !== "completed" && stake.state !== "slashed").length,
+    [xpStakes]
+  );
+
+  const totalStakedXp = useMemo(
+    () =>
+      xpStakes.reduce((sum, stake) => sum + Number(stake.stakedXp ?? 0), 0),
+    [xpStakes]
+  );
+
+  const claimableDistributions = useMemo(
+    () => rewardDistributions.filter((distribution) => distribution.status === "claimable"),
+    [rewardDistributions]
+  );
+
+  const totalClaimableAmount = useMemo(
+    () =>
+      claimableDistributions.reduce(
+        (sum, distribution) => sum + Number(distribution.rewardAmount ?? 0),
+        0
+      ),
+    [claimableDistributions]
+  );
+
+  const claimableDistributionRows = useMemo(() => {
+    return claimableDistributions.slice(0, 4).map((distribution) => {
+      const linkedCampaign = campaigns.find((campaign) => campaign.id === distribution.campaignId);
+
+      return {
+        id: distribution.id,
+        campaignTitle: linkedCampaign?.title ?? "Campaign",
+        rewardAsset: distribution.rewardAsset,
+        rewardAmount: Number(distribution.rewardAmount.toFixed(4)),
+      };
+    });
+  }, [campaigns, claimableDistributions]);
 
   const providerCards = useMemo(() => {
     const providerMap = new Map(
@@ -616,6 +658,89 @@ export function ProfileScreen() {
         ) : (
           <Notice tone="default" text="No project-specific reputation yet. Start clearing quests and raids to build standing inside each world." />
         )}
+      </Surface>
+
+      <Surface
+        eyebrow="AESP Balance"
+        title="Claimable pool and active stakes"
+        description="This is the first live readout of what the AESP lane is building for this pilot across campaign stake pressure and finalized distributions."
+      >
+        <div className="grid gap-4 md:grid-cols-4">
+          <FeatureStat label="Claimable lanes" value={String(claimableDistributionCount)} />
+          <FeatureStat
+            label="Claimable total"
+            value={Number(totalClaimableAmount.toFixed(2)).toString()}
+          />
+          <FeatureStat label="Active stakes" value={String(activeStakeCount)} />
+          <FeatureStat label="Staked XP" value={String(totalStakedXp)} />
+        </div>
+
+        <div className="mt-5 grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
+          <div className="space-y-3 rounded-[28px] border border-white/10 bg-black/20 p-4">
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
+              Claimable distributions
+            </p>
+            {claimableDistributionRows.length > 0 ? (
+              claimableDistributionRows.map((distribution) => (
+                <div
+                  key={distribution.id}
+                  className="metric-card rounded-[20px] px-4 py-3"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-bold text-white">{distribution.campaignTitle}</p>
+                      <p className="mt-1 text-xs uppercase tracking-[0.16em] text-slate-500">
+                        {distribution.rewardAsset}
+                      </p>
+                    </div>
+                    <p className="text-sm font-black text-lime-200">
+                      {distribution.rewardAmount}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <Notice
+                tone="default"
+                text="No claimable campaign pool distributions have landed for this pilot yet."
+              />
+            )}
+          </div>
+
+          <div className="space-y-3 rounded-[28px] border border-white/10 bg-black/20 p-4">
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
+              Stake posture
+            </p>
+            {xpStakes.length > 0 ? (
+              xpStakes.slice(0, 4).map((stake) => {
+                const linkedCampaign = campaigns.find((campaign) => campaign.id === stake.campaignId);
+
+                return (
+                  <div key={stake.id} className="metric-card rounded-[20px] px-4 py-3">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-bold text-white">
+                          {linkedCampaign?.title ?? "Campaign"}
+                        </p>
+                        <p className="mt-1 text-xs uppercase tracking-[0.16em] text-slate-500">
+                          {stake.state} stake
+                        </p>
+                      </div>
+                      <p className="text-sm font-black text-cyan-200">
+                        {Number(stake.stakedXp.toFixed(2))}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <Notice
+                tone="default"
+                text="No live AESP stakes are active for this pilot yet."
+              />
+            )}
+          </div>
+        </div>
       </Surface>
     </div>
   );

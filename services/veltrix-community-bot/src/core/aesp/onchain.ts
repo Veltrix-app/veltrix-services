@@ -2,6 +2,7 @@ import { supabaseAdmin } from "../../lib/supabase.js";
 import type { OnchainIngressEvent, SupportedOnchainEventType, TrustSnapshotRow } from "../../types/aesp.js";
 import { calculateEffectiveXp, getDefaultActionMultiplier, getDefaultBaseValue, getTrustMultiplierFromScore } from "./scoring.js";
 import { emitXpEvent } from "./ledger.js";
+import { writeAdminAuditLog } from "../ops/admin-audit.js";
 
 function normalizeAddress(value: string) {
   return value.trim().toLowerCase();
@@ -42,6 +43,26 @@ export async function ingestOnchainEvents(input: {
   const activeTrackedAssets = trackedAssets ?? [];
 
   if (activeTrackedAssets.length === 0) {
+    await Promise.all(
+      input.events.map((event) =>
+        writeAdminAuditLog({
+          projectId: input.projectId,
+          sourceTable: "onchain_ingress",
+          sourceId: `${event.chain}:${event.txHash}:${event.eventType}`,
+          action: "onchain_ingress_rejected",
+          summary: "Project has no active tracked assets configured for on-chain scoring.",
+          metadata: {
+            chain: event.chain,
+            txHash: event.txHash,
+            eventType: event.eventType,
+            contractAddress: event.contractAddress,
+            tokenAddress: event.tokenAddress ?? null,
+            walletAddress: event.walletAddress,
+          },
+        })
+      )
+    );
+
     return {
       ok: true,
       processed: input.events.length,
@@ -66,6 +87,21 @@ export async function ingestOnchainEvents(input: {
       ) ?? null;
 
     if (!matchedAsset) {
+      await writeAdminAuditLog({
+        projectId: input.projectId,
+        sourceTable: "onchain_ingress",
+        sourceId: `${rawEvent.chain}:${rawEvent.txHash}:${rawEvent.eventType}`,
+        action: "onchain_ingress_rejected",
+        summary: "No active tracked project asset matched this on-chain event.",
+        metadata: {
+          chain: rawEvent.chain,
+          txHash: rawEvent.txHash,
+          eventType: rawEvent.eventType,
+          contractAddress,
+          tokenAddress,
+          walletAddress,
+        },
+      });
       results.push({
         ok: false,
         txHash: rawEvent.txHash,
@@ -86,6 +122,21 @@ export async function ingestOnchainEvents(input: {
     }
 
     if (!walletLink?.auth_user_id) {
+      await writeAdminAuditLog({
+        projectId: input.projectId,
+        sourceTable: "onchain_ingress",
+        sourceId: `${rawEvent.chain}:${rawEvent.txHash}:${rawEvent.eventType}`,
+        action: "onchain_ingress_rejected",
+        summary: "Wallet is not linked to a verified Veltrix account.",
+        metadata: {
+          chain: rawEvent.chain,
+          txHash: rawEvent.txHash,
+          eventType: rawEvent.eventType,
+          contractAddress,
+          tokenAddress,
+          walletAddress,
+        },
+      });
       results.push({
         ok: false,
         txHash: rawEvent.txHash,
@@ -147,6 +198,22 @@ export async function ingestOnchainEvents(input: {
       .single();
 
     if (onchainError) {
+      await writeAdminAuditLog({
+        authUserId: walletLink.auth_user_id,
+        projectId: input.projectId,
+        sourceTable: "onchain_ingress",
+        sourceId: `${rawEvent.chain}:${rawEvent.txHash}:${rawEvent.eventType}`,
+        action: "onchain_ingress_failed",
+        summary: onchainError.message,
+        metadata: {
+          chain: rawEvent.chain,
+          txHash: rawEvent.txHash,
+          eventType: rawEvent.eventType,
+          contractAddress,
+          tokenAddress,
+          walletAddress,
+        },
+      });
       throw onchainError;
     }
 
