@@ -1,12 +1,17 @@
 import { Router } from "express";
 import { z } from "zod";
 import { env } from "../config/env.js";
+import { runActiveXpDecayJob } from "../jobs/active-xp-decay.js";
+import { refreshStakeStates } from "../jobs/refresh-stake-states.js";
 import { retryPendingCommunityVerifications } from "../jobs/retry-community-verifications.js";
 
 export const jobsRouter = Router();
 
 const retrySchema = z.object({
   limit: z.number().int().positive().max(200).optional()
+});
+const maintenanceSchema = z.object({
+  limit: z.number().int().positive().max(500).optional()
 });
 
 function hasValidJobSecret(secretHeader: string | undefined) {
@@ -38,6 +43,56 @@ jobsRouter.post("/retry-community-verifications", async (req, res) => {
     return res.status(500).json({
       ok: false,
       error: error instanceof Error ? error.message : "Retry job failed."
+    });
+  }
+});
+
+jobsRouter.post("/active-xp-decay", async (req, res) => {
+  if (!hasValidJobSecret(req.header("x-community-job-secret") ?? undefined)) {
+    return res.status(401).json({ ok: false, error: "Invalid job secret." });
+  }
+
+  const parsed = maintenanceSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    return res.status(400).json({
+      ok: false,
+      error: "Invalid active XP decay payload.",
+      details: parsed.error.flatten()
+    });
+  }
+
+  try {
+    const result = await runActiveXpDecayJob(parsed.data);
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : "Active XP decay job failed."
+    });
+  }
+});
+
+jobsRouter.post("/refresh-stake-states", async (req, res) => {
+  if (!hasValidJobSecret(req.header("x-community-job-secret") ?? undefined)) {
+    return res.status(401).json({ ok: false, error: "Invalid job secret." });
+  }
+
+  const parsed = maintenanceSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    return res.status(400).json({
+      ok: false,
+      error: "Invalid stake refresh payload.",
+      details: parsed.error.flatten()
+    });
+  }
+
+  try {
+    const result = await refreshStakeStates(parsed.data);
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : "Stake refresh job failed."
     });
   }
 });
