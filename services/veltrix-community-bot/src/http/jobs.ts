@@ -30,11 +30,16 @@ const discordCommunitySchema = z.object({
 });
 
 function hasValidJobSecret(secretHeader: string | undefined) {
-  if (!env.COMMUNITY_RETRY_JOB_SECRET) {
+  const acceptedSecrets = [
+    env.COMMUNITY_RETRY_JOB_SECRET,
+    env.COMMUNITY_BOT_WEBHOOK_SECRET,
+  ].filter((value): value is string => typeof value === "string" && value.trim().length > 0);
+
+  if (acceptedSecrets.length === 0) {
     return true;
   }
 
-  return secretHeader === env.COMMUNITY_RETRY_JOB_SECRET;
+  return acceptedSecrets.includes(secretHeader ?? "");
 }
 
 jobsRouter.post("/retry-community-verifications", async (req, res) => {
