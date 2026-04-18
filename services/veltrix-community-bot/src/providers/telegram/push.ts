@@ -70,12 +70,23 @@ export async function sendTelegramPush(params: {
       : {}),
   };
 
-  const message = params.imageUrl?.trim()
-    ? await bot.telegram.sendPhoto(targetChatId, params.imageUrl.trim(), {
+  const imageUrl = params.imageUrl?.trim() || "";
+
+  let message;
+  if (imageUrl) {
+    try {
+      message = await bot.telegram.sendPhoto(targetChatId, imageUrl, {
         caption: text,
         ...sharedOptions,
-      })
-    : await bot.telegram.sendMessage(targetChatId, text, sharedOptions);
+      });
+    } catch (error) {
+      // Many CMS/website URLs look like image assets but resolve to HTML.
+      // Fall back to a text push so delivery still succeeds.
+      message = await bot.telegram.sendMessage(targetChatId, text, sharedOptions);
+    }
+  } else {
+    message = await bot.telegram.sendMessage(targetChatId, text, sharedOptions);
+  }
 
   return {
     ok: true,
