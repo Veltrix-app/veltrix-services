@@ -8,7 +8,7 @@ import { useAuth } from "@/components/providers/auth-provider";
 declare global {
   interface Window {
     ethereum?: {
-      request: (args: { method: string }) => Promise<unknown>;
+      request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
     };
   }
 }
@@ -21,7 +21,17 @@ function shortenWallet(address: string) {
 
 export function ProfileEditScreen() {
   const router = useRouter();
-  const { profile, updateProfile, uploadProfileAsset, loading, error, clearError } = useAuth();
+  const {
+    session,
+    profile,
+    updateProfile,
+    verifyWallet,
+    unlinkWallet,
+    uploadProfileAsset,
+    loading,
+    error,
+    clearError,
+  } = useAuth();
   const [username, setUsername] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [bannerUrl, setBannerUrl] = useState("");
@@ -56,7 +66,6 @@ export function ProfileEditScreen() {
       title,
       faction,
       bio,
-      wallet,
     });
 
     if (result.ok) {
@@ -116,7 +125,45 @@ export function ProfileEditScreen() {
       }
 
       setWallet(nextWallet);
-      setWalletMessage("Wallet connected. Save profile to persist this as your active wallet.");
+      setWalletMessage("Requesting a signed wallet verification challenge...");
+
+      const nonceResponse = await fetch("/api/identity/wallet/nonce", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(session?.access_token
+            ? { Authorization: `Bearer ${session.access_token}` }
+            : {}),
+        },
+        body: JSON.stringify({
+          walletAddress: nextWallet,
+          chain: "evm",
+        }),
+      });
+
+      const noncePayload = await nonceResponse.json().catch(() => null);
+
+      if (!nonceResponse.ok || !noncePayload?.ok || typeof noncePayload?.message !== "string") {
+        throw new Error(noncePayload?.error || "Could not create a wallet verification challenge.");
+      }
+
+      const signature = (await window.ethereum.request({
+        method: "personal_sign",
+        params: [noncePayload.message, nextWallet],
+      })) as string;
+
+      const verification = await verifyWallet({
+        walletAddress: nextWallet,
+        chain: "evm",
+        signature,
+      });
+
+      if (!verification.ok) {
+        throw new Error(verification.error || "Wallet verification failed.");
+      }
+
+      setWallet(nextWallet);
+      setWalletMessage("Wallet verified and armed as your primary identity wallet.");
     } catch (nextError) {
       setWalletMessage(
         nextError instanceof Error ? nextError.message : "Could not connect your wallet."
@@ -126,9 +173,17 @@ export function ProfileEditScreen() {
     }
   }
 
-  function handleDisconnectWallet() {
+  async function handleDisconnectWallet() {
+    setWalletMessage(null);
+
+    const result = await unlinkWallet();
+    if (!result.ok) {
+      setWalletMessage(result.error || "Could not unlink your wallet.");
+      return;
+    }
+
     setWallet("");
-    setWalletMessage("Wallet removed from the profile draft. Save profile to persist the change.");
+    setWalletMessage("Wallet unlinked from your active identity profile.");
   }
 
   const previewInitial = (username || "R").slice(0, 1).toUpperCase();
@@ -205,12 +260,14 @@ export function ProfileEditScreen() {
                     Wallet layer
                   </p>
                   <p className="mt-2 text-sm leading-6 text-slate-300">
-                    Connect a browser wallet and save it as your active identity wallet for future
-                    verification and reward eligibility.
+                    Connect a browser wallet, sign the Veltrix challenge, and arm it as your
+                    verified identity wallet for future verification and reward eligibility.
                   </p>
                 </div>
                 <div className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm font-semibold text-white">
-                  {shortenWallet(wallet)}
+                  {profile?.walletVerified && wallet
+                    ? `${shortenWallet(wallet)} • verified`
+                    : shortenWallet(wallet)}
                 </div>
               </div>
 
@@ -226,7 +283,7 @@ export function ProfileEditScreen() {
                 </button>
                 <button
                   type="button"
-                  onClick={handleDisconnectWallet}
+                  onClick={() => void handleDisconnectWallet()}
                   disabled={!wallet}
                   className="rounded-full border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50"
                 >
@@ -235,7 +292,7 @@ export function ProfileEditScreen() {
               </div>
 
               <div className="mt-4">
-                <Input label="Wallet address" value={wallet} onChange={setWallet} />
+                <Input label="Wallet address" value={wallet} onChange={() => undefined} readOnly />
               </div>
             </div>
 
@@ -389,10 +446,12 @@ function Input({
   label,
   value,
   onChange,
+  readOnly = false,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  readOnly?: boolean;
 }) {
   return (
     <label className="grid gap-2">
@@ -400,7 +459,8 @@ function Input({
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="rounded-[20px] border border-white/10 bg-white/[0.03] px-4 py-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50 focus:bg-white/[0.05]"
+        readOnly={readOnly}
+        className="rounded-[20px] border border-white/10 bg-white/[0.03] px-4 py-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50 focus:bg-white/[0.05] read-only:cursor-not-allowed read-only:opacity-80"
       />
     </label>
   );

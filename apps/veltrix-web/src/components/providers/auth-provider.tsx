@@ -39,6 +39,12 @@ type AuthContextValue = {
   updateProfile: (
     input: ProfileUpdateInput
   ) => Promise<{ ok: boolean; error?: string }>;
+  verifyWallet: (input: {
+    walletAddress: string;
+    chain?: string;
+    signature: string;
+  }) => Promise<{ ok: boolean; error?: string; walletAddress?: string }>;
+  unlinkWallet: () => Promise<{ ok: boolean; error?: string }>;
   uploadProfileAsset: (
     kind: ProfileAssetKind,
     file: File
@@ -123,13 +129,26 @@ async function fetchProfileWithReputation(
   authUserId: string,
   supabase: ReturnType<typeof createSupabaseBrowserClient>
 ) {
-  const [{ data: profile, error: profileError }, { data: reputation, error: reputationError }] =
+  const [
+    { data: profile, error: profileError },
+    { data: reputation, error: reputationError },
+    { data: walletLink, error: walletLinkError },
+  ] =
     await Promise.all([
       supabase.from("user_profiles").select("*").eq("auth_user_id", authUserId).maybeSingle(),
       supabase
         .from("user_global_reputation")
         .select("*")
         .eq("auth_user_id", authUserId)
+        .maybeSingle(),
+      supabase
+        .from("wallet_links")
+        .select("wallet_address, chain, verified, metadata, verified_at, updated_at")
+        .eq("auth_user_id", authUserId)
+        .eq("verified", true)
+        .order("verified_at", { ascending: false })
+        .order("updated_at", { ascending: false })
+        .limit(1)
         .maybeSingle(),
     ]);
 
@@ -141,6 +160,10 @@ async function fetchProfileWithReputation(
     throw reputationError;
   }
 
+  if (walletLinkError) {
+    throw walletLinkError;
+  }
+
   if (!profile) {
     throw new Error("PROFILE_MISSING");
   }
@@ -148,6 +171,7 @@ async function fetchProfileWithReputation(
   return {
     ...profile,
     user_global_reputation: reputation,
+    primary_wallet_link: walletLink,
   };
 }
 
@@ -555,7 +579,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         title: input.title,
         faction: input.faction,
         bio: input.bio,
-        wallet: input.wallet,
       })
       .eq("auth_user_id", authUserId);
 
@@ -563,6 +586,74 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
       setError(updateError.message);
       return { ok: false, error: updateError.message };
+    }
+
+    await reloadProfile();
+    setLoading(false);
+    return { ok: true };
+  }
+
+  async function verifyWallet(input: {
+    walletAddress: string;
+    chain?: string;
+    signature: string;
+  }) {
+    if (!publicEnv.authConfigured || !supabase || !session?.access_token) {
+      return { ok: false, error: "You need an active session before verifying a wallet." };
+    }
+
+    setLoading(true);
+    setError(null);
+
+    const response = await fetch("/api/identity/wallet/verify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify(input),
+    });
+
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok || !payload?.ok) {
+      const message = payload?.error || "Wallet verification failed.";
+      setLoading(false);
+      setError(message);
+      return { ok: false, error: message };
+    }
+
+    await reloadProfile();
+    setLoading(false);
+    return {
+      ok: true,
+      walletAddress:
+        typeof payload.walletAddress === "string" ? payload.walletAddress : input.walletAddress,
+    };
+  }
+
+  async function unlinkWallet() {
+    if (!publicEnv.authConfigured || !supabase || !session?.access_token) {
+      return { ok: false, error: "You need an active session before unlinking a wallet." };
+    }
+
+    setLoading(true);
+    setError(null);
+
+    const response = await fetch("/api/identity/wallet/unlink", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    });
+
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok || !payload?.ok) {
+      const message = payload?.error || "Wallet unlink failed.";
+      setLoading(false);
+      setError(message);
+      return { ok: false, error: message };
     }
 
     await reloadProfile();
@@ -718,40 +809,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const value = useMemo<AuthContextValue>(
-    () => ({
-      initialized,
-      loading,
-      session,
-      authUserId,
-      profile,
-      connectedAccounts,
-      connectedAccountsState,
-      error,
-      authConfigured: publicEnv.authConfigured,
-      signIn,
-      signUp,
-      updateProfile,
-      uploadProfileAsset,
-      linkProvider,
-      saveTelegramIdentity,
-      syncConnectedAccounts,
-      signOut,
-      reloadProfile,
-      clearError: () => setError(null),
-    }),
-    [
-      initialized,
-      loading,
-      session,
-      authUserId,
-      profile,
-      connectedAccounts,
-      connectedAccountsState,
-      error,
-      uploadProfileAsset,
-    ]
-  );
+  const value: AuthContextValue = {
+    initialized,
+    loading,
+    session,
+    authUserId,
+    profile,
+    connectedAccounts,
+    connectedAccountsState,
+    error,
+    authConfigured: publicEnv.authConfigured,
+    signIn,
+    signUp,
+    updateProfile,
+    verifyWallet,
+    unlinkWallet,
+    uploadProfileAsset,
+    linkProvider,
+    saveTelegramIdentity,
+    syncConnectedAccounts,
+    signOut,
+    reloadProfile,
+    clearError: () => setError(null),
+  };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

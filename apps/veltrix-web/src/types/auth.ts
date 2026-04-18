@@ -8,6 +8,8 @@ export type UserProfile = {
   faction: string;
   bio: string;
   wallet: string;
+  walletChain: string;
+  walletVerified: boolean;
   xp: number;
   level: number;
   streak: number;
@@ -38,7 +40,6 @@ export type ProfileUpdateInput = {
   title: string;
   faction: string;
   bio: string;
-  wallet: string;
 };
 
 export type ProfileAssetKind = "avatar" | "banner";

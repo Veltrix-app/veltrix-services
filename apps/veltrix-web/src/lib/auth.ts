@@ -5,6 +5,12 @@ export function mapProfile(row: Record<string, unknown>): UserProfile {
     typeof row.user_global_reputation === "object" && row.user_global_reputation
       ? (row.user_global_reputation as Record<string, unknown>)
       : {};
+  const primaryWalletLink =
+    typeof row.primary_wallet_link === "object" && row.primary_wallet_link
+      ? (row.primary_wallet_link as Record<string, unknown>)
+      : {};
+  const walletAddress =
+    String(primaryWalletLink.wallet_address ?? row.wallet ?? "");
 
   return {
     id: String(row.id ?? ""),
@@ -15,7 +21,9 @@ export function mapProfile(row: Record<string, unknown>): UserProfile {
     title: String(row.title ?? "Elite Raider"),
     faction: String(row.faction ?? "Unassigned"),
     bio: String(row.bio ?? "No bio set yet."),
-    wallet: String(row.wallet ?? ""),
+    wallet: walletAddress,
+    walletChain: String(primaryWalletLink.chain ?? "evm"),
+    walletVerified: Boolean(primaryWalletLink.verified ?? walletAddress),
     xp: Number(row.xp ?? 0),
     level: Number(row.level ?? 1),
     streak: Number(row.streak ?? 0),
