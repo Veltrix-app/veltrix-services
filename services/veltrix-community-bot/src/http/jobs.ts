@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { env } from "../config/env.js";
 import { runActiveXpDecayJob } from "../jobs/active-xp-decay.js";
+import { runCommunityAutomationsJob } from "../jobs/run-community-automations.js";
 import { runOnchainEnrichmentJob } from "../jobs/enrich-onchain-events.js";
 import { postCommunityLeaderboards } from "../jobs/post-community-leaderboards.js";
 import { refreshStakeStates } from "../jobs/refresh-stake-states.js";
@@ -273,6 +274,34 @@ jobsRouter.post("/sync-discord-commands", async (req, res) => {
     return res.status(500).json({
       ok: false,
       error: error instanceof Error ? error.message : "Discord command sync failed.",
+    });
+  }
+});
+
+jobsRouter.post("/run-community-automations", async (req, res) => {
+  if (!hasValidJobSecret(req.header("x-community-job-secret") ?? undefined)) {
+    return res.status(401).json({ ok: false, error: "Invalid job secret." });
+  }
+
+  const parsed = providerSyncSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    return res.status(400).json({
+      ok: false,
+      error: "Invalid Community OS automation payload.",
+      details: parsed.error.flatten(),
+    });
+  }
+
+  try {
+    const result = await runCommunityAutomationsJob({
+      projectId: parsed.data.projectId,
+      limit: parsed.data.limit,
+    });
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : "Community automation job failed.",
     });
   }
 });
