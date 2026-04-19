@@ -397,7 +397,10 @@ async function handleChatCommand(interaction: ChatInputCommandInteraction) {
   }
 }
 
-export async function syncDiscordGuildCommands(client: Client) {
+export async function syncDiscordGuildCommands(
+  client: Client,
+  filters?: { projectId?: string; integrationId?: string; guildId?: string }
+) {
   if (!client.application) {
     return {
       ok: true,
@@ -407,7 +410,7 @@ export async function syncDiscordGuildCommands(client: Client) {
     };
   }
 
-  const contexts = await loadDiscordIntegrationContexts();
+  const contexts = await loadDiscordIntegrationContexts(filters);
   const uniqueGuildContexts = new Map<string, Awaited<typeof contexts>[number]>();
   for (const context of contexts) {
     if (!uniqueGuildContexts.has(context.guildId)) {

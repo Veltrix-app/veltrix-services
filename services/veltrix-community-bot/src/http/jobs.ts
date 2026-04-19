@@ -9,6 +9,8 @@ import { retryPendingCommunityVerifications } from "../jobs/retry-community-veri
 import { retryOnchainIngressJob } from "../jobs/retry-onchain-ingress.js";
 import { syncDiscordRanks } from "../jobs/sync-discord-ranks.js";
 import { runOnchainProviderSyncJob } from "../jobs/sync-onchain-provider.js";
+import { getDiscordClient } from "../providers/discord/client.js";
+import { syncDiscordGuildCommands } from "../providers/discord/commands.js";
 
 export const jobsRouter = Router();
 
@@ -238,6 +240,39 @@ jobsRouter.post("/post-community-leaderboards", async (req, res) => {
     return res.status(500).json({
       ok: false,
       error: error instanceof Error ? error.message : "Community leaderboard post failed.",
+    });
+  }
+});
+
+jobsRouter.post("/sync-discord-commands", async (req, res) => {
+  if (!hasValidJobSecret(req.header("x-community-job-secret") ?? undefined)) {
+    return res.status(401).json({ ok: false, error: "Invalid job secret." });
+  }
+
+  const parsed = discordCommunitySchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    return res.status(400).json({
+      ok: false,
+      error: "Invalid Discord command sync payload.",
+      details: parsed.error.flatten(),
+    });
+  }
+
+  try {
+    const client = getDiscordClient();
+    if (!client || !client.isReady()) {
+      return res.status(503).json({
+        ok: false,
+        error: "Discord bot is not connected yet.",
+      });
+    }
+
+    const result = await syncDiscordGuildCommands(client, parsed.data);
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : "Discord command sync failed.",
     });
   }
 });
