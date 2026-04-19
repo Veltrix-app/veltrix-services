@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Copy, ShieldCheck, Signal, Trophy, UserRound, Wallet, Zap } from "lucide-react";
+import { CommunityStatusPanel } from "@/components/community/community-status-panel";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useCommunityJourney } from "@/hooks/use-community-journey";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 import type { ConnectedAccount } from "@/types/auth";
 
@@ -58,6 +60,13 @@ export function ProfileScreen() {
   const effectiveConnectedAccounts = connectedAccounts;
   const loadoutSyncing = connectedAccountsState === "syncing" || syncingLoadout;
   const [walletCopied, setWalletCopied] = useState(false);
+  const {
+    snapshot: communitySnapshot,
+    loading: communityLoading,
+    refreshing: communityRefreshing,
+    error: communityError,
+    advance: advanceCommunityJourney,
+  } = useCommunityJourney();
 
   const connectedCount = effectiveConnectedAccounts.filter(
     (account) => account.status === "connected"
@@ -510,6 +519,7 @@ export function ProfileScreen() {
             description="Fast jumps into the rest of the live consumer grid."
           >
             <div className="flex flex-wrap gap-3">
+              <QuickLink href="/community" label="Community home" />
               <QuickLink href="/notifications" label="Signal center" />
               <QuickLink href="/raids" label="Raid board" />
               <QuickLink href="/leaderboard" label="Leaderboard" />
@@ -637,6 +647,27 @@ export function ProfileScreen() {
             })}
           </div>
         )}
+      </Surface>
+
+      <Surface
+        eyebrow="Community Journey"
+        title="Member rail"
+        description="Your personal onboarding, comeback pressure and recognition state now live as a first-class webapp surface."
+      >
+        <CommunityStatusPanel
+          snapshot={communitySnapshot}
+          loading={communityLoading}
+          refreshing={communityRefreshing}
+          error={communityError}
+          onAdvance={advanceCommunityJourney}
+          mode="compact"
+          actionLimit={2}
+        />
+        <div className="mt-4 flex flex-wrap gap-3">
+          <QuickLink href="/community" label="Open Community Home" />
+          <QuickLink href="/community/onboarding" label="Onboarding rail" />
+          <QuickLink href="/community/comeback" label="Comeback rail" />
+        </div>
       </Surface>
 
       <Surface

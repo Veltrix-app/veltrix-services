@@ -134,3 +134,44 @@ export type LiveRewardDistribution = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type LiveCommunityJourneyTone = "default" | "positive" | "warning" | "danger";
+
+export type LiveCommunityJourneyAction = {
+  key: string;
+  label: string;
+  description: string;
+  route: string;
+  ctaLabel: string;
+  tone: LiveCommunityJourneyTone;
+  completed: boolean;
+  locked: boolean;
+};
+
+export type LiveCommunityJourneySnapshot = {
+  projectId: string;
+  projectName: string;
+  projectChain: string | null;
+  lane: "onboarding" | "active" | "comeback";
+  status: "active" | "paused" | "completed" | "archived";
+  currentStepKey: string;
+  lastEventType: string;
+  lastEventAt: string;
+  completedStepsCount: number;
+  nudgesSentCount: number;
+  milestonesUnlockedCount: number;
+  streakDays: number;
+  linkedProvidersCount: number;
+  walletVerified: boolean;
+  joinedProjectsCount: number;
+  unreadSignals: number;
+  openMissionCount: number;
+  claimableRewards: number;
+  recognitionLabel: string;
+  contributionStatus: string;
+  nextUnlockLabel: string;
+  headline: string;
+  supportingCopy: string;
+  nextBestAction: LiveCommunityJourneyAction | null;
+  actions: LiveCommunityJourneyAction[];
+};

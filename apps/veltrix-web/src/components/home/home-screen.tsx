@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { ArrowRight, Radar, Shield, Sparkles, Swords, Trophy } from "lucide-react";
+import { CommunityStatusPanel } from "@/components/community/community-status-panel";
 import { ArtworkImage } from "@/components/ui/artwork-image";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useCommunityJourney } from "@/hooks/use-community-journey";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 
 function getQuestTone(status: string) {
@@ -32,6 +34,13 @@ export function HomeScreen() {
   } = useLiveUserData({
     datasets: ["projects", "campaigns", "raids", "rewards", "quests", "notifications"],
   });
+  const {
+    snapshot: communitySnapshot,
+    loading: communityLoading,
+    refreshing: communityRefreshing,
+    error: communityError,
+    advance: advanceCommunityJourney,
+  } = useCommunityJourney();
 
   const featuredCampaign = campaigns[0] ?? null;
   const featuredProject = projects.find((project) => project.id === featuredCampaign?.projectId) ?? null;
@@ -171,6 +180,22 @@ export function HomeScreen() {
                 <Notice text="No live notifications yet." tone="default" compact />
               )}
             </div>
+          </Surface>
+
+          <Surface
+            eyebrow="Community Rail"
+            title="Your member journey"
+            description="The next community move now lives directly on Home instead of hiding behind side flows."
+          >
+            <CommunityStatusPanel
+              snapshot={communitySnapshot}
+              loading={communityLoading}
+              refreshing={communityRefreshing}
+              error={communityError}
+              onAdvance={advanceCommunityJourney}
+              mode="compact"
+              actionLimit={2}
+            />
           </Surface>
         </div>
       </section>

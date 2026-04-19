@@ -216,6 +216,41 @@ export function seedLiveUserConnectedAccounts(
   });
 }
 
+export function invalidateLiveUserDataCache(authUserId: string, datasets?: LiveUserDataDataset[]) {
+  const existing = liveUserDataCache.get(authUserId);
+  if (!existing) {
+    return;
+  }
+
+  if (!datasets || datasets.length === 0) {
+    liveUserDataCache.delete(authUserId);
+    return;
+  }
+
+  const nextLoadedDatasets = existing.loadedDatasets.filter(
+    (dataset) => !datasets.includes(dataset)
+  );
+
+  liveUserDataCache.set(authUserId, {
+    ...existing,
+    loadedDatasets: nextLoadedDatasets,
+  });
+}
+
+export function prependLiveUserNotification(
+  authUserId: string,
+  notification: LiveNotification
+) {
+  const existing = liveUserDataCache.get(authUserId) ?? createEmptyCacheEntry();
+  const nextNotifications = [notification, ...existing.notifications].slice(0, 24);
+
+  liveUserDataCache.set(authUserId, {
+    ...existing,
+    notifications: nextNotifications,
+    loadedDatasets: Array.from(new Set([...(existing.loadedDatasets ?? []), "notifications"])),
+  });
+}
+
 export function useLiveUserData(options?: UseLiveUserDataOptions) {
   const { authUserId, initialized, authConfigured, session, profile } = useAuth();
   const datasetKey = Array.isArray(options?.datasets)

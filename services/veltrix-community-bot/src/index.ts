@@ -1,6 +1,7 @@
 import express from "express";
 import { aespRouter } from "./http/aesp.js";
 import { env } from "./config/env.js";
+import { communityJourneysRouter } from "./http/community-journeys.js";
 import { communityOpsRouter } from "./http/community-ops.js";
 import { healthRouter } from "./http/health.js";
 import { jobsRouter } from "./http/jobs.js";
@@ -18,6 +19,7 @@ async function bootstrap() {
   app.use("/health", healthRouter);
   app.use("/jobs", jobsRouter);
   app.use("/community", communityOpsRouter);
+  app.use("/community/journeys", communityJourneysRouter);
   app.use("/webhooks", webhookRouter);
   app.use("/aesp", aespRouter);
 

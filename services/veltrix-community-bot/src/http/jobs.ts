@@ -5,6 +5,10 @@ import { runActiveXpDecayJob } from "../jobs/active-xp-decay.js";
 import { runCommunityAutomationsJob } from "../jobs/run-community-automations.js";
 import { runOnchainEnrichmentJob } from "../jobs/enrich-onchain-events.js";
 import { postCommunityLeaderboards } from "../jobs/post-community-leaderboards.js";
+import {
+  runRefreshCommunityCaptainQueueJob,
+  runRefreshCommunityStatusSnapshotsJob,
+} from "../jobs/refresh-community-status-snapshots.js";
 import { refreshStakeStates } from "../jobs/refresh-stake-states.js";
 import { retryPendingCommunityVerifications } from "../jobs/retry-community-verifications.js";
 import { retryOnchainIngressJob } from "../jobs/retry-onchain-ingress.js";
@@ -302,6 +306,62 @@ jobsRouter.post("/run-community-automations", async (req, res) => {
     return res.status(500).json({
       ok: false,
       error: error instanceof Error ? error.message : "Community automation job failed.",
+    });
+  }
+});
+
+jobsRouter.post("/refresh-community-status-snapshots", async (req, res) => {
+  if (!hasValidJobSecret(req.header("x-community-job-secret") ?? undefined)) {
+    return res.status(401).json({ ok: false, error: "Invalid job secret." });
+  }
+
+  const parsed = providerSyncSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    return res.status(400).json({
+      ok: false,
+      error: "Invalid community status refresh payload.",
+      details: parsed.error.flatten(),
+    });
+  }
+
+  try {
+    const result = await runRefreshCommunityStatusSnapshotsJob({
+      projectId: parsed.data.projectId,
+      limit: parsed.data.limit,
+    });
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : "Community status refresh failed.",
+    });
+  }
+});
+
+jobsRouter.post("/refresh-community-captain-queue", async (req, res) => {
+  if (!hasValidJobSecret(req.header("x-community-job-secret") ?? undefined)) {
+    return res.status(401).json({ ok: false, error: "Invalid job secret." });
+  }
+
+  const parsed = providerSyncSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    return res.status(400).json({
+      ok: false,
+      error: "Invalid captain queue refresh payload.",
+      details: parsed.error.flatten(),
+    });
+  }
+
+  try {
+    const result = await runRefreshCommunityCaptainQueueJob({
+      projectId: parsed.data.projectId,
+      limit: parsed.data.limit,
+    });
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : "Captain queue refresh failed.",
     });
   }
 });

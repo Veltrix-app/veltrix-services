@@ -11,6 +11,15 @@ import {
   isCommunityAutomationDue,
 } from "./model.js";
 import { maybeRecordCaptainAutomationAction } from "./captains.js";
+import {
+  recordCommunityJourneyNudge,
+  refreshProjectCommunityJourneys,
+} from "./journeys.js";
+import { refreshProjectCommunityCaptainQueue } from "./captain-queue.js";
+import {
+  buildCommunityJourneyDeepLinks,
+  resolveCommunityAutomationDeepLink,
+} from "./automation-links.js";
 
 type CommunityProvider = "discord" | "telegram";
 type ProviderScope = "discord" | "telegram" | "both";
@@ -136,12 +145,57 @@ function getDefaultCommunityArtwork(kind: "campaign" | "quest" | "raid") {
   return `${appUrl}/community-push/defaults/${kind}.png`;
 }
 
-function buildProjectAppUrl(project: { id: string; slug: string | null }) {
-  return `${appUrl}/projects/${project.slug?.trim() || project.id}`;
-}
+async function dispatchJourneyNudgesForLane(params: {
+  projectId: string;
+  lane: "onboarding" | "active" | "comeback";
+  automationType: CommunityAutomationType;
+  limit?: number;
+}) {
+  const refreshed = await refreshProjectCommunityJourneys({
+    projectId: params.projectId,
+    limit: Math.max((params.limit ?? 18) * 3, 36),
+  });
+  const candidates = refreshed.prompts
+    .filter((candidate) => candidate.lane === params.lane)
+    .slice(0, params.limit ?? 18);
+  const deepLink = resolveCommunityAutomationDeepLink({
+    projectId: params.projectId,
+    automationType: params.automationType,
+  });
+  const cooldownHours =
+    params.lane === "comeback" ? 48 : params.lane === "onboarding" ? 36 : 24;
 
-function buildCommunityEntityUrl(kind: "campaigns" | "quests" | "rewards" | "raids", id: string) {
-  return `${appUrl}/${kind}/${id}`;
+  let sentCount = 0;
+  let skippedCount = 0;
+
+  for (const prompt of candidates) {
+    const nudge = await recordCommunityJourneyNudge({
+      projectId: params.projectId,
+      authUserId: prompt.authUserId,
+      lane: params.lane,
+      automationType: params.automationType,
+      cooldownHours,
+      metadata: {
+        targetUrl: deepLink,
+        projectName: prompt.projectName,
+        lane: params.lane,
+      },
+    });
+
+    if (nudge.sent) {
+      sentCount += 1;
+    } else {
+      skippedCount += 1;
+    }
+  }
+
+  return {
+    candidateCount: refreshed.prompts.filter((candidate) => candidate.lane === params.lane).length,
+    attemptedCount: candidates.length,
+    sentCount,
+    skippedCount,
+    deepLink,
+  };
 }
 
 async function loadProjectCommunityTargets(projectId: string, providerScope: ProviderScope) {
@@ -724,6 +778,10 @@ async function loadAutomationRow(params: { projectId: string; automationId?: str
 
 async function runMissionDigest(projectId: string, providerScope: ProviderScope) {
   const state = await loadProjectCommunityState(projectId);
+  const deepLink = resolveCommunityAutomationDeepLink({
+    projectId,
+    automationType: "mission_digest",
+  });
   const deliveries = await dispatchProjectCommunityMessage({
     projectId,
     providerScope,
@@ -750,8 +808,8 @@ async function runMissionDigest(projectId: string, providerScope: ProviderScope)
       { label: "Quests", value: String(state.quests.length) },
       { label: "Rewards", value: String(state.rewards.length) },
     ],
-    url: buildProjectAppUrl(state.project),
-    buttonLabel: "Open project rail",
+    url: deepLink,
+    buttonLabel: "Open community home",
   });
 
   await updateCommunityMetadata(projectId, {
@@ -765,17 +823,27 @@ async function runMissionDigest(projectId: string, providerScope: ProviderScope)
     sourceId: projectId,
     action: "community_mission_digest_posted",
     summary: `Posted mission digest for ${state.project.name}.`,
-    metadata: { deliveries, providerScope },
+    metadata: { deliveries, providerScope, deepLink },
   });
 
   return {
     deliveries,
-    summary: deliveries > 0 ? `Mission digest delivered to ${deliveries} target(s).` : "Mission digest skipped because no targets were configured.",
+    summary:
+      deliveries > 0
+        ? `Mission digest delivered to ${deliveries} target(s).`
+        : "Mission digest skipped because no targets were configured.",
+    metadata: {
+      deepLink,
+    },
   };
 }
 
 async function runRaidReminder(projectId: string, providerScope: ProviderScope) {
   const state = await loadProjectCommunityState(projectId);
+  const deepLink = resolveCommunityAutomationDeepLink({
+    projectId,
+    automationType: "raid_reminder",
+  });
   const raid = state.raids[0] ?? null;
   if (!raid) {
     return {
@@ -802,8 +870,8 @@ async function runRaidReminder(projectId: string, providerScope: ProviderScope) 
       { label: "Raid XP", value: `+${raid.reward_xp ?? 0} XP` },
       { label: "Mode", value: "Reminder wave" },
     ],
-    url: buildCommunityEntityUrl("raids", raid.id),
-    buttonLabel: "Open raid",
+    url: deepLink,
+    buttonLabel: "Open community home",
   });
 
   await updateCommunityMetadata(projectId, {
@@ -817,18 +885,26 @@ async function runRaidReminder(projectId: string, providerScope: ProviderScope) 
     sourceId: raid.id,
     action: "community_raid_reminder_posted",
     summary: `Posted raid reminder for ${raid.title}.`,
-    metadata: { deliveries, providerScope },
+    metadata: { deliveries, providerScope, raidId: raid.id, deepLink },
   });
 
   return {
     deliveries,
-    summary: deliveries > 0 ? `Raid reminder delivered to ${deliveries} target(s).` : "Raid reminder skipped because no targets were configured.",
+    summary:
+      deliveries > 0
+        ? `Raid reminder delivered to ${deliveries} target(s).`
+        : "Raid reminder skipped because no targets were configured.",
+    metadata: {
+      raidId: raid.id,
+      deepLink,
+    },
   };
 }
 
 async function runNewcomerPulse(projectId: string, providerScope: ProviderScope) {
   const state = await loadProjectCommunityState(projectId);
   const summary = await loadContributorSegmentSummary(projectId);
+  const journeyLinks = buildCommunityJourneyDeepLinks(projectId, "onboarding");
   if (summary.newcomers === 0) {
     return {
       deliveries: 0,
@@ -857,9 +933,17 @@ async function runNewcomerPulse(projectId: string, providerScope: ProviderScope)
       { label: "Command ready", value: String(summary.commandReady) },
       { label: "Watchlist", value: String(summary.watchlist) },
     ],
-    url: buildProjectAppUrl(state.project),
-    buttonLabel: "Open starter lane",
+    url: journeyLinks.onboardingUrl,
+    buttonLabel: "Open onboarding rail",
   });
+  const nudgeSummary =
+    deliveries > 0
+      ? await dispatchJourneyNudgesForLane({
+          projectId,
+          lane: "onboarding",
+          automationType: "newcomer_pulse",
+        })
+      : null;
 
   await updateCommunityMetadata(projectId, {
     lastNewcomerPushAt: new Date().toISOString(),
@@ -872,18 +956,33 @@ async function runNewcomerPulse(projectId: string, providerScope: ProviderScope)
     sourceId: projectId,
     action: "community_newcomer_wave_posted",
     summary: `Posted newcomer starter lane for ${state.project.name}.`,
-    metadata: { deliveries, providerScope, newcomers: summary.newcomers },
+    metadata: {
+      deliveries,
+      providerScope,
+      newcomers: summary.newcomers,
+      nudgeSummary,
+      deepLink: journeyLinks.onboardingUrl,
+    },
   });
 
   return {
     deliveries,
-    summary: deliveries > 0 ? `Newcomer wave delivered to ${deliveries} target(s).` : "Newcomer wave skipped because no targets were configured.",
+    summary:
+      deliveries > 0
+        ? `Newcomer wave delivered to ${deliveries} target(s).`
+        : "Newcomer wave skipped because no targets were configured.",
+    metadata: {
+      newcomerCount: summary.newcomers,
+      nudgeSummary,
+      deepLink: journeyLinks.onboardingUrl,
+    },
   };
 }
 
 async function runReactivationPulse(projectId: string, providerScope: ProviderScope) {
   const state = await loadProjectCommunityState(projectId);
   const summary = await loadContributorSegmentSummary(projectId);
+  const journeyLinks = buildCommunityJourneyDeepLinks(projectId, "comeback");
   if (summary.reactivation === 0) {
     return {
       deliveries: 0,
@@ -912,9 +1011,17 @@ async function runReactivationPulse(projectId: string, providerScope: ProviderSc
       { label: "Core", value: String(summary.core) },
       { label: "Watchlist", value: String(summary.watchlist) },
     ],
-    url: buildProjectAppUrl(state.project),
+    url: journeyLinks.comebackUrl,
     buttonLabel: "Open comeback rail",
   });
+  const nudgeSummary =
+    deliveries > 0
+      ? await dispatchJourneyNudgesForLane({
+          projectId,
+          lane: "comeback",
+          automationType: "reactivation_pulse",
+        })
+      : null;
 
   await updateCommunityMetadata(projectId, {
     lastReactivationPushAt: new Date().toISOString(),
@@ -927,18 +1034,36 @@ async function runReactivationPulse(projectId: string, providerScope: ProviderSc
     sourceId: projectId,
     action: "community_reactivation_wave_posted",
     summary: `Posted comeback wave for ${state.project.name}.`,
-    metadata: { deliveries, providerScope, reactivation: summary.reactivation },
+    metadata: {
+      deliveries,
+      providerScope,
+      reactivation: summary.reactivation,
+      nudgeSummary,
+      deepLink: journeyLinks.comebackUrl,
+    },
   });
 
   return {
     deliveries,
-    summary: deliveries > 0 ? `Comeback wave delivered to ${deliveries} target(s).` : "Comeback wave skipped because no targets were configured.",
+    summary:
+      deliveries > 0
+        ? `Comeback wave delivered to ${deliveries} target(s).`
+        : "Comeback wave skipped because no targets were configured.",
+    metadata: {
+      reactivationCount: summary.reactivation,
+      nudgeSummary,
+      deepLink: journeyLinks.comebackUrl,
+    },
   };
 }
 
 async function runActivationBoard(projectId: string, providerScope: ProviderScope) {
   const state = await loadProjectCommunityState(projectId);
   const board = await loadActivationBoardCandidate(projectId);
+  const deepLink = resolveCommunityAutomationDeepLink({
+    projectId,
+    automationType: "activation_board",
+  });
 
   if (!board) {
     return {
@@ -968,8 +1093,8 @@ async function runActivationBoard(projectId: string, providerScope: ProviderScop
       { label: "Reactivation", value: String(board.reactivationCandidates) },
       { label: "Lane", value: board.recommendedLane },
     ],
-    url: buildCommunityEntityUrl("campaigns", board.campaignId),
-    buttonLabel: "Open activation board",
+    url: deepLink,
+    buttonLabel: "Open community home",
   });
 
   await updateCommunityMetadata(projectId, {
@@ -983,12 +1108,19 @@ async function runActivationBoard(projectId: string, providerScope: ProviderScop
     sourceId: board.campaignId,
     action: "community_activation_board_posted",
     summary: `Posted activation board for ${board.title}.`,
-    metadata: { deliveries, providerScope, board },
+    metadata: { deliveries, providerScope, board, deepLink },
   });
 
   return {
     deliveries,
-    summary: deliveries > 0 ? `Activation board delivered to ${deliveries} target(s).` : "Activation board skipped because no targets were configured.",
+    summary:
+      deliveries > 0
+        ? `Activation board delivered to ${deliveries} target(s).`
+        : "Activation board skipped because no targets were configured.",
+    metadata: {
+      board,
+      deepLink,
+    },
   };
 }
 
@@ -1096,12 +1228,20 @@ export async function runCommunityAutomation(params: {
       providerScope,
     });
     const summary = result.summary;
+    const queueRefresh = await refreshProjectCommunityCaptainQueue(params.projectId).catch((error) => ({
+      ok: false,
+      error: error instanceof Error ? error.message : "Captain queue refresh failed.",
+    }));
 
     await finishAutomationRun({
       runId,
       status: "success",
       summary,
-      metadata: result.metadata ?? { deliveries: result.deliveries ?? 0 },
+      metadata: {
+        ...(result.metadata ?? {}),
+        deliveries: result.deliveries ?? 0,
+        queueRefresh,
+      },
     });
     await updateAutomationRow(automationRow.id, {
       cadence,
@@ -1116,7 +1256,11 @@ export async function runCommunityAutomation(params: {
       targetId: automationRow.id,
       status: "success",
       summary,
-      metadata: result.metadata ?? { deliveries: result.deliveries ?? 0 },
+      metadata: {
+        ...(result.metadata ?? {}),
+        deliveries: result.deliveries ?? 0,
+        queueRefresh,
+      },
     });
 
     return {
@@ -1127,15 +1271,26 @@ export async function runCommunityAutomation(params: {
       triggerSource: params.triggerSource,
       summary,
       deliveries: result.deliveries ?? 0,
-      metadata: result.metadata ?? {},
+      metadata: {
+        ...(result.metadata ?? {}),
+        queueRefresh,
+      },
     } satisfies CommunityAutomationRunResult;
   } catch (error) {
     const summary =
       error instanceof Error ? error.message : "Community automation execution failed.";
+    const queueRefresh = await refreshProjectCommunityCaptainQueue(params.projectId).catch((queueError) => ({
+      ok: false,
+      error:
+        queueError instanceof Error ? queueError.message : "Captain queue refresh failed.",
+    }));
     await finishAutomationRun({
       runId,
       status: "failed",
       summary,
+      metadata: {
+        queueRefresh,
+      },
     });
     await updateAutomationRow(automationRow.id, {
       cadence,
@@ -1150,6 +1305,9 @@ export async function runCommunityAutomation(params: {
       targetId: automationRow.id,
       status: "failed",
       summary,
+      metadata: {
+        queueRefresh,
+      },
     });
     throw error;
   }

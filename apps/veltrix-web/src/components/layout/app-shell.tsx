@@ -7,6 +7,7 @@ import {
   Compass,
   Gem,
   Home,
+  Radar,
   Search,
   Swords,
   Layers3,
@@ -19,6 +20,7 @@ import { useAuth } from "@/components/providers/auth-provider";
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
+  { href: "/community", label: "Community", icon: Radar },
   { href: "/projects", label: "Projects", icon: Compass },
   { href: "/campaigns", label: "Campaigns", icon: Layers3 },
   { href: "/raids", label: "Raids", icon: Swords },
@@ -30,7 +32,7 @@ const navItems = [
 ];
 
 function isActivePath(pathname: string, href: string) {
-  return href === "/" ? pathname === "/" : pathname.startsWith(href);
+  return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 }
 
 function shortenWallet(address?: string | null) {

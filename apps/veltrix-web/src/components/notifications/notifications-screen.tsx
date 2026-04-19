@@ -3,19 +3,38 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { BellRing, Radar, ShieldAlert, Sparkles } from "lucide-react";
+import { CommunityStatusPanel } from "@/components/community/community-status-panel";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
+import { useCommunityJourney } from "@/hooks/use-community-journey";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
+
+function getSignalHref(type: string) {
+  if (type === "community") {
+    return "/community";
+  }
+
+  return null;
+}
 
 export function NotificationsScreen() {
   const { notifications, loading, error, markNotificationsRead } = useLiveUserData({
     datasets: ["notifications"],
   });
+  const {
+    snapshot: communitySnapshot,
+    loading: communityLoading,
+    refreshing: communityRefreshing,
+    error: communityError,
+    advance: advanceCommunityJourney,
+  } = useCommunityJourney();
   const unreadItems = notifications.filter((item) => !item.read).length;
   const questUpdates = notifications.filter((item) => item.type === "quest").length;
   const rewardUpdates = notifications.filter((item) => item.type === "reward").length;
   const raidUpdates = notifications.filter((item) => item.type === "raid").length;
+  const communityUpdates = notifications.filter((item) => item.type === "community").length;
   const [featuredSignal, ...signalQueue] = notifications;
+  const featuredSignalHref = featuredSignal ? getSignalHref(featuredSignal.type) : null;
 
   useEffect(() => {
     void markNotificationsRead();
@@ -68,10 +87,10 @@ export function NotificationsScreen() {
 
                   <div className="flex flex-wrap gap-3">
                     <Link
-                      href="/raids"
+                      href={featuredSignalHref ?? "/raids"}
                       className="inline-flex items-center gap-2 rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
                     >
-                      Open raid board
+                      {featuredSignal?.type === "community" ? "Open Community Home" : "Open raid board"}
                     </Link>
                     <Link
                       href="/profile"
@@ -104,7 +123,7 @@ export function NotificationsScreen() {
               <div className="grid gap-4 sm:grid-cols-3">
                 <QuickRead label="Unread now" value={String(unreadItems)} />
                 <QuickRead label="Quest updates" value={String(questUpdates)} />
-                <QuickRead label="Reward drops" value={String(rewardUpdates)} />
+                <QuickRead label="Community nudges" value={String(communityUpdates)} />
               </div>
             </div>
           ) : (
@@ -133,11 +152,28 @@ export function NotificationsScreen() {
           </Surface>
 
           <Surface
+            eyebrow="Community Follow-through"
+            title="Journey after the signal"
+            description="Community signals should route straight into the member journey instead of dying inside the feed."
+          >
+            <CommunityStatusPanel
+              snapshot={communitySnapshot}
+              loading={communityLoading}
+              refreshing={communityRefreshing}
+              error={communityError}
+              onAdvance={advanceCommunityJourney}
+              mode="compact"
+              actionLimit={2}
+            />
+          </Surface>
+
+          <Surface
             eyebrow="Next Surfaces"
             title="Fast jumps"
             description="Quick routes back into the rest of the live grid."
           >
             <div className="flex flex-wrap gap-3">
+              <QuickLink href="/community" label="Community home" />
               <QuickLink href="/raids" label="Raid board" />
               <QuickLink href="/leaderboard" label="Leaderboard" />
               <QuickLink href="/profile" label="Pilot profile" />
@@ -172,6 +208,14 @@ export function NotificationsScreen() {
                     </div>
                     <p className="mt-4 text-2xl font-black text-white">{item.title}</p>
                     <p className="mt-3 text-sm leading-7 text-slate-300">{item.body}</p>
+                    {getSignalHref(item.type) ? (
+                      <Link
+                        href={getSignalHref(item.type)!}
+                        className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-cyan-100 underline underline-offset-4"
+                      >
+                        Open community follow-through
+                      </Link>
+                    ) : null}
                   </div>
                   <StatusChip label={item.read ? "Read" : "New"} tone={item.read ? "default" : "info"} />
                 </div>
