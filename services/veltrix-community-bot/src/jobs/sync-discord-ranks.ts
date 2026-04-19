@@ -8,6 +8,7 @@ import {
   type DiscordIntegrationContext,
   type DiscordRankRule,
 } from "../providers/discord/community.js";
+import { doesDiscordRankRuleMatch } from "../providers/discord/ranks.js";
 import { supabaseAdmin } from "../lib/supabase.js";
 
 type SyncDiscordRanksOptions = {
@@ -33,30 +34,6 @@ function chunkArray<T>(values: T[], size: number) {
     chunks.push(values.slice(index, index + size));
   }
   return chunks;
-}
-
-function computeRuleMatch(
-  rule: DiscordRankRule,
-  snapshot: {
-    globalXp: number;
-    projectXp: number;
-    trust: number;
-    walletVerified: boolean;
-  }
-) {
-  if (rule.sourceType === "global_xp") {
-    return snapshot.globalXp >= rule.threshold;
-  }
-
-  if (rule.sourceType === "trust") {
-    return snapshot.trust >= rule.threshold;
-  }
-
-  if (rule.sourceType === "wallet_verified") {
-    return snapshot.walletVerified;
-  }
-
-  return snapshot.projectXp >= rule.threshold;
 }
 
 async function loadRankSourceMaps(
@@ -219,7 +196,7 @@ async function syncIntegrationRanks(context: DiscordIntegrationContext) {
 
     const desiredRoleIds = new Set(
       context.rankRules
-        .filter((rule) => computeRuleMatch(rule, snapshot))
+        .filter((rule) => doesDiscordRankRuleMatch(snapshot, rule))
         .map((rule) => rule.discordRoleId)
     );
     const currentManagedRoleIds = managedRoleIds.filter((roleId) => member.roles.cache.has(roleId));

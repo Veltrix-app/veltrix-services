@@ -14,11 +14,17 @@ import {
   loadDiscordIntegrationContextByGuildId,
   loadDiscordIntegrationContexts,
   loadDiscordLeaderboard,
+  type DiscordIdentitySnapshot,
   type DiscordLeaderboardPeriod,
   type DiscordLeaderboardScope,
   type DiscordRankRule,
-  type DiscordIdentitySnapshot,
 } from "./community.js";
+import {
+  findNextDiscordRankRule,
+  formatDiscordRankSourceLabel,
+  getMatchedDiscordRankRules,
+  sortDiscordRankRulesForDisplay,
+} from "./ranks.js";
 
 const appUrl = (process.env.PUBLIC_APP_URL || "https://veltrix-web.vercel.app").replace(
   /\/+$/,
@@ -29,22 +35,68 @@ function formatMetricLabel(label: string, value: string) {
   return `${label}: ${value}`;
 }
 
-function computeRuleMatches(snapshot: DiscordIdentitySnapshot, rules: DiscordRankRule[]) {
-  return rules.filter((rule) => {
-    if (rule.sourceType === "global_xp") {
-      return snapshot.globalXp >= rule.threshold;
-    }
+function buildRankSnapshot(snapshot: DiscordIdentitySnapshot) {
+  return {
+    globalXp: snapshot.globalXp,
+    projectXp: snapshot.projectXp,
+    globalTrust: snapshot.globalTrust,
+    walletVerified: snapshot.walletVerified,
+  };
+}
 
-    if (rule.sourceType === "trust") {
-      return snapshot.globalTrust >= rule.threshold;
-    }
+function formatRankList(rules: DiscordRankRule[]) {
+  if (rules.length === 0) {
+    return "No live community ranks yet.";
+  }
 
-    if (rule.sourceType === "wallet_verified") {
-      return snapshot.walletVerified;
-    }
+  return rules
+    .map((rule) => `**${rule.label}** (${formatDiscordRankSourceLabel(rule.sourceType)})`)
+    .join("\n");
+}
 
-    return snapshot.projectXp >= rule.threshold;
-  });
+function formatNextUnlockLine(
+  snapshot: DiscordIdentitySnapshot,
+  rules: DiscordRankRule[],
+  preferredSource: DiscordRankRule["sourceType"]
+) {
+  const rankSnapshot = buildRankSnapshot(snapshot);
+  const preferredNextRule = findNextDiscordRankRule(rankSnapshot, rules, preferredSource);
+  const nextRule = preferredNextRule ?? findNextDiscordRankRule(rankSnapshot, rules);
+
+  if (!nextRule) {
+    return "You have already cleared every configured community rank.";
+  }
+
+  if (nextRule.rule.sourceType === "wallet_verified") {
+    return `${nextRule.rule.label} on ${formatDiscordRankSourceLabel(nextRule.rule.sourceType)} is your next unlock.`;
+  }
+
+  return `${nextRule.rule.label} on ${formatDiscordRankSourceLabel(nextRule.rule.sourceType)} in ${nextRule.gap} more points.`;
+}
+
+function formatRankRuleStatus(snapshot: DiscordIdentitySnapshot, rule: DiscordRankRule) {
+  const rankSnapshot = buildRankSnapshot(snapshot);
+  const currentValue =
+    rule.sourceType === "global_xp"
+      ? rankSnapshot.globalXp
+      : rule.sourceType === "trust"
+        ? rankSnapshot.globalTrust ?? 50
+        : rule.sourceType === "wallet_verified"
+          ? rankSnapshot.walletVerified
+            ? 1
+            : 0
+          : rankSnapshot.projectXp;
+  const target = rule.sourceType === "wallet_verified" ? Math.max(1, rule.threshold) : rule.threshold;
+  const matched = currentValue >= target;
+  const currentLabel =
+    rule.sourceType === "wallet_verified"
+      ? rankSnapshot.walletVerified
+        ? "verified"
+        : "missing"
+      : `${currentValue}/${target}`;
+  const gapLabel = matched || rule.sourceType === "wallet_verified" ? "" : ` | ${target - currentValue} to go`;
+
+  return `${matched ? "[LIVE]" : "[LOCKED]"} ${rule.label} - ${formatDiscordRankSourceLabel(rule.sourceType)} (${currentLabel}${gapLabel})`;
 }
 
 function formatLeaderboardLines(entries: Awaited<ReturnType<typeof loadDiscordLeaderboard>>) {
@@ -162,7 +214,7 @@ async function handleProfileCommand(interaction: ChatInputCommandInteraction) {
     return;
   }
 
-  const matchedRules = computeRuleMatches(snapshot, context.rankRules);
+  const matchedRules = getMatchedDiscordRankRules(buildRankSnapshot(snapshot), context.rankRules);
   const embed = new EmbedBuilder()
     .setColor(0xc6ff2e)
     .setTitle(`${snapshot.profileUsername} loadout`)
@@ -193,11 +245,26 @@ async function handleProfileCommand(interaction: ChatInputCommandInteraction) {
         value: [
           formatMetricLabel("Wallet", snapshot.walletVerified ? "Verified" : "Missing"),
           formatMetricLabel("Discord", snapshot.discordUsername),
+          formatMetricLabel("Ranks", matchedRules.length > 0 ? String(matchedRules.length) : "0"),
+        ].join("\n"),
+        inline: false,
+      },
+      {
+        name: "Community rail",
+        value: [
           formatMetricLabel(
-            "Ranks",
+            "Active",
             matchedRules.length > 0
               ? matchedRules.map((rule) => rule.label).join(", ")
-              : "No app ranks matched yet"
+              : "No live roles yet"
+          ),
+          formatMetricLabel(
+            "Next unlock",
+            formatNextUnlockLine(snapshot, context.rankRules, context.settings.rankSource)
+          ),
+          formatMetricLabel(
+            "Mission record",
+            `${snapshot.projectQuestsCompleted} quests | ${snapshot.projectRaidsCompleted} raids`
           ),
         ].join("\n"),
         inline: false,
@@ -252,26 +319,17 @@ async function handleRankCommand(interaction: ChatInputCommandInteraction) {
     return;
   }
 
-  const matchedRules = computeRuleMatches(snapshot, context.rankRules);
+  const matchedRules = getMatchedDiscordRankRules(buildRankSnapshot(snapshot), context.rankRules);
+  const sortedRules = sortDiscordRankRulesForDisplay(context.rankRules);
   const ruleLines =
-    context.rankRules.length > 0
-      ? context.rankRules
-          .map((rule) => {
-            const value =
-              rule.sourceType === "global_xp"
-                ? snapshot.globalXp
-                : rule.sourceType === "trust"
-                  ? snapshot.globalTrust
-                  : rule.sourceType === "wallet_verified"
-                    ? snapshot.walletVerified
-                      ? 1
-                      : 0
-                    : snapshot.projectXp;
-            const matched = matchedRules.some((match) => match.id === rule.id);
-            return `${matched ? "✅" : "•"} ${rule.label} — ${rule.sourceType} >= ${rule.threshold} (current ${value})`;
-          })
-          .join("\n")
+    sortedRules.length > 0
+      ? sortedRules.map((rule) => formatRankRuleStatus(snapshot, rule)).join("\n")
       : "No Discord rank rules are configured for this server yet.";
+  const nextUnlockLine = formatNextUnlockLine(
+    snapshot,
+    context.rankRules,
+    context.settings.rankSource
+  );
 
   const embed = new EmbedBuilder()
     .setColor(0xc6ff2e)
@@ -291,7 +349,17 @@ async function handleRankCommand(interaction: ChatInputCommandInteraction) {
         inline: false,
       },
       {
-        name: "Role matches",
+        name: "Active community ranks",
+        value: formatRankList(matchedRules),
+        inline: false,
+      },
+      {
+        name: "Next unlock",
+        value: nextUnlockLine,
+        inline: false,
+      },
+      {
+        name: "Rank ladder",
         value: ruleLines,
         inline: false,
       }
@@ -393,7 +461,6 @@ async function handleChatCommand(interaction: ChatInputCommandInteraction) {
 
   if (interaction.commandName === "leaderboard") {
     await handleLeaderboardCommand(interaction);
-    return;
   }
 }
 
