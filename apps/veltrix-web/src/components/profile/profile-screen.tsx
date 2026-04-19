@@ -36,7 +36,16 @@ export function ProfileScreen() {
     rewardDistributions,
     claimableDistributionCount,
     reload,
-  } = useLiveUserData();
+  } = useLiveUserData({
+    datasets: [
+      "notifications",
+      "campaigns",
+      "projectReputation",
+      "quests",
+      "xpStakes",
+      "rewardDistributions",
+    ],
+  });
   const [telegramUserId, setTelegramUserId] = useState("");
   const [telegramUsername, setTelegramUsername] = useState("");
   const [activeProvider, setActiveProvider] = useState<ConnectedAccount["provider"] | null>(null);

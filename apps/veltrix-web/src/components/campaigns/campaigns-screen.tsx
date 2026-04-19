@@ -11,7 +11,9 @@ import { useLiveUserData } from "@/hooks/use-live-user-data";
 type CampaignFilter = "all" | "featured" | "high-xp";
 
 export function CampaignsScreen() {
-  const { loading, error, campaigns, projects, quests } = useLiveUserData();
+  const { loading, error, campaigns, projects, quests } = useLiveUserData({
+    datasets: ["campaigns", "projects", "quests"],
+  });
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<CampaignFilter>("all");
 

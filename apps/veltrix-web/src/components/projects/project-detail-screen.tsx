@@ -10,7 +10,9 @@ import { useLiveUserData } from "@/hooks/use-live-user-data";
 export function ProjectDetailScreen() {
   const params = useParams<{ id: string }>();
   const projectId = Array.isArray(params.id) ? params.id[0] : params.id;
-  const { loading, error, projects, campaigns, rewards, projectReputation } = useLiveUserData();
+  const { loading, error, projects, campaigns, rewards, projectReputation } = useLiveUserData({
+    datasets: ["projects", "campaigns", "rewards", "projectReputation"],
+  });
 
   const project = projects.find((item) => item.id === projectId);
   const projectCampaigns = campaigns.filter((item) => item.projectId === projectId);

@@ -24,7 +24,16 @@ export function CampaignDetailScreen() {
     xpStakes,
     rewardDistributions,
     reload,
-  } = useLiveUserData();
+  } = useLiveUserData({
+    datasets: [
+      "campaigns",
+      "projects",
+      "quests",
+      "rewards",
+      "xpStakes",
+      "rewardDistributions",
+    ],
+  });
   const [stakeAmount, setStakeAmount] = useState("");
   const [stakeBusy, setStakeBusy] = useState(false);
   const [stakeMessage, setStakeMessage] = useState<{

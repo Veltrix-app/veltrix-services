@@ -13,7 +13,9 @@ export function RewardDetailScreen() {
   const params = useParams<{ id: string }>();
   const rewardId = Array.isArray(params.id) ? params.id[0] : params.id;
   const { session } = useAuth();
-  const { loading, error, rewards, campaigns, projects, claimReward, reload } = useLiveUserData();
+  const { loading, error, rewards, campaigns, projects, claimReward, reload } = useLiveUserData({
+    datasets: ["rewards", "campaigns", "projects"],
+  });
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ tone: "default" | "error" | "success"; text: string } | null>(
     null

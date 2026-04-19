@@ -6,7 +6,9 @@ import { StatusChip } from "@/components/ui/status-chip";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 
 export function LeaderboardScreen() {
-  const { leaderboard, loading, error } = useLiveUserData();
+  const { leaderboard, loading, error } = useLiveUserData({
+    datasets: ["leaderboard"],
+  });
   const [featuredPilot, ...rankingQueue] = leaderboard;
 
   return (

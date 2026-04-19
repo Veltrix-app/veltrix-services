@@ -8,7 +8,9 @@ import { StatusChip } from "@/components/ui/status-chip";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 
 export function NotificationsScreen() {
-  const { notifications, loading, error, markNotificationsRead } = useLiveUserData();
+  const { notifications, loading, error, markNotificationsRead } = useLiveUserData({
+    datasets: ["notifications"],
+  });
   const unreadItems = notifications.filter((item) => !item.read).length;
   const questUpdates = notifications.filter((item) => item.type === "quest").length;
   const rewardUpdates = notifications.filter((item) => item.type === "reward").length;

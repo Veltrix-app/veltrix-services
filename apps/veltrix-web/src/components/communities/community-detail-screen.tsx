@@ -20,7 +20,16 @@ export function CommunityDetailScreen() {
     projectReputation,
     joinedCommunityIds,
     joinCommunity,
-  } = useLiveUserData();
+  } = useLiveUserData({
+    datasets: [
+      "projects",
+      "campaigns",
+      "rewards",
+      "leaderboard",
+      "projectReputation",
+      "joinedCommunityIds",
+    ],
+  });
   const [busy, setBusy] = useState(false);
 
   const community = projects.find((item) => item.id === communityId);

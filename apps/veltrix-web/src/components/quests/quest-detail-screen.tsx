@@ -178,7 +178,9 @@ export function QuestDetailScreen() {
     connectedAccountsState,
     reloadProfile,
   } = useQuestAuth();
-  const { loading, error, quests, campaigns, rewards, projects, reload } = useLiveUserData();
+  const { loading, error, quests, campaigns, rewards, projects, reload } = useLiveUserData({
+    datasets: ["quests", "campaigns", "rewards", "projects"],
+  });
   const [proof, setProof] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ tone: "default" | "error" | "success"; text: string } | null>(

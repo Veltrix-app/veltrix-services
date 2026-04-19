@@ -19,7 +19,9 @@ export function RewardsScreen() {
     claimableRewardCount,
     rewardDistributions,
     claimRewardDistribution,
-  } = useLiveUserData();
+  } = useLiveUserData({
+    datasets: ["rewards", "campaigns", "rewardDistributions"],
+  });
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<RewardFilter>("all");
   const [activeDistributionId, setActiveDistributionId] = useState<string | null>(null);

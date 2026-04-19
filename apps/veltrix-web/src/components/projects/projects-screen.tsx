@@ -11,7 +11,9 @@ import { useLiveUserData } from "@/hooks/use-live-user-data";
 type ProjectFilter = "all" | "featured" | "ecosystem";
 
 export function ProjectsScreen() {
-  const { loading, error, projects, campaigns } = useLiveUserData();
+  const { loading, error, projects, campaigns } = useLiveUserData({
+    datasets: ["projects", "campaigns"],
+  });
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<ProjectFilter>("all");
 

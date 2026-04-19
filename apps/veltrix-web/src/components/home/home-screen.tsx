@@ -29,7 +29,9 @@ export function HomeScreen() {
     approvedQuestCount,
     pendingQuestCount,
     claimableRewardCount,
-  } = useLiveUserData();
+  } = useLiveUserData({
+    datasets: ["projects", "campaigns", "raids", "rewards", "quests", "notifications"],
+  });
 
   const featuredCampaign = campaigns[0] ?? null;
   const featuredProject = projects.find((project) => project.id === featuredCampaign?.projectId) ?? null;

@@ -50,7 +50,9 @@ export function RaidDetailScreen() {
   const params = useParams<{ id: string }>();
   const raidId = Array.isArray(params.id) ? params.id[0] : params.id;
   const { authUserId } = useAuth();
-  const { raids, loading, error, reload } = useLiveUserData();
+  const { raids, loading, error, reload } = useLiveUserData({
+    datasets: ["raids"],
+  });
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ tone: "default" | "error" | "success"; text: string } | null>(null);
 

@@ -8,7 +8,9 @@ import { StatusChip } from "@/components/ui/status-chip";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 
 export function RaidsScreen() {
-  const { raids, loading, error } = useLiveUserData();
+  const { raids, loading, error } = useLiveUserData({
+    datasets: ["raids"],
+  });
   const sortedRaids = [...raids].sort(
     (left, right) => right.reward - left.reward || right.progress - left.progress
   );

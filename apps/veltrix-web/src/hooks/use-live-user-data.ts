@@ -26,7 +26,26 @@ type UserProgressRow = {
   unlocked_reward_ids: string[] | null;
 };
 
+export type LiveUserDataDataset =
+  | "connectedAccounts"
+  | "projects"
+  | "campaigns"
+  | "rewards"
+  | "quests"
+  | "notifications"
+  | "leaderboard"
+  | "raids"
+  | "projectReputation"
+  | "joinedCommunityIds"
+  | "xpStakes"
+  | "rewardDistributions";
+
+type UseLiveUserDataOptions = {
+  datasets?: LiveUserDataDataset[];
+};
+
 type LiveUserDataCacheEntry = {
+  loadedDatasets: LiveUserDataDataset[];
   connectedAccounts: ConnectedAccount[];
   projects: LiveProject[];
   campaigns: LiveCampaign[];
@@ -41,10 +60,86 @@ type LiveUserDataCacheEntry = {
   rewardDistributions: LiveRewardDistribution[];
 };
 
+const ALL_LIVE_USER_DATASETS: LiveUserDataDataset[] = [
+  "connectedAccounts",
+  "projects",
+  "campaigns",
+  "rewards",
+  "quests",
+  "notifications",
+  "leaderboard",
+  "raids",
+  "projectReputation",
+  "joinedCommunityIds",
+  "xpStakes",
+  "rewardDistributions",
+];
+
 const liveUserDataCache = new Map<string, LiveUserDataCacheEntry>();
+
+function normalizeRequestedDatasets(datasets?: LiveUserDataDataset[]) {
+  if (!Array.isArray(datasets) || datasets.length === 0) {
+    return ALL_LIVE_USER_DATASETS;
+  }
+
+  const normalized = datasets.filter((dataset): dataset is LiveUserDataDataset =>
+    ALL_LIVE_USER_DATASETS.includes(dataset)
+  );
+
+  return normalized.length > 0
+    ? Array.from(new Set(normalized))
+    : ALL_LIVE_USER_DATASETS;
+}
+
+function createEmptyCacheEntry(): LiveUserDataCacheEntry {
+  return {
+    loadedDatasets: [],
+    connectedAccounts: [],
+    projects: [],
+    campaigns: [],
+    rewards: [],
+    quests: [],
+    notifications: [],
+    leaderboard: [],
+    raids: [],
+    projectReputation: [],
+    joinedCommunityIds: [],
+    xpStakes: [],
+    rewardDistributions: [],
+  };
+}
+
+function mergeLiveUserDataCacheEntry(params: {
+  authUserId: string;
+  patch: Partial<Omit<LiveUserDataCacheEntry, "loadedDatasets">>;
+  loadedDatasets?: LiveUserDataDataset[];
+}) {
+  const existing = liveUserDataCache.get(params.authUserId) ?? createEmptyCacheEntry();
+
+  liveUserDataCache.set(params.authUserId, {
+    ...existing,
+    ...params.patch,
+    loadedDatasets: Array.from(
+      new Set([...(existing.loadedDatasets ?? []), ...(params.loadedDatasets ?? [])])
+    ),
+  });
+}
+
+function readCachedDataset<T>(
+  entry: LiveUserDataCacheEntry | null | undefined,
+  dataset: LiveUserDataDataset,
+  fallback: T
+) {
+  if (!entry || !entry.loadedDatasets.includes(dataset)) {
+    return fallback;
+  }
+
+  return entry[dataset] as T;
+}
 
 function applyLiveUserDataCacheEntry(
   entry: LiveUserDataCacheEntry,
+  requestedDatasets: Set<LiveUserDataDataset>,
   setters: {
     setConnectedAccounts: (value: ConnectedAccount[]) => void;
     setProjects: (value: LiveProject[]) => void;
@@ -60,18 +155,38 @@ function applyLiveUserDataCacheEntry(
     setRewardDistributions: (value: LiveRewardDistribution[]) => void;
   }
 ) {
-  setters.setConnectedAccounts(entry.connectedAccounts);
-  setters.setProjects(entry.projects);
-  setters.setCampaigns(entry.campaigns);
-  setters.setRewards(entry.rewards);
-  setters.setQuests(entry.quests);
-  setters.setNotifications(entry.notifications);
-  setters.setLeaderboard(entry.leaderboard);
-  setters.setRaids(entry.raids);
-  setters.setProjectReputation(entry.projectReputation);
-  setters.setJoinedCommunityIds(entry.joinedCommunityIds);
-  setters.setXpStakes(entry.xpStakes);
-  setters.setRewardDistributions(entry.rewardDistributions);
+  setters.setConnectedAccounts(
+    readCachedDataset(entry, "connectedAccounts", requestedDatasets.has("connectedAccounts") ? [] : [])
+  );
+  setters.setProjects(readCachedDataset(entry, "projects", requestedDatasets.has("projects") ? [] : []));
+  setters.setCampaigns(
+    readCachedDataset(entry, "campaigns", requestedDatasets.has("campaigns") ? [] : [])
+  );
+  setters.setRewards(readCachedDataset(entry, "rewards", requestedDatasets.has("rewards") ? [] : []));
+  setters.setQuests(readCachedDataset(entry, "quests", requestedDatasets.has("quests") ? [] : []));
+  setters.setNotifications(
+    readCachedDataset(entry, "notifications", requestedDatasets.has("notifications") ? [] : [])
+  );
+  setters.setLeaderboard(
+    readCachedDataset(entry, "leaderboard", requestedDatasets.has("leaderboard") ? [] : [])
+  );
+  setters.setRaids(readCachedDataset(entry, "raids", requestedDatasets.has("raids") ? [] : []));
+  setters.setProjectReputation(
+    readCachedDataset(entry, "projectReputation", requestedDatasets.has("projectReputation") ? [] : [])
+  );
+  setters.setJoinedCommunityIds(
+    readCachedDataset(entry, "joinedCommunityIds", requestedDatasets.has("joinedCommunityIds") ? [] : [])
+  );
+  setters.setXpStakes(
+    readCachedDataset(entry, "xpStakes", requestedDatasets.has("xpStakes") ? [] : [])
+  );
+  setters.setRewardDistributions(
+    readCachedDataset(
+      entry,
+      "rewardDistributions",
+      requestedDatasets.has("rewardDistributions") ? [] : []
+    )
+  );
 }
 
 function mapClaimStatusToDistributionStatus(status: string | null | undefined) {
@@ -92,53 +207,57 @@ export function seedLiveUserConnectedAccounts(
   authUserId: string,
   accounts: ConnectedAccount[]
 ) {
-  const existing = liveUserDataCache.get(authUserId);
-
-  liveUserDataCache.set(authUserId, {
-    connectedAccounts: accounts,
-    projects: existing?.projects ?? [],
-    campaigns: existing?.campaigns ?? [],
-    rewards: existing?.rewards ?? [],
-    quests: existing?.quests ?? [],
-    notifications: existing?.notifications ?? [],
-    leaderboard: existing?.leaderboard ?? [],
-    raids: existing?.raids ?? [],
-    projectReputation: existing?.projectReputation ?? [],
-    joinedCommunityIds: existing?.joinedCommunityIds ?? [],
-    xpStakes: existing?.xpStakes ?? [],
-    rewardDistributions: existing?.rewardDistributions ?? [],
+  mergeLiveUserDataCacheEntry({
+    authUserId,
+    patch: {
+      connectedAccounts: accounts,
+    },
+    loadedDatasets: ["connectedAccounts"],
   });
 }
 
-export function useLiveUserData() {
+export function useLiveUserData(options?: UseLiveUserDataOptions) {
   const { authUserId, initialized, authConfigured, session, profile } = useAuth();
+  const datasetKey = Array.isArray(options?.datasets)
+    ? Array.from(new Set(options.datasets)).sort().join("|")
+    : "all";
+  const requestedDatasets = useMemo(
+    () => normalizeRequestedDatasets(options?.datasets),
+    [datasetKey]
+  );
+  const requestedDatasetSet = useMemo(
+    () => new Set<LiveUserDataDataset>(requestedDatasets),
+    [datasetKey, requestedDatasets]
+  );
   const cachedState = authUserId ? liveUserDataCache.get(authUserId) : null;
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [connectedAccounts, setConnectedAccounts] = useState<ConnectedAccount[]>(
-    cachedState?.connectedAccounts ?? []
+    readCachedDataset(cachedState, "connectedAccounts", [])
   );
-  const [projects, setProjects] = useState<LiveProject[]>(cachedState?.projects ?? []);
-  const [campaigns, setCampaigns] = useState<LiveCampaign[]>(cachedState?.campaigns ?? []);
-  const [rewards, setRewards] = useState<LiveReward[]>(cachedState?.rewards ?? []);
-  const [quests, setQuests] = useState<LiveQuest[]>(cachedState?.quests ?? []);
+  const [projects, setProjects] = useState<LiveProject[]>(readCachedDataset(cachedState, "projects", []));
+  const [campaigns, setCampaigns] = useState<LiveCampaign[]>(
+    readCachedDataset(cachedState, "campaigns", [])
+  );
+  const [rewards, setRewards] = useState<LiveReward[]>(readCachedDataset(cachedState, "rewards", []));
+  const [quests, setQuests] = useState<LiveQuest[]>(readCachedDataset(cachedState, "quests", []));
   const [notifications, setNotifications] = useState<LiveNotification[]>(
-    cachedState?.notifications ?? []
+    readCachedDataset(cachedState, "notifications", [])
   );
   const [leaderboard, setLeaderboard] = useState<LiveLeaderboardUser[]>(
-    cachedState?.leaderboard ?? []
+    readCachedDataset(cachedState, "leaderboard", [])
   );
-  const [raids, setRaids] = useState<LiveRaid[]>(cachedState?.raids ?? []);
+  const [raids, setRaids] = useState<LiveRaid[]>(readCachedDataset(cachedState, "raids", []));
   const [projectReputation, setProjectReputation] = useState<LiveProjectReputation[]>(
-    cachedState?.projectReputation ?? []
+    readCachedDataset(cachedState, "projectReputation", [])
   );
   const [joinedCommunityIds, setJoinedCommunityIds] = useState<string[]>(
-    cachedState?.joinedCommunityIds ?? []
+    readCachedDataset(cachedState, "joinedCommunityIds", [])
   );
-  const [xpStakes, setXpStakes] = useState<LiveXpStake[]>(cachedState?.xpStakes ?? []);
+  const [xpStakes, setXpStakes] = useState<LiveXpStake[]>(readCachedDataset(cachedState, "xpStakes", []));
   const [rewardDistributions, setRewardDistributions] = useState<LiveRewardDistribution[]>(
-    cachedState?.rewardDistributions ?? []
+    readCachedDataset(cachedState, "rewardDistributions", [])
   );
   const supabase = useMemo(
     () => (authConfigured ? createSupabaseBrowserClient() : null),
@@ -169,9 +288,12 @@ export function useLiveUserData() {
     }
 
     const nextCachedState = liveUserDataCache.get(authUserId);
+    const hasRequestedCache = requestedDatasets.every((dataset) =>
+      nextCachedState?.loadedDatasets.includes(dataset)
+    );
 
     if (nextCachedState) {
-      applyLiveUserDataCacheEntry(nextCachedState, {
+      applyLiveUserDataCacheEntry(nextCachedState, requestedDatasetSet, {
         setConnectedAccounts,
         setProjects,
         setCampaigns,
@@ -185,13 +307,28 @@ export function useLiveUserData() {
         setXpStakes,
         setRewardDistributions,
       });
-      setLoading(false);
-      setRefreshing(true);
+      setLoading(!hasRequestedCache);
+      setRefreshing(hasRequestedCache);
     } else {
       setLoading(true);
       setRefreshing(false);
     }
     setError(null);
+
+    const shouldLoadConnectedAccounts = requestedDatasetSet.has("connectedAccounts");
+    const shouldLoadProjects = requestedDatasetSet.has("projects");
+    const shouldLoadCampaigns = requestedDatasetSet.has("campaigns");
+    const shouldLoadRewards = requestedDatasetSet.has("rewards");
+    const shouldLoadQuests = requestedDatasetSet.has("quests");
+    const shouldLoadNotifications = requestedDatasetSet.has("notifications");
+    const shouldLoadLeaderboard = requestedDatasetSet.has("leaderboard");
+    const shouldLoadRaids = requestedDatasetSet.has("raids");
+    const shouldLoadProjectReputation = requestedDatasetSet.has("projectReputation");
+    const shouldLoadJoinedCommunityIds = requestedDatasetSet.has("joinedCommunityIds");
+    const shouldLoadXpStakes = requestedDatasetSet.has("xpStakes");
+    const shouldLoadRewardDistributions = requestedDatasetSet.has("rewardDistributions");
+    const shouldLoadUserProgress =
+      shouldLoadJoinedCommunityIds || shouldLoadQuests || shouldLoadRewards;
 
     const [
       connectedAccountsResult,
@@ -207,62 +344,86 @@ export function useLiveUserData() {
       xpStakesResult,
       rewardDistributionsResult,
     ] = await Promise.all([
-      supabase
-        .from("user_connected_accounts")
-        .select("*")
-        .eq("auth_user_id", authUserId)
-        .order("connected_at", { ascending: false }),
-      supabase
-        .from("projects")
-        .select("*")
-        .eq("status", "active")
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("campaigns")
-        .select("*")
-        .eq("status", "active")
-        .order("created_at", { ascending: false }),
-      supabase.from("rewards").select("*").order("created_at", { ascending: false }),
-      supabase.from("quests").select("*").order("created_at", { ascending: false }),
-      supabase
-        .from("app_notifications")
-        .select("*")
-        .eq("auth_user_id", authUserId)
-        .order("created_at", { ascending: false })
-        .limit(12),
-      supabase
-        .from("user_progress")
-        .select(
-          "joined_communities, confirmed_raids, claimed_rewards, opened_lootbox_ids, unlocked_reward_ids, quest_statuses"
-        )
-        .eq("auth_user_id", authUserId)
-        .maybeSingle(),
-      supabase
-        .from("user_profiles")
-        .select("*")
-        .eq("status", "active")
-        .order("xp", { ascending: false })
-        .order("level", { ascending: false }),
-      supabase
-        .from("raids")
-        .select("*")
-        .eq("status", "active")
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("user_project_reputation")
-        .select("*")
-        .eq("auth_user_id", authUserId)
-        .order("xp", { ascending: false }),
-      supabase
-        .from("xp_stakes")
-        .select("*")
-        .eq("auth_user_id", authUserId)
-        .order("updated_at", { ascending: false }),
-      supabase
-        .from("reward_distributions")
-        .select("*")
-        .eq("auth_user_id", authUserId)
-        .order("updated_at", { ascending: false }),
+      shouldLoadConnectedAccounts
+        ? supabase
+            .from("user_connected_accounts")
+            .select("*")
+            .eq("auth_user_id", authUserId)
+            .order("connected_at", { ascending: false })
+        : Promise.resolve({ data: [], error: null }),
+      shouldLoadProjects
+        ? supabase
+            .from("projects")
+            .select("*")
+            .eq("status", "active")
+            .order("created_at", { ascending: false })
+        : Promise.resolve({ data: [], error: null }),
+      shouldLoadCampaigns
+        ? supabase
+            .from("campaigns")
+            .select("*")
+            .eq("status", "active")
+            .order("created_at", { ascending: false })
+        : Promise.resolve({ data: [], error: null }),
+      shouldLoadRewards
+        ? supabase.from("rewards").select("*").order("created_at", { ascending: false })
+        : Promise.resolve({ data: [], error: null }),
+      shouldLoadQuests
+        ? supabase.from("quests").select("*").order("created_at", { ascending: false })
+        : Promise.resolve({ data: [], error: null }),
+      shouldLoadNotifications
+        ? supabase
+            .from("app_notifications")
+            .select("*")
+            .eq("auth_user_id", authUserId)
+            .order("created_at", { ascending: false })
+            .limit(12)
+        : Promise.resolve({ data: [], error: null }),
+      shouldLoadUserProgress
+        ? supabase
+            .from("user_progress")
+            .select(
+              "joined_communities, confirmed_raids, claimed_rewards, opened_lootbox_ids, unlocked_reward_ids, quest_statuses"
+            )
+            .eq("auth_user_id", authUserId)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      shouldLoadLeaderboard
+        ? supabase
+            .from("user_profiles")
+            .select("*")
+            .eq("status", "active")
+            .order("xp", { ascending: false })
+            .order("level", { ascending: false })
+        : Promise.resolve({ data: [], error: null }),
+      shouldLoadRaids
+        ? supabase
+            .from("raids")
+            .select("*")
+            .eq("status", "active")
+            .order("created_at", { ascending: false })
+        : Promise.resolve({ data: [], error: null }),
+      shouldLoadProjectReputation
+        ? supabase
+            .from("user_project_reputation")
+            .select("*")
+            .eq("auth_user_id", authUserId)
+            .order("xp", { ascending: false })
+        : Promise.resolve({ data: [], error: null }),
+      shouldLoadXpStakes
+        ? supabase
+            .from("xp_stakes")
+            .select("*")
+            .eq("auth_user_id", authUserId)
+            .order("updated_at", { ascending: false })
+        : Promise.resolve({ data: [], error: null }),
+      shouldLoadRewardDistributions
+        ? supabase
+            .from("reward_distributions")
+            .select("*")
+            .eq("auth_user_id", authUserId)
+            .order("updated_at", { ascending: false })
+        : Promise.resolve({ data: [], error: null }),
     ]);
 
     const firstError =
@@ -295,7 +456,9 @@ export function useLiveUserData() {
     const claimedRewardIds = new Set(
       ((userProgressResult.data as UserProgressRow | null)?.claimed_rewards ?? []) as string[]
     );
-    setJoinedCommunityIds(joinedCommunities);
+    if (shouldLoadJoinedCommunityIds) {
+      setJoinedCommunityIds(joinedCommunities);
+    }
 
     const nextConnectedAccounts = (connectedAccountsResult.data ?? []).map((row) => ({
         id: row.id,
@@ -306,7 +469,9 @@ export function useLiveUserData() {
         connectedAt: row.connected_at,
         updatedAt: row.updated_at,
       }));
-    setConnectedAccounts(nextConnectedAccounts);
+    if (shouldLoadConnectedAccounts) {
+      setConnectedAccounts(nextConnectedAccounts);
+    }
 
     const nextProjects = (projectsResult.data ?? []).map((row) => ({
         id: row.id,
@@ -321,7 +486,9 @@ export function useLiveUserData() {
         telegramUrl: row.telegram_url ?? null,
         discordUrl: row.discord_url ?? null,
       }));
-    setProjects(nextProjects);
+    if (shouldLoadProjects) {
+      setProjects(nextProjects);
+    }
 
     const nextCampaigns = (campaignsResult.data ?? []).map((row) => ({
         id: row.id,
@@ -342,7 +509,9 @@ export function useLiveUserData() {
         activityThreshold: row.activity_threshold ?? 0,
         lockDays: row.lock_days ?? 0,
       }));
-    setCampaigns(nextCampaigns);
+    if (shouldLoadCampaigns) {
+      setCampaigns(nextCampaigns);
+    }
 
     const nextRewards = (rewardsResult.data ?? []).map((row) => ({
         id: row.id,
@@ -356,7 +525,9 @@ export function useLiveUserData() {
         claimed: claimedRewardIds.has(row.id),
         rewardType: row.reward_type ?? row.type ?? "reward",
       }));
-    setRewards(nextRewards);
+    if (shouldLoadRewards) {
+      setRewards(nextRewards);
+    }
 
     const nextQuests = (questsResult.data ?? []).map((row) => {
         const questType = row.quest_type ?? row.type ?? "custom";
@@ -415,7 +586,9 @@ export function useLiveUserData() {
           verificationConfig,
         };
       });
-    setQuests(nextQuests);
+    if (shouldLoadQuests) {
+      setQuests(nextQuests);
+    }
 
     const nextNotifications = (notificationsResult.data ?? []).map((row) => ({
         id: row.id,
@@ -425,7 +598,9 @@ export function useLiveUserData() {
         type: row.type ?? "system",
         createdAt: row.created_at,
       }));
-    setNotifications(nextNotifications);
+    if (shouldLoadNotifications) {
+      setNotifications(nextNotifications);
+    }
 
     const nextLeaderboard = (leaderboardResult.data ?? []).map((row) => ({
         id: row.id,
@@ -436,7 +611,9 @@ export function useLiveUserData() {
         bannerUrl: row.banner_url ?? "",
         isCurrentUser: row.auth_user_id === authUserId,
       }));
-    setLeaderboard(nextLeaderboard);
+    if (shouldLoadLeaderboard) {
+      setLeaderboard(nextLeaderboard);
+    }
 
     const nextRaids = (raidsResult.data ?? []).map((row) => ({
         id: row.id,
@@ -455,7 +632,9 @@ export function useLiveUserData() {
             )
           : [],
       }));
-    setRaids(nextRaids);
+    if (shouldLoadRaids) {
+      setRaids(nextRaids);
+    }
 
     const nextProjectReputation = (projectReputationResult.data ?? []).map((row) => ({
         projectId: row.project_id,
@@ -471,7 +650,9 @@ export function useLiveUserData() {
         rewardsClaimed: row.rewards_claimed ?? 0,
         rank: row.rank ?? 0,
       }));
-    setProjectReputation(nextProjectReputation);
+    if (shouldLoadProjectReputation) {
+      setProjectReputation(nextProjectReputation);
+    }
 
     const nextXpStakes = (xpStakesResult.data ?? []).map((row) => ({
       id: row.id,
@@ -487,7 +668,9 @@ export function useLiveUserData() {
           ? (row.metadata as Record<string, unknown>)
           : {},
     }));
-    setXpStakes(nextXpStakes);
+    if (shouldLoadXpStakes) {
+      setXpStakes(nextXpStakes);
+    }
 
     const nextRewardDistributions = (rewardDistributionsResult.data ?? []).map((row) => ({
       id: row.id,
@@ -502,21 +685,29 @@ export function useLiveUserData() {
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     }));
-    setRewardDistributions(nextRewardDistributions);
+    if (shouldLoadRewardDistributions) {
+      setRewardDistributions(nextRewardDistributions);
+    }
 
-    liveUserDataCache.set(authUserId, {
-      connectedAccounts: nextConnectedAccounts,
-      projects: nextProjects,
-      campaigns: nextCampaigns,
-      rewards: nextRewards,
-      quests: nextQuests,
-      notifications: nextNotifications,
-      leaderboard: nextLeaderboard,
-      raids: nextRaids,
-      projectReputation: nextProjectReputation,
-      joinedCommunityIds: joinedCommunities,
-      xpStakes: nextXpStakes,
-      rewardDistributions: nextRewardDistributions,
+    mergeLiveUserDataCacheEntry({
+      authUserId,
+      patch: {
+        ...(shouldLoadConnectedAccounts ? { connectedAccounts: nextConnectedAccounts } : {}),
+        ...(shouldLoadProjects ? { projects: nextProjects } : {}),
+        ...(shouldLoadCampaigns ? { campaigns: nextCampaigns } : {}),
+        ...(shouldLoadRewards ? { rewards: nextRewards } : {}),
+        ...(shouldLoadQuests ? { quests: nextQuests } : {}),
+        ...(shouldLoadNotifications ? { notifications: nextNotifications } : {}),
+        ...(shouldLoadLeaderboard ? { leaderboard: nextLeaderboard } : {}),
+        ...(shouldLoadRaids ? { raids: nextRaids } : {}),
+        ...(shouldLoadProjectReputation ? { projectReputation: nextProjectReputation } : {}),
+        ...(shouldLoadJoinedCommunityIds ? { joinedCommunityIds: joinedCommunities } : {}),
+        ...(shouldLoadXpStakes ? { xpStakes: nextXpStakes } : {}),
+        ...(shouldLoadRewardDistributions
+          ? { rewardDistributions: nextRewardDistributions }
+          : {}),
+      },
+      loadedDatasets: requestedDatasets,
     });
 
     setLoading(false);
@@ -564,6 +755,13 @@ export function useLiveUserData() {
     }
 
     setJoinedCommunityIds(nextJoined);
+    mergeLiveUserDataCacheEntry({
+      authUserId,
+      patch: {
+        joinedCommunityIds: nextJoined,
+      },
+      loadedDatasets: ["joinedCommunityIds"],
+    });
   }
 
   async function claimReward(rewardId: string) {
@@ -662,6 +860,34 @@ export function useLiveUserData() {
           : item
       )
     );
+    const nextRewards = rewards.map((item) =>
+      item.id === rewardId
+        ? {
+            ...item,
+            claimable: false,
+            claimed: true,
+            claimedAt,
+          }
+        : item
+    );
+    mergeLiveUserDataCacheEntry({
+      authUserId,
+      patch: {
+        rewards: nextRewards,
+        notifications: [
+          {
+            id: `local-claim-${rewardId}-${claimedAt}`,
+            title: "Vault claim routed",
+            body: `${reward.title} moved into the claim queue.`,
+            read: false,
+            type: "reward",
+            createdAt: claimedAt,
+          },
+          ...notifications,
+        ],
+      },
+      loadedDatasets: ["rewards", "notifications"],
+    });
 
     setNotifications((current) => [
       {
@@ -791,6 +1017,33 @@ export function useLiveUserData() {
           : item
       )
     );
+    const nextRewardDistributions = rewardDistributions.map((item) =>
+      item.id === distributionId
+        ? {
+            ...item,
+            status: "queued",
+            updatedAt: queuedAt,
+          }
+        : item
+    );
+    mergeLiveUserDataCacheEntry({
+      authUserId,
+      patch: {
+        rewardDistributions: nextRewardDistributions,
+        notifications: [
+          {
+            id: `local-distribution-claim-${distributionId}-${queuedAt}`,
+            title: "Campaign payout queued",
+            body: `${rewardTitle} moved into the payout queue.`,
+            read: false,
+            type: "reward",
+            createdAt: queuedAt,
+          },
+          ...notifications,
+        ],
+      },
+      loadedDatasets: ["rewardDistributions", "notifications"],
+    });
 
     setNotifications((current) => [
       {
@@ -834,6 +1087,16 @@ export function useLiveUserData() {
         read: true,
       }))
     );
+    mergeLiveUserDataCacheEntry({
+      authUserId,
+      patch: {
+        notifications: notifications.map((item) => ({
+          ...item,
+          read: true,
+        })),
+      },
+      loadedDatasets: ["notifications"],
+    });
   }
 
   useEffect(() => {
@@ -842,7 +1105,7 @@ export function useLiveUserData() {
     }
 
     if (authConfigured && authUserId && liveUserDataCache.has(authUserId)) {
-      applyLiveUserDataCacheEntry(liveUserDataCache.get(authUserId)!, {
+      applyLiveUserDataCacheEntry(liveUserDataCache.get(authUserId)!, requestedDatasetSet, {
         setConnectedAccounts,
         setProjects,
         setCampaigns,
@@ -856,15 +1119,18 @@ export function useLiveUserData() {
         setXpStakes,
         setRewardDistributions,
       });
-      setLoading(false);
-      setRefreshing(true);
+      const fullyCached = requestedDatasets.every((dataset) =>
+        liveUserDataCache.get(authUserId)!.loadedDatasets.includes(dataset)
+      );
+      setLoading(!fullyCached);
+      setRefreshing(fullyCached);
     } else {
       setLoading(true);
       setRefreshing(false);
     }
 
     void reload();
-  }, [initialized, authConfigured, authUserId]);
+  }, [initialized, authConfigured, authUserId, datasetKey]);
 
   const derived = useMemo(() => {
     return {
