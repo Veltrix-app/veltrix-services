@@ -67,6 +67,13 @@ export type DiscordLeaderboardEntry = {
   raidsCompleted: number;
 };
 
+export type DiscordRaidRailEntry = {
+  id: string;
+  title: string;
+  rewardXp: number;
+  shortDescription: string;
+};
+
 const DEFAULT_SETTINGS: DiscordCommunityBotSettings = {
   commandsEnabled: true,
   rankSyncEnabled: false,
@@ -738,4 +745,30 @@ export async function markDiscordLeaderboardPostedAt(integrationId: string) {
   if (error) {
     throw new Error(error.message || "Failed to update Discord leaderboard timestamp.");
   }
+}
+
+export async function loadDiscordRaidRail(projectId: string) {
+  const { data, error } = await supabaseAdmin
+    .from("raids")
+    .select("id, title, reward_xp, short_description")
+    .eq("project_id", projectId)
+    .eq("status", "active")
+    .order("created_at", { ascending: false })
+    .limit(4);
+
+  if (error) {
+    throw new Error(error.message || "Failed to load Discord raid rail.");
+  }
+
+  return ((data ?? []) as Array<{
+    id: string;
+    title: string;
+    reward_xp: number | null;
+    short_description: string | null;
+  }>).map((raid) => ({
+    id: raid.id,
+    title: raid.title,
+    rewardXp: Number(raid.reward_xp ?? 0),
+    shortDescription: raid.short_description ?? "",
+  }));
 }

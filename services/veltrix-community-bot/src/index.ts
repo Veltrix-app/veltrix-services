@@ -9,7 +9,7 @@ import {
   registerDiscordCommandHandlers,
   syncDiscordGuildCommands,
 } from "./providers/discord/commands.js";
-import { createTelegramBot } from "./providers/telegram/bot.js";
+import { createTelegramBot, launchTelegramBot } from "./providers/telegram/bot.js";
 
 async function bootstrap() {
   const app = express();
@@ -45,11 +45,14 @@ async function bootstrap() {
 
   const telegramBot = createTelegramBot();
   if (telegramBot) {
-    telegramBot.telegram.getMe().then((me) => {
-      console.log(`[telegram] ready as @${me.username ?? "unknown_bot"}`);
-    }).catch((error) => {
-      console.error("[telegram] failed to connect", error);
-    });
+    void launchTelegramBot()
+      .then(async (bot) => {
+        const me = await bot?.telegram.getMe();
+        console.log(`[telegram] ready as @${me?.username ?? "unknown_bot"}`);
+      })
+      .catch((error) => {
+        console.error("[telegram] failed to connect", error);
+      });
   } else {
     console.log("[telegram] skipped because TELEGRAM_BOT_TOKEN is not configured");
   }

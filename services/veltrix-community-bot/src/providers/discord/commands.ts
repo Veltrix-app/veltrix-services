@@ -14,6 +14,7 @@ import {
   loadDiscordIntegrationContextByGuildId,
   loadDiscordIntegrationContexts,
   loadDiscordLeaderboard,
+  loadDiscordRaidRail,
   type DiscordIdentitySnapshot,
   type DiscordLeaderboardPeriod,
   type DiscordLeaderboardScope,
@@ -120,6 +121,19 @@ function formatPeriodLabel(period: DiscordLeaderboardPeriod) {
 
 function formatScopeLabel(scope: DiscordLeaderboardScope) {
   return scope === "global" ? "Global" : "Project";
+}
+
+function formatRaidLines(entries: Awaited<ReturnType<typeof loadDiscordRaidRail>>) {
+  if (entries.length === 0) {
+    return "No live raids are active for this community right now.";
+  }
+
+  return entries
+    .map(
+      (entry, index) =>
+        `**${index + 1}.** ${entry.title} - +${entry.rewardXp} XP${entry.shortDescription ? ` | ${entry.shortDescription}` : ""}`
+    )
+    .join("\n");
 }
 
 async function replyCommandsDisabled(interaction: ChatInputCommandInteraction) {
@@ -443,6 +457,55 @@ async function handleLeaderboardCommand(interaction: ChatInputCommandInteraction
   });
 }
 
+async function handleRaidCommand(interaction: ChatInputCommandInteraction) {
+  const guildId = interaction.guildId;
+  if (!guildId) {
+    await interaction.reply({
+      ephemeral: true,
+      content: "This command only works inside a Discord server.",
+    });
+    return;
+  }
+
+  const context = await loadDiscordIntegrationContextByGuildId(guildId);
+  if (!context) {
+    await interaction.reply({
+      ephemeral: true,
+      content:
+        "This Discord server is not mapped to a Veltrix project yet. Connect it in the portal first.",
+    });
+    return;
+  }
+
+  if (!context.settings.commandsEnabled) {
+    await replyCommandsDisabled(interaction);
+    return;
+  }
+
+  if (!context.settings.raidOpsEnabled) {
+    await interaction.reply({
+      ephemeral: true,
+      content:
+        "Raid ops are disabled for this Discord server right now. Enable them in the Veltrix portal first.",
+    });
+    return;
+  }
+
+  const raids = await loadDiscordRaidRail(context.projectId);
+  const embed = new EmbedBuilder()
+    .setColor(0xc6ff2e)
+    .setTitle(`${context.projectName} raid rail`)
+    .setDescription(formatRaidLines(raids))
+    .setFooter({
+      text: `${context.projectName} community raid ops`,
+    });
+
+  await interaction.reply({
+    ephemeral: true,
+    embeds: [embed],
+  });
+}
+
 async function handleChatCommand(interaction: ChatInputCommandInteraction) {
   if (interaction.commandName === "link") {
     await handleLinkCommand(interaction);
@@ -461,6 +524,11 @@ async function handleChatCommand(interaction: ChatInputCommandInteraction) {
 
   if (interaction.commandName === "leaderboard") {
     await handleLeaderboardCommand(interaction);
+    return;
+  }
+
+  if (interaction.commandName === "raid") {
+    await handleRaidCommand(interaction);
   }
 }
 
@@ -524,6 +592,9 @@ export async function syncDiscordGuildCommands(
           .setMinValue(3)
           .setMaxValue(15)
       ),
+    new SlashCommandBuilder()
+      .setName("raid")
+      .setDescription("Show the live raid rail for this project community."),
   ];
 
   let guildsEnabled = 0;
