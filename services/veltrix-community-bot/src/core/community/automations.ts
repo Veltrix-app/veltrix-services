@@ -5,8 +5,11 @@ import { sendDiscordPush } from "../../providers/discord/push.js";
 import { sendTelegramPush } from "../../providers/telegram/push.js";
 import {
   computeNextCommunityAutomationRunAt,
+  deriveCommunityAutomationExecutionPosture,
   type CommunityAutomationCadence,
+  type CommunityAutomationExecutionPosture,
   type CommunityAutomationType,
+  getCommunityAutomationSequence,
   type CommunityAutomationStatus,
   isCommunityAutomationDue,
 } from "./model.js";
@@ -114,6 +117,7 @@ type CommunityAutomationRow = {
   config: Record<string, unknown> | null;
   last_run_at: string | null;
   next_run_at: string | null;
+  last_result: "success" | "failed" | "skipped" | null;
 };
 
 type CommunityAutomationRunResult = {
@@ -128,6 +132,13 @@ type CommunityAutomationRunResult = {
 };
 
 const appUrl = (process.env.PUBLIC_APP_URL || "https://veltrix-web.vercel.app").replace(/\/+$/, "");
+const AUTOMATION_SEQUENCE_RANK: Record<string, number> = {
+  always_on: 0,
+  launch: 1,
+  raid: 2,
+  comeback: 3,
+  campaign_push: 4,
+};
 
 function normalizeProviderScope(value: unknown): ProviderScope {
   return value === "discord" || value === "telegram" ? value : "both";
@@ -143,6 +154,109 @@ function normalizeStatus(value: unknown): CommunityAutomationStatus {
 
 function getDefaultCommunityArtwork(kind: "campaign" | "quest" | "raid") {
   return `${appUrl}/community-push/defaults/${kind}.png`;
+}
+
+function getCommunityAutomationOwnerLabel(automationType: CommunityAutomationType) {
+  if (automationType === "rank_sync") return "Keep community ranks aligned";
+  if (automationType === "leaderboard_pulse") return "Push leaderboard momentum";
+  if (automationType === "mission_digest") return "Broadcast the mission board";
+  if (automationType === "raid_reminder") return "Re-ignite live raid pressure";
+  if (automationType === "newcomer_pulse") return "Pull newcomers into the first lane";
+  if (automationType === "reactivation_pulse") return "Bring dormant contributors back";
+  return "Push campaign activation";
+}
+
+function getCommunityAutomationOwnerSummary(input: {
+  automationType: CommunityAutomationType;
+  status: CommunityAutomationStatus;
+  cadence: CommunityAutomationCadence;
+  executionPosture: CommunityAutomationExecutionPosture;
+  nextRunAt: string | null;
+  lastResultSummary: string;
+}) {
+  if (input.executionPosture === "running") {
+    return "Execution is currently in flight and will settle back into the rail once this run finishes.";
+  }
+
+  if (input.status !== "active") {
+    return "This rail is paused and will stay parked until the project owner re-arms it.";
+  }
+
+  if (input.executionPosture === "blocked") {
+    return (
+      input.lastResultSummary ||
+      "The last attempt failed while this rail was due. An owner or captain should resolve it before schedule takes another pass."
+    );
+  }
+
+  if (input.executionPosture === "degraded") {
+    return (
+      input.lastResultSummary ||
+      "The last attempt failed outside the current window. Keep the rail visible and re-arm it deliberately."
+    );
+  }
+
+  if (input.executionPosture === "ready") {
+    if (input.cadence === "manual") {
+      return "This rail is ready for a manual run whenever the owner or captain wants to push it.";
+    }
+
+    return input.nextRunAt
+      ? `This rail is ready and its next scheduled window is ${new Date(input.nextRunAt).toLocaleString()}.`
+      : "This rail is ready for the next scheduled window.";
+  }
+
+  return input.nextRunAt
+    ? `Watching until ${new Date(input.nextRunAt).toLocaleString()}.`
+    : "Watching for the next trigger window.";
+}
+
+function buildAutomationPlanningPatch(input: {
+  automationType: CommunityAutomationType;
+  cadence: CommunityAutomationCadence;
+  status: CommunityAutomationStatus;
+  nextRunAt: string | null;
+  lastResult?: "success" | "failed" | "skipped" | null;
+  lastResultSummary?: string;
+  running?: boolean;
+}) {
+  const nowIso = new Date().toISOString();
+  const executionPosture = input.running
+    ? "running"
+    : deriveCommunityAutomationExecutionPosture({
+        status: input.status,
+        cadence: input.cadence,
+        nextRunAt: input.nextRunAt,
+        lastResult: input.lastResult ?? null,
+        nowIso,
+      });
+
+  const patch: Record<string, unknown> = {
+    sequencing_key: getCommunityAutomationSequence(input.automationType),
+    execution_posture: executionPosture,
+    owner_label: getCommunityAutomationOwnerLabel(input.automationType),
+    owner_summary: getCommunityAutomationOwnerSummary({
+      automationType: input.automationType,
+      status: input.status,
+      cadence: input.cadence,
+      executionPosture,
+      nextRunAt: input.nextRunAt,
+      lastResultSummary: input.lastResultSummary ?? "",
+    }),
+    paused_reason: input.status === "paused" ? "Paused by project owner." : null,
+    updated_at: nowIso,
+  };
+
+  if (input.lastResult === "success") {
+    patch.last_success_at = nowIso;
+    patch.last_error_code = null;
+    patch.last_error_at = null;
+  } else if (input.lastResult === "failed") {
+    patch.last_error_code = `${input.automationType}_failed`;
+    patch.last_error_at = nowIso;
+  }
+
+  return patch;
 }
 
 async function dispatchJourneyNudgesForLane(params: {
@@ -725,6 +839,7 @@ async function finishAutomationRun(params: {
 async function updateAutomationRow(
   automationId: string | null,
   input: {
+    automationType: CommunityAutomationType;
     cadence: CommunityAutomationCadence;
     status: CommunityAutomationStatus;
     lastResult: "success" | "failed" | "skipped";
@@ -735,17 +850,29 @@ async function updateAutomationRow(
     return;
   }
 
+  const nextRunAt =
+    input.status === "active"
+      ? computeNextCommunityAutomationRunAt({
+          cadence: input.cadence,
+          fromIso: new Date().toISOString(),
+        })
+      : null;
+
   const { error } = await supabaseAdmin
     .from("community_automations")
     .update({
       last_run_at: new Date().toISOString(),
-      next_run_at:
-        input.status === "active"
-          ? computeNextCommunityAutomationRunAt({ cadence: input.cadence, fromIso: new Date().toISOString() })
-          : null,
+      next_run_at: nextRunAt,
       last_result: input.lastResult,
       last_result_summary: input.lastResultSummary,
-      updated_at: new Date().toISOString(),
+      ...buildAutomationPlanningPatch({
+        automationType: input.automationType,
+        cadence: input.cadence,
+        status: input.status,
+        nextRunAt,
+        lastResult: input.lastResult,
+        lastResultSummary: input.lastResultSummary,
+      }),
     })
     .eq("id", automationId);
 
@@ -754,11 +881,42 @@ async function updateAutomationRow(
   }
 }
 
+async function markAutomationRunning(input: {
+  automationId: string | null;
+  automationType: CommunityAutomationType;
+  cadence: CommunityAutomationCadence;
+  status: CommunityAutomationStatus;
+  nextRunAt: string | null;
+}) {
+  if (!input.automationId) {
+    return;
+  }
+
+  const { error } = await supabaseAdmin
+    .from("community_automations")
+    .update(
+      buildAutomationPlanningPatch({
+        automationType: input.automationType,
+        cadence: input.cadence,
+        status: input.status,
+        nextRunAt: input.nextRunAt,
+        lastResult: null,
+        lastResultSummary: "",
+        running: true,
+      })
+    )
+    .eq("id", input.automationId);
+
+  if (error) {
+    throw new Error(error.message || "Failed to mark automation row as running.");
+  }
+}
+
 async function loadAutomationRow(params: { projectId: string; automationId?: string; automationType?: CommunityAutomationType }) {
   const query = supabaseAdmin
     .from("community_automations")
     .select(
-      "id, project_id, automation_type, status, cadence, provider_scope, target_provider, config, last_run_at, next_run_at"
+      "id, project_id, automation_type, status, cadence, provider_scope, target_provider, config, last_run_at, next_run_at, last_result"
     )
     .eq("project_id", params.projectId);
 
@@ -1210,6 +1368,18 @@ export async function runCommunityAutomation(params: {
     } satisfies CommunityAutomationRunResult;
   }
 
+  if (params.triggerSource === "schedule" && automationRow.last_result === "failed") {
+    return {
+      ok: true,
+      automationId: automationRow.id,
+      automationType,
+      status: "skipped",
+      triggerSource: params.triggerSource,
+      summary:
+        "Automation is blocked after the last failed attempt and now waits for an owner or captain intervention.",
+    } satisfies CommunityAutomationRunResult;
+  }
+
   const providerScope = normalizeProviderScope(
     automationRow.target_provider || automationRow.provider_scope
   );
@@ -1219,6 +1389,13 @@ export async function runCommunityAutomation(params: {
     automationType,
     triggerSource: params.triggerSource,
     triggeredByAuthUserId: params.triggeredByAuthUserId,
+  });
+  await markAutomationRunning({
+    automationId: automationRow.id,
+    automationType,
+    cadence,
+    status,
+    nextRunAt: automationRow.next_run_at,
   });
 
   try {
@@ -1244,6 +1421,7 @@ export async function runCommunityAutomation(params: {
       },
     });
     await updateAutomationRow(automationRow.id, {
+      automationType,
       cadence,
       status,
       lastResult: "success",
@@ -1293,6 +1471,7 @@ export async function runCommunityAutomation(params: {
       },
     });
     await updateAutomationRow(automationRow.id, {
+      automationType,
       cadence,
       status,
       lastResult: "failed",
@@ -1320,7 +1499,7 @@ export async function loadDueCommunityAutomations(params?: {
   const query = supabaseAdmin
     .from("community_automations")
     .select(
-      "id, project_id, automation_type, status, cadence, provider_scope, target_provider, config, last_run_at, next_run_at"
+      "id, project_id, automation_type, status, cadence, provider_scope, target_provider, config, last_run_at, next_run_at, last_result"
     )
     .eq("status", "active")
     .not("next_run_at", "is", null)
@@ -1336,10 +1515,30 @@ export async function loadDueCommunityAutomations(params?: {
     throw new Error(error.message || "Failed to load due Community OS automations.");
   }
 
-  return ((data ?? []) as CommunityAutomationRow[]).filter((row) =>
-    isCommunityAutomationDue({
-      status: normalizeStatus(row.status),
-      nextRunAt: row.next_run_at,
-    })
-  );
+  return ((data ?? []) as CommunityAutomationRow[])
+    .filter(
+      (row) =>
+        row.last_result !== "failed" &&
+        isCommunityAutomationDue({
+          status: normalizeStatus(row.status),
+          nextRunAt: row.next_run_at,
+        })
+    )
+    .sort((left, right) => {
+      const sequenceDelta =
+        AUTOMATION_SEQUENCE_RANK[
+          getCommunityAutomationSequence(left.automation_type as CommunityAutomationType)
+        ] -
+        AUTOMATION_SEQUENCE_RANK[
+          getCommunityAutomationSequence(right.automation_type as CommunityAutomationType)
+        ];
+
+      if (sequenceDelta !== 0) {
+        return sequenceDelta;
+      }
+
+      return (
+        new Date(left.next_run_at ?? 0).getTime() - new Date(right.next_run_at ?? 0).getTime()
+      );
+    });
 }

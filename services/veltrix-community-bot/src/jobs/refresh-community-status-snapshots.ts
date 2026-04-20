@@ -1,6 +1,9 @@
 import { refreshProjectCommunityCaptainQueue } from "../core/community/captain-queue.js";
 import { refreshProjectCommunityJourneys } from "../core/community/journeys.js";
-import { loadProjectCommunityOutcomeSummary } from "../core/community/outcomes.js";
+import {
+  loadProjectCommunityOutcomeSummary,
+  refreshProjectCommunityOutcomeReadModels,
+} from "../core/community/outcomes.js";
 import { supabaseAdmin } from "../lib/supabase.js";
 
 async function loadCommunityProjectIds(limit: number) {
@@ -45,12 +48,14 @@ export async function runRefreshCommunityStatusSnapshotsJob(options: {
         limit,
       });
       const queueRefresh = await refreshProjectCommunityCaptainQueue(projectId);
+      const readModels = await refreshProjectCommunityOutcomeReadModels(projectId);
       const outcomes = await loadProjectCommunityOutcomeSummary(projectId);
       results.push({
         projectId,
         status: "success",
         journeyRefresh,
         queueRefresh,
+        readModels,
         outcomes,
       });
     } catch (error) {

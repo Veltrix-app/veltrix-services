@@ -6,7 +6,13 @@ import {
   type CommunityCaptainPermission,
   type CommunityPlaybookKey,
 } from "./model.js";
-import { loadProjectCaptainConfig } from "./captains.js";
+import {
+  buildCaptainSeatKey,
+  captainSeatMatchesScope,
+  getCaptainScopeForAutomation,
+  loadProjectCaptainConfig,
+  type CaptainSeatScope,
+} from "./captains.js";
 
 type CommunityAutomationRow = {
   id: string;
@@ -44,6 +50,7 @@ type DesiredCaptainQueueItem = {
   source: "automation" | "playbook";
   actionLabel: string;
   requiredPermission: CommunityCaptainPermission;
+  requiredSeatScope: CaptainSeatScope;
   automationId?: string;
   automationType?: CommunityAutomationType;
   playbookKey?: CommunityPlaybookKey;
@@ -87,18 +94,30 @@ function buildQueueSummaryLabel(permission: CommunityCaptainPermission) {
 function buildCaptainAssignmentResolver(input: {
   assignments: CaptainAssignmentRow[];
   permissionMap: Record<string, CommunityCaptainPermission[]>;
+  seatScopeMap: Record<string, CaptainSeatScope>;
 }) {
-  return (permission: CommunityCaptainPermission) => {
+  return (permission: CommunityCaptainPermission, requiredSeatScope: CaptainSeatScope) => {
     const exactMatch =
-      input.assignments.find((assignment) =>
-        (input.permissionMap[assignment.auth_user_id] ?? []).includes(permission)
+      input.assignments.find((assignment) => {
+        const role = assignment.role_type ?? "community_captain";
+        const seatKey = buildCaptainSeatKey(assignment.auth_user_id, role);
+
+        return (
+          (input.permissionMap[seatKey] ?? []).includes(permission) &&
+          captainSeatMatchesScope(
+            input.seatScopeMap[seatKey] ?? "project_and_community",
+            requiredSeatScope
+          )
+        );
+      }
+        
       ) ?? null;
 
     if (exactMatch) {
       return exactMatch;
     }
 
-    return input.assignments[0] ?? null;
+    return null;
   };
 }
 
@@ -154,7 +173,8 @@ function buildAutomationQueueItem(input: {
   resolveCaptainAssignment: ReturnType<typeof buildCaptainAssignmentResolver>;
 }) {
   const requiredPermission = AUTOMATION_PERMISSION_MAP[input.row.automation_type];
-  const assignment = input.resolveCaptainAssignment(requiredPermission);
+  const requiredSeatScope = getCaptainScopeForAutomation(input.row.automation_type);
+  const assignment = input.resolveCaptainAssignment(requiredPermission, requiredSeatScope);
   const priority = getAutomationPriority({
     row: input.row,
     outcomes: input.outcomes,
@@ -173,6 +193,7 @@ function buildAutomationQueueItem(input: {
     source: "automation",
     actionLabel: buildQueueSummaryLabel(requiredPermission),
     requiredPermission,
+    requiredSeatScope,
     automationId: input.row.id,
     automationType: input.row.automation_type,
   } satisfies DesiredCaptainQueueItem;
@@ -237,7 +258,9 @@ function buildPlaybookQueueItem(input: {
   outcomes: Awaited<ReturnType<typeof loadProjectCommunityOutcomeSummary>>;
 }) {
   const requiredPermission = PLAYBOOK_PERMISSION_MAP[input.playbook.key];
-  const assignment = input.resolveCaptainAssignment(requiredPermission);
+  const requiredSeatScope: CaptainSeatScope =
+    input.playbook.key === "raid_week" ? "community_only" : "project_and_community";
+  const assignment = input.resolveCaptainAssignment(requiredPermission, requiredSeatScope);
   const priority =
     input.playbook.key === "comeback_week" && input.outcomes.comeback.activeCount > 0
       ? "high"
@@ -256,6 +279,7 @@ function buildPlaybookQueueItem(input: {
     source: "playbook",
     actionLabel: "Run playbook",
     requiredPermission,
+    requiredSeatScope,
     playbookKey: input.playbook.key,
   } satisfies DesiredCaptainQueueItem;
 }
@@ -295,6 +319,7 @@ async function loadDesiredCaptainQueueItems(projectId: string) {
   const resolveCaptainAssignment = buildCaptainAssignmentResolver({
     assignments: assignmentRows,
     permissionMap: captainConfig.permissionMap,
+    seatScopeMap: captainConfig.seatScopeMap,
   });
 
   const desiredItems: DesiredCaptainQueueItem[] = [];
@@ -380,6 +405,7 @@ export async function refreshProjectCommunityCaptainQueue(projectId: string) {
         priority: item.priority,
         actionLabel: item.actionLabel,
         requiredPermission: item.requiredPermission,
+        requiredSeatScope: item.requiredSeatScope,
         automationId: item.automationId ?? null,
         automationType: item.automationType ?? null,
         playbookKey: item.playbookKey ?? null,

@@ -5,6 +5,8 @@ import {
   COMMUNITY_AUTOMATION_TYPES,
   COMMUNITY_PLAYBOOK_KEYS,
   computeNextCommunityAutomationRunAt,
+  deriveCommunityAutomationExecutionPosture,
+  getCommunityAutomationSequence,
   getCommunityPlaybookSteps,
   isCommunityAutomationDue,
   normalizeCaptainPermissionList,
@@ -119,4 +121,70 @@ test("getCommunityPlaybookSteps returns the expected ordered rails per playbook"
     "activation_board",
     "mission_digest",
   ]);
+});
+
+test("getCommunityAutomationSequence groups automations into predictable owner lanes", () => {
+  assert.equal(getCommunityAutomationSequence("rank_sync"), "always_on");
+  assert.equal(getCommunityAutomationSequence("mission_digest"), "always_on");
+  assert.equal(getCommunityAutomationSequence("newcomer_pulse"), "launch");
+  assert.equal(getCommunityAutomationSequence("raid_reminder"), "raid");
+  assert.equal(getCommunityAutomationSequence("reactivation_pulse"), "comeback");
+  assert.equal(getCommunityAutomationSequence("activation_board"), "campaign_push");
+});
+
+test("deriveCommunityAutomationExecutionPosture maps state into owner-facing posture", () => {
+  assert.equal(
+    deriveCommunityAutomationExecutionPosture({
+      status: "paused",
+      cadence: "daily",
+      nextRunAt: "2026-04-20T08:00:00.000Z",
+      lastResult: "success",
+      nowIso: "2026-04-20T09:00:00.000Z",
+    }),
+    "watching"
+  );
+
+  assert.equal(
+    deriveCommunityAutomationExecutionPosture({
+      status: "active",
+      cadence: "manual",
+      nextRunAt: null,
+      lastResult: null,
+      nowIso: "2026-04-20T09:00:00.000Z",
+    }),
+    "ready"
+  );
+
+  assert.equal(
+    deriveCommunityAutomationExecutionPosture({
+      status: "active",
+      cadence: "daily",
+      nextRunAt: "2026-04-20T08:00:00.000Z",
+      lastResult: "success",
+      nowIso: "2026-04-20T09:00:00.000Z",
+    }),
+    "ready"
+  );
+
+  assert.equal(
+    deriveCommunityAutomationExecutionPosture({
+      status: "active",
+      cadence: "daily",
+      nextRunAt: "2026-04-20T08:00:00.000Z",
+      lastResult: "failed",
+      nowIso: "2026-04-20T09:00:00.000Z",
+    }),
+    "blocked"
+  );
+
+  assert.equal(
+    deriveCommunityAutomationExecutionPosture({
+      status: "active",
+      cadence: "daily",
+      nextRunAt: "2026-04-22T08:00:00.000Z",
+      lastResult: "failed",
+      nowIso: "2026-04-20T09:00:00.000Z",
+    }),
+    "degraded"
+  );
 });

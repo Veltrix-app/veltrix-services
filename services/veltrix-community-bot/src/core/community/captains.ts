@@ -11,9 +11,12 @@ type CaptainAssignment = {
   label: string;
 };
 
+export type CaptainSeatScope = "project_only" | "community_only" | "project_and_community";
+
 type CaptainConfig = {
   assignments: CaptainAssignment[];
   permissionMap: Record<string, CommunityCaptainPermission[]>;
+  seatScopeMap: Record<string, CaptainSeatScope>;
 };
 
 const AUTOMATION_PERMISSION_MAP: Record<CommunityAutomationType, CommunityCaptainPermission> = {
@@ -25,6 +28,20 @@ const AUTOMATION_PERMISSION_MAP: Record<CommunityAutomationType, CommunityCaptai
   reactivation_pulse: "reactivation_wave",
   activation_board: "activation_board",
 };
+
+const AUTOMATION_SCOPE_MAP: Record<CommunityAutomationType, CaptainSeatScope> = {
+  rank_sync: "community_only",
+  leaderboard_pulse: "community_only",
+  mission_digest: "community_only",
+  raid_reminder: "community_only",
+  newcomer_pulse: "project_and_community",
+  reactivation_pulse: "project_and_community",
+  activation_board: "project_and_community",
+};
+
+export function buildCaptainSeatKey(authUserId: string, role: string) {
+  return `${authUserId}:${role}`;
+}
 
 function sanitizeCaptainAssignments(input: unknown) {
   if (!Array.isArray(input)) {
@@ -57,15 +74,100 @@ function sanitizeCaptainPermissionMap(input: unknown) {
   }
 
   const result: Record<string, CommunityCaptainPermission[]> = {};
-  for (const [authUserId, permissions] of Object.entries(input as Record<string, unknown>)) {
-    if (!authUserId.trim()) {
+  for (const [seatKey, permissions] of Object.entries(input as Record<string, unknown>)) {
+    if (!seatKey.trim()) {
       continue;
     }
 
-    result[authUserId] = normalizeCaptainPermissionList(permissions);
+    result[seatKey] = normalizeCaptainPermissionList(permissions);
   }
 
   return result;
+}
+
+export function normalizeCaptainSeatScope(value: unknown): CaptainSeatScope {
+  if (
+    value === "project_only" ||
+    value === "community_only" ||
+    value === "project_and_community"
+  ) {
+    return value;
+  }
+
+  return "project_and_community";
+}
+
+function sanitizeCaptainSeatScopeMap(input: unknown, assignments: CaptainAssignment[]) {
+  if (!input || typeof input !== "object") {
+    return {} as Record<string, CaptainSeatScope>;
+  }
+
+  const result: Record<string, CaptainSeatScope> = {};
+  for (const [seatKey, scope] of Object.entries(input as Record<string, unknown>)) {
+    if (!seatKey.trim()) {
+      continue;
+    }
+
+    if (seatKey.includes(":")) {
+      result[seatKey] = normalizeCaptainSeatScope(scope);
+      continue;
+    }
+
+    const matchingAssignments = assignments.filter((assignment) => assignment.authUserId === seatKey);
+    if (matchingAssignments.length === 0) {
+      result[seatKey] = normalizeCaptainSeatScope(scope);
+      continue;
+    }
+
+    for (const assignment of matchingAssignments) {
+      result[buildCaptainSeatKey(assignment.authUserId, assignment.role)] =
+        normalizeCaptainSeatScope(scope);
+    }
+  }
+
+  return result;
+}
+
+function normalizeCaptainPermissionMapForAssignments(
+  permissionMap: Record<string, CommunityCaptainPermission[]>,
+  assignments: CaptainAssignment[]
+) {
+  const normalizedPermissionMap: Record<string, CommunityCaptainPermission[]> = {};
+
+  for (const [seatKey, permissions] of Object.entries(permissionMap)) {
+    if (seatKey.includes(":")) {
+      normalizedPermissionMap[seatKey] = permissions;
+      continue;
+    }
+
+    const matchingAssignments = assignments.filter((assignment) => assignment.authUserId === seatKey);
+    if (matchingAssignments.length === 0) {
+      normalizedPermissionMap[seatKey] = permissions;
+      continue;
+    }
+
+    for (const assignment of matchingAssignments) {
+      normalizedPermissionMap[buildCaptainSeatKey(assignment.authUserId, assignment.role)] = permissions;
+    }
+  }
+
+  return normalizedPermissionMap;
+}
+
+export function normalizeCaptainConfigMetadata(metadata: Record<string, unknown> | null | undefined) {
+  const safeMetadata = metadata && typeof metadata === "object" ? metadata : {};
+  const assignments = sanitizeCaptainAssignments(safeMetadata.captainAssignments);
+  const permissionMap = normalizeCaptainPermissionMapForAssignments(
+    sanitizeCaptainPermissionMap(safeMetadata.captainPermissionMap),
+    assignments
+  );
+  const seatScopeMap = sanitizeCaptainSeatScopeMap(safeMetadata.captainSeatScopeMap, assignments);
+
+  return {
+    assignments,
+    permissionMap,
+    seatScopeMap,
+  } satisfies CaptainConfig;
 }
 
 async function loadPrimaryCommunitySettingsRow(projectId: string) {
@@ -107,24 +209,36 @@ async function loadPrimaryCommunitySettingsRow(projectId: string) {
 
 export async function loadProjectCaptainConfig(projectId: string): Promise<CaptainConfig> {
   const settingsRow = await loadPrimaryCommunitySettingsRow(projectId);
-  const metadata =
+  return normalizeCaptainConfigMetadata(
     settingsRow?.metadata && typeof settingsRow.metadata === "object"
       ? settingsRow.metadata
-      : {};
-
-  return {
-    assignments: sanitizeCaptainAssignments(metadata.captainAssignments),
-    permissionMap: sanitizeCaptainPermissionMap(metadata.captainPermissionMap),
-  };
+      : {}
+  );
 }
 
 export function getCaptainPermissionForAutomation(automationType: CommunityAutomationType) {
   return AUTOMATION_PERMISSION_MAP[automationType];
 }
 
+export function getCaptainScopeForAutomation(automationType: CommunityAutomationType) {
+  return AUTOMATION_SCOPE_MAP[automationType];
+}
+
+export function captainSeatMatchesScope(
+  seatScope: CaptainSeatScope,
+  requiredScope: CaptainSeatScope
+) {
+  if (seatScope === "project_and_community") {
+    return true;
+  }
+
+  return seatScope === requiredScope;
+}
+
 export async function loadCaptainByAuthUserId(projectId: string, authUserId: string) {
   const config = await loadProjectCaptainConfig(projectId);
-  const assignment = config.assignments.find((item) => item.authUserId === authUserId) ?? null;
+  const matchingAssignments = config.assignments.filter((item) => item.authUserId === authUserId);
+  const assignment = matchingAssignments[0] ?? null;
 
   if (!assignment) {
     return null;
@@ -132,7 +246,22 @@ export async function loadCaptainByAuthUserId(projectId: string, authUserId: str
 
   return {
     ...assignment,
-    permissions: config.permissionMap[authUserId] ?? [],
+    permissions: Array.from(
+      new Set(
+        matchingAssignments.flatMap(
+          (item) => config.permissionMap[buildCaptainSeatKey(item.authUserId, item.role)] ?? []
+        )
+      )
+    ),
+    seatScopes: matchingAssignments.map((item) => ({
+      role: item.role,
+      seatKey: buildCaptainSeatKey(item.authUserId, item.role),
+      scope:
+        config.seatScopeMap[buildCaptainSeatKey(item.authUserId, item.role)] ??
+        "project_and_community",
+      permissions:
+        config.permissionMap[buildCaptainSeatKey(item.authUserId, item.role)] ?? [],
+    })),
   };
 }
 
@@ -161,10 +290,31 @@ export async function loadCaptainByProviderIdentity(params: {
 }
 
 export function captainHasPermission(
-  captain: { permissions: CommunityCaptainPermission[] } | null,
-  permission: CommunityCaptainPermission
+  captain:
+    | {
+        permissions: CommunityCaptainPermission[];
+        seatScopes?: Array<{
+          scope: CaptainSeatScope;
+          permissions: CommunityCaptainPermission[];
+        }>;
+      }
+    | null,
+  permission: CommunityCaptainPermission,
+  requiredScope: CaptainSeatScope = "project_and_community"
 ) {
-  return Boolean(captain && captain.permissions.includes(permission));
+  if (!captain) {
+    return false;
+  }
+
+  if (!captain.seatScopes || captain.seatScopes.length === 0) {
+    return captain.permissions.includes(permission);
+  }
+
+  return captain.seatScopes.some(
+    (seat) =>
+      seat.permissions.includes(permission) &&
+      captainSeatMatchesScope(seat.scope, requiredScope)
+  );
 }
 
 export async function maybeRecordCaptainAutomationAction(params: {
@@ -182,21 +332,33 @@ export async function maybeRecordCaptainAutomationAction(params: {
 
   const captain = await loadCaptainByAuthUserId(params.projectId, params.authUserId);
   const requiredPermission = getCaptainPermissionForAutomation(params.automationType);
+  const requiredScope = getCaptainScopeForAutomation(params.automationType);
 
-  if (!captainHasPermission(captain, requiredPermission)) {
+  if (!captainHasPermission(captain, requiredPermission, requiredScope)) {
     return null;
   }
+
+  const actingSeat =
+    captain?.seatScopes?.find(
+      (seat) =>
+        seat.permissions.includes(requiredPermission) &&
+        captainSeatMatchesScope(seat.scope, requiredScope)
+    ) ?? null;
 
   const { error } = await supabaseAdmin.from("community_captain_actions").insert({
     project_id: params.projectId,
     auth_user_id: params.authUserId,
-    captain_role: captain?.role ?? null,
+    captain_role: actingSeat?.role ?? captain?.role ?? null,
     action_type: requiredPermission,
     target_type: "automation",
     target_id: params.targetId ?? params.automationType,
     status: params.status,
     summary: params.summary,
-    metadata: params.metadata ?? {},
+    metadata: {
+      ...(params.metadata ?? {}),
+      requiredSeatScope: requiredScope,
+      seatKey: actingSeat?.seatKey ?? null,
+    },
   });
 
   if (error) {

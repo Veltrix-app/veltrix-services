@@ -30,6 +30,18 @@ export type CommunityPlaybookKey = (typeof COMMUNITY_PLAYBOOK_KEYS)[number];
 export type CommunityCaptainPermission = (typeof COMMUNITY_CAPTAIN_PERMISSIONS)[number];
 export type CommunityAutomationCadence = "manual" | "daily" | "weekly";
 export type CommunityAutomationStatus = "active" | "paused";
+export type CommunityAutomationSequence =
+  | "always_on"
+  | "launch"
+  | "raid"
+  | "comeback"
+  | "campaign_push";
+export type CommunityAutomationExecutionPosture =
+  | "watching"
+  | "ready"
+  | "running"
+  | "blocked"
+  | "degraded";
 
 const CAPTAIN_PERMISSION_SET = new Set<string>(COMMUNITY_CAPTAIN_PERMISSIONS);
 
@@ -126,4 +138,58 @@ export function getCommunityPlaybookSteps(playbookKey: CommunityPlaybookKey) {
     "activation_board",
     "mission_digest",
   ] as CommunityAutomationType[];
+}
+
+export function getCommunityAutomationSequence(
+  automationType: CommunityAutomationType
+): CommunityAutomationSequence {
+  if (automationType === "newcomer_pulse") {
+    return "launch";
+  }
+
+  if (automationType === "raid_reminder") {
+    return "raid";
+  }
+
+  if (automationType === "reactivation_pulse") {
+    return "comeback";
+  }
+
+  if (automationType === "activation_board" || automationType === "leaderboard_pulse") {
+    return "campaign_push";
+  }
+
+  return "always_on";
+}
+
+export function deriveCommunityAutomationExecutionPosture(input: {
+  status: CommunityAutomationStatus;
+  cadence: CommunityAutomationCadence;
+  nextRunAt?: string | null;
+  lastResult?: "success" | "failed" | "skipped" | null;
+  nowIso?: string;
+}): CommunityAutomationExecutionPosture {
+  if (input.status !== "active") {
+    return "watching";
+  }
+
+  const isDue = isCommunityAutomationDue({
+    status: input.status,
+    nextRunAt: input.nextRunAt,
+    nowIso: input.nowIso,
+  });
+
+  if (input.lastResult === "failed") {
+    return isDue || input.cadence === "manual" ? "blocked" : "degraded";
+  }
+
+  if (input.cadence === "manual") {
+    return "ready";
+  }
+
+  if (!input.nextRunAt) {
+    return "ready";
+  }
+
+  return isDue ? "ready" : "watching";
 }
