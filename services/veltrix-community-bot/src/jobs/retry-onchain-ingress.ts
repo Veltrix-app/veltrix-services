@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "../lib/supabase.js";
 import { ingestOnchainEvents } from "../core/aesp/onchain.js";
 import { writeAdminAuditLog } from "../core/ops/admin-audit.js";
+import { createPlatformAudit, createPlatformIncident } from "../core/platform/operation-events.js";
 import type { OnchainIngressEvent } from "../types/aesp.js";
 
 function asObject(value: unknown) {
@@ -57,6 +58,16 @@ export async function retryOnchainIngressJob(input?: { limit?: number }) {
 
       if (ok) {
         completed += 1;
+        await createPlatformAudit({
+          projectId: row.project_id as string,
+          objectType: "provider_sync",
+          objectId: row.source_id,
+          actionType: "retried",
+          metadata: {
+            source: "retry-onchain-ingress",
+            retriedFromAuditLogId: row.id,
+          },
+        }).catch(() => null);
         await writeAdminAuditLog({
           projectId: row.project_id as string,
           sourceTable: "onchain_ingress",
@@ -71,6 +82,22 @@ export async function retryOnchainIngressJob(input?: { limit?: number }) {
         });
       } else {
         rejected += 1;
+        await createPlatformIncident({
+          projectId: row.project_id as string,
+          objectType: "provider_sync",
+          objectId: row.source_id,
+          sourceType: "job",
+          severity: "warning",
+          title: "On-chain ingress retry remained rejected",
+          summary:
+            typeof firstResult === "object" && firstResult && "reason" in firstResult && typeof firstResult.reason === "string"
+              ? firstResult.reason
+              : "On-chain ingress retry remained rejected.",
+          metadata: {
+            source: "retry-onchain-ingress",
+            retriedFromAuditLogId: row.id,
+          },
+        }).catch(() => null);
         await writeAdminAuditLog({
           projectId: row.project_id as string,
           sourceTable: "onchain_ingress",
@@ -89,6 +116,20 @@ export async function retryOnchainIngressJob(input?: { limit?: number }) {
       }
     } catch (retryError) {
       rejected += 1;
+      await createPlatformIncident({
+        projectId: row.project_id as string,
+        objectType: "provider_sync",
+        objectId: row.source_id,
+        sourceType: "job",
+        severity: "critical",
+        title: "On-chain ingress retry failed",
+        summary:
+          retryError instanceof Error ? retryError.message : "On-chain ingress retry failed.",
+        metadata: {
+          source: "retry-onchain-ingress",
+          retriedFromAuditLogId: row.id,
+        },
+      }).catch(() => null);
       await writeAdminAuditLog({
         projectId: row.project_id as string,
         sourceTable: "onchain_ingress",

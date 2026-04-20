@@ -6,6 +6,7 @@ import {
   type DiscordIntegrationContext,
   type DiscordLeaderboardCadence,
 } from "../providers/discord/community.js";
+import { createPlatformAudit, createPlatformIncident } from "../core/platform/operation-events.js";
 import { sendDiscordPush } from "../providers/discord/push.js";
 
 type PostCommunityLeaderboardsOptions = {
@@ -91,33 +92,63 @@ async function deliverDiscordLeaderboard(
     limit: context.settings.leaderboardTopN,
   });
 
-  await sendDiscordPush({
-    targetChannelId,
-    title: `${context.projectName} ${formatPeriod(context.settings.leaderboardPeriod)} leaderboard`,
-    body: buildLeaderboardBody(entries, context.projectName),
-    eyebrow: "COMMUNITY LEADERBOARD",
-    projectName: context.projectName,
-    campaignTitle: "Community rail",
-    meta: [
-      {
-        label: "Scope",
-        value: context.settings.leaderboardScope === "global" ? "Global" : "Project",
+  try {
+    await sendDiscordPush({
+      targetChannelId,
+      title: `${context.projectName} ${formatPeriod(context.settings.leaderboardPeriod)} leaderboard`,
+      body: buildLeaderboardBody(entries, context.projectName),
+      eyebrow: "COMMUNITY LEADERBOARD",
+      projectName: context.projectName,
+      campaignTitle: "Community rail",
+      meta: [
+        {
+          label: "Scope",
+          value: context.settings.leaderboardScope === "global" ? "Global" : "Project",
+        },
+        {
+          label: "Window",
+          value:
+            context.settings.leaderboardPeriod === "all_time"
+              ? "All-time"
+              : context.settings.leaderboardPeriod === "monthly"
+                ? "Monthly"
+                : "Weekly",
+        },
+        {
+          label: "Top",
+          value: String(context.settings.leaderboardTopN),
+        },
+      ],
+    });
+
+    await createPlatformAudit({
+      projectId: context.projectId,
+      objectType: "automation",
+      objectId: `leaderboard:${context.integrationId}`,
+      actionType: "published",
+      metadata: {
+        source: "post-community-leaderboards",
+        integrationId: context.integrationId,
+        cadence: context.settings.leaderboardCadence,
       },
-      {
-        label: "Window",
-        value:
-          context.settings.leaderboardPeriod === "all_time"
-            ? "All-time"
-            : context.settings.leaderboardPeriod === "monthly"
-              ? "Monthly"
-              : "Weekly",
+    }).catch(() => null);
+  } catch (error) {
+    await createPlatformIncident({
+      projectId: context.projectId,
+      objectType: "automation",
+      objectId: `leaderboard:${context.integrationId}`,
+      sourceType: "job",
+      severity: "warning",
+      title: "Community leaderboard delivery failed",
+      summary:
+        error instanceof Error ? error.message : "Community leaderboard post failed.",
+      metadata: {
+        source: "post-community-leaderboards",
+        integrationId: context.integrationId,
       },
-      {
-        label: "Top",
-        value: String(context.settings.leaderboardTopN),
-      },
-    ],
-  });
+    }).catch(() => null);
+    throw error;
+  }
 
   await markDiscordLeaderboardPostedAt(context.integrationId);
 

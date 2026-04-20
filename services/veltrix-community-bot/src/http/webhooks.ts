@@ -10,6 +10,10 @@ import { verifyXQuestFollow } from "../providers/x/verification.js";
 import { emitXpEvent } from "../core/aesp/ledger.js";
 import { ingestOnchainEvents } from "../core/aesp/onchain.js";
 import { env } from "../config/env.js";
+import {
+  createPlatformAudit,
+  createPlatformIncident,
+} from "../core/platform/operation-events.js";
 
 export const webhookRouter = Router();
 
@@ -43,6 +47,11 @@ const xVerificationSchema = z.object({
 });
 
 const discordPushSchema = z.object({
+  projectId: z.string().uuid().optional(),
+  objectType: z
+    .enum(["campaign", "quest", "raid", "reward", "claim", "automation", "community_run", "provider_sync"])
+    .optional(),
+  objectId: z.string().min(1).optional(),
   targetChannelId: z.string().min(1),
   targetThreadId: z.string().optional(),
   title: z.string().min(1),
@@ -58,6 +67,11 @@ const discordPushSchema = z.object({
 });
 
 const telegramPushSchema = z.object({
+  projectId: z.string().uuid().optional(),
+  objectType: z
+    .enum(["campaign", "quest", "raid", "reward", "claim", "automation", "community_run", "provider_sync"])
+    .optional(),
+  objectId: z.string().min(1).optional(),
   targetChatId: z.string().min(1),
   title: z.string().min(1),
   body: z.string().min(1),
@@ -205,8 +219,37 @@ webhookRouter.post("/discord/push", async (req, res) => {
 
   try {
     const result = await sendDiscordPush(parsed.data);
+    if (parsed.data.projectId) {
+      await createPlatformAudit({
+        projectId: parsed.data.projectId,
+        objectType: parsed.data.objectType ?? "provider_sync",
+        objectId: parsed.data.objectId ?? (parsed.data.targetThreadId || parsed.data.targetChannelId),
+        actionType: "tested",
+        metadata: {
+          provider: "discord",
+          channelId: result.channelId,
+          messageId: result.messageId,
+        },
+      });
+    }
     return res.status(200).json(result);
   } catch (error) {
+    if (parsed.data.projectId) {
+      await createPlatformIncident({
+        projectId: parsed.data.projectId,
+        objectType: parsed.data.objectType ?? "provider_sync",
+        objectId: parsed.data.objectId ?? (parsed.data.targetThreadId || parsed.data.targetChannelId),
+        sourceType: "provider",
+        severity: "warning",
+        title: "Discord push failed",
+        summary: error instanceof Error ? error.message : "Discord push failed.",
+        metadata: {
+          provider: "discord",
+          channelId: parsed.data.targetChannelId,
+          threadId: parsed.data.targetThreadId ?? null,
+        },
+      }).catch(() => undefined);
+    }
     return res.status(500).json({
       ok: false,
       error: error instanceof Error ? error.message : "Discord push failed."
@@ -305,8 +348,36 @@ webhookRouter.post("/telegram/push", async (req, res) => {
 
   try {
     const result = await sendTelegramPush(parsed.data);
+    if (parsed.data.projectId) {
+      await createPlatformAudit({
+        projectId: parsed.data.projectId,
+        objectType: parsed.data.objectType ?? "provider_sync",
+        objectId: parsed.data.objectId ?? parsed.data.targetChatId,
+        actionType: "tested",
+        metadata: {
+          provider: "telegram",
+          chatId: result.chatId,
+          messageId: result.messageId,
+        },
+      });
+    }
     return res.status(200).json(result);
   } catch (error) {
+    if (parsed.data.projectId) {
+      await createPlatformIncident({
+        projectId: parsed.data.projectId,
+        objectType: parsed.data.objectType ?? "provider_sync",
+        objectId: parsed.data.objectId ?? parsed.data.targetChatId,
+        sourceType: "provider",
+        severity: "warning",
+        title: "Telegram push failed",
+        summary: error instanceof Error ? error.message : "Telegram push failed.",
+        metadata: {
+          provider: "telegram",
+          chatId: parsed.data.targetChatId,
+        },
+      }).catch(() => undefined);
+    }
     return res.status(500).json({
       ok: false,
       error: error instanceof Error ? error.message : "Telegram push failed."

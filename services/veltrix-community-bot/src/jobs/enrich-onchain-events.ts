@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "../lib/supabase.js";
 import { writeAdminAuditLog } from "../core/ops/admin-audit.js";
+import { createPlatformAudit, createPlatformIncident } from "../core/platform/operation-events.js";
 
 function asObject(value: unknown) {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -75,20 +76,56 @@ export async function runOnchainEnrichmentJob(input?: { limit?: number }) {
             : "low",
     };
 
-    const { error: updateError } = await supabaseAdmin
-      .from("onchain_events")
-      .update({
-        metadata: nextMetadata,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", row.id);
+    try {
+      const { error: updateError } = await supabaseAdmin
+        .from("onchain_events")
+        .update({
+          metadata: nextMetadata,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", row.id);
 
-    if (updateError) {
+      if (updateError) {
+        throw updateError;
+      }
+    } catch (updateError) {
+      if (row.project_id) {
+        await createPlatformIncident({
+          projectId: row.project_id as string,
+          objectType: "provider_sync",
+          objectId: row.id,
+          sourceType: "job",
+          severity: "warning",
+          title: "On-chain enrichment failed",
+          summary:
+            updateError instanceof Error ? updateError.message : "On-chain enrichment failed.",
+          metadata: {
+            source: "enrich-onchain-events",
+            authUserId: row.auth_user_id,
+            eventType: row.event_type,
+          },
+        }).catch(() => null);
+      }
+
       throw updateError;
     }
 
     enriched += 1;
     touchedAuthUsers.add(row.auth_user_id as string);
+
+    if (row.project_id) {
+      await createPlatformAudit({
+        projectId: row.project_id as string,
+        objectType: "provider_sync",
+        objectId: row.id,
+        actionType: "updated",
+        metadata: {
+          source: "enrich-onchain-events",
+          eventType: row.event_type,
+          enrichmentVersion: 2,
+        },
+      }).catch(() => null);
+    }
   }
 
   await writeAdminAuditLog({
