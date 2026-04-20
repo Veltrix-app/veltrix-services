@@ -7,6 +7,8 @@ import { useCommunityJourney } from "@/hooks/use-community-journey";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { CommunityStatusPanel } from "@/components/community/community-status-panel";
+import { CommunityMissionLane } from "@/components/community/community-mission-lane";
+import { CommunityRecognitionStrip } from "@/components/community/community-recognition-strip";
 
 export function CommunityOnboardingScreen() {
   const searchParams = useSearchParams();
@@ -47,7 +49,7 @@ export function CommunityOnboardingScreen() {
 
             <div className="flex flex-wrap gap-3">
               <Link
-                href={snapshot.nextBestAction?.route ?? "/profile"}
+                href={snapshot.nextBestAction?.route ?? snapshot.preferredRoute}
                 className="inline-flex items-center gap-2 rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
               >
                 {snapshot.nextBestAction?.ctaLabel ?? "Open loadout"}
@@ -70,13 +72,23 @@ export function CommunityOnboardingScreen() {
             description="Every missing readiness step is made explicit before the member gets thrown into deeper mission pressure."
           >
             <div className="space-y-3">
-              <InfoTile title="Identity first" copy="Provider links live in the same journey as mission pressure, so onboarding never breaks away from the real system." />
-              <InfoTile title="Wallet second" copy="Wallet verification is framed as a community unlock, not a buried profile chore." />
+              <InfoTile title="Readiness posture" copy={snapshot.readinessLabel} />
+              <InfoTile title="Trust posture" copy={snapshot.recognition.trustLabel} />
               <InfoTile title="First mission" copy="The first meaningful contribution closes the loop and graduates the member into the active rail." />
             </div>
           </Surface>
         </div>
       </section>
+
+      <CommunityRecognitionStrip snapshot={snapshot} />
+
+      <Surface
+        eyebrow="Onboarding Lane"
+        title="The exact readiness moves left"
+        description="This lane should tell a new member what to arm next, not force them to scan the whole product."
+      >
+        <CommunityMissionLane snapshot={snapshot} />
+      </Surface>
 
       <Surface
         eyebrow="Readiness Checklist"
@@ -112,8 +124,8 @@ export function CommunityOnboardingScreen() {
           description="Once the readiness stack is armed, the member should transition straight into the active lane with visible status."
         >
           <div className="grid gap-4 sm:grid-cols-2">
-            <InfoTile title="Recognition label" copy={snapshot.recognitionLabel} />
-            <InfoTile title="Next unlock" copy={snapshot.nextUnlockLabel} />
+            <InfoTile title="Recognition label" copy={snapshot.recognition.label} />
+            <InfoTile title="Next unlock" copy={snapshot.recognition.nextUnlockLabel} />
           </div>
         </Surface>
       </section>

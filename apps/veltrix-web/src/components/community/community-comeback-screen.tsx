@@ -7,6 +7,8 @@ import { useCommunityJourney } from "@/hooks/use-community-journey";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { CommunityStatusPanel } from "@/components/community/community-status-panel";
+import { CommunityMissionLane } from "@/components/community/community-mission-lane";
+import { CommunityRecognitionStrip } from "@/components/community/community-recognition-strip";
 
 export function CommunityComebackScreen() {
   const searchParams = useSearchParams();
@@ -47,7 +49,7 @@ export function CommunityComebackScreen() {
 
             <div className="flex flex-wrap gap-3">
               <Link
-                href={snapshot.nextBestAction?.route ?? "/notifications"}
+                href={snapshot.nextBestAction?.route ?? snapshot.preferredRoute}
                 className="inline-flex items-center gap-2 rounded-full bg-amber-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-amber-200"
               >
                 {snapshot.nextBestAction?.ctaLabel ?? "Open signal feed"}
@@ -70,13 +72,23 @@ export function CommunityComebackScreen() {
             description="The goal is to offer one clear way back into value instead of dumping members into everything at once."
           >
             <div className="space-y-3">
-              <InfoTile title="Signals first" copy="Unread updates show what changed since the member dropped out of the loop." />
+              <InfoTile title="Re-entry posture" copy={snapshot.readinessLabel} />
               <InfoTile title="Mission second" copy="A comeback mission becomes the fastest route back into visible pressure." />
               <InfoTile title="Rewards still count" copy="Claimables and campaign unlocks can also work as re-entry magnets." />
             </div>
           </Surface>
         </div>
       </section>
+
+      <CommunityRecognitionStrip snapshot={snapshot} />
+
+      <Surface
+        eyebrow="Comeback Lane"
+        title="The shortest route back into pressure"
+        description="Signals, missions and claims should compete here until the member is truly back in motion."
+      >
+        <CommunityMissionLane snapshot={snapshot} />
+      </Surface>
 
       <Surface
         eyebrow="Comeback Queue"
@@ -112,8 +124,8 @@ export function CommunityComebackScreen() {
           description="Once a member is back in motion, the active lane should carry recognition, streak and contribution pressure again."
         >
           <div className="grid gap-4 sm:grid-cols-2">
-            <InfoTile title="Recognition label" copy={snapshot.recognitionLabel} />
-            <InfoTile title="Contribution status" copy={snapshot.contributionStatus} />
+            <InfoTile title="Recognition label" copy={snapshot.recognition.label} />
+            <InfoTile title="Contribution status" copy={snapshot.recognition.contributionLabel} />
           </div>
         </Surface>
       </section>

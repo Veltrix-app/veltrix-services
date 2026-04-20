@@ -1,6 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
 import type { NextRequest } from "next/server";
 import type { LiveCommunityJourneyAction, LiveCommunityJourneySnapshot } from "@/types/live";
+import {
+  buildJourneyMissionLane,
+  buildJourneyPreferredRoute,
+  buildJourneyReadinessLabel,
+  buildJourneyRecognition,
+} from "@/lib/community/journey-read-model";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -510,7 +516,26 @@ export async function buildCommunityJourneySnapshot(input: {
       unreadSignals: base.unreadSignals,
       openMissionCount: 0,
       claimableRewards: 0,
+      level: base.globalReputation?.level ?? 1,
+      trustScore: base.globalReputation?.trust_score ?? 50,
+      preferredRoute: "/projects",
+      readinessLabel: "Community rail standing by",
       recognitionLabel: base.profile?.title ?? "Explorer",
+      recognition: {
+        label: base.profile?.title ?? "Explorer",
+        posture: "arming",
+        streakLabel:
+          (base.globalReputation?.streak ?? 0) > 0
+            ? `${base.globalReputation?.streak ?? 0}-day streak`
+            : "Streak not armed",
+        milestoneLabel: "First milestone still ahead",
+        contributionLabel: "Pick a community to start your rail.",
+        nextUnlockLabel: "Join your first project world to unlock a live community journey.",
+        trustLabel:
+          (base.globalReputation?.trust_score ?? 50) >= 60
+            ? "Trusted and climbing"
+            : "Trust still building",
+      },
       contributionStatus: "Pick a community to start your rail.",
       nextUnlockLabel: "Join your first project world to unlock a live community journey.",
       headline: "Pick a community rail",
@@ -537,6 +562,7 @@ export async function buildCommunityJourneySnapshot(input: {
           locked: false,
         },
       ],
+      missionLane: [],
     };
   }
 
@@ -634,6 +660,8 @@ export async function buildCommunityJourneySnapshot(input: {
     completedStepKeys,
   });
   const nextBestAction = actions.find((action) => !action.completed && !action.locked) ?? actions[0] ?? null;
+  const level = projectReputation?.level ?? base.globalReputation?.level ?? 1;
+  const trustScore = projectReputation?.trust_score ?? base.globalReputation?.trust_score ?? 50;
 
   const recognitionLabel =
     projectReputation?.contribution_tier ??
@@ -656,7 +684,7 @@ export async function buildCommunityJourneySnapshot(input: {
       : lane === "comeback"
         ? "Complete one live mission or raid to fully reactivate your standing."
         : rewardDistributionRows.length > 0
-          ? "A claimable unlock is waiting in your reward vault."
+        ? "A claimable unlock is waiting in your reward vault."
           : "Keep your streak alive to protect your current recognition.";
   const headline =
     lane === "onboarding"
@@ -669,7 +697,41 @@ export async function buildCommunityJourneySnapshot(input: {
       ? "Veltrix will keep shaping your next actions until your identity, wallet and first mission are all armed."
       : lane === "comeback"
         ? "The comeback rail is designed to get you back into visible pressure fast, without dumping you into the full mission backlog."
-        : "Your Community Home is now focused on momentum, recognition and the next unlock that keeps this project hot.";
+      : "Your Community Home is now focused on momentum, recognition and the next unlock that keeps this project hot.";
+  const readinessLabel = buildJourneyReadinessLabel({
+    lane,
+    walletVerified: base.walletVerified,
+    linkedProvidersCount: base.connectedProviders.size,
+    joinedProjectsCount: base.joinedProjects.length,
+    unreadSignals: base.unreadSignals,
+    openMissionCount: openQuests.length,
+    claimableRewards: rewardDistributionRows.length,
+  });
+  const missionLane = buildJourneyMissionLane({
+    lane,
+    actions,
+    projectName: project?.name ?? "Community",
+    unreadSignals: base.unreadSignals,
+    openMissionCount: openQuests.length,
+    claimableRewards: rewardDistributionRows.length,
+    walletVerified: base.walletVerified,
+    linkedProvidersCount: base.connectedProviders.size,
+    joinedProjectsCount: base.joinedProjects.length,
+  });
+  const recognition = buildJourneyRecognition({
+    lane,
+    recognitionLabel,
+    streakDays:
+      snapshot?.streak_days ?? projectReputation?.streak ?? base.globalReputation?.streak ?? 0,
+    milestonesUnlockedCount: snapshot?.milestones_unlocked_count ?? 0,
+    nextUnlockLabel,
+    contributionStatus,
+    trustScore,
+  });
+  const preferredRoute = buildJourneyPreferredRoute({
+    lane,
+    nextBestAction,
+  });
 
   return {
     projectId,
@@ -690,13 +752,19 @@ export async function buildCommunityJourneySnapshot(input: {
     unreadSignals: base.unreadSignals,
     openMissionCount: openQuests.length,
     claimableRewards: rewardDistributionRows.length,
+    level,
+    trustScore,
+    preferredRoute,
+    readinessLabel,
     recognitionLabel,
+    recognition,
     contributionStatus,
     nextUnlockLabel,
     headline,
     supportingCopy,
     nextBestAction,
     actions,
+    missionLane,
   };
 }
 

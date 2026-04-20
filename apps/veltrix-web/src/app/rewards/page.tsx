@@ -7,7 +7,7 @@ export default function RewardsPage() {
     <AppShell
       eyebrow="Rewards"
       title="Loot Vault"
-      description="Track the live loot vault with real claimable state, rarity pressure and campaign linkage."
+      description="Track the live loot vault as part of the same member journey, with claimable state, rarity pressure and campaign linkage."
     >
       <ProtectedState allowPreview previewLabel="Vault preview">
         <RewardsScreen />

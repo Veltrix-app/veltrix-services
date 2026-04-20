@@ -7,7 +7,7 @@ export default function NotificationsPage() {
     <AppShell
       eyebrow="Notifications"
       title="Signal Center"
-      description="Quest approvals, reward drops and live system pressure for the signed-in pilot."
+      description="Quest, reward and community signals that should always route back into the right member lane."
     >
       <ProtectedState>
         <NotificationsScreen />

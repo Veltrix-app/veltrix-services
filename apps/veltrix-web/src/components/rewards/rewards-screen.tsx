@@ -6,11 +6,20 @@ import { ArrowRight, Gem, LockKeyhole, Sparkles } from "lucide-react";
 import { ArtworkImage } from "@/components/ui/artwork-image";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
+import { CommunityStatusPanel } from "@/components/community/community-status-panel";
+import { useCommunityJourney } from "@/hooks/use-community-journey";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 
 type RewardFilter = "all" | "claimable" | "high-value";
 
 export function RewardsScreen() {
+  const {
+    snapshot: communitySnapshot,
+    loading: communityLoading,
+    refreshing: communityRefreshing,
+    error: communityError,
+    advance: advanceCommunityJourney,
+  } = useCommunityJourney();
   const {
     loading,
     error,
@@ -312,6 +321,33 @@ export function RewardsScreen() {
                 <SignalTile label="Premium" value={String(highValueCount)} accent="text-amber-200" compact />
               </div>
             </div>
+          </Surface>
+
+          <Surface
+            eyebrow="Journey Follow-through"
+            title="Reward pressure inside your member lane"
+            description="Rewards should reinforce the active journey instead of feeling like a detached catalog."
+          >
+            <div className="mb-4 rounded-[22px] border border-white/8 bg-black/20 px-4 py-4 text-sm text-slate-300">
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
+                Reward posture
+              </p>
+              <p className="mt-3 font-semibold text-white">{communitySnapshot.readinessLabel}</p>
+              <p className="mt-2 leading-6 text-slate-300">
+                {communitySnapshot.claimableRewards > 0
+                  ? "Your current journey already has claimable reward pressure, so the vault should feel like the payoff layer of the same rail."
+                  : "The vault is still part of the same member journey, but the next unlock likely still lives in missions or signals before it lands here."}
+              </p>
+            </div>
+            <CommunityStatusPanel
+              snapshot={communitySnapshot}
+              loading={communityLoading}
+              refreshing={communityRefreshing}
+              error={communityError}
+              onAdvance={advanceCommunityJourney}
+              mode="compact"
+              actionLimit={2}
+            />
           </Surface>
 
           <Surface

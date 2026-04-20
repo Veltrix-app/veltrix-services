@@ -363,6 +363,18 @@ export function ProfileScreen() {
 
   return (
     <div className="space-y-6">
+      {communitySnapshot.lane === "onboarding" ? (
+        <div className="rounded-[28px] border border-cyan-300/20 bg-cyan-300/10 px-5 py-4 text-sm text-cyan-100">
+          Your community onboarding rail is using this profile as the live loadout surface.{" "}
+          <Link
+            href={communitySnapshot.nextBestAction?.route ?? communitySnapshot.preferredRoute}
+            className="font-semibold underline underline-offset-4"
+          >
+            {communitySnapshot.nextBestAction?.ctaLabel ?? "Open next onboarding move"}
+          </Link>
+        </div>
+      ) : null}
+
       <section className="grid gap-6 2xl:grid-cols-[minmax(0,1.25fr)_380px]">
         <div className="overflow-hidden rounded-[38px] border border-cyan-300/12 bg-[radial-gradient(circle_at_top_left,rgba(0,204,255,0.18),transparent_26%),radial-gradient(circle_at_86%_10%,rgba(192,255,0,0.12),transparent_18%),linear-gradient(145deg,rgba(7,18,24,0.98),rgba(4,9,13,0.95))] p-6 shadow-[0_34px_120px_rgba(0,0,0,0.42)] sm:p-8">
           <div className="flex flex-wrap items-center gap-3 text-[11px] font-bold uppercase tracking-[0.34em] text-cyan-300">
@@ -501,6 +513,10 @@ export function ProfileScreen() {
                     ? "Pilot auth is armed, so Discord and X can route through live identity linking instead of fake toggles."
                     : "Publishable Supabase envs are still missing, so live account reads are not armed yet."
                 }
+              />
+              <InfoPanel
+                title="Current journey posture"
+                text={communitySnapshot.readinessLabel}
               />
               <InfoPanel
                 title="Mission pressure"

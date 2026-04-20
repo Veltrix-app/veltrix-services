@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ImagePlus, Upload, Wallet } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useCommunityJourney } from "@/hooks/use-community-journey";
 
 declare global {
   interface Window {
@@ -32,6 +34,7 @@ export function ProfileEditScreen() {
     error,
     clearError,
   } = useAuth();
+  const { snapshot: communitySnapshot } = useCommunityJourney();
   const [username, setUsername] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [bannerUrl, setBannerUrl] = useState("");
@@ -190,6 +193,18 @@ export function ProfileEditScreen() {
 
   return (
     <div className="space-y-6">
+      {communitySnapshot.lane === "onboarding" ? (
+        <div className="rounded-[24px] border border-cyan-300/20 bg-cyan-300/10 px-4 py-5 text-sm text-cyan-100">
+          Your onboarding rail is using this edit surface as the live identity loadout.{" "}
+          <Link
+            href={communitySnapshot.nextBestAction?.route ?? communitySnapshot.preferredRoute}
+            className="font-semibold underline underline-offset-4"
+          >
+            {communitySnapshot.nextBestAction?.ctaLabel ?? "Return to your next onboarding move"}
+          </Link>
+        </div>
+      ) : null}
+
       <section className="rounded-[34px] border border-white/10 bg-[linear-gradient(135deg,rgba(0,204,255,0.12),rgba(0,0,0,0)_28%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:p-8">
         <p className="text-[11px] font-bold uppercase tracking-[0.34em] text-cyan-300">
           Edit Profile
@@ -199,7 +214,7 @@ export function ProfileEditScreen() {
         </h3>
         <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
           Avatar, banner, wallet and profile fields now live in one command-grade edit flow instead
-          of manual URL plumbing.
+          of manual URL plumbing, so the journey can treat identity as a real loadout instead of setup debt.
         </p>
       </section>
 

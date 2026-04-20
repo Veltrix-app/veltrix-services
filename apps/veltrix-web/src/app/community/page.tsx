@@ -7,7 +7,7 @@ export default function CommunityPage() {
     <AppShell
       eyebrow="Community"
       title="Your next community move"
-      description="Personal onboarding, comeback pressure, status and recognition now live in one member-facing community rail."
+      description="Your member hub for mission pressure, recognition, next unlocks and the best current lane through the community system."
     >
       <ProtectedState>
         <CommunityHomeScreen />

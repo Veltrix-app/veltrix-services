@@ -7,7 +7,7 @@ export default function CommunityOnboardingPage() {
     <AppShell
       eyebrow="Community"
       title="Onboarding that actually guides the member"
-      description="Identity, wallet, first mission and world entry all live inside one focused onboarding rail."
+      description="Identity, wallet, world entry and first mission all live inside one focused onboarding rail with no hidden setup debt."
     >
       <ProtectedState>
         <CommunityOnboardingScreen />

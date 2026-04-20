@@ -7,7 +7,7 @@ export default function RewardDetailPage() {
     <AppShell
       eyebrow="Reward"
       title="Reward detail"
-      description="Payoff, claimability and linked mission context for a single reward."
+      description="Payoff, claimability and linked member-lane context for a single reward."
     >
       <ProtectedState allowPreview previewLabel="Vault preview">
         <RewardDetailScreen />

@@ -7,7 +7,7 @@ export default function ProfilePage() {
     <AppShell
       eyebrow="Profile"
       title="Pilot Profile"
-      description="Track live identity, standing, connected systems and signal pressure from one hub."
+      description="Track live identity, standing, connected systems and onboarding-ready loadout state from one hub."
     >
       <ProtectedState>
         <ProfileScreen />

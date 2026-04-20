@@ -148,6 +148,38 @@ export type LiveCommunityJourneyAction = {
   locked: boolean;
 };
 
+export type LiveCommunityMissionLanePriority = "critical" | "high" | "medium";
+
+export type LiveCommunityMissionLaneKind =
+  | "readiness"
+  | "mission"
+  | "raid"
+  | "reward"
+  | "signal";
+
+export type LiveCommunityMissionLaneItem = {
+  key: string;
+  label: string;
+  eyebrow: string;
+  description: string;
+  route: string;
+  ctaLabel: string;
+  priority: LiveCommunityMissionLanePriority;
+  kind: LiveCommunityMissionLaneKind;
+  completed: boolean;
+  locked: boolean;
+};
+
+export type LiveCommunityRecognitionSnapshot = {
+  label: string;
+  posture: "arming" | "live" | "returning";
+  streakLabel: string;
+  milestoneLabel: string;
+  contributionLabel: string;
+  nextUnlockLabel: string;
+  trustLabel: string;
+};
+
 export type LiveCommunityJourneySnapshot = {
   projectId: string;
   projectName: string;
@@ -167,11 +199,17 @@ export type LiveCommunityJourneySnapshot = {
   unreadSignals: number;
   openMissionCount: number;
   claimableRewards: number;
+  level: number;
+  trustScore: number;
+  preferredRoute: string;
+  readinessLabel: string;
   recognitionLabel: string;
+  recognition: LiveCommunityRecognitionSnapshot;
   contributionStatus: string;
   nextUnlockLabel: string;
   headline: string;
   supportingCopy: string;
   nextBestAction: LiveCommunityJourneyAction | null;
   actions: LiveCommunityJourneyAction[];
+  missionLane: LiveCommunityMissionLaneItem[];
 };

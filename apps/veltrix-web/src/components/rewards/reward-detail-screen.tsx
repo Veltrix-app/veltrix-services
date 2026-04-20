@@ -8,11 +8,13 @@ import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useCommunityJourney } from "@/hooks/use-community-journey";
 
 export function RewardDetailScreen() {
   const params = useParams<{ id: string }>();
   const rewardId = Array.isArray(params.id) ? params.id[0] : params.id;
   const { session } = useAuth();
+  const { snapshot: communitySnapshot } = useCommunityJourney();
   const { loading, error, rewards, campaigns, projects, claimReward, reload } = useLiveUserData({
     datasets: ["rewards", "campaigns", "projects"],
   });
@@ -149,17 +151,26 @@ export function RewardDetailScreen() {
           title="Unlock routing"
           description="Vault items should tell you where to go next, not just repeat metadata."
         >
-          <div className="space-y-4">
-            <div className="metric-card rounded-[24px] p-4 text-sm leading-7 text-slate-300">
+            <div className="space-y-4">
+              <div className="metric-card rounded-[24px] p-4 text-sm leading-7 text-slate-300">
               {rewardAlreadyClaimed
                 ? "This vault item is already in your claimed inventory. Use the linked lane or world if you want to trace where it came from."
                 : currentReward.claimable
                   ? "This vault item is now in reach. Route the claim now or inspect the linked lane and world context first."
                   : "This vault item is still locked. Keep clearing the linked lane and quests to push it into claimable territory."}
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <button
-                onClick={() => void handleClaimReward()}
+              </div>
+              <div className="rounded-[24px] border border-white/8 bg-black/20 p-4 text-sm leading-7 text-slate-300">
+                <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
+                  Member lane context
+                </p>
+                <p className="mt-3 font-semibold text-white">{communitySnapshot.readinessLabel}</p>
+                <p className="mt-2">
+                  Reward claims should reinforce the same member journey, so your best lane still points toward {communitySnapshot.projectName || "your active community"}.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={() => void handleClaimReward()}
                 disabled={busy || !canClaimReward}
                 className="rounded-full bg-amber-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99] disabled:cursor-not-allowed disabled:bg-amber-300/35"
               >
@@ -187,6 +198,12 @@ export function RewardDetailScreen() {
                   Open world
                 </Link>
               ) : null}
+              <Link
+                href={communitySnapshot.preferredRoute}
+                className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+              >
+                Back to best lane
+              </Link>
             </div>
           </div>
         </Surface>

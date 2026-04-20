@@ -7,7 +7,7 @@ export default function ProfileEditPage() {
     <AppShell
       eyebrow="Profile"
       title="Edit profile"
-      description="Update the live identity surface shared between mobile and web."
+      description="Tune the live identity loadout that onboarding, missions and reward readiness all depend on."
     >
       <ProtectedState>
         <ProfileEditScreen />

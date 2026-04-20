@@ -9,9 +9,21 @@ import { StatusChip } from "@/components/ui/status-chip";
 import { useCommunityJourney } from "@/hooks/use-community-journey";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 
-function getSignalHref(type: string) {
+function getSignalHref(type: string, preferredRoute: string) {
   if (type === "community") {
-    return "/community";
+    return preferredRoute;
+  }
+
+  if (type === "reward") {
+    return "/rewards";
+  }
+
+  if (type === "raid") {
+    return "/raids";
+  }
+
+  if (type === "quest") {
+    return "/quests";
   }
 
   return null;
@@ -34,7 +46,9 @@ export function NotificationsScreen() {
   const raidUpdates = notifications.filter((item) => item.type === "raid").length;
   const communityUpdates = notifications.filter((item) => item.type === "community").length;
   const [featuredSignal, ...signalQueue] = notifications;
-  const featuredSignalHref = featuredSignal ? getSignalHref(featuredSignal.type) : null;
+  const featuredSignalHref = featuredSignal
+    ? getSignalHref(featuredSignal.type, communitySnapshot.preferredRoute)
+    : null;
 
   useEffect(() => {
     void markNotificationsRead();
@@ -87,16 +101,24 @@ export function NotificationsScreen() {
 
                   <div className="flex flex-wrap gap-3">
                     <Link
-                      href={featuredSignalHref ?? "/raids"}
+                      href={featuredSignalHref ?? communitySnapshot.preferredRoute}
                       className="inline-flex items-center gap-2 rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
                     >
-                      {featuredSignal?.type === "community" ? "Open Community Home" : "Open raid board"}
+                      {featuredSignal?.type === "community"
+                        ? "Open best lane"
+                        : featuredSignal?.type === "reward"
+                          ? "Open reward vault"
+                          : featuredSignal?.type === "quest"
+                            ? "Open mission lane"
+                            : featuredSignal?.type === "raid"
+                              ? "Open raid board"
+                              : "Open next surface"}
                     </Link>
                     <Link
-                      href="/profile"
+                      href={communitySnapshot.preferredRoute}
                       className="glass-button inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:border-cyan-300/30"
                     >
-                      Back to pilot
+                      Back to member lane
                     </Link>
                   </div>
                 </div>
@@ -156,6 +178,15 @@ export function NotificationsScreen() {
             title="Journey after the signal"
             description="Community signals should route straight into the member journey instead of dying inside the feed."
           >
+            <div className="mb-4 rounded-[22px] border border-white/8 bg-black/20 px-4 py-4 text-sm text-slate-300">
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
+                Preferred follow-through
+              </p>
+              <p className="mt-3 font-semibold text-white">{communitySnapshot.readinessLabel}</p>
+              <p className="mt-2 leading-6 text-slate-300">
+                The feed now routes back into {communitySnapshot.projectName || "your active community"} through the best current lane instead of a generic landing.
+              </p>
+            </div>
             <CommunityStatusPanel
               snapshot={communitySnapshot}
               loading={communityLoading}
@@ -208,9 +239,9 @@ export function NotificationsScreen() {
                     </div>
                     <p className="mt-4 text-2xl font-black text-white">{item.title}</p>
                     <p className="mt-3 text-sm leading-7 text-slate-300">{item.body}</p>
-                    {getSignalHref(item.type) ? (
+                    {getSignalHref(item.type, communitySnapshot.preferredRoute) ? (
                       <Link
-                        href={getSignalHref(item.type)!}
+                        href={getSignalHref(item.type, communitySnapshot.preferredRoute)!}
                         className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-cyan-100 underline underline-offset-4"
                       >
                         Open community follow-through

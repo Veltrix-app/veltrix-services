@@ -38,13 +38,27 @@ const emptyJourneySnapshot: LiveCommunityJourneySnapshot = {
   unreadSignals: 0,
   openMissionCount: 0,
   claimableRewards: 0,
+  level: 1,
+  trustScore: 50,
+  preferredRoute: "/projects",
+  readinessLabel: "Community rail standing by",
   recognitionLabel: "Explorer",
+  recognition: {
+    label: "Explorer",
+    posture: "arming",
+    streakLabel: "Streak not armed",
+    milestoneLabel: "First milestone still ahead",
+    contributionLabel: "No community rail is active yet.",
+    nextUnlockLabel: "Join a project world to unlock your community journey.",
+    trustLabel: "Trust still building",
+  },
   contributionStatus: "No community rail is active yet.",
   nextUnlockLabel: "Join a project world to unlock your community journey.",
   headline: "Community rail is standing by",
   supportingCopy: "As soon as a project lane is active for your account, Veltrix will prioritize the next best move here.",
   nextBestAction: null,
   actions: [],
+  missionLane: [],
 };
 
 export function clearCommunityJourneyCache(authUserId?: string | null) {
