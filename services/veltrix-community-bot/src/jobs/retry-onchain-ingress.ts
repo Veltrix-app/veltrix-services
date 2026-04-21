@@ -1,5 +1,10 @@
 import { supabaseAdmin } from "../lib/supabase.js";
 import { ingestOnchainEvents } from "../core/aesp/onchain.js";
+import {
+  buildOnchainCaseDedupeKey,
+  resolveOnchainCaseByDedupeKey,
+  upsertOnchainCase,
+} from "../core/onchain/onchain-cases.js";
 import { writeAdminAuditLog } from "../core/ops/admin-audit.js";
 import { createPlatformAudit, createPlatformIncident } from "../core/platform/operation-events.js";
 import type { OnchainIngressEvent } from "../types/aesp.js";
@@ -58,6 +63,11 @@ export async function retryOnchainIngressJob(input?: { limit?: number }) {
 
       if (ok) {
         completed += 1;
+        await resolveOnchainCaseByDedupeKey({
+          projectId: row.project_id as string,
+          dedupeKey: buildOnchainCaseDedupeKey(["ingress_retry_failed", row.source_id]),
+          summary: "On-chain ingress retry recovered successfully.",
+        }).catch(() => null);
         await createPlatformAudit({
           projectId: row.project_id as string,
           objectType: "provider_sync",
@@ -82,6 +92,29 @@ export async function retryOnchainIngressJob(input?: { limit?: number }) {
         });
       } else {
         rejected += 1;
+        await upsertOnchainCase({
+          projectId: row.project_id as string,
+          caseType: "ingress_retry_failed",
+          severity: "high",
+          status: "blocked",
+          sourceType: "onchain_ingress",
+          sourceId: row.source_id,
+          dedupeKey: buildOnchainCaseDedupeKey(["ingress_retry_failed", row.source_id]),
+          summary:
+            typeof firstResult === "object" && firstResult && "reason" in firstResult && typeof firstResult.reason === "string"
+              ? firstResult.reason
+              : "On-chain ingress retry remained rejected.",
+          evidenceSummary: "A previously rejected ingress event was retried and stayed unresolved.",
+          rawPayload: {
+            source: "retry-onchain-ingress",
+            retriedFromAuditLogId: row.id,
+            rawEvent,
+            result: firstResult,
+          },
+          metadata: {
+            retriedFromAuditLogId: row.id,
+          },
+        }).catch(() => null);
         await createPlatformIncident({
           projectId: row.project_id as string,
           objectType: "provider_sync",
@@ -116,6 +149,26 @@ export async function retryOnchainIngressJob(input?: { limit?: number }) {
       }
     } catch (retryError) {
       rejected += 1;
+      await upsertOnchainCase({
+        projectId: row.project_id as string,
+        caseType: "ingress_retry_failed",
+        severity: "critical",
+        status: "blocked",
+        sourceType: "onchain_ingress",
+        sourceId: row.source_id,
+        dedupeKey: buildOnchainCaseDedupeKey(["ingress_retry_failed", row.source_id]),
+        summary:
+          retryError instanceof Error ? retryError.message : "On-chain ingress retry failed.",
+        evidenceSummary: "A retry attempt threw an internal failure before the ingress event could recover.",
+        rawPayload: {
+          source: "retry-onchain-ingress",
+          retriedFromAuditLogId: row.id,
+          rawEvent,
+        },
+        metadata: {
+          retriedFromAuditLogId: row.id,
+        },
+      }).catch(() => null);
       await createPlatformIncident({
         projectId: row.project_id as string,
         objectType: "provider_sync",

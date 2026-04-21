@@ -1,4 +1,9 @@
 import { supabaseAdmin } from "../lib/supabase.js";
+import {
+  buildOnchainCaseDedupeKey,
+  resolveOnchainCaseByDedupeKey,
+  upsertOnchainCase,
+} from "../core/onchain/onchain-cases.js";
 import { writeAdminAuditLog } from "../core/ops/admin-audit.js";
 import { createPlatformAudit, createPlatformIncident } from "../core/platform/operation-events.js";
 
@@ -48,7 +53,15 @@ export async function runOnchainEnrichmentJob(input?: { limit?: number }) {
 
   for (const row of data ?? []) {
     const metadata = asObject(row.metadata);
+    const enrichmentDedupeKey = buildOnchainCaseDedupeKey(["enrichment_failed", row.id as string]);
     if (metadata.enrichmentStatus === "completed" && metadata.enrichmentVersion === 2) {
+      if (row.project_id) {
+        await resolveOnchainCaseByDedupeKey({
+          projectId: row.project_id as string,
+          dedupeKey: enrichmentDedupeKey,
+          summary: "On-chain enrichment state is already healthy for this event.",
+        }).catch(() => null);
+      }
       skipped += 1;
       continue;
     }
@@ -88,8 +101,39 @@ export async function runOnchainEnrichmentJob(input?: { limit?: number }) {
       if (updateError) {
         throw updateError;
       }
+
+      if (row.project_id) {
+        await resolveOnchainCaseByDedupeKey({
+          projectId: row.project_id as string,
+          dedupeKey: enrichmentDedupeKey,
+          summary: "On-chain enrichment completed successfully.",
+        }).catch(() => null);
+      }
     } catch (updateError) {
       if (row.project_id) {
+        await upsertOnchainCase({
+          projectId: row.project_id as string,
+          authUserId: row.auth_user_id as string,
+          caseType: "enrichment_failed",
+          severity: "medium",
+          status: "blocked",
+          sourceType: "onchain_event",
+          sourceId: row.id as string,
+          dedupeKey: enrichmentDedupeKey,
+          summary:
+            updateError instanceof Error ? updateError.message : "On-chain enrichment failed.",
+          evidenceSummary: "The enrichment job could not write derived metadata for this on-chain event.",
+          rawPayload: {
+            source: "enrich-onchain-events",
+            eventId: row.id,
+            eventType: row.event_type,
+            existingMetadata: metadata,
+          },
+          metadata: {
+            eventType: row.event_type,
+            authUserId: row.auth_user_id,
+          },
+        }).catch(() => null);
         await createPlatformIncident({
           projectId: row.project_id as string,
           objectType: "provider_sync",

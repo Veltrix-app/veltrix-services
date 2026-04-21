@@ -2,6 +2,11 @@ import { Contract, Interface, JsonRpcProvider, formatUnits, getAddress } from "e
 import { env } from "../../config/env.js";
 import { supabaseAdmin } from "../../lib/supabase.js";
 import type { OnchainIngressEvent } from "../../types/aesp.js";
+import {
+  buildOnchainCaseDedupeKey,
+  resolveOnchainCaseByDedupeKey,
+  upsertOnchainCase,
+} from "../onchain/onchain-cases.js";
 import { writeAdminAuditLog } from "../ops/admin-audit.js";
 import { ingestOnchainEvents } from "./onchain.js";
 
@@ -866,6 +871,11 @@ export async function syncOnchainProvider(input: SyncInput = {}) {
           latestSafeBlock,
         },
       });
+      await resolveOnchainCaseByDedupeKey({
+        projectId: asset.project_id,
+        dedupeKey: buildOnchainCaseDedupeKey(["provider_sync_failure", asset.id]),
+        summary: `Provider sync recovered for ${asset.symbol}.`,
+      }).catch(() => null);
 
       results.push({
         assetId: asset.id,
@@ -903,6 +913,30 @@ export async function syncOnchainProvider(input: SyncInput = {}) {
           latestSafeBlock,
         },
       });
+      await upsertOnchainCase({
+        projectId: asset.project_id,
+        assetId: asset.id,
+        caseType: "provider_sync_failure",
+        severity: "high",
+        status: "blocked",
+        sourceType: "provider_sync",
+        sourceId: asset.id,
+        dedupeKey: buildOnchainCaseDedupeKey(["provider_sync_failure", asset.id]),
+        summary: message,
+        evidenceSummary: `Provider sync could not finish for tracked asset ${asset.symbol}.`,
+        rawPayload: {
+          provider: "evm_rpc",
+          symbol: asset.symbol,
+          contractAddress: asset.contract_address,
+          fromBlock,
+          toBlock,
+          latestSafeBlock,
+        },
+        metadata: {
+          symbol: asset.symbol,
+          contractAddress: asset.contract_address,
+        },
+      }).catch(() => null);
 
       results.push({
         assetId: asset.id,

@@ -2,6 +2,12 @@ import { supabaseAdmin } from "../../lib/supabase.js";
 import type { OnchainIngressEvent, SupportedOnchainEventType, TrustSnapshotRow } from "../../types/aesp.js";
 import { calculateEffectiveXp, getDefaultActionMultiplier, getDefaultBaseValue, getTrustMultiplierFromScore } from "./scoring.js";
 import { emitXpEvent } from "./ledger.js";
+import {
+  buildOnchainCaseDedupeKey,
+  resolveOnchainCaseByDedupeKey,
+  upsertOnchainCase,
+  type OnchainCaseSeverity,
+} from "../onchain/onchain-cases.js";
 import { writeAdminAuditLog } from "../ops/admin-audit.js";
 import { upsertTrustCasesFromSignals } from "../trust/trust-cases.js";
 import { deriveOnchainTrustAssessment, type SuspiciousSignal } from "./trust.js";
@@ -19,6 +25,22 @@ function deriveRiskFlags(event: OnchainIngressEvent) {
     highValueEvent: usdValue >= 50,
     buyLike: event.eventType === "buy" || event.eventType === "stake" || event.eventType === "lp_add",
   };
+}
+
+function getHighestSignalSeverity(signals: SuspiciousSignal[]): OnchainCaseSeverity {
+  if (signals.some((signal) => signal.severity === "high")) {
+    return "high";
+  }
+
+  if (signals.some((signal) => signal.severity === "medium")) {
+    return "medium";
+  }
+
+  return "low";
+}
+
+function buildSignalEvidenceSummary(signals: SuspiciousSignal[]) {
+  return signals.map((signal) => signal.reason).join(" | ");
 }
 
 async function writeTrustSnapshot(input: {
@@ -167,6 +189,38 @@ export async function ingestOnchainEvents(input: {
       ) ?? null;
 
     if (!matchedAsset) {
+      await upsertOnchainCase({
+        projectId: input.projectId,
+        walletAddress,
+        caseType: "unmatched_project_asset",
+        severity: "medium",
+        sourceType: "onchain_ingress",
+        sourceId: ingressSourceId,
+        dedupeKey: buildOnchainCaseDedupeKey([
+          "unmatched_project_asset",
+          walletAddress,
+          tokenAddress ?? contractAddress,
+          rawEvent.txHash,
+          rawEvent.eventType,
+        ]),
+        summary: "No active tracked project asset matched this on-chain event.",
+        evidenceSummary: `Event ${rawEvent.eventType} for ${tokenAddress ?? contractAddress} could not be matched to an active project asset.`,
+        rawPayload: {
+          chain: rawEvent.chain,
+          txHash: rawEvent.txHash,
+          eventType: rawEvent.eventType,
+          contractAddress,
+          tokenAddress,
+          walletAddress,
+          rawEvent,
+        },
+        metadata: {
+          chain: rawEvent.chain,
+          contractAddress,
+          tokenAddress,
+        },
+      });
+
       await writeAdminAuditLog({
         projectId: input.projectId,
         sourceTable: "onchain_ingress",
@@ -203,6 +257,37 @@ export async function ingestOnchainEvents(input: {
     }
 
     if (!walletLink?.auth_user_id) {
+      await upsertOnchainCase({
+        projectId: input.projectId,
+        walletAddress,
+        caseType: "unlinked_wallet_activity",
+        severity: "medium",
+        sourceType: "wallet_link",
+        sourceId: ingressSourceId,
+        dedupeKey: buildOnchainCaseDedupeKey([
+          "unlinked_wallet_activity",
+          walletAddress,
+          rawEvent.txHash,
+          rawEvent.eventType,
+        ]),
+        summary: "Wallet is not linked to a verified Veltrix account.",
+        evidenceSummary: "Tracked on-chain activity arrived for a wallet that is not yet linked and verified.",
+        rawPayload: {
+          chain: rawEvent.chain,
+          txHash: rawEvent.txHash,
+          eventType: rawEvent.eventType,
+          contractAddress,
+          tokenAddress,
+          walletAddress,
+          rawEvent,
+        },
+        metadata: {
+          chain: rawEvent.chain,
+          contractAddress,
+          tokenAddress,
+        },
+      });
+
       await writeAdminAuditLog({
         projectId: input.projectId,
         sourceTable: "onchain_ingress",
@@ -332,6 +417,63 @@ export async function ingestOnchainEvents(input: {
     };
 
     if (trustAssessment.rejectReason) {
+      if (trustAssessment.suspiciousSignals.length > 0) {
+        await upsertOnchainCase({
+          projectId: input.projectId,
+          authUserId: walletLink.auth_user_id,
+          walletAddress,
+          assetId: matchedAsset.id,
+          caseType: "suspicious_onchain_pattern",
+          severity: getHighestSignalSeverity(trustAssessment.suspiciousSignals),
+          sourceType: "onchain_ingress",
+          sourceId: ingressSourceId,
+          dedupeKey: buildOnchainCaseDedupeKey([
+            "suspicious_onchain_pattern",
+            walletAddress,
+            rawEvent.txHash,
+            rawEvent.eventType,
+          ]),
+          summary: trustAssessment.rejectReason,
+          evidenceSummary: buildSignalEvidenceSummary(trustAssessment.suspiciousSignals),
+          rawPayload: {
+            ...baseReviewMetadata,
+            suspiciousSignals: trustAssessment.suspiciousSignals,
+            reasons: trustAssessment.reasons,
+            rawEvent,
+          },
+          metadata: {
+            signalFlagTypes: trustAssessment.suspiciousSignals.map((signal) => signal.flagType),
+          },
+        });
+      } else {
+        await upsertOnchainCase({
+          projectId: input.projectId,
+          authUserId: walletLink.auth_user_id,
+          walletAddress,
+          assetId: matchedAsset.id,
+          caseType: "ingress_rejected",
+          severity: "medium",
+          sourceType: "onchain_ingress",
+          sourceId: ingressSourceId,
+          dedupeKey: buildOnchainCaseDedupeKey([
+            "ingress_rejected",
+            walletAddress,
+            rawEvent.txHash,
+            rawEvent.eventType,
+          ]),
+          summary: trustAssessment.rejectReason,
+          evidenceSummary: trustAssessment.rejectReason,
+          rawPayload: {
+            ...baseReviewMetadata,
+            reasons: trustAssessment.reasons,
+            rawEvent,
+          },
+          metadata: {
+            rejectReason: trustAssessment.rejectReason,
+          },
+        });
+      }
+
       await writeAdminAuditLog({
         authUserId: walletLink.auth_user_id,
         projectId: input.projectId,
@@ -445,7 +587,58 @@ export async function ingestOnchainEvents(input: {
       reasons: trustAssessment.reasons,
     });
 
+    await resolveOnchainCaseByDedupeKey({
+      projectId: input.projectId,
+      dedupeKey: buildOnchainCaseDedupeKey([
+        "unmatched_project_asset",
+        walletAddress,
+        tokenAddress ?? contractAddress,
+        rawEvent.txHash,
+        rawEvent.eventType,
+      ]),
+      summary: "Tracked asset mapping recovered after successful on-chain ingestion.",
+    });
+    await resolveOnchainCaseByDedupeKey({
+      projectId: input.projectId,
+      dedupeKey: buildOnchainCaseDedupeKey([
+        "unlinked_wallet_activity",
+        walletAddress,
+        rawEvent.txHash,
+        rawEvent.eventType,
+      ]),
+      summary: "Wallet link posture recovered after successful on-chain ingestion.",
+    });
+
     if (trustAssessment.suspiciousSignals.length > 0) {
+      await upsertOnchainCase({
+        projectId: input.projectId,
+        authUserId: walletLink.auth_user_id,
+        walletAddress,
+        assetId: matchedAsset.id,
+        caseType: "suspicious_onchain_pattern",
+        severity: getHighestSignalSeverity(trustAssessment.suspiciousSignals),
+        sourceType: "onchain_event",
+        sourceId: onchainEvent.id,
+        dedupeKey: buildOnchainCaseDedupeKey([
+          "suspicious_onchain_pattern",
+          walletAddress,
+          rawEvent.txHash,
+          rawEvent.eventType,
+        ]),
+        summary: "Accepted on-chain event still carries suspicious signal pressure.",
+        evidenceSummary: buildSignalEvidenceSummary(trustAssessment.suspiciousSignals),
+        rawPayload: {
+          ...baseReviewMetadata,
+          reasons: trustAssessment.reasons,
+          onchainEventId: onchainEvent.id,
+          suspiciousSignals: trustAssessment.suspiciousSignals,
+          rawEvent,
+        },
+        metadata: {
+          signalFlagTypes: trustAssessment.suspiciousSignals.map((signal) => signal.flagType),
+        },
+      });
+
       await upsertReviewFlags({
         authUserId: walletLink.auth_user_id,
         projectId: input.projectId,
@@ -471,6 +664,27 @@ export async function ingestOnchainEvents(input: {
           onchainEventId: onchainEvent.id,
           rawEvent,
         },
+      });
+    } else {
+      await resolveOnchainCaseByDedupeKey({
+        projectId: input.projectId,
+        dedupeKey: buildOnchainCaseDedupeKey([
+          "suspicious_onchain_pattern",
+          walletAddress,
+          rawEvent.txHash,
+          rawEvent.eventType,
+        ]),
+        summary: "Suspicious on-chain signal pressure cleared for this event.",
+      });
+      await resolveOnchainCaseByDedupeKey({
+        projectId: input.projectId,
+        dedupeKey: buildOnchainCaseDedupeKey([
+          "ingress_rejected",
+          walletAddress,
+          rawEvent.txHash,
+          rawEvent.eventType,
+        ]),
+        summary: "On-chain ingress rejection cleared after successful ingestion.",
       });
     }
 
