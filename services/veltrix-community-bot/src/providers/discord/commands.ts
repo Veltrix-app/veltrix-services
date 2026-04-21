@@ -1,7 +1,4 @@
 import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
   ChatInputCommandInteraction,
   Client,
   EmbedBuilder,
@@ -14,6 +11,7 @@ import {
   loadDiscordIntegrationContextByGuildId,
   loadDiscordIntegrationContexts,
   loadDiscordLeaderboard,
+  loadDiscordMissionBoard,
   loadDiscordRaidRail,
   type DiscordIdentitySnapshot,
   type DiscordLeaderboardPeriod,
@@ -22,45 +20,30 @@ import {
 } from "./community.js";
 import { loadCaptainByProviderIdentity } from "../../core/community/captains.js";
 import { loadCommunityJourneyPrompt } from "../../core/community/journeys.js";
-import { buildCommunityJourneyDeepLinks } from "../../core/community/automation-links.js";
+import { loadProjectCommunityOutcomeSummary } from "../../core/community/outcomes.js";
+import { buildCommunityCommandLinks } from "../../core/community/command-links.js";
+import {
+  areCommunityCommandDeepLinksEnabled,
+  buildDisabledCommandMessage,
+  type CommunityCommandKey,
+  isCommunityCommandEnabled,
+} from "../../core/community/command-scopes.js";
+import {
+  buildDiscordCommunityButtons,
+  buildDiscordMissionFields,
+  formatDiscordJourneyLabel,
+  formatDiscordLeaderboardLines,
+  formatDiscordLeaderboardPeriodLabel,
+  formatDiscordLeaderboardScopeLabel,
+  formatDiscordMetricLabel,
+  formatDiscordRaidLines,
+} from "./command-renderers.js";
 import {
   findNextDiscordRankRule,
   formatDiscordRankSourceLabel,
   getMatchedDiscordRankRules,
   sortDiscordRankRulesForDisplay,
 } from "./ranks.js";
-
-const appUrl = (process.env.PUBLIC_APP_URL || "https://veltrix-web.vercel.app").replace(
-  /\/+$/,
-  ""
-);
-
-function formatMetricLabel(label: string, value: string) {
-  return `${label}: ${value}`;
-}
-
-function formatJourneyLabel(lane: "onboarding" | "active" | "comeback") {
-  return lane === "onboarding"
-    ? "Onboarding rail"
-    : lane === "comeback"
-      ? "Comeback rail"
-      : "Community Home";
-}
-
-function buildCommunityButtons(buttons: Array<{ label: string; url: string | null | undefined }>) {
-  const validButtons = buttons
-    .filter((button) => button.url)
-    .slice(0, 5)
-    .map((button) =>
-      new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel(button.label).setURL(button.url!)
-    );
-
-  if (validButtons.length === 0) {
-    return [] as Array<ActionRowBuilder<ButtonBuilder>>;
-  }
-
-  return [new ActionRowBuilder<ButtonBuilder>().addComponents(validButtons)];
-}
 
 function buildRankSnapshot(snapshot: DiscordIdentitySnapshot) {
   return {
@@ -126,47 +109,13 @@ function formatRankRuleStatus(snapshot: DiscordIdentitySnapshot, rule: DiscordRa
   return `${matched ? "[LIVE]" : "[LOCKED]"} ${rule.label} - ${formatDiscordRankSourceLabel(rule.sourceType)} (${currentLabel}${gapLabel})`;
 }
 
-function formatLeaderboardLines(entries: Awaited<ReturnType<typeof loadDiscordLeaderboard>>) {
-  if (entries.length === 0) {
-    return "No linked contributors are on this board yet.";
-  }
-
-  return entries
-    .map(
-      (entry, index) =>
-        `**${index + 1}.** ${entry.displayName} - ${entry.xp} XP | L${entry.level} | Trust ${entry.trust}`
-    )
-    .join("\n");
-}
-
-function formatPeriodLabel(period: DiscordLeaderboardPeriod) {
-  if (period === "all_time") return "All-time";
-  if (period === "monthly") return "Monthly";
-  return "Weekly";
-}
-
-function formatScopeLabel(scope: DiscordLeaderboardScope) {
-  return scope === "global" ? "Global" : "Project";
-}
-
-function formatRaidLines(entries: Awaited<ReturnType<typeof loadDiscordRaidRail>>) {
-  if (entries.length === 0) {
-    return "No live raids are active for this community right now.";
-  }
-
-  return entries
-    .map(
-      (entry, index) =>
-        `**${index + 1}.** ${entry.title} - +${entry.rewardXp} XP${entry.shortDescription ? ` | ${entry.shortDescription}` : ""}`
-    )
-    .join("\n");
-}
-
-async function replyCommandsDisabled(interaction: ChatInputCommandInteraction) {
+async function replyCommandDisabled(
+  interaction: ChatInputCommandInteraction,
+  command: CommunityCommandKey
+) {
   await interaction.reply({
     ephemeral: true,
-    content:
-      "Community commands are disabled for this Discord server right now. Enable them in the Veltrix portal first.",
+    content: buildDisabledCommandMessage(command),
   });
 }
 
@@ -190,8 +139,8 @@ async function handleLinkCommand(interaction: ChatInputCommandInteraction) {
     return;
   }
 
-  if (!context.settings.commandsEnabled) {
-    await replyCommandsDisabled(interaction);
+  if (!isCommunityCommandEnabled({ command: "link", platform: "discord", settings: context.settings })) {
+    await replyCommandDisabled(interaction, "link");
     return;
   }
 
@@ -206,14 +155,18 @@ async function handleLinkCommand(interaction: ChatInputCommandInteraction) {
       { name: "System", value: "Discord identity link", inline: true },
       { name: "Next rail", value: "Onboarding rail", inline: true }
     );
-  const links = buildCommunityJourneyDeepLinks(context.projectId, "onboarding");
+  const links = buildCommunityCommandLinks({
+    projectId: context.projectId,
+    lane: "onboarding",
+    deepLinksEnabled: areCommunityCommandDeepLinksEnabled(context.settings),
+  });
 
   await interaction.reply({
     ephemeral: true,
     embeds: [embed],
-    components: buildCommunityButtons([
+    components: buildDiscordCommunityButtons([
       { label: "Open onboarding rail", url: links.onboardingUrl },
-      { label: "Open Veltrix profile", url: `${appUrl}/profile` },
+      { label: "Open Veltrix profile", url: links.profileUrl },
     ]),
   });
 }
@@ -238,8 +191,8 @@ async function handleProfileCommand(interaction: ChatInputCommandInteraction) {
     return;
   }
 
-  if (!context.settings.commandsEnabled) {
-    await replyCommandsDisabled(interaction);
+  if (!isCommunityCommandEnabled({ command: "profile", platform: "discord", settings: context.settings })) {
+    await replyCommandDisabled(interaction, "profile");
     return;
   }
 
@@ -262,8 +215,11 @@ async function handleProfileCommand(interaction: ChatInputCommandInteraction) {
     provider: "discord",
     providerUserId: interaction.user.id,
   });
-  const links =
-    journeyPrompt?.urls ?? buildCommunityJourneyDeepLinks(context.projectId, "active");
+  const links = buildCommunityCommandLinks({
+    projectId: context.projectId,
+    lane: journeyPrompt?.lane ?? "active",
+    deepLinksEnabled: areCommunityCommandDeepLinksEnabled(context.settings),
+  });
   const embed = new EmbedBuilder()
     .setColor(0xc6ff2e)
     .setTitle(`${snapshot.profileUsername} loadout`)
@@ -274,50 +230,50 @@ async function handleProfileCommand(interaction: ChatInputCommandInteraction) {
       {
         name: "Global",
         value: [
-          formatMetricLabel("XP", String(snapshot.globalXp)),
-          formatMetricLabel("Level", String(snapshot.globalLevel)),
-          formatMetricLabel("Trust", String(snapshot.globalTrust)),
+           formatDiscordMetricLabel("XP", String(snapshot.globalXp)),
+           formatDiscordMetricLabel("Level", String(snapshot.globalLevel)),
+           formatDiscordMetricLabel("Trust", String(snapshot.globalTrust)),
         ].join("\n"),
         inline: true,
       },
       {
         name: context.projectName,
         value: [
-          formatMetricLabel("XP", String(snapshot.projectXp)),
-          formatMetricLabel("Level", String(snapshot.projectLevel)),
-          formatMetricLabel("Trust", String(snapshot.projectTrust)),
+           formatDiscordMetricLabel("XP", String(snapshot.projectXp)),
+           formatDiscordMetricLabel("Level", String(snapshot.projectLevel)),
+           formatDiscordMetricLabel("Trust", String(snapshot.projectTrust)),
         ].join("\n"),
         inline: true,
       },
       {
         name: "Identity",
         value: [
-          formatMetricLabel("Wallet", snapshot.walletVerified ? "Verified" : "Missing"),
-          formatMetricLabel("Discord", snapshot.discordUsername),
-          formatMetricLabel("Ranks", matchedRules.length > 0 ? String(matchedRules.length) : "0"),
+           formatDiscordMetricLabel("Wallet", snapshot.walletVerified ? "Verified" : "Missing"),
+           formatDiscordMetricLabel("Discord", snapshot.discordUsername),
+           formatDiscordMetricLabel("Ranks", matchedRules.length > 0 ? String(matchedRules.length) : "0"),
         ].join("\n"),
         inline: false,
       },
       {
         name: "Community rail",
         value: [
-          formatMetricLabel(
-            "Lane",
-            journeyPrompt ? formatJourneyLabel(journeyPrompt.lane) : "Community Home"
-          ),
-          formatMetricLabel(
-            "Active",
+           formatDiscordMetricLabel(
+             "Lane",
+             journeyPrompt ? formatDiscordJourneyLabel(journeyPrompt.lane) : "Community Home"
+           ),
+           formatDiscordMetricLabel(
+             "Active",
             matchedRules.length > 0
               ? matchedRules.map((rule) => rule.label).join(", ")
               : "No live roles yet"
           ),
-          formatMetricLabel(
-            "Next unlock",
+           formatDiscordMetricLabel(
+             "Next unlock",
             journeyPrompt?.nextUnlockLabel ??
               formatNextUnlockLine(snapshot, context.rankRules, context.settings.rankSource)
           ),
-          formatMetricLabel(
-            "Mission record",
+           formatDiscordMetricLabel(
+             "Mission record",
             `${snapshot.projectQuestsCompleted} quests | ${snapshot.projectRaidsCompleted} raids`
           ),
         ].join("\n"),
@@ -328,15 +284,19 @@ async function handleProfileCommand(interaction: ChatInputCommandInteraction) {
   await interaction.reply({
     ephemeral: true,
     embeds: [embed],
-    components: buildCommunityButtons([
+    components: buildDiscordCommunityButtons([
       {
-        label: journeyPrompt ? `Open ${formatJourneyLabel(journeyPrompt.lane)}` : "Open Community Home",
+        label: journeyPrompt ? `Open ${formatDiscordJourneyLabel(journeyPrompt.lane)}` : "Open Community Home",
         url: links.primaryUrl,
       },
-      { label: "Open full profile", url: `${appUrl}/profile` },
+      { label: "Open full profile", url: links.profileUrl },
       {
         label: "Captain workspace",
-        url: captain ? links.captainWorkspaceUrl : null,
+        url:
+          captain &&
+          isCommunityCommandEnabled({ command: "captain", platform: "discord", settings: context.settings })
+            ? links.captainWorkspaceUrl
+            : null,
       },
     ]),
   });
@@ -362,8 +322,8 @@ async function handleRankCommand(interaction: ChatInputCommandInteraction) {
     return;
   }
 
-  if (!context.settings.commandsEnabled) {
-    await replyCommandsDisabled(interaction);
+  if (!isCommunityCommandEnabled({ command: "rank", platform: "discord", settings: context.settings })) {
+    await replyCommandDisabled(interaction, "rank");
     return;
   }
 
@@ -387,8 +347,11 @@ async function handleRankCommand(interaction: ChatInputCommandInteraction) {
     provider: "discord",
     providerUserId: interaction.user.id,
   });
-  const links =
-    journeyPrompt?.urls ?? buildCommunityJourneyDeepLinks(context.projectId, "active");
+  const links = buildCommunityCommandLinks({
+    projectId: context.projectId,
+    lane: journeyPrompt?.lane ?? "active",
+    deepLinksEnabled: areCommunityCommandDeepLinksEnabled(context.settings),
+  });
   const ruleLines =
     sortedRules.length > 0
       ? sortedRules.map((rule) => formatRankRuleStatus(snapshot, rule)).join("\n")
@@ -409,10 +372,10 @@ async function handleRankCommand(interaction: ChatInputCommandInteraction) {
       {
         name: "Current sources",
         value: [
-          formatMetricLabel("Project XP", String(snapshot.projectXp)),
-          formatMetricLabel("Global XP", String(snapshot.globalXp)),
-          formatMetricLabel("Trust", String(snapshot.globalTrust)),
-          formatMetricLabel("Wallet", snapshot.walletVerified ? "Verified" : "Missing"),
+           formatDiscordMetricLabel("Project XP", String(snapshot.projectXp)),
+           formatDiscordMetricLabel("Global XP", String(snapshot.globalXp)),
+           formatDiscordMetricLabel("Trust", String(snapshot.globalTrust)),
+           formatDiscordMetricLabel("Wallet", snapshot.walletVerified ? "Verified" : "Missing"),
         ].join("\n"),
         inline: false,
       },
@@ -436,14 +399,18 @@ async function handleRankCommand(interaction: ChatInputCommandInteraction) {
   await interaction.reply({
     ephemeral: true,
     embeds: [embed],
-    components: buildCommunityButtons([
+    components: buildDiscordCommunityButtons([
       {
-        label: journeyPrompt ? `Open ${formatJourneyLabel(journeyPrompt.lane)}` : "Open Community Home",
+        label: journeyPrompt ? `Open ${formatDiscordJourneyLabel(journeyPrompt.lane)}` : "Open Community Home",
         url: links.primaryUrl,
       },
       {
         label: "Captain workspace",
-        url: captain ? links.captainWorkspaceUrl : null,
+        url:
+          captain &&
+          isCommunityCommandEnabled({ command: "captain", platform: "discord", settings: context.settings })
+            ? links.captainWorkspaceUrl
+            : null,
       },
     ]),
   });
@@ -469,17 +436,14 @@ async function handleLeaderboardCommand(interaction: ChatInputCommandInteraction
     return;
   }
 
-  if (!context.settings.commandsEnabled) {
-    await replyCommandsDisabled(interaction);
-    return;
-  }
-
-  if (!context.settings.leaderboardEnabled) {
-    await interaction.reply({
-      ephemeral: true,
-      content:
-        "Leaderboards are disabled for this Discord server right now. Enable them in the Veltrix portal first.",
-    });
+  if (
+    !isCommunityCommandEnabled({
+      command: "leaderboard",
+      platform: "discord",
+      settings: context.settings,
+    })
+  ) {
+    await replyCommandDisabled(interaction, "leaderboard");
     return;
   }
 
@@ -489,7 +453,11 @@ async function handleLeaderboardCommand(interaction: ChatInputCommandInteraction
     provider: "discord",
     providerUserId: interaction.user.id,
   });
-  const links = buildCommunityJourneyDeepLinks(context.projectId, "active");
+  const links = buildCommunityCommandLinks({
+    projectId: context.projectId,
+    lane: "active",
+    deepLinksEnabled: areCommunityCommandDeepLinksEnabled(context.settings),
+  });
 
   const scope = (interaction.options.getString("scope") ??
     context.settings.leaderboardScope) as DiscordLeaderboardScope;
@@ -511,11 +479,11 @@ async function handleLeaderboardCommand(interaction: ChatInputCommandInteraction
 
   const embed = new EmbedBuilder()
     .setColor(0xc6ff2e)
-    .setTitle(`${context.projectName} ${formatPeriodLabel(period)} leaderboard`)
-    .setDescription(formatLeaderboardLines(entries))
+    .setTitle(`${context.projectName} ${formatDiscordLeaderboardPeriodLabel(period)} leaderboard`)
+    .setDescription(formatDiscordLeaderboardLines(entries))
     .addFields(
-      { name: "Scope", value: formatScopeLabel(scope), inline: true },
-      { name: "Window", value: formatPeriodLabel(period), inline: true },
+      { name: "Scope", value: formatDiscordLeaderboardScopeLabel(scope), inline: true },
+      { name: "Window", value: formatDiscordLeaderboardPeriodLabel(period), inline: true },
       { name: "Top", value: String(limit), inline: true }
     )
     .setFooter({
@@ -524,11 +492,105 @@ async function handleLeaderboardCommand(interaction: ChatInputCommandInteraction
 
   await interaction.editReply({
     embeds: [embed],
-    components: buildCommunityButtons([
+    components: buildDiscordCommunityButtons([
       { label: "Open Community Home", url: links.communityUrl },
+      { label: "Open reward rail", url: links.rewardsUrl },
       {
         label: "Captain workspace",
-        url: captain ? links.captainWorkspaceUrl : null,
+        url:
+          captain &&
+          isCommunityCommandEnabled({ command: "captain", platform: "discord", settings: context.settings })
+            ? links.captainWorkspaceUrl
+            : null,
+      },
+    ]),
+  });
+}
+
+async function handleMissionsCommand(interaction: ChatInputCommandInteraction) {
+  const guildId = interaction.guildId;
+  if (!guildId) {
+    await interaction.reply({
+      ephemeral: true,
+      content: "This command only works inside a Discord server.",
+    });
+    return;
+  }
+
+  const context = await loadDiscordIntegrationContextByGuildId(guildId);
+  if (!context) {
+    await interaction.reply({
+      ephemeral: true,
+      content:
+        "This Discord server is not mapped to a Veltrix project yet. Connect it in the portal first.",
+    });
+    return;
+  }
+
+  if (
+    !isCommunityCommandEnabled({
+      command: "missions",
+      platform: "discord",
+      settings: context.settings,
+    })
+  ) {
+    await replyCommandDisabled(interaction, "missions");
+    return;
+  }
+
+  const [board, snapshot, captain] = await Promise.all([
+    loadDiscordMissionBoard(context.projectId),
+    loadDiscordIdentitySnapshot(interaction.user.id, context.projectId),
+    loadCaptainByProviderIdentity({
+      projectId: context.projectId,
+      provider: "discord",
+      providerUserId: interaction.user.id,
+    }),
+  ]);
+
+  const journeyPrompt = snapshot
+    ? await loadCommunityJourneyPrompt({
+        projectId: context.projectId,
+        authUserId: snapshot.authUserId,
+      })
+    : null;
+  const links = buildCommunityCommandLinks({
+    projectId: context.projectId,
+    lane: journeyPrompt?.lane ?? "active",
+    deepLinksEnabled: areCommunityCommandDeepLinksEnabled(context.settings),
+  });
+
+  const embed = new EmbedBuilder()
+    .setColor(0xc6ff2e)
+    .setTitle(`${context.projectName} mission board`)
+    .setDescription(
+      snapshot
+        ? `Live mission rail for **${context.projectName}**. Follow the current quest lane, reward drops and active campaign pressure.`
+        : `Live mission rail for **${context.projectName}**. Link your profile to unlock the right lane and personalized next action.`
+    )
+    .addFields(...buildDiscordMissionFields(board))
+    .setFooter({
+      text: snapshot
+        ? `Current lane: ${journeyPrompt ? formatDiscordJourneyLabel(journeyPrompt.lane) : "Community Home"}`
+        : "Link with /link for personalized rails",
+    });
+
+  await interaction.reply({
+    ephemeral: true,
+    embeds: [embed],
+    components: buildDiscordCommunityButtons([
+      {
+        label: journeyPrompt ? `Open ${formatDiscordJourneyLabel(journeyPrompt.lane)}` : "Open Community Home",
+        url: links.primaryUrl,
+      },
+      { label: "Open reward rail", url: links.rewardsUrl },
+      {
+        label: "Captain workspace",
+        url:
+          captain &&
+          isCommunityCommandEnabled({ command: "captain", platform: "discord", settings: context.settings })
+            ? links.captainWorkspaceUrl
+            : null,
       },
     ]),
   });
@@ -554,17 +616,10 @@ async function handleRaidCommand(interaction: ChatInputCommandInteraction) {
     return;
   }
 
-  if (!context.settings.commandsEnabled) {
-    await replyCommandsDisabled(interaction);
-    return;
-  }
-
-  if (!context.settings.raidOpsEnabled) {
-    await interaction.reply({
-      ephemeral: true,
-      content:
-        "Raid ops are disabled for this Discord server right now. Enable them in the Veltrix portal first.",
-    });
+  if (
+    !isCommunityCommandEnabled({ command: "raid", platform: "discord", settings: context.settings })
+  ) {
+    await replyCommandDisabled(interaction, "raid");
     return;
   }
 
@@ -574,11 +629,15 @@ async function handleRaidCommand(interaction: ChatInputCommandInteraction) {
     provider: "discord",
     providerUserId: interaction.user.id,
   });
-  const links = buildCommunityJourneyDeepLinks(context.projectId, "active");
+  const links = buildCommunityCommandLinks({
+    projectId: context.projectId,
+    lane: "active",
+    deepLinksEnabled: areCommunityCommandDeepLinksEnabled(context.settings),
+  });
   const embed = new EmbedBuilder()
     .setColor(0xc6ff2e)
     .setTitle(`${context.projectName} raid rail`)
-    .setDescription(formatRaidLines(raids))
+    .setDescription(formatDiscordRaidLines(raids))
     .setFooter({
       text: `${context.projectName} community raid ops`,
     });
@@ -586,11 +645,16 @@ async function handleRaidCommand(interaction: ChatInputCommandInteraction) {
   await interaction.reply({
     ephemeral: true,
     embeds: [embed],
-    components: buildCommunityButtons([
+    components: buildDiscordCommunityButtons([
       { label: "Open Community Home", url: links.communityUrl },
+      { label: "Open mission rail", url: links.missionsUrl },
       {
         label: "Captain workspace",
-        url: captain ? links.captainWorkspaceUrl : null,
+        url:
+          captain &&
+          isCommunityCommandEnabled({ command: "captain", platform: "discord", settings: context.settings })
+            ? links.captainWorkspaceUrl
+            : null,
       },
     ]),
   });
@@ -616,8 +680,14 @@ async function handleCaptainCommand(interaction: ChatInputCommandInteraction) {
     return;
   }
 
-  if (!context.settings.commandsEnabled) {
-    await replyCommandsDisabled(interaction);
+  if (
+    !isCommunityCommandEnabled({
+      command: "captain",
+      platform: "discord",
+      settings: context.settings,
+    })
+  ) {
+    await replyCommandDisabled(interaction, "captain");
     return;
   }
 
@@ -636,7 +706,16 @@ async function handleCaptainCommand(interaction: ChatInputCommandInteraction) {
     return;
   }
 
-  const links = buildCommunityJourneyDeepLinks(context.projectId, "active");
+  const [links, outcomeSummary] = await Promise.all([
+    Promise.resolve(
+      buildCommunityCommandLinks({
+        projectId: context.projectId,
+        lane: "active",
+        deepLinksEnabled: areCommunityCommandDeepLinksEnabled(context.settings),
+      })
+    ),
+    loadProjectCommunityOutcomeSummary(context.projectId),
+  ]);
   const permissionLabel = captain.permissions.length > 0 ? captain.permissions.join(", ") : "No scoped permissions";
 
   const embed = new EmbedBuilder()
@@ -646,13 +725,22 @@ async function handleCaptainCommand(interaction: ChatInputCommandInteraction) {
     .addFields(
       { name: "Role", value: captain.role, inline: true },
       { name: "Status", value: "Active", inline: true },
-      { name: "Permissions", value: permissionLabel, inline: false }
+      { name: "Permissions", value: permissionLabel, inline: false },
+      {
+        name: "Queue posture",
+        value: [
+          formatDiscordMetricLabel("Actionable", String(outcomeSummary.captain.actionableQueueCount)),
+          formatDiscordMetricLabel("Blocked", String(outcomeSummary.captain.blockedQueueCount)),
+          formatDiscordMetricLabel("Escalated", String(outcomeSummary.captain.escalatedQueueCount)),
+        ].join("\n"),
+        inline: false,
+      }
     );
 
   await interaction.reply({
     ephemeral: true,
     embeds: [embed],
-    components: buildCommunityButtons([
+    components: buildDiscordCommunityButtons([
       {
         label: "Open captain workspace",
         url: links.captainWorkspaceUrl,
@@ -675,6 +763,11 @@ async function handleChatCommand(interaction: ChatInputCommandInteraction) {
 
   if (interaction.commandName === "rank") {
     await handleRankCommand(interaction);
+    return;
+  }
+
+  if (interaction.commandName === "missions") {
+    await handleMissionsCommand(interaction);
     return;
   }
 
@@ -714,60 +807,78 @@ export async function syncDiscordGuildCommands(
     }
   }
 
-  const commandBuilders = [
-    new SlashCommandBuilder()
-      .setName("link")
-      .setDescription("Open your Veltrix profile so you can link this Discord identity."),
-    new SlashCommandBuilder()
-      .setName("profile")
-      .setDescription("Show your live Veltrix profile snapshot for this community."),
-    new SlashCommandBuilder()
-      .setName("rank")
-      .setDescription("Show your app-side Discord rank matches for this community."),
-    new SlashCommandBuilder()
-      .setName("leaderboard")
-      .setDescription("Show the live community leaderboard from Veltrix data.")
-      .addStringOption((option) =>
-        option
-          .setName("scope")
-          .setDescription("Choose project-only or global ranking.")
-          .addChoices(
-            { name: "Project", value: "project" },
-            { name: "Global", value: "global" }
-          )
-      )
-      .addStringOption((option) =>
-        option
-          .setName("period")
-          .setDescription("Choose the leaderboard window.")
-          .addChoices(
-            { name: "Weekly", value: "weekly" },
-            { name: "Monthly", value: "monthly" },
-            { name: "All-time", value: "all_time" }
-          )
-      )
-      .addIntegerOption((option) =>
-        option
-          .setName("limit")
-          .setDescription("How many entries to show.")
-          .setMinValue(3)
-          .setMaxValue(15)
-      ),
-    new SlashCommandBuilder()
-      .setName("raid")
-      .setDescription("Show the live raid rail for this project community."),
-    new SlashCommandBuilder()
-      .setName("captain")
-      .setDescription("Open your captain workspace for this project."),
-  ];
-
   let guildsEnabled = 0;
   let guildsCleared = 0;
 
   for (const context of uniqueGuildContexts.values()) {
-    const payload = context.settings.commandsEnabled
-      ? commandBuilders.map((builder) => builder.toJSON())
+    const commandBuilders = context.settings.commandsEnabled
+      ? [
+          new SlashCommandBuilder()
+            .setName("link")
+            .setDescription("Open your Veltrix profile so you can link this Discord identity."),
+          new SlashCommandBuilder()
+            .setName("profile")
+            .setDescription("Show your live Veltrix profile snapshot for this community."),
+          new SlashCommandBuilder()
+            .setName("rank")
+            .setDescription("Show your app-side Discord rank matches for this community."),
+          ...(context.settings.missionCommandsEnabled
+            ? [
+                new SlashCommandBuilder()
+                  .setName("missions")
+                  .setDescription("Show the live mission board for this community."),
+              ]
+            : []),
+          ...(context.settings.leaderboardEnabled
+            ? [
+                new SlashCommandBuilder()
+                  .setName("leaderboard")
+                  .setDescription("Show the live community leaderboard from Veltrix data.")
+                  .addStringOption((option) =>
+                    option
+                      .setName("scope")
+                      .setDescription("Choose project-only or global ranking.")
+                      .addChoices(
+                        { name: "Project", value: "project" },
+                        { name: "Global", value: "global" }
+                      )
+                  )
+                  .addStringOption((option) =>
+                    option
+                      .setName("period")
+                      .setDescription("Choose the leaderboard window.")
+                      .addChoices(
+                        { name: "Weekly", value: "weekly" },
+                        { name: "Monthly", value: "monthly" },
+                        { name: "All-time", value: "all_time" }
+                      )
+                  )
+                  .addIntegerOption((option) =>
+                    option
+                      .setName("limit")
+                      .setDescription("How many entries to show.")
+                      .setMinValue(3)
+                      .setMaxValue(15)
+                  ),
+              ]
+            : []),
+          ...(context.settings.raidOpsEnabled
+            ? [
+                new SlashCommandBuilder()
+                  .setName("raid")
+                  .setDescription("Show the live raid rail for this project community."),
+              ]
+            : []),
+          ...(context.settings.captainsEnabled && context.settings.captainCommandsEnabled
+            ? [
+                new SlashCommandBuilder()
+                  .setName("captain")
+                  .setDescription("Open your captain workspace for this project."),
+              ]
+            : []),
+        ]
       : [];
+    const payload = commandBuilders.map((builder) => builder.toJSON());
     await client.application.commands.set(payload, context.guildId);
     if (context.settings.commandsEnabled) {
       guildsEnabled += 1;

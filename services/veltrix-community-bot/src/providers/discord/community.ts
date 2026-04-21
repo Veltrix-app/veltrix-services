@@ -7,6 +7,10 @@ export type DiscordLeaderboardCadence = "manual" | "daily" | "weekly";
 
 export type DiscordCommunityBotSettings = {
   commandsEnabled: boolean;
+  missionCommandsEnabled: boolean;
+  captainCommandsEnabled: boolean;
+  commandDeepLinksEnabled: boolean;
+  captainsEnabled: boolean;
   rankSyncEnabled: boolean;
   rankSource: DiscordRankSource;
   leaderboardEnabled: boolean;
@@ -74,8 +78,18 @@ export type DiscordRaidRailEntry = {
   shortDescription: string;
 };
 
+export type DiscordMissionBoard = {
+  campaigns: Array<{ id: string; title: string }>;
+  quests: Array<{ id: string; title: string; xp: number }>;
+  rewards: Array<{ id: string; title: string; cost: number }>;
+};
+
 const DEFAULT_SETTINGS: DiscordCommunityBotSettings = {
   commandsEnabled: true,
+  missionCommandsEnabled: true,
+  captainCommandsEnabled: true,
+  commandDeepLinksEnabled: true,
+  captainsEnabled: false,
   rankSyncEnabled: false,
   rankSource: "project_xp",
   leaderboardEnabled: true,
@@ -191,7 +205,7 @@ export async function loadDiscordIntegrationContexts(filters?: {
     supabaseAdmin
       .from("community_bot_settings")
       .select(
-        "integration_id, commands_enabled, rank_sync_enabled, rank_source, leaderboard_enabled, leaderboard_scope, leaderboard_period, leaderboard_target_channel_id, leaderboard_top_n, leaderboard_cadence, raid_ops_enabled, last_rank_sync_at, last_leaderboard_posted_at"
+        "integration_id, commands_enabled, rank_sync_enabled, rank_source, leaderboard_enabled, leaderboard_scope, leaderboard_period, leaderboard_target_channel_id, leaderboard_top_n, leaderboard_cadence, raid_ops_enabled, last_rank_sync_at, last_leaderboard_posted_at, metadata"
       )
       .in("integration_id", integrationIds),
     supabaseAdmin
@@ -229,6 +243,7 @@ export async function loadDiscordIntegrationContexts(filters?: {
       raid_ops_enabled: boolean | null;
       last_rank_sync_at: string | null;
       last_leaderboard_posted_at: string | null;
+      metadata: Record<string, unknown> | null;
     }
   >(
     ((settingsRows ?? []) as Array<{
@@ -245,6 +260,7 @@ export async function loadDiscordIntegrationContexts(filters?: {
       raid_ops_enabled: boolean | null;
       last_rank_sync_at: string | null;
       last_leaderboard_posted_at: string | null;
+      metadata: Record<string, unknown> | null;
     }>).map((row) => [row.integration_id, row])
   );
 
@@ -289,6 +305,22 @@ export async function loadDiscordIntegrationContexts(filters?: {
       settings: settingsRow
         ? {
             commandsEnabled: settingsRow.commands_enabled !== false,
+            missionCommandsEnabled:
+              settingsRow.metadata && typeof settingsRow.metadata === "object"
+                ? (settingsRow.metadata as Record<string, unknown>).missionCommandsEnabled !== false
+                : DEFAULT_SETTINGS.missionCommandsEnabled,
+            captainCommandsEnabled:
+              settingsRow.metadata && typeof settingsRow.metadata === "object"
+                ? (settingsRow.metadata as Record<string, unknown>).captainCommandsEnabled !== false
+                : DEFAULT_SETTINGS.captainCommandsEnabled,
+            commandDeepLinksEnabled:
+              settingsRow.metadata && typeof settingsRow.metadata === "object"
+                ? (settingsRow.metadata as Record<string, unknown>).commandDeepLinksEnabled !== false
+                : DEFAULT_SETTINGS.commandDeepLinksEnabled,
+            captainsEnabled:
+              settingsRow.metadata && typeof settingsRow.metadata === "object"
+                ? (settingsRow.metadata as Record<string, unknown>).captainsEnabled === true
+                : DEFAULT_SETTINGS.captainsEnabled,
             rankSyncEnabled: settingsRow.rank_sync_enabled === true,
             rankSource: sanitizeRankSource(settingsRow.rank_source),
             leaderboardEnabled: settingsRow.leaderboard_enabled !== false,
@@ -771,4 +803,67 @@ export async function loadDiscordRaidRail(projectId: string) {
     rewardXp: Number(raid.reward_xp ?? 0),
     shortDescription: raid.short_description ?? "",
   }));
+}
+
+export async function loadDiscordMissionBoard(projectId: string): Promise<DiscordMissionBoard> {
+  const [
+    { data: campaigns, error: campaignsError },
+    { data: quests, error: questsError },
+    { data: rewards, error: rewardsError },
+  ] = await Promise.all([
+    supabaseAdmin
+      .from("campaigns")
+      .select("id, title")
+      .eq("project_id", projectId)
+      .eq("status", "active")
+      .order("featured", { ascending: false })
+      .limit(3),
+    supabaseAdmin
+      .from("quests")
+      .select("id, title, xp")
+      .eq("project_id", projectId)
+      .eq("status", "active")
+      .order("sort_order", { ascending: true })
+      .limit(4),
+    supabaseAdmin
+      .from("rewards")
+      .select("id, title, cost")
+      .eq("project_id", projectId)
+      .eq("status", "active")
+      .eq("visible", true)
+      .limit(3),
+  ]);
+
+  if (campaignsError) {
+    throw new Error(campaignsError.message || "Failed to load Discord campaigns.");
+  }
+
+  if (questsError) {
+    throw new Error(questsError.message || "Failed to load Discord quests.");
+  }
+
+  if (rewardsError) {
+    throw new Error(rewardsError.message || "Failed to load Discord rewards.");
+  }
+
+  return {
+    campaigns: ((campaigns ?? []) as Array<{ id: string; title: string }>).map((campaign) => ({
+      id: campaign.id,
+      title: campaign.title,
+    })),
+    quests: ((quests ?? []) as Array<{ id: string; title: string; xp: number | null }>).map(
+      (quest) => ({
+        id: quest.id,
+        title: quest.title,
+        xp: Number(quest.xp ?? 0),
+      })
+    ),
+    rewards: ((rewards ?? []) as Array<{ id: string; title: string; cost: number | null }>).map(
+      (reward) => ({
+        id: reward.id,
+        title: reward.title,
+        cost: Number(reward.cost ?? 0),
+      })
+    ),
+  };
 }

@@ -1,86 +1,95 @@
-import { Markup, Telegraf } from "telegraf";
+import { Telegraf } from "telegraf";
 import { env } from "../../config/env.js";
 import { loadCaptainByProviderIdentity } from "../../core/community/captains.js";
+import { buildCommunityCommandLinks } from "../../core/community/command-links.js";
+import {
+  areCommunityCommandDeepLinksEnabled,
+  buildDisabledCommandMessage,
+  type CommunityCommandKey,
+  isCommunityCommandEnabled,
+} from "../../core/community/command-scopes.js";
 import { loadCommunityJourneyPrompt } from "../../core/community/journeys.js";
-import { buildCommunityJourneyDeepLinks } from "../../core/community/automation-links.js";
+import { loadProjectCommunityOutcomeSummary } from "../../core/community/outcomes.js";
 import {
   loadTelegramIdentitySnapshot,
   loadTelegramIntegrationContextByChatId,
+  loadTelegramIntegrationContexts,
   loadTelegramLeaderboard,
   loadTelegramMissionBoard,
   loadTelegramRaidBoard,
 } from "./community.js";
-
-const appUrl = (process.env.PUBLIC_APP_URL || "https://veltrix-web.vercel.app").replace(
-  /\/+$/,
-  ""
-);
+import {
+  buildTelegramProjectButtons,
+  formatTelegramJourneyLabel,
+  formatTelegramLeaderboard,
+  formatTelegramMissionBoard,
+  formatTelegramRaidBoard,
+} from "./message-renderers.js";
 
 let telegramBot: Telegraf | null = null;
 let handlersRegistered = false;
 let telegramBotLaunched = false;
 
+function buildTelegramCommandPayload(settings: {
+  commandsEnabled: boolean;
+  missionCommandsEnabled: boolean;
+  captainCommandsEnabled: boolean;
+  leaderboardEnabled: boolean;
+  raidOpsEnabled: boolean;
+  captainsEnabled: boolean;
+}) {
+  if (!settings.commandsEnabled) {
+    return [] as Array<{ command: string; description: string }>;
+  }
+
+  return [
+    { command: "link", description: "Link your Telegram identity with Veltrix" },
+    { command: "profile", description: "Show your live Veltrix community profile" },
+    ...(settings.missionCommandsEnabled
+      ? [{ command: "missions", description: "Show the live project mission board" }]
+      : []),
+    ...(settings.leaderboardEnabled
+      ? [{ command: "leaderboard", description: "Show the current weekly leaderboard" }]
+      : []),
+    ...(settings.raidOpsEnabled
+      ? [{ command: "raid", description: "Show the live raid rail" }]
+      : []),
+    ...(settings.captainsEnabled && settings.captainCommandsEnabled
+      ? [{ command: "captain", description: "Open your project captain workspace" }]
+      : []),
+  ];
+}
+
 function getChatId(ctx: { chat?: { id?: number | string } }) {
   return ctx.chat?.id ? String(ctx.chat.id) : "";
 }
 
-function buildProjectButtons(buttons: Array<{ label: string; url: string | null | undefined }>) {
-  const validButtons = buttons.filter((button) => button.url).slice(0, 4);
-  if (validButtons.length === 0) {
-    return undefined;
+function listEnabledTelegramCommands(settings: {
+  missionCommandsEnabled: boolean;
+  captainCommandsEnabled: boolean;
+  leaderboardEnabled: boolean;
+  raidOpsEnabled: boolean;
+  captainsEnabled: boolean;
+}) {
+  const commands = ["/link", "/profile"];
+
+  if (settings.missionCommandsEnabled) {
+    commands.push("/missions");
+  }
+  if (settings.leaderboardEnabled) {
+    commands.push("/leaderboard");
+  }
+  if (settings.raidOpsEnabled) {
+    commands.push("/raid");
+  }
+  if (settings.captainsEnabled && settings.captainCommandsEnabled) {
+    commands.push("/captain");
   }
 
-  return Markup.inlineKeyboard(
-    validButtons.map((button) => [Markup.button.url(button.label, button.url!)])
-  );
+  return commands;
 }
 
-function formatJourneyLabel(lane: "onboarding" | "active" | "comeback") {
-  return lane === "onboarding"
-    ? "Onboarding rail"
-    : lane === "comeback"
-      ? "Comeback rail"
-      : "Community Home";
-}
-
-function formatLeaderboard(entries: Awaited<ReturnType<typeof loadTelegramLeaderboard>>) {
-  if (entries.length === 0) {
-    return "No linked contributors are on this board yet.";
-  }
-
-  return entries
-    .map(
-      (entry, index) =>
-        `${index + 1}. ${entry.displayName} — ${entry.xp} XP | L${entry.level} | Trust ${entry.trust}`
-    )
-    .join("\n");
-}
-
-function formatMissionBoard(board: Awaited<ReturnType<typeof loadTelegramMissionBoard>>) {
-  return [
-    board.campaigns.length
-      ? `Campaigns: ${board.campaigns.map((item) => item.title).join(" | ")}`
-      : "Campaigns: none live right now",
-    board.quests.length
-      ? `Quests: ${board.quests.map((item) => `${item.title} (+${item.xp ?? 0} XP)`).join(" | ")}`
-      : "Quests: none live right now",
-    board.rewards.length
-      ? `Rewards: ${board.rewards.map((item) => `${item.title} (${item.cost ?? 0} XP)`).join(" | ")}`
-      : "Rewards: no live drops yet",
-  ].join("\n");
-}
-
-function formatRaidBoard(raids: Awaited<ReturnType<typeof loadTelegramRaidBoard>>) {
-  if (raids.length === 0) {
-    return "No live raids are active for this project right now.";
-  }
-
-  return raids
-    .map((raid, index) => `${index + 1}. ${raid.title} (+${raid.reward_xp ?? 0} XP)`)
-    .join("\n");
-}
-
-async function resolveCommunityContext(ctx: any) {
+async function resolveCommunityContext(ctx: any, command?: CommunityCommandKey) {
   const chatId = getChatId(ctx);
   if (!chatId) {
     await ctx.reply("This command needs to run inside a Telegram group or chat mapped in Veltrix.");
@@ -100,6 +109,18 @@ async function resolveCommunityContext(ctx: any) {
     return null;
   }
 
+  if (
+    command &&
+    !isCommunityCommandEnabled({
+      command,
+      platform: "telegram",
+      settings: context.settings,
+    })
+  ) {
+    await ctx.reply(buildDisabledCommandMessage(command));
+    return null;
+  }
+
   return context;
 }
 
@@ -111,40 +132,53 @@ function registerTelegramCommandHandlers(bot: Telegraf) {
   bot.start(async (ctx) => {
     const context = await resolveCommunityContext(ctx);
     if (!context) return;
-    const links = buildCommunityJourneyDeepLinks(context.projectId, "onboarding");
+
+    const links = buildCommunityCommandLinks({
+      projectId: context.projectId,
+      lane: "onboarding",
+      deepLinksEnabled: areCommunityCommandDeepLinksEnabled(context.settings),
+    });
+    const enabledCommands = listEnabledTelegramCommands(context.settings);
 
     await ctx.reply(
-      `Veltrix is live for ${context.projectName}. Use /link, /profile, /missions, /leaderboard, /raid or /captain to work this community rail.`,
-      buildProjectButtons([
+      `Veltrix is live for ${context.projectName}. Available commands: ${enabledCommands.join(", ")}.`,
+      buildTelegramProjectButtons([
         { label: "Open onboarding rail", url: links.onboardingUrl },
-        { label: "Open Veltrix profile", url: `${appUrl}/profile` },
+        { label: "Open Veltrix profile", url: links.profileUrl },
       ])
     );
   });
 
   bot.command("link", async (ctx) => {
-    const context = await resolveCommunityContext(ctx);
+    const context = await resolveCommunityContext(ctx, "link");
     if (!context) return;
-    const links = buildCommunityJourneyDeepLinks(context.projectId, "onboarding");
+
+    const links = buildCommunityCommandLinks({
+      projectId: context.projectId,
+      lane: "onboarding",
+      deepLinksEnabled: areCommunityCommandDeepLinksEnabled(context.settings),
+    });
 
     await ctx.reply(
       `Link into ${context.projectName} so this chat can use your live Veltrix profile for community ranks, captain rails, leaderboards and the right onboarding journey.`,
-      buildProjectButtons([
+      buildTelegramProjectButtons([
         { label: "Open onboarding rail", url: links.onboardingUrl },
-        { label: "Open Veltrix profile", url: `${appUrl}/profile` },
+        { label: "Open Veltrix profile", url: links.profileUrl },
       ])
     );
   });
 
   bot.command("profile", async (ctx) => {
-    const context = await resolveCommunityContext(ctx);
+    const context = await resolveCommunityContext(ctx, "profile");
     if (!context) return;
 
-    const snapshot = await loadTelegramIdentitySnapshot(String(ctx.from.id), context.projectId);
+    const providerUserId = String(ctx.from?.id ?? "");
+    const snapshot = await loadTelegramIdentitySnapshot(providerUserId, context.projectId);
     if (!snapshot) {
       await ctx.reply("Your Telegram account is not linked to Veltrix yet. Use /link first.");
       return;
     }
+
     const journeyPrompt = await loadCommunityJourneyPrompt({
       projectId: context.projectId,
       authUserId: snapshot.authUserId,
@@ -152,10 +186,13 @@ function registerTelegramCommandHandlers(bot: Telegraf) {
     const captain = await loadCaptainByProviderIdentity({
       projectId: context.projectId,
       provider: "telegram",
-      providerUserId: String(ctx.from.id),
+      providerUserId,
     });
-    const links =
-      journeyPrompt?.urls ?? buildCommunityJourneyDeepLinks(context.projectId, "active");
+    const links = buildCommunityCommandLinks({
+      projectId: context.projectId,
+      lane: journeyPrompt?.lane ?? "active",
+      deepLinksEnabled: areCommunityCommandDeepLinksEnabled(context.settings),
+    });
 
     await ctx.reply(
       [
@@ -165,89 +202,174 @@ function registerTelegramCommandHandlers(bot: Telegraf) {
         `Global XP: ${snapshot.globalXp} | L${snapshot.globalLevel} | Trust ${snapshot.globalTrust}`,
         `Missions: ${snapshot.projectQuestsCompleted} quests | ${snapshot.projectRaidsCompleted} raids`,
         `Wallet: ${snapshot.walletVerified ? "Verified" : "Missing"}`,
-        `Lane: ${journeyPrompt ? formatJourneyLabel(journeyPrompt.lane) : "Community Home"}`,
+        `Lane: ${journeyPrompt ? formatTelegramJourneyLabel(journeyPrompt.lane) : "Community Home"}`,
         `Next unlock: ${journeyPrompt?.nextUnlockLabel ?? "Keep your community lane moving."}`,
       ].join("\n"),
-      buildProjectButtons([
+      buildTelegramProjectButtons([
         {
-          label: journeyPrompt ? `Open ${formatJourneyLabel(journeyPrompt.lane)}` : "Open Community Home",
+          label: journeyPrompt ? `Open ${formatTelegramJourneyLabel(journeyPrompt.lane)}` : "Open Community Home",
           url: links.primaryUrl,
         },
-        { label: "Open full profile", url: `${appUrl}/profile` },
-        { label: "Captain workspace", url: captain ? links.captainWorkspaceUrl : null },
+        { label: "Open full profile", url: links.profileUrl },
+        {
+          label: "Captain workspace",
+          url:
+            captain &&
+            isCommunityCommandEnabled({
+              command: "captain",
+              platform: "telegram",
+              settings: context.settings,
+            })
+              ? links.captainWorkspaceUrl
+              : null,
+        },
       ])
     );
   });
 
   bot.command("missions", async (ctx) => {
-    const context = await resolveCommunityContext(ctx);
+    const context = await resolveCommunityContext(ctx, "missions");
     if (!context) return;
 
-    const board = await loadTelegramMissionBoard(context.projectId);
+    const providerUserId = String(ctx.from?.id ?? "");
+    const [board, snapshot, captain] = await Promise.all([
+      loadTelegramMissionBoard(context.projectId),
+      loadTelegramIdentitySnapshot(providerUserId, context.projectId),
+      loadCaptainByProviderIdentity({
+        projectId: context.projectId,
+        provider: "telegram",
+        providerUserId,
+      }),
+    ]);
+    const journeyPrompt = snapshot
+      ? await loadCommunityJourneyPrompt({
+          projectId: context.projectId,
+          authUserId: snapshot.authUserId,
+        })
+      : null;
+    const links = buildCommunityCommandLinks({
+      projectId: context.projectId,
+      lane: journeyPrompt?.lane ?? "active",
+      deepLinksEnabled: areCommunityCommandDeepLinksEnabled(context.settings),
+    });
+
     await ctx.reply(
-      `${context.projectName} mission board\n\n${formatMissionBoard(board)}`,
-      buildProjectButtons([
+      `${context.projectName} mission board\n\n${formatTelegramMissionBoard(board)}`,
+      buildTelegramProjectButtons([
         {
-          label: "Open Community Home",
-          url: buildCommunityJourneyDeepLinks(context.projectId, "active").communityUrl,
+          label: journeyPrompt ? `Open ${formatTelegramJourneyLabel(journeyPrompt.lane)}` : "Open Community Home",
+          url: links.primaryUrl,
+        },
+        { label: "Open reward rail", url: links.rewardsUrl },
+        {
+          label: "Captain workspace",
+          url:
+            captain &&
+            isCommunityCommandEnabled({
+              command: "captain",
+              platform: "telegram",
+              settings: context.settings,
+            })
+              ? links.captainWorkspaceUrl
+              : null,
         },
       ])
     );
   });
 
   bot.command("leaderboard", async (ctx) => {
-    const context = await resolveCommunityContext(ctx);
+    const context = await resolveCommunityContext(ctx, "leaderboard");
     if (!context) return;
 
-    const entries = await loadTelegramLeaderboard({
+    const providerUserId = String(ctx.from?.id ?? "");
+    const [entries, captain] = await Promise.all([
+      loadTelegramLeaderboard({
+        projectId: context.projectId,
+        period: "weekly",
+        limit: 10,
+      }),
+      loadCaptainByProviderIdentity({
+        projectId: context.projectId,
+        provider: "telegram",
+        providerUserId,
+      }),
+    ]);
+    const links = buildCommunityCommandLinks({
       projectId: context.projectId,
-      period: "weekly",
-      limit: 10,
+      lane: "active",
+      deepLinksEnabled: areCommunityCommandDeepLinksEnabled(context.settings),
     });
-    const captain = await loadCaptainByProviderIdentity({
-      projectId: context.projectId,
-      provider: "telegram",
-      providerUserId: String(ctx.from.id),
-    });
-    const links = buildCommunityJourneyDeepLinks(context.projectId, "active");
 
     await ctx.reply(
-      `${context.projectName} weekly leaderboard\n\n${formatLeaderboard(entries)}`,
-      buildProjectButtons([
+      `${context.projectName} weekly leaderboard\n\n${formatTelegramLeaderboard(entries)}`,
+      buildTelegramProjectButtons([
         { label: "Open Community Home", url: links.communityUrl },
-        { label: "Captain workspace", url: captain ? links.captainWorkspaceUrl : null },
+        { label: "Open reward rail", url: links.rewardsUrl },
+        {
+          label: "Captain workspace",
+          url:
+            captain &&
+            isCommunityCommandEnabled({
+              command: "captain",
+              platform: "telegram",
+              settings: context.settings,
+            })
+              ? links.captainWorkspaceUrl
+              : null,
+        },
       ])
     );
   });
 
   bot.command("raid", async (ctx) => {
-    const context = await resolveCommunityContext(ctx);
+    const context = await resolveCommunityContext(ctx, "raid");
     if (!context) return;
 
-    const raids = await loadTelegramRaidBoard(context.projectId);
-    const captain = await loadCaptainByProviderIdentity({
+    const providerUserId = String(ctx.from?.id ?? "");
+    const [raids, captain] = await Promise.all([
+      loadTelegramRaidBoard(context.projectId),
+      loadCaptainByProviderIdentity({
+        projectId: context.projectId,
+        provider: "telegram",
+        providerUserId,
+      }),
+    ]);
+    const links = buildCommunityCommandLinks({
       projectId: context.projectId,
-      provider: "telegram",
-      providerUserId: String(ctx.from.id),
+      lane: "active",
+      deepLinksEnabled: areCommunityCommandDeepLinksEnabled(context.settings),
     });
-    const links = buildCommunityJourneyDeepLinks(context.projectId, "active");
+
     await ctx.reply(
-      `${context.projectName} raid rail\n\n${formatRaidBoard(raids)}`,
-      buildProjectButtons([
+      `${context.projectName} raid rail\n\n${formatTelegramRaidBoard(raids)}`,
+      buildTelegramProjectButtons([
         { label: "Open Community Home", url: links.communityUrl },
-        { label: "Captain workspace", url: captain ? links.captainWorkspaceUrl : null },
+        { label: "Open mission rail", url: links.missionsUrl },
+        {
+          label: "Captain workspace",
+          url:
+            captain &&
+            isCommunityCommandEnabled({
+              command: "captain",
+              platform: "telegram",
+              settings: context.settings,
+            })
+              ? links.captainWorkspaceUrl
+              : null,
+        },
       ])
     );
   });
 
   bot.command("captain", async (ctx) => {
-    const context = await resolveCommunityContext(ctx);
+    const context = await resolveCommunityContext(ctx, "captain");
     if (!context) return;
 
+    const providerUserId = String(ctx.from?.id ?? "");
     const captain = await loadCaptainByProviderIdentity({
       projectId: context.projectId,
       provider: "telegram",
-      providerUserId: String(ctx.from.id),
+      providerUserId,
     });
 
     if (!captain) {
@@ -257,15 +379,26 @@ function registerTelegramCommandHandlers(bot: Telegraf) {
       return;
     }
 
-    const links = buildCommunityJourneyDeepLinks(context.projectId, "active");
+    const [links, outcomeSummary] = await Promise.all([
+      Promise.resolve(
+        buildCommunityCommandLinks({
+          projectId: context.projectId,
+          lane: "active",
+          deepLinksEnabled: areCommunityCommandDeepLinksEnabled(context.settings),
+        })
+      ),
+      loadProjectCommunityOutcomeSummary(context.projectId),
+    ]);
+
     await ctx.reply(
       [
         `${context.projectName} captain workspace`,
         `Role: ${captain.role}`,
         `Permissions: ${captain.permissions.length > 0 ? captain.permissions.join(", ") : "No scoped permissions"}`,
+        `Actionable: ${outcomeSummary.captain.actionableQueueCount} | Blocked: ${outcomeSummary.captain.blockedQueueCount} | Escalated: ${outcomeSummary.captain.escalatedQueueCount}`,
         "Use the project-private workspace for queue execution, blockers and recent outcomes.",
       ].join("\n"),
-      buildProjectButtons([
+      buildTelegramProjectButtons([
         { label: "Open captain workspace", url: links.captainWorkspaceUrl },
         { label: "Open Community Home", url: links.communityUrl },
       ])
@@ -310,7 +443,35 @@ export async function launchTelegramBot() {
   ]);
 
   await bot.launch();
+  const contexts = await loadTelegramIntegrationContexts();
+  let chatsSynced = 0;
+  let chatsCleared = 0;
+
+  for (const context of contexts) {
+    const chatId = Number(context.chatId);
+    if (!Number.isFinite(chatId)) {
+      continue;
+    }
+
+    const payload = buildTelegramCommandPayload(context.settings);
+    await bot.telegram.setMyCommands(payload, {
+      scope: {
+        type: "chat",
+        chat_id: chatId,
+      },
+    });
+
+    if (payload.length > 0) {
+      chatsSynced += 1;
+    } else {
+      chatsCleared += 1;
+    }
+  }
+
   telegramBotLaunched = true;
+  console.log(
+    `[telegram] synced commands for ${contexts.length} chat(s); enabled=${chatsSynced} cleared=${chatsCleared}`
+  );
   return bot;
 }
 

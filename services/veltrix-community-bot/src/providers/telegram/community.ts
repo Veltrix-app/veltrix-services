@@ -7,6 +7,12 @@ export type TelegramCommunityContext = {
   chatId: string;
   settings: {
     commandsEnabled: boolean;
+    missionCommandsEnabled: boolean;
+    captainCommandsEnabled: boolean;
+    commandDeepLinksEnabled: boolean;
+    captainsEnabled: boolean;
+    leaderboardEnabled: boolean;
+    raidOpsEnabled: boolean;
   };
 };
 
@@ -35,6 +41,12 @@ export type TelegramLeaderboardEntry = {
   trust: number;
   questsCompleted: number;
   raidsCompleted: number;
+};
+
+export type TelegramMissionBoard = {
+  campaigns: Array<{ id: string; title: string }>;
+  quests: Array<{ id: string; title: string; xp: number | null }>;
+  rewards: Array<{ id: string; title: string; cost: number | null }>;
 };
 
 function chunkArray<T>(values: T[], size: number) {
@@ -88,7 +100,7 @@ export async function loadTelegramIntegrationContextByChatId(chatId: string) {
         .maybeSingle(),
       supabaseAdmin
         .from("community_bot_settings")
-        .select("integration_id, commands_enabled")
+        .select("integration_id, commands_enabled, leaderboard_enabled, raid_ops_enabled, metadata")
         .eq("integration_id", matchedIntegration.id)
         .maybeSingle(),
     ]);
@@ -108,8 +120,129 @@ export async function loadTelegramIntegrationContextByChatId(chatId: string) {
     chatId: chatId.trim(),
     settings: {
       commandsEnabled: settingsRow?.commands_enabled === true,
+      missionCommandsEnabled:
+        settingsRow?.metadata && typeof settingsRow.metadata === "object"
+          ? (settingsRow.metadata as Record<string, unknown>).missionCommandsEnabled !== false
+          : true,
+      captainCommandsEnabled:
+        settingsRow?.metadata && typeof settingsRow.metadata === "object"
+          ? (settingsRow.metadata as Record<string, unknown>).captainCommandsEnabled !== false
+          : true,
+      commandDeepLinksEnabled:
+        settingsRow?.metadata && typeof settingsRow.metadata === "object"
+          ? (settingsRow.metadata as Record<string, unknown>).commandDeepLinksEnabled !== false
+          : true,
+      captainsEnabled:
+        settingsRow?.metadata && typeof settingsRow.metadata === "object"
+          ? (settingsRow.metadata as Record<string, unknown>).captainsEnabled === true
+          : false,
+      leaderboardEnabled: settingsRow?.leaderboard_enabled !== false,
+      raidOpsEnabled: settingsRow?.raid_ops_enabled === true,
     },
   } satisfies TelegramCommunityContext;
+}
+
+export async function loadTelegramIntegrationContexts() {
+  const { data: integrations, error: integrationError } = await supabaseAdmin
+    .from("project_integrations")
+    .select("id, project_id, status, config")
+    .eq("provider", "telegram")
+    .in("status", ["connected", "needs_attention"]);
+
+  if (integrationError) {
+    throw new Error(integrationError.message || "Failed to load Telegram integrations.");
+  }
+
+  const typedIntegrations = (integrations ?? []) as Array<{
+    id: string;
+    project_id: string;
+    config: Record<string, unknown> | null;
+  }>;
+  const integrationIds = typedIntegrations.map((integration) => integration.id);
+  const projectIds = Array.from(
+    new Set(typedIntegrations.map((integration) => integration.project_id).filter(Boolean))
+  );
+
+  const [{ data: projects, error: projectError }, { data: settingsRows, error: settingsError }] =
+    await Promise.all([
+      projectIds.length > 0
+        ? supabaseAdmin.from("projects").select("id, name").in("id", projectIds)
+        : Promise.resolve({ data: [], error: null }),
+      integrationIds.length > 0
+        ? supabaseAdmin
+            .from("community_bot_settings")
+            .select(
+              "integration_id, commands_enabled, leaderboard_enabled, raid_ops_enabled, metadata"
+            )
+            .in("integration_id", integrationIds)
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+
+  if (projectError) {
+    throw new Error(projectError.message || "Failed to load Telegram project contexts.");
+  }
+
+  if (settingsError) {
+    throw new Error(settingsError.message || "Failed to load Telegram community settings.");
+  }
+
+  const projectNameById = new Map<string, string>();
+  for (const project of (projects ?? []) as Array<{ id: string; name: string | null }>) {
+    projectNameById.set(project.id, project.name ?? "Veltrix");
+  }
+
+  const settingsByIntegrationId = new Map<
+    string,
+    {
+      commands_enabled: boolean | null;
+      leaderboard_enabled: boolean | null;
+      raid_ops_enabled: boolean | null;
+      metadata: Record<string, unknown> | null;
+    }
+  >();
+  for (const settings of (settingsRows ?? []) as Array<{
+    integration_id: string;
+    commands_enabled: boolean | null;
+    leaderboard_enabled: boolean | null;
+    raid_ops_enabled: boolean | null;
+    metadata: Record<string, unknown> | null;
+  }>) {
+    settingsByIntegrationId.set(settings.integration_id, settings);
+  }
+
+  return typedIntegrations
+    .map((integration) => {
+      const chatId = readTelegramChatId(integration.config);
+      if (!chatId) {
+        return null;
+      }
+
+      const settingsRow = settingsByIntegrationId.get(integration.id);
+      const metadata =
+        settingsRow?.metadata && typeof settingsRow.metadata === "object"
+          ? settingsRow.metadata
+          : null;
+
+      return {
+        integrationId: integration.id,
+        projectId: integration.project_id,
+        projectName: projectNameById.get(integration.project_id) ?? "Veltrix",
+        chatId,
+        settings: {
+          commandsEnabled: settingsRow?.commands_enabled === true,
+          missionCommandsEnabled:
+            metadata ? metadata.missionCommandsEnabled !== false : true,
+          captainCommandsEnabled:
+            metadata ? metadata.captainCommandsEnabled !== false : true,
+          commandDeepLinksEnabled:
+            metadata ? metadata.commandDeepLinksEnabled !== false : true,
+          captainsEnabled: metadata ? metadata.captainsEnabled === true : false,
+          leaderboardEnabled: settingsRow?.leaderboard_enabled !== false,
+          raidOpsEnabled: settingsRow?.raid_ops_enabled === true,
+        },
+      } satisfies TelegramCommunityContext;
+    })
+    .filter((context): context is TelegramCommunityContext => Boolean(context));
 }
 
 export async function loadTelegramIdentitySnapshot(
