@@ -5,6 +5,7 @@ import { runActiveXpDecayJob } from "../jobs/active-xp-decay.js";
 import { runCommunityAutomationsJob } from "../jobs/run-community-automations.js";
 import { runOnchainEnrichmentJob } from "../jobs/enrich-onchain-events.js";
 import { postCommunityLeaderboards } from "../jobs/post-community-leaderboards.js";
+import { runRefreshPlatformMetricSnapshotsJob } from "../jobs/refresh-platform-metric-snapshots.js";
 import {
   runRefreshCommunityCaptainQueueJob,
   runRefreshCommunityStatusSnapshotsJob,
@@ -362,6 +363,31 @@ jobsRouter.post("/refresh-community-captain-queue", async (req, res) => {
     return res.status(500).json({
       ok: false,
       error: error instanceof Error ? error.message : "Captain queue refresh failed.",
+    });
+  }
+});
+
+jobsRouter.post("/refresh-platform-metric-snapshots", async (req, res) => {
+  if (!hasValidJobSecret(req.header("x-community-job-secret") ?? undefined)) {
+    return res.status(401).json({ ok: false, error: "Invalid job secret." });
+  }
+
+  const parsed = maintenanceSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    return res.status(400).json({
+      ok: false,
+      error: "Invalid platform metric snapshot payload.",
+      details: parsed.error.flatten(),
+    });
+  }
+
+  try {
+    const result = await runRefreshPlatformMetricSnapshotsJob();
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : "Platform metric snapshot job failed.",
     });
   }
 });
