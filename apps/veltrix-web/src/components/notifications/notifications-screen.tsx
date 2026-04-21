@@ -105,11 +105,11 @@ export function NotificationsScreen() {
                       className="inline-flex items-center gap-2 rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
                     >
                       {featuredSignal?.type === "community"
-                        ? "Open best lane"
+                        ? "Open best path"
                         : featuredSignal?.type === "reward"
-                          ? "Open reward vault"
+                          ? "Open rewards"
                           : featuredSignal?.type === "quest"
-                            ? "Open mission lane"
+                            ? "Open missions"
                             : featuredSignal?.type === "raid"
                               ? "Open raid board"
                               : "Open next surface"}
@@ -118,7 +118,7 @@ export function NotificationsScreen() {
                       href={communitySnapshot.preferredRoute}
                       className="glass-button inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:border-cyan-300/30"
                     >
-                      Back to member lane
+                      Back to your journey
                     </Link>
                   </div>
                 </div>
@@ -184,7 +184,7 @@ export function NotificationsScreen() {
               </p>
               <p className="mt-3 font-semibold text-white">{communitySnapshot.readinessLabel}</p>
               <p className="mt-2 leading-6 text-slate-300">
-                The feed now routes back into {communitySnapshot.projectName || "your active community"} through the best current lane instead of a generic landing.
+                The feed now routes back into {communitySnapshot.projectName || "your active community"} through the best current path instead of a generic landing.
               </p>
             </div>
             <CommunityStatusPanel
@@ -201,14 +201,14 @@ export function NotificationsScreen() {
           <Surface
             eyebrow="Next Surfaces"
             title="Fast jumps"
-            description="Quick routes back into the rest of the live grid."
+            description="Quick routes back into the rest of the live experience."
           >
             <div className="flex flex-wrap gap-3">
               <QuickLink href="/community" label="Community home" />
               <QuickLink href="/raids" label="Raid board" />
               <QuickLink href="/leaderboard" label="Leaderboard" />
-              <QuickLink href="/profile" label="Pilot profile" />
-              <QuickLink href="/projects" label="World browser" />
+              <QuickLink href="/profile" label="Profile" />
+              <QuickLink href="/projects" label="Project browser" />
             </div>
           </Surface>
         </div>
@@ -271,7 +271,7 @@ function SignalBanner() {
         Command Feed
       </p>
       <p className="mt-3 max-w-[18rem] text-sm leading-7 text-slate-300">
-        Approvals, alerts and unlocks flow through this live signal layer before you move back into the grid.
+        Approvals, alerts and unlocks flow through this live signal layer before you move back into the product.
       </p>
     </div>
   );

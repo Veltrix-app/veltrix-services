@@ -22,20 +22,20 @@ export function SignInScreen() {
         : await signUp(email, password, username);
 
     if (result.ok) {
-      router.replace("/");
+      router.replace("/home");
     }
   }
 
   return (
     <div className="mx-auto w-full max-w-[560px] rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:p-8">
       <p className="text-[11px] font-bold uppercase tracking-[0.34em] text-lime-300">
-        Veltrix Access
+        Veltrix Account
       </p>
       <h1 className="mt-4 text-3xl font-black tracking-tight text-white sm:text-5xl">
-        Enter the grid
+        Sign in to continue
       </h1>
       <p className="mt-4 text-sm leading-7 text-slate-300 sm:text-base">
-        Activate your pilot to track mission progress, route vault claims and unlock verified actions.
+        Track progress, claim rewards and keep your linked accounts ready across launches, quests and community actions.
       </p>
 
       <form className="mt-8" onSubmit={handleSubmit}>
@@ -47,7 +47,7 @@ export function SignInScreen() {
           }`}
           onClick={() => setMode("signin")}
         >
-          Existing Pilot
+          Sign in
         </button>
         <button
           type="button"
@@ -56,7 +56,7 @@ export function SignInScreen() {
           }`}
           onClick={() => setMode("signup")}
         >
-          New Pilot
+          Create account
         </button>
         </div>
 
@@ -93,7 +93,7 @@ export function SignInScreen() {
 
       {!authConfigured ? (
         <div className="mt-4 rounded-[22px] border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
-          The live auth signal is offline. Wire the web envs first to bring access online.
+          Public sign-in is not configured yet. Add the web auth environment variables to turn access on.
         </div>
       ) : null}
 
@@ -102,7 +102,7 @@ export function SignInScreen() {
         disabled={loading || !authConfigured}
         className="mt-6 w-full rounded-full bg-lime-300 px-5 py-4 text-sm font-black text-black transition hover:scale-[0.99] disabled:cursor-not-allowed disabled:bg-lime-300/40"
       >
-        {loading ? "Processing..." : mode === "signin" ? "Enter Grid" : "Create Pilot"}
+        {loading ? "Working..." : mode === "signin" ? "Sign in" : "Create account"}
       </button>
       </form>
     </div>

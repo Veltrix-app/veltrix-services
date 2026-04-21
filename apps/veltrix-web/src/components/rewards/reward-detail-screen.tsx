@@ -27,9 +27,9 @@ export function RewardDetailScreen() {
   const campaign = campaigns.find((item) => item.id === reward?.campaignId);
   const project = projects.find((item) => item.id === campaign?.projectId);
 
-  if (loading) return <Notice tone="default" text="Loading vault item..." />;
+  if (loading) return <Notice tone="default" text="Loading reward..." />;
   if (error) return <Notice tone="error" text={error} />;
-  if (!reward) return <Notice tone="default" text="Vault item not found." />;
+  if (!reward) return <Notice tone="default" text="Reward not found." />;
 
   const currentReward = reward;
   const rewardAlreadyClaimed = currentReward.claimed ?? false;
@@ -39,7 +39,7 @@ export function RewardDetailScreen() {
     if (!session) {
       setMessage({
         tone: "error",
-        text: "Sign in with an active pilot session before routing a vault claim.",
+        text: "Sign in with an active member session before routing a reward claim.",
       });
       return;
     }
@@ -48,8 +48,8 @@ export function RewardDetailScreen() {
       setMessage({
         tone: "default",
         text: rewardAlreadyClaimed
-          ? "This vault item is already in your claimed inventory."
-          : "This vault item is still locked behind progression.",
+          ? "This reward is already in your claimed inventory."
+          : "This reward is still locked behind progression.",
       });
       return;
     }
@@ -57,7 +57,7 @@ export function RewardDetailScreen() {
     setBusy(true);
     setMessage({
       tone: "default",
-      text: "Routing your vault claim into the live fulfillment queue.",
+      text: "Routing your reward claim into the live fulfillment queue.",
     });
 
     const result = await claimReward(currentReward.id);
@@ -65,7 +65,7 @@ export function RewardDetailScreen() {
     if (!result.ok) {
       setMessage({
         tone: "error",
-        text: result.error ?? "Veltrix could not submit this vault claim yet.",
+        text: result.error ?? "Veltrix could not submit this reward claim yet.",
       });
       setBusy(false);
       return;
@@ -75,8 +75,8 @@ export function RewardDetailScreen() {
     setMessage({
       tone: "success",
       text: result.alreadyClaimed
-        ? "This vault item was already claimed and has been synced back into your pilot state."
-        : "Vault claim submitted. The reward is now in the fulfillment queue.",
+        ? "This reward was already claimed and has been synced back into your rewards state."
+        : "Reward claim submitted. The reward is now in the fulfillment queue.",
     });
     setBusy(false);
   }
@@ -90,7 +90,7 @@ export function RewardDetailScreen() {
               src={currentReward.imageUrl}
               alt={currentReward.title}
               tone="amber"
-              fallbackLabel="Vault art offline"
+              fallbackLabel="Reward art offline"
               imgClassName="h-full w-full object-cover opacity-82"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
@@ -98,14 +98,15 @@ export function RewardDetailScreen() {
         ) : null}
 
         <div className="p-6 sm:p-8">
-          <p className="text-[11px] font-bold uppercase tracking-[0.34em] text-amber-300">Vault Item</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.34em] text-amber-300">Reward</p>
           <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
             <div className="max-w-[14ch]">
               <h2 className="font-display text-balance text-[clamp(2.2rem,4vw,4.5rem)] font-black leading-[0.92] tracking-[0.04em] text-white">
                 {currentReward.title}
               </h2>
               <p className="mt-3 text-sm text-amber-200">
-                {project?.name ?? "Project"}{campaign ? ` • ${campaign.title}` : ""}
+                {project?.name ?? "Project"}
+                {campaign ? ` - ${campaign.title}` : ""}
               </p>
             </div>
             <StatusChip
@@ -132,8 +133,8 @@ export function RewardDetailScreen() {
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <Surface
           eyebrow="Claim Readiness"
-          title="Vault status"
-          description="A cleaner read on payoff, eligibility and linked mission context."
+          title="Reward status"
+          description="A clearer read on payoff, eligibility and linked mission context."
         >
           <div className="grid gap-4 sm:grid-cols-2">
             <MetricTile
@@ -148,29 +149,39 @@ export function RewardDetailScreen() {
 
         <Surface
           eyebrow="Next Move"
-          title="Unlock routing"
-          description="Vault items should tell you where to go next, not just repeat metadata."
+          title="What to do next"
+          description="Rewards should tell you where to go next, not just repeat metadata."
         >
-            <div className="space-y-4">
-              <div className="metric-card rounded-[24px] p-4 text-sm leading-7 text-slate-300">
+          <div className="space-y-4">
+            <div className="metric-card rounded-[24px] p-4 text-sm leading-7 text-slate-300">
               {rewardAlreadyClaimed
-                ? "This vault item is already in your claimed inventory. Use the linked lane or world if you want to trace where it came from."
+                ? "This reward is already in your claimed inventory. Use the linked campaign or project if you want to trace where it came from."
                 : currentReward.claimable
-                  ? "This vault item is now in reach. Route the claim now or inspect the linked lane and world context first."
-                  : "This vault item is still locked. Keep clearing the linked lane and quests to push it into claimable territory."}
-              </div>
-              <div className="rounded-[24px] border border-white/8 bg-black/20 p-4 text-sm leading-7 text-slate-300">
-                <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
-                  Member lane context
-                </p>
-                <p className="mt-3 font-semibold text-white">{communitySnapshot.readinessLabel}</p>
-                <p className="mt-2">
-                  Reward claims should reinforce the same member journey, so your best lane still points toward {communitySnapshot.projectName || "your active community"}.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={() => void handleClaimReward()}
+                  ? "This reward is now in reach. Claim it now or inspect the linked campaign and project context first."
+                  : "This reward is still locked. Keep clearing the linked campaign and quests to push it into claimable territory."}
+            </div>
+            <div className="rounded-[24px] border border-white/8 bg-black/20 p-4 text-sm leading-7 text-slate-300">
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
+                Member journey context
+              </p>
+              <p className="mt-3 font-semibold text-white">{communitySnapshot.readinessLabel}</p>
+              <p className="mt-2">
+                Reward claims should reinforce the same member journey, so your best next path still points toward {communitySnapshot.projectName || "your active community"}.
+              </p>
+            </div>
+            <div className="rounded-[24px] border border-white/8 bg-black/20 p-4 text-sm leading-7 text-slate-300">
+              Reward availability, claim handling and delivery timing can vary by project.{" "}
+              <Link
+                href="/rewards/disclaimer"
+                className="font-semibold text-amber-200 underline underline-offset-4"
+              >
+                Read the reward disclaimer
+              </Link>
+              .
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={() => void handleClaimReward()}
                 disabled={busy || !canClaimReward}
                 className="rounded-full bg-amber-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99] disabled:cursor-not-allowed disabled:bg-amber-300/35"
               >
@@ -187,7 +198,7 @@ export function RewardDetailScreen() {
                   href={`/campaigns/${campaign.id}`}
                   className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
                 >
-                  Open linked lane
+                  Open linked campaign
                 </Link>
               ) : null}
               {project ? (
@@ -195,14 +206,14 @@ export function RewardDetailScreen() {
                   href={`/projects/${project.id}`}
                   className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
                 >
-                  Open world
+                  Open project
                 </Link>
               ) : null}
               <Link
                 href={communitySnapshot.preferredRoute}
                 className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
               >
-                Back to best lane
+                Back to your journey
               </Link>
             </div>
           </div>
@@ -211,9 +222,9 @@ export function RewardDetailScreen() {
 
       {campaign ? (
         <Surface
-          eyebrow="Mission Link"
+          eyebrow="Campaign Link"
           title="Linked campaign"
-          description="This vault item is tied to an active mission lane."
+          description="This reward is tied to an active campaign."
         >
           <Link
             href={`/campaigns/${campaign.id}`}

@@ -6,10 +6,10 @@ export default function LeaderboardPage() {
   return (
     <AppShell
       eyebrow="Leaderboard"
-      title="Top raiders"
-      description="Live ranking surface powered by the same backend leaderboard as mobile."
+      title="Top contributors"
+      description="Live ranking surface for contribution, streaks and XP momentum."
     >
-      <ProtectedState allowPreview previewLabel="Rank preview">
+      <ProtectedState allowPreview previewLabel="Leaderboard preview">
         <LeaderboardScreen />
       </ProtectedState>
     </AppShell>

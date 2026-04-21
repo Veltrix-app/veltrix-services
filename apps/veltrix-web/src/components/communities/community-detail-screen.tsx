@@ -84,15 +84,15 @@ export function CommunityDetailScreen() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.34em] text-lime-300">
-              Community World
+              Community Detail
             </p>
             <h2 className="mt-4 text-3xl font-black tracking-tight text-white sm:text-5xl">
               {currentCommunity.name}
             </h2>
             <p className="mt-3 text-sm text-lime-200">
               {currentCommunity.chain ?? "Community"}
-              {currentCommunity.category ? ` • ${currentCommunity.category}` : ""} •{" "}
-              {currentCommunity.members.toLocaleString()} members
+              {currentCommunity.category ? ` - ${currentCommunity.category}` : ""}
+              {` - ${currentCommunity.members.toLocaleString()} members`}
             </p>
           </div>
           <StatusChip label={joined ? "Joined" : "Explore"} tone={joined ? "positive" : "info"} />
@@ -123,7 +123,7 @@ export function CommunityDetailScreen() {
         </div>
 
         <div className="mt-8 grid gap-4 sm:grid-cols-4">
-          <MetricTile label="Reward pool" value={`${highlightedRewards.length} live`} />
+          <MetricTile label="Rewards" value={`${highlightedRewards.length} live`} />
           <MetricTile label="Campaigns" value={String(communityCampaigns.length)} />
           <MetricTile label="Joined" value={joined ? "Yes" : "No"} />
           <MetricTile label="Trust" value={String(communityReputation?.trustScore ?? 50)} />
@@ -162,7 +162,7 @@ export function CommunityDetailScreen() {
       <Surface
         eyebrow="Campaigns"
         title="Active campaigns"
-        description="All active campaign lanes inside this community world."
+        description="All active campaigns inside this community."
       >
         {communityCampaigns.length > 0 ? (
           <div className="grid gap-4 xl:grid-cols-2">

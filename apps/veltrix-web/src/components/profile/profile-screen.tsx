@@ -159,13 +159,13 @@ export function ProfileScreen() {
       {
         provider: "telegram" as const,
         label: "Telegram",
-        eyebrow: "Bot-assisted rail",
+        eyebrow: "Bot connection",
         hint: "Telegram verification needs your numeric Telegram id because group membership checks resolve against the bot.",
         accent: "text-lime-200",
         cta:
           providerMap.get("telegram")?.status === "connected"
             ? "Update Telegram id"
-            : "Arm Telegram id",
+            : "Add Telegram id",
         missionCount: providerMissionPressure.telegram,
         account: providerMap.get("telegram") ?? null,
       },
@@ -218,7 +218,7 @@ export function ProfileScreen() {
     if (!result.ok) {
       setProviderMessage({
         tone: "error",
-        text: result.error ?? "Could not arm your Telegram identity yet.",
+        text: result.error ?? "Could not save your Telegram identity yet.",
       });
       setActiveProvider(null);
       return;
@@ -227,7 +227,7 @@ export function ProfileScreen() {
     void reload();
     setProviderMessage({
       tone: "success",
-      text: "Telegram id armed. Telegram join missions can now verify against this identity.",
+      text: "Telegram id saved. Telegram join missions can now verify against this identity.",
     });
     setTelegramUserId("");
     setTelegramUsername("");
@@ -255,7 +255,7 @@ export function ProfileScreen() {
       text:
         (result.identities ?? 0) > 0
           ? "Linked systems refreshed against the live identity graph."
-          : "No new OAuth identities were found for this pilot session.",
+          : "No new OAuth identities were found for this session.",
     });
     setSyncingLoadout(false);
   }
@@ -277,8 +277,8 @@ export function ProfileScreen() {
         tone: "default",
         text:
           errorCode === "identity_already_exists"
-            ? `${resolvedProvider.toUpperCase()} was already present in auth. Syncing it into your live loadout now...`
-            : `Finalizing ${resolvedProvider.toUpperCase()} inside your live loadout...`,
+            ? `${resolvedProvider.toUpperCase()} was already present in auth. Syncing it into your live setup now...`
+            : `Finalizing ${resolvedProvider.toUpperCase()} inside your live setup...`,
       });
 
       const result = await syncConnectedAccounts();
@@ -299,8 +299,8 @@ export function ProfileScreen() {
             tone: "error",
             text:
               errorCode === "identity_already_exists"
-                ? `${resolvedProvider.toUpperCase()} is already linked to a different Veltrix auth account, not this pilot.`
-                : `No ${resolvedProvider.toUpperCase()} identity was found on this pilot after the return flow.`,
+                ? `${resolvedProvider.toUpperCase()} is already linked to a different Veltrix account, not this one.`
+                : `No ${resolvedProvider.toUpperCase()} identity was found on this account after the return flow.`,
           });
           setSyncingLoadout(false);
           router.replace(pathname, { scroll: false });
@@ -315,8 +315,8 @@ export function ProfileScreen() {
           tone: "success",
           text:
             errorCode === "identity_already_exists"
-              ? `${resolvedProvider.toUpperCase()} was already linked and is now synced into your identity loadout.`
-              : `${resolvedProvider.toUpperCase()} is now armed inside your identity loadout.`,
+              ? `${resolvedProvider.toUpperCase()} was already linked and is now synced into your identity setup.`
+              : `${resolvedProvider.toUpperCase()} is now connected inside your identity setup.`,
         });
         setSyncingLoadout(false);
         router.replace(pathname, { scroll: false });
@@ -347,7 +347,7 @@ export function ProfileScreen() {
 
     setProviderMessage({
       tone: "success",
-      text: `${linkedSyncHandled.toUpperCase()} is armed and ready for provider-gated missions.`,
+      text: `${linkedSyncHandled.toUpperCase()} is connected and ready for provider-gated missions.`,
     });
   }, [effectiveConnectedAccounts, linkedSyncHandled, syncingLoadout]);
 
@@ -365,7 +365,7 @@ export function ProfileScreen() {
     <div className="space-y-6">
       {communitySnapshot.lane === "onboarding" ? (
         <div className="rounded-[28px] border border-cyan-300/20 bg-cyan-300/10 px-5 py-4 text-sm text-cyan-100">
-          Your community onboarding rail is using this profile as the live loadout surface.{" "}
+          Your onboarding path is using this profile as the live setup surface.{" "}
           <Link
             href={communitySnapshot.nextBestAction?.route ?? communitySnapshot.preferredRoute}
             className="font-semibold underline underline-offset-4"
@@ -378,7 +378,7 @@ export function ProfileScreen() {
       <section className="grid gap-6 2xl:grid-cols-[minmax(0,1.25fr)_380px]">
         <div className="overflow-hidden rounded-[38px] border border-cyan-300/12 bg-[radial-gradient(circle_at_top_left,rgba(0,204,255,0.18),transparent_26%),radial-gradient(circle_at_86%_10%,rgba(192,255,0,0.12),transparent_18%),linear-gradient(145deg,rgba(7,18,24,0.98),rgba(4,9,13,0.95))] p-6 shadow-[0_34px_120px_rgba(0,0,0,0.42)] sm:p-8">
           <div className="flex flex-wrap items-center gap-3 text-[11px] font-bold uppercase tracking-[0.34em] text-cyan-300">
-            <span>Pilot Profile</span>
+            <span>Member Profile</span>
             <span className="rounded-full border border-cyan-300/16 bg-cyan-300/10 px-3 py-1 tracking-[0.24em] text-cyan-100">
               Identity Hub
             </span>
@@ -400,10 +400,10 @@ export function ProfileScreen() {
                       </span>
                     </div>
                     <h3 className="font-display mt-4 text-balance text-[clamp(2.2rem,4vw,4.5rem)] font-black leading-[0.92] tracking-[0.04em] text-white">
-                      {profile?.username ?? "Guest pilot"}
+                      {profile?.username ?? "Guest member"}
                     </h3>
                     <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-                      Your pilot surface ties live auth, provider readiness, signal pressure and world standing into one command-grade identity layer.
+                      Your profile ties live auth, provider readiness, signal pressure and project standing into one command-grade identity layer.
                     </p>
                   </div>
 
@@ -459,7 +459,7 @@ export function ProfileScreen() {
                     href="/profile/edit"
                     className="inline-flex items-center gap-2 rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
                   >
-                    Tune pilot
+                    Update profile
                   </Link>
                   <Link
                     href="/notifications"
@@ -473,19 +473,19 @@ export function ProfileScreen() {
                     disabled={authLoading || syncingLoadout}
                     className="glass-button inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:border-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {syncingLoadout ? "Syncing loadout..." : "Refresh linked systems"}
+                    {syncingLoadout ? "Syncing setup..." : "Refresh linked systems"}
                   </button>
                 </div>
               </div>
 
               <div className="rounded-[28px] border border-white/10 bg-black/24 p-4">
                 <p className="font-display text-[11px] font-bold uppercase tracking-[0.28em] text-cyan-200">
-                  Command readout
+                  Live readout
                 </p>
                 <div className="mt-4 space-y-3">
                   <SignalTile icon={Signal} label="Unread signals" value={String(unreadNotificationCount)} accent="text-cyan-200" />
                   <SignalTile icon={ShieldCheck} label="Connected systems" value={String(connectedCount)} accent="text-lime-200" />
-                  <SignalTile icon={Trophy} label="World standing" value={String(projectReputation.length)} accent="text-amber-200" />
+                  <SignalTile icon={Trophy} label="Project standing" value={String(projectReputation.length)} accent="text-amber-200" />
                   <SignalTile icon={Zap} label="Recent events" value={String(notifications.length)} accent="text-white" />
                 </div>
               </div>
@@ -501,7 +501,7 @@ export function ProfileScreen() {
 
         <div className="space-y-6">
           <Surface
-            eyebrow="Identity Stack"
+            eyebrow="Identity Setup"
             title="Identity command"
             description="Linking is now part of the mission system, not a buried settings afterthought."
           >
@@ -510,7 +510,7 @@ export function ProfileScreen() {
                 title="Auth foundation"
                 text={
                   authConfigured
-                    ? "Pilot auth is armed, so Discord and X can route through live identity linking instead of fake toggles."
+                    ? "Your account auth is ready, so Discord and X can route through live identity linking instead of fake toggles."
                     : "Publishable Supabase envs are still missing, so live account reads are not armed yet."
                 }
               />
@@ -530,25 +530,25 @@ export function ProfileScreen() {
           </Surface>
 
           <Surface
-            eyebrow="Pilot Links"
+            eyebrow="Quick Links"
             title="Next surfaces"
-            description="Fast jumps into the rest of the live consumer grid."
+            description="Fast jumps into the rest of the live member experience."
           >
             <div className="flex flex-wrap gap-3">
               <QuickLink href="/community" label="Community home" />
               <QuickLink href="/notifications" label="Signal center" />
               <QuickLink href="/raids" label="Raid board" />
               <QuickLink href="/leaderboard" label="Leaderboard" />
-              <QuickLink href="/projects" label="World browser" />
+              <QuickLink href="/projects" label="Project browser" />
             </div>
           </Surface>
         </div>
       </section>
 
       <Surface
-        eyebrow="Linked Systems"
-        title="Provider loadout"
-        description="Link the systems that power mission verification before you jump into the next lane."
+        eyebrow="Connected Accounts"
+        title="Provider setup"
+        description="Link the systems that power mission verification before you move deeper into the journey."
       >
         {providerMessage ? (
           <Notice tone={providerMessage.tone === "error" ? "error" : "default"} text={providerMessage.text} />
@@ -633,7 +633,7 @@ export function ProfileScreen() {
                       disabled={authLoading || activeProvider === "telegram"}
                       className="glass-button w-full rounded-full px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      {activeProvider === "telegram" ? "Arming Telegram..." : providerCard.cta}
+                      {activeProvider === "telegram" ? "Saving Telegram..." : providerCard.cta}
                     </button>
                     <p className="text-xs leading-6 text-slate-400">
                       Telegram membership checks use the numeric id that the community bot sees inside Telegram, not only the @username.
@@ -656,7 +656,7 @@ export function ProfileScreen() {
                   href={`/campaigns`}
                   className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-cyan-100 underline underline-offset-4"
                 >
-                  Explore mission lanes
+                  Explore missions
                 </Link>
               </div>
               );
@@ -667,8 +667,8 @@ export function ProfileScreen() {
 
       <Surface
         eyebrow="Community Journey"
-        title="Member rail"
-        description="Your personal onboarding, comeback pressure and recognition state now live as a first-class webapp surface."
+        title="Member journey"
+        description="Your personal onboarding, comeback state and recognition now live as a first-class webapp surface."
       >
         <CommunityStatusPanel
           snapshot={communitySnapshot}
@@ -681,15 +681,15 @@ export function ProfileScreen() {
         />
         <div className="mt-4 flex flex-wrap gap-3">
           <QuickLink href="/community" label="Open Community Home" />
-          <QuickLink href="/community/onboarding" label="Onboarding rail" />
-          <QuickLink href="/community/comeback" label="Comeback rail" />
+          <QuickLink href="/community/onboarding" label="Onboarding path" />
+          <QuickLink href="/community/comeback" label="Comeback path" />
         </div>
       </Surface>
 
       <Surface
-        eyebrow="World Standing"
+        eyebrow="Project Standing"
         title="Project reputation"
-        description="This is where your standing actually compounds across the live worlds."
+        description="This is where your standing actually compounds across the projects you join."
       >
         {projectReputation.length > 0 ? (
           <div className="grid gap-4 xl:grid-cols-2">
@@ -712,14 +712,14 @@ export function ProfileScreen() {
             ))}
           </div>
         ) : (
-          <Notice tone="default" text="No project-specific reputation yet. Start clearing quests and raids to build standing inside each world." />
+          <Notice tone="default" text="No project-specific reputation yet. Start clearing quests and raids to build standing inside each project." />
         )}
       </Surface>
 
       <Surface
         eyebrow="AESP Balance"
         title="Claimable pool and active stakes"
-        description="This is the first live readout of what the AESP lane is building for this pilot across campaign stake pressure and finalized distributions."
+        description="This is the first live readout of what your AESP balance is building across campaign stake pressure and finalized distributions."
       >
         <div className="grid gap-4 md:grid-cols-4">
           <FeatureStat label="Claimable lanes" value={String(claimableDistributionCount)} />
@@ -758,7 +758,7 @@ export function ProfileScreen() {
             ) : (
               <Notice
                 tone="default"
-                text="No claimable campaign pool distributions have landed for this pilot yet."
+                text="No claimable campaign pool distributions have landed for this account yet."
               />
             )}
             <div className="pt-2">
@@ -800,7 +800,7 @@ export function ProfileScreen() {
             ) : (
               <Notice
                 tone="default"
-                text="No live AESP stakes are active for this pilot yet."
+                text="No live AESP stakes are active for this account yet."
               />
             )}
           </div>
@@ -830,10 +830,10 @@ function IdentityBanner() {
         <ProfileIdentityAvatar />
       </div>
       <p className="font-display relative z-10 text-[11px] font-bold uppercase tracking-[0.3em] text-cyan-200">
-        Pilot Command
+        Member Profile
       </p>
       <p className="relative z-10 mt-3 max-w-[18rem] text-sm leading-7 text-slate-300">
-        Identity, systems and reputation converge here before you jump back into the grid.
+        Identity, connected systems and reputation converge here before you jump back into the product.
       </p>
     </div>
   );
@@ -846,7 +846,7 @@ function ProfileIdentityAvatar() {
     return (
       <img
         src={profile.avatarUrl}
-        alt="Pilot avatar"
+        alt="Member avatar"
         className="h-full w-full object-cover"
       />
     );

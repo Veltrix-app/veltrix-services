@@ -6,10 +6,10 @@ export default function CommunityDetailPage() {
   return (
     <AppShell
       eyebrow="Community"
-      title="Community world"
+      title="Community detail"
       description="Project story, standing, active campaigns and contributor ladder for a single ecosystem."
     >
-      <ProtectedState allowPreview previewLabel="World preview">
+      <ProtectedState allowPreview previewLabel="Community preview">
         <CommunityDetailScreen />
       </ProtectedState>
     </AppShell>

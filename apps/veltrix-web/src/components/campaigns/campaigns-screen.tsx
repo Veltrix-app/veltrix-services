@@ -84,7 +84,7 @@ export function CampaignsScreen() {
       <section className="grid gap-6 2xl:grid-cols-[minmax(0,1.25fr)_380px]">
         <div className="overflow-hidden rounded-[38px] border border-lime-300/12 bg-[radial-gradient(circle_at_top_left,rgba(192,255,0,0.18),transparent_26%),radial-gradient(circle_at_86%_10%,rgba(0,204,255,0.1),transparent_20%),linear-gradient(145deg,rgba(7,18,24,0.98),rgba(4,9,13,0.95))] p-6 shadow-[0_34px_120px_rgba(0,0,0,0.42)] sm:p-8">
           <div className="flex flex-wrap items-center gap-3 text-[11px] font-bold uppercase tracking-[0.34em] text-lime-300">
-            <span>Mission Select</span>
+            <span>Campaign Select</span>
             <span className="rounded-full border border-lime-300/16 bg-lime-300/10 px-3 py-1 tracking-[0.24em] text-lime-100">
               Launch Board
             </span>
@@ -116,12 +116,12 @@ export function CampaignsScreen() {
                       </h3>
                       <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
                         {featuredCampaign.description ||
-                          "This mission lane is hot with real payout pressure, active objectives and live clear-rate telemetry."}
+                          "This campaign is live with real payout pressure, active objectives and a visible clear rate."}
                       </p>
                     </div>
 
                     <StatusChip
-                      label={featuredCampaign.featured ? "Prime lane" : `${featuredCampaign.completionRate}% live`}
+                      label={featuredCampaign.featured ? "Featured" : `${featuredCampaign.completionRate}% live`}
                       tone={featuredCampaign.featured ? "positive" : "info"}
                     />
                   </div>
@@ -139,7 +139,7 @@ export function CampaignsScreen() {
                       prefetch={false}
                       className="inline-flex items-center gap-2 rounded-full bg-lime-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-lime-200"
                     >
-                      Launch lane
+                      Open campaign
                       <ArrowRight className="h-4 w-4" />
                     </Link>
                     <Link
@@ -147,7 +147,7 @@ export function CampaignsScreen() {
                       prefetch={false}
                       className="glass-button inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:border-lime-300/30"
                     >
-                      Open world
+                      Open project
                     </Link>
                   </div>
                 </div>
@@ -205,19 +205,19 @@ export function CampaignsScreen() {
               </div>
             </div>
           ) : (
-            <EmptyNotice text="No live mission lanes are visible yet." />
+            <EmptyNotice text="No live campaigns are visible yet." />
           )}
         </div>
 
         <div className="space-y-6">
           <Surface
             eyebrow="Board Read"
-            title="Lane pressure"
+            title="Campaign pressure"
             description="Tactical read before you jump into the launch queue."
           >
             <div className="grid gap-4 sm:grid-cols-3 2xl:grid-cols-1">
               <MetricTile label="Campaigns" value={String(snapshot.total)} />
-              <MetricTile label="Prime lanes" value={String(snapshot.featured)} />
+              <MetricTile label="Featured" value={String(snapshot.featured)} />
               <MetricTile label="Avg clear" value={`${snapshot.avgCompletion}%`} />
             </div>
 
@@ -243,20 +243,20 @@ export function CampaignsScreen() {
 
           <Surface
             eyebrow="Launch Filters"
-            title="Refine lane board"
-            description="Trim the mission board down to the strongest and most rewarding lanes."
+            title="Refine campaign board"
+            description="Trim the campaign board down to the strongest and most rewarding runs."
           >
             <div className="space-y-4">
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search missions, worlds, payout lanes..."
+                placeholder="Search campaigns, projects, rewards..."
                 className="glass-button w-full rounded-[22px] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-lime-300/40"
               />
 
               <div className="flex flex-wrap gap-2">
-                <FilterButton active={filter === "all"} onClick={() => setFilter("all")} label="All lanes" />
-                <FilterButton active={filter === "featured"} onClick={() => setFilter("featured")} label="Prime lanes" />
+                <FilterButton active={filter === "all"} onClick={() => setFilter("all")} label="All campaigns" />
+                <FilterButton active={filter === "featured"} onClick={() => setFilter("featured")} label="Featured" />
                 <FilterButton active={filter === "high-xp"} onClick={() => setFilter("high-xp")} label="High XP" />
               </div>
 
@@ -272,12 +272,12 @@ export function CampaignsScreen() {
 
       <Surface
         eyebrow="Mission Catalog"
-        title="Choose your lane"
+            title="Choose your campaign"
         description="The board should feel like a real mission-select screen, not a campaign index."
       >
         <div className="mt-1">
           {loading ? (
-            <EmptyNotice text="Loading live mission lanes..." />
+            <EmptyNotice text="Loading live campaigns..." />
           ) : error ? (
             <ErrorNotice text={error} />
           ) : filteredCampaigns.length > 0 ? (
@@ -307,7 +307,7 @@ export function CampaignsScreen() {
                   </div>
 
                   <p className="mt-4 line-clamp-3 text-sm leading-7 text-slate-300">
-                    {campaign.description || "This mission lane is live, but still needs a stronger public briefing."}
+                          {campaign.description || "This campaign is live, but it still needs a stronger public briefing."}
                   </p>
 
                   <div className="mt-5 grid gap-3 sm:grid-cols-4">
@@ -325,7 +325,7 @@ export function CampaignsScreen() {
                       <p className="mt-2 text-sm font-semibold text-white">{campaign.questCount} mission steps ready</p>
                     </div>
                     <span className="inline-flex items-center gap-2 text-sm font-semibold text-lime-200">
-                      Launch lane
+                        Open campaign
                       <ArrowRight className="h-4 w-4" />
                     </span>
                   </div>
@@ -333,7 +333,7 @@ export function CampaignsScreen() {
               ))}
             </div>
           ) : (
-            <EmptyNotice text="No mission lanes match this filter yet." />
+              <EmptyNotice text="No campaigns match this filter yet." />
           )}
         </div>
       </Surface>
@@ -358,7 +358,7 @@ function ArtworkPanel({
         src={src}
         alt={alt}
         tone="lime"
-        fallbackLabel="Lane art offline"
+      fallbackLabel="Campaign art offline"
         className="absolute inset-0"
         imgClassName="h-full w-full object-cover opacity-82"
       />

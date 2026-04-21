@@ -20,21 +20,21 @@ export function CommunityComebackScreen() {
     <div className="space-y-6">
       {!isPrimaryLane ? (
         <div className="rounded-[28px] border border-cyan-300/20 bg-cyan-300/10 px-5 py-4 text-sm text-cyan-100">
-          Your primary lane is currently <span className="font-semibold">{snapshot.lane}</span>. This comeback rail stays ready whenever re-entry needs a dedicated path.
+          Your primary path is currently <span className="font-semibold">{snapshot.lane}</span>. This comeback surface stays ready whenever re-entry needs a dedicated path.
         </div>
       ) : null}
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.18fr)_360px]">
         <div className="overflow-hidden rounded-[38px] border border-amber-300/12 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.18),transparent_26%),radial-gradient(circle_at_84%_18%,rgba(0,204,255,0.1),transparent_18%),linear-gradient(145deg,rgba(7,18,24,0.98),rgba(4,9,13,0.95))] p-6 shadow-[0_34px_120px_rgba(0,0,0,0.42)] sm:p-8">
           <div className="flex flex-wrap items-center gap-3 text-[11px] font-bold uppercase tracking-[0.34em] text-amber-200">
-            <span>Comeback Rail</span>
+            <span>Comeback Path</span>
             <StatusChip label={snapshot.projectName || "No project"} tone="warning" />
           </div>
 
           <div className="mt-6 space-y-5">
             <div className="max-w-[14ch]">
               <h3 className="font-display text-balance text-[clamp(2.1rem,4vw,4.4rem)] font-black leading-[0.92] tracking-[0.04em] text-white">
-                Re-enter without friction
+                Get back in motion
               </h3>
               <p className="mt-4 text-sm leading-7 text-slate-300 sm:text-base">
                 Signals, nudges and comeback missions stay focused here so returning members do not get buried under the full mission backlog.
@@ -52,7 +52,7 @@ export function CommunityComebackScreen() {
                 href={snapshot.nextBestAction?.route ?? snapshot.preferredRoute}
                 className="inline-flex items-center gap-2 rounded-full bg-amber-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-amber-200"
               >
-                {snapshot.nextBestAction?.ctaLabel ?? "Open signal feed"}
+                {snapshot.nextBestAction?.ctaLabel ?? "Open signals"}
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
@@ -73,7 +73,7 @@ export function CommunityComebackScreen() {
           >
             <div className="space-y-3">
               <InfoTile title="Re-entry posture" copy={snapshot.readinessLabel} />
-              <InfoTile title="Mission second" copy="A comeback mission becomes the fastest route back into visible pressure." />
+              <InfoTile title="Best next move" copy="A comeback mission becomes the fastest route back into visible momentum." />
               <InfoTile title="Rewards still count" copy="Claimables and campaign unlocks can also work as re-entry magnets." />
             </div>
           </Surface>
@@ -83,8 +83,8 @@ export function CommunityComebackScreen() {
       <CommunityRecognitionStrip snapshot={snapshot} />
 
       <Surface
-        eyebrow="Comeback Lane"
-        title="The shortest route back into pressure"
+        eyebrow="Comeback Path"
+        title="The shortest route back into momentum"
         description="Signals, missions and claims should compete here until the member is truly back in motion."
       >
         <CommunityMissionLane snapshot={snapshot} />
@@ -93,7 +93,7 @@ export function CommunityComebackScreen() {
       <Surface
         eyebrow="Comeback Queue"
         title="Everything this member needs to re-enter"
-        description="Signals, missions and reactivation prompts stay together until the comeback lane is complete."
+        description="Signals, missions and reactivation prompts stay together until the comeback path is complete."
       >
         <CommunityStatusPanel
           snapshot={snapshot}
@@ -107,21 +107,21 @@ export function CommunityComebackScreen() {
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <Surface
           eyebrow="Re-entry paths"
-          title="Where the comeback rail routes you"
+          title="Where the comeback path takes you"
           description="These jumps should be enough to get a returning member moving again."
         >
           <div className="flex flex-wrap gap-3">
             <QuickLink href="/notifications" label="Signal feed" />
             <QuickLink href="/quests" label="Live missions" />
             <QuickLink href="/raids" label="Raid board" />
-            <QuickLink href="/rewards" label="Reward vault" />
+            <QuickLink href="/rewards" label="Rewards" />
           </div>
         </Surface>
 
         <Surface
           eyebrow="Post comeback"
           title="What happens after re-entry"
-          description="Once a member is back in motion, the active lane should carry recognition, streak and contribution pressure again."
+          description="Once a member is back in motion, the active path should carry recognition, streak and contribution pressure again."
         >
           <div className="grid gap-4 sm:grid-cols-2">
             <InfoTile title="Recognition label" copy={snapshot.recognition.label} />

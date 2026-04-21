@@ -183,7 +183,7 @@ export function CampaignDetailScreen() {
 
     setStakeMessage({
       tone: "success",
-      text: "XP stake locked in. The active campaign pool now sees this pilot in the live weight grid.",
+      text: "XP stake locked in. The active campaign pool now sees this member on the live stake board.",
     });
     setStakeBusy(false);
     await reload();
@@ -249,7 +249,7 @@ export function CampaignDetailScreen() {
               src={activeCampaign.bannerUrl ?? activeCampaign.thumbnailUrl}
               alt={activeCampaign.title}
               tone="lime"
-              fallbackLabel="Lane art offline"
+              fallbackLabel="Campaign art offline"
               imgClassName="h-full w-full object-cover opacity-80"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
@@ -257,7 +257,7 @@ export function CampaignDetailScreen() {
         ) : null}
 
         <div className="p-6 sm:p-8">
-          <p className="text-[11px] font-bold uppercase tracking-[0.34em] text-lime-300">Mission Lane</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.34em] text-lime-300">Campaign</p>
           <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
             <div className="max-w-[14ch]">
               <h2 className="font-display text-balance text-[clamp(2.2rem,4vw,4.5rem)] font-black leading-[0.92] tracking-[0.04em] text-white">
@@ -265,7 +265,7 @@ export function CampaignDetailScreen() {
               </h2>
               <p className="mt-3 text-sm text-lime-200">{project?.name ?? "Project"}</p>
             </div>
-            <StatusChip label={campaign.featured ? "Prime lane" : `${campaign.completionRate}% live`} tone={campaign.featured ? "positive" : "info"} />
+            <StatusChip label={campaign.featured ? "Featured" : `${campaign.completionRate}% live`} tone={campaign.featured ? "positive" : "info"} />
           </div>
           <p className="mt-5 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
             {activeCampaign.description}
@@ -289,9 +289,9 @@ export function CampaignDetailScreen() {
 
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <Surface
-          eyebrow="Mission Read"
+          eyebrow="Campaign Read"
           title="Campaign posture"
-          description="This lane should feel like an active operation with live pressure and real outcome."
+          description="This campaign should feel like an active operation with live pressure and real outcome."
         >
           <div className="grid gap-4 sm:grid-cols-2">
             <MetricTile label="Project" value={project?.name ?? "Unlinked"} />
@@ -302,9 +302,9 @@ export function CampaignDetailScreen() {
         </Surface>
 
         <Surface
-          eyebrow="AESP Stake Grid"
+          eyebrow="AESP Staking"
           title="Campaign stake posture"
-          description="Stake active XP into this lane, keep the pulse fresh, and watch claimable distribution weight build against the live pool."
+          description="Stake active XP into this campaign, keep the pulse fresh, and watch claimable distribution weight build against the live pool."
         >
           <div className="grid gap-4 sm:grid-cols-2">
             <MetricTile label="Active XP" value={String(activeXp)} />
@@ -366,7 +366,7 @@ export function CampaignDetailScreen() {
                     : "cursor-not-allowed border border-white/10 bg-white/[0.05] text-slate-400"
                 }`}
               >
-                {campaignStake ? "Update stake" : "Stake into lane"}
+              {campaignStake ? "Update stake" : "Stake into campaign"}
               </button>
               {campaignStake ? (
                 <button
@@ -429,7 +429,7 @@ export function CampaignDetailScreen() {
         <Surface
           eyebrow="Pool Leaderboard"
           title="Stake pressure"
-          description="Active pilots ranked by weighted stake inside this campaign."
+          description="Active members ranked by weighted stake inside this campaign."
         >
           {leaderboardLoading ? (
             <Notice tone="default" text="Loading campaign pool..." />
@@ -469,18 +469,18 @@ export function CampaignDetailScreen() {
 
         <Surface
           eyebrow="Mission Routing"
-          title="Move through the lane"
-          description="Jump directly into the world or community context around this campaign while the AESP layer handles the stake and distribution pressure."
+          title="Move through the campaign"
+          description="Jump directly into the project or community context around this campaign while the AESP layer handles the stake and distribution pressure."
         >
           <div className="flex flex-wrap gap-3">
             {project ? (
               <Link href={`/projects/${project.id}`} prefetch={false} className="rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99]">
-                Open world
+              Open project
               </Link>
             ) : null}
             {project ? (
               <Link href={`/communities/${project.id}`} prefetch={false} className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]">
-                Open community world
+              Open community
               </Link>
             ) : null}
           </div>
@@ -494,7 +494,7 @@ export function CampaignDetailScreen() {
       <Surface
         eyebrow="Quest Flow"
         title="Mission steps"
-        description="Verification-aware mission steps tied to this lane."
+          description="Verification-aware mission steps tied to this campaign."
       >
         {campaignQuests.length > 0 ? (
           <div className="grid gap-4 xl:grid-cols-2">
@@ -528,14 +528,14 @@ export function CampaignDetailScreen() {
             ))}
           </div>
         ) : (
-          <Notice tone="default" text="No quests are linked to this lane yet." />
+            <Notice tone="default" text="No quests are linked to this campaign yet." />
         )}
       </Surface>
 
       <Surface
         eyebrow="Reward Outcome"
         title="Campaign rewards"
-        description="Vault outcomes unlocked or progressed by this lane."
+          description="Reward outcomes unlocked or progressed by this campaign."
       >
         {campaignRewards.length > 0 ? (
           <div className="grid gap-4 xl:grid-cols-2">
@@ -556,7 +556,7 @@ export function CampaignDetailScreen() {
             ))}
           </div>
         ) : (
-          <Notice tone="default" text="No rewards are linked to this lane yet." />
+            <Notice tone="default" text="No rewards are linked to this campaign yet." />
         )}
       </Surface>
     </div>

@@ -845,7 +845,7 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
     const insertClaim = async () =>
       supabase.from("reward_claims").insert({
         auth_user_id: authUserId,
-        username: profile?.username ?? session?.user?.email?.split("@")[0] ?? "pilot",
+        username: profile?.username ?? session?.user?.email?.split("@")[0] ?? "member",
         reward_id: rewardId,
         reward_title: reward.title,
         project_id: linkedProject?.id ?? null,
@@ -1005,7 +1005,7 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
     const queuedAt = new Date().toISOString();
     const { error: claimInsertError } = await supabase.from("reward_claims").insert({
       auth_user_id: authUserId,
-      username: profile?.username ?? session?.user?.email?.split("@")[0] ?? "pilot",
+      username: profile?.username ?? session?.user?.email?.split("@")[0] ?? "member",
       reward_id: null,
       reward_title: rewardTitle,
       project_id: linkedProject?.id ?? null,

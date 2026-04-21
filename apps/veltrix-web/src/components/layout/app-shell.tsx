@@ -19,7 +19,7 @@ import {
 import { useAuth } from "@/components/providers/auth-provider";
 
 const navItems = [
-  { href: "/", label: "Home", icon: Home },
+  { href: "/home", label: "Home", icon: Home },
   { href: "/community", label: "Community", icon: Radar },
   { href: "/projects", label: "Projects", icon: Compass },
   { href: "/campaigns", label: "Campaigns", icon: Layers3 },
@@ -32,7 +32,7 @@ const navItems = [
 ];
 
 function isActivePath(pathname: string, href: string) {
-  return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 function shortenWallet(address?: string | null) {
@@ -60,7 +60,7 @@ export function AppShell({
 }) {
   const pathname = usePathname();
   const { authConfigured, session, profile, signOut } = useAuth();
-  const identityLabel = profile?.username ?? session?.user?.email ?? "Guest";
+  const identityLabel = profile?.username ?? session?.user?.email ?? "Guest member";
   const accountReady = Boolean(session);
   const walletReady = Boolean(profile?.wallet);
 
@@ -70,13 +70,13 @@ export function AppShell({
         <aside className="hidden w-[292px] shrink-0 border-r border-cyan-300/8 bg-[#041017]/90 px-6 py-8 backdrop-blur-xl lg:flex lg:flex-col">
           <div>
             <p className="font-display text-xs font-bold uppercase tracking-[0.4em] text-cyan-300">
-              Veltrix // Grid
+              Veltrix // App
             </p>
             <div className="font-display mt-4 text-3xl font-black tracking-[0.08em] text-white">
-              Grid Command
+              Member Workspace
             </div>
             <p className="mt-3 max-w-[18rem] text-sm leading-6 text-slate-300">
-              Live launcher for mission lanes, raid pressure, vault drops and pilot systems.
+              Track launches, complete quests, claim rewards and keep your account ready across the product.
             </p>
           </div>
 
@@ -96,7 +96,7 @@ export function AppShell({
                   Status
                 </p>
                 <p className="mt-2 text-sm font-semibold text-white">
-                  {accountReady ? "Pilot authenticated" : "Public access shell"}
+                  {accountReady ? "Signed in" : "Preview mode"}
                 </p>
               </div>
             </div>
@@ -137,7 +137,7 @@ export function AppShell({
                 </p>
                 <p className="mt-1 text-sm font-semibold text-white">
                   {!authConfigured
-                    ? "Signal link offline"
+                    ? "Account access offline"
                     : accountReady
                     ? identityLabel
                     : "Signed out"}
@@ -146,10 +146,10 @@ export function AppShell({
             </div>
             <p className="mt-4 text-sm leading-6 text-slate-300">
               {!authConfigured
-                ? "Wire the live auth signal to bring the grid fully online."
+                ? "Add the web auth environment variables to turn public sign-in on."
                 : accountReady
-                  ? "Pilot sync is online. Mission state, raid pressure and vault routing are now active across the grid."
-                  : "Authenticate your pilot to unlock live progress, linked systems and mission state."}
+                  ? "Your account is active. Progress, rewards and linked identities stay in sync here."
+                  : "Sign in to track progress, claim rewards and unlock community actions."}
             </p>
             <div className="mt-4 flex items-center justify-between gap-3 rounded-[22px] border border-white/8 bg-black/20 px-4 py-3">
               <div className="flex items-center gap-3">
@@ -171,7 +171,7 @@ export function AppShell({
                     : "border border-white/10 bg-white/[0.05] text-white hover:bg-white/[0.08]"
                 }`}
               >
-                {walletReady ? "Armed" : "Connect"}
+                {walletReady ? "Connected" : "Connect"}
               </Link>
             </div>
             {accountReady ? (
@@ -205,7 +205,7 @@ export function AppShell({
                   <div className="glass-button flex min-w-0 flex-1 items-center gap-3 rounded-full px-4 py-3 text-sm text-slate-300">
                     <Search className="h-4 w-4 text-slate-400" />
                     <span className="truncate text-slate-400">
-                      Search missions, worlds, raids...
+                      Search projects, campaigns, rewards...
                     </span>
                   </div>
                   <button className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-200 transition hover:bg-white/[0.08]">
@@ -231,12 +231,12 @@ export function AppShell({
                     </span>
                   </Link>
                   <div className="min-w-[112px] rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-center text-xs font-bold uppercase tracking-[0.22em] text-slate-300">
-                    {accountReady ? "Live session" : "Public shell"}
+                    {accountReady ? "Signed in" : "Preview"}
                   </div>
                   <div className="flex min-w-0 flex-1 items-center justify-between gap-3 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2.5">
                     <div className="min-w-0">
                       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                        Pilot
+                        Account
                       </p>
                       <span className="block truncate text-sm font-semibold text-white">{identityLabel}</span>
                     </div>
@@ -249,7 +249,7 @@ export function AppShell({
                 <div className="glass-button flex min-w-0 flex-1 items-center gap-3 rounded-full px-4 py-3 text-sm text-slate-300">
                   <Search className="h-4 w-4 text-slate-400" />
                   <span className="truncate text-slate-400">
-                    Search missions, worlds, raids...
+                    Search projects, campaigns, rewards...
                   </span>
                 </div>
                 <button className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-200 transition hover:bg-white/[0.08]">

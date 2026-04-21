@@ -71,10 +71,10 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 function deriveUsername(email?: string | null) {
   if (!email) {
-    return "pilot";
+    return "member";
   }
 
-  return email.split("@")[0] || "pilot";
+  return email.split("@")[0] || "member";
 }
 
 async function ensureUserScaffold(params: {

@@ -21,9 +21,9 @@ export function ProjectDetailScreen() {
   );
   const reputation = projectReputation.find((item) => item.projectId === projectId);
 
-  if (loading) return <Notice tone="default" text="Loading world..." />;
+  if (loading) return <Notice tone="default" text="Loading project..." />;
   if (error) return <Notice tone="error" text={error} />;
-  if (!project) return <Notice tone="default" text="World not found." />;
+  if (!project) return <Notice tone="default" text="Project not found." />;
 
   return (
     <div className="space-y-6">
@@ -34,7 +34,7 @@ export function ProjectDetailScreen() {
               src={project.bannerUrl}
               alt={project.name}
               tone="cyan"
-              fallbackLabel="World art offline"
+              fallbackLabel="Project art offline"
               imgClassName="h-full w-full object-cover opacity-80"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
@@ -42,18 +42,18 @@ export function ProjectDetailScreen() {
         ) : null}
 
         <div className="p-6 sm:p-8">
-          <p className="text-[11px] font-bold uppercase tracking-[0.34em] text-cyan-300">World Detail</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.34em] text-cyan-300">Project Detail</p>
           <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
             <div className="max-w-[14ch]">
               <h2 className="font-display text-balance text-[clamp(2.2rem,4vw,4.5rem)] font-black leading-[0.92] tracking-[0.04em] text-white">
                 {project.name}
               </h2>
               <p className="mt-3 text-sm text-cyan-200">
-                {project.chain ?? "Chain not set"} {" • "} {project.category ?? "General"}
+                {project.chain ?? "Chain not set"} - {project.category ?? "General"}
               </p>
             </div>
             <StatusChip
-              label={projectCampaigns.length > 0 ? "Live ecosystem" : "Public world"}
+              label={projectCampaigns.length > 0 ? "Live ecosystem" : "Public project"}
               tone={projectCampaigns.length > 0 ? "positive" : "info"}
             />
           </div>
@@ -72,9 +72,9 @@ export function ProjectDetailScreen() {
 
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <Surface
-          eyebrow="World Story"
+          eyebrow="Project Story"
           title="Ecosystem posture"
-          description="This world should feel alive, connected and worth entering."
+          description="This project should feel alive, connected and worth entering."
         >
           <div className="space-y-4">
             <div className="metric-card rounded-[24px] p-4">
@@ -82,7 +82,7 @@ export function ProjectDetailScreen() {
               <p className="mt-3 text-sm leading-7 text-slate-300">
                 {project.website
                   ? project.website
-                  : "No website linked yet. This world is still visible through its live campaign surface."}
+                  : "No website linked yet. This project is still visible through its live campaign surface."}
               </p>
             </div>
 
@@ -91,7 +91,7 @@ export function ProjectDetailScreen() {
                 href={`/communities/${project.id}`}
                 className="rounded-full bg-cyan-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99]"
               >
-                Open community world
+                Open community
               </Link>
               {project.website ? (
                 <a
@@ -109,8 +109,8 @@ export function ProjectDetailScreen() {
 
         <Surface
           eyebrow="Your Standing"
-          title="World reputation"
-          description="Your momentum compounds separately inside each world."
+          title="Project reputation"
+          description="Your momentum compounds separately inside each project."
         >
           <div className="grid gap-4 sm:grid-cols-2">
             <MetricTile label="Tier" value={reputation ? reputation.contributionTier.toUpperCase() : "NOT STARTED"} />
@@ -123,8 +123,8 @@ export function ProjectDetailScreen() {
 
       <Surface
         eyebrow="Live Campaigns"
-        title="Mission lanes in this world"
-        description="Campaign lanes currently active inside this world."
+        title="Campaigns in this project"
+        description="Campaigns currently active inside this project."
       >
         {projectCampaigns.length > 0 ? (
           <div className="grid gap-4 xl:grid-cols-2">
@@ -140,7 +140,7 @@ export function ProjectDetailScreen() {
                     <p className="mt-2 text-sm text-slate-300">{campaign.description}</p>
                   </div>
                   <StatusChip
-                    label={campaign.featured ? "Prime" : `${campaign.completionRate}% live`}
+                    label={campaign.featured ? "Featured" : `${campaign.completionRate}% live`}
                     tone={campaign.featured ? "positive" : "info"}
                   />
                 </div>
@@ -155,14 +155,14 @@ export function ProjectDetailScreen() {
             ))}
           </div>
         ) : (
-          <Notice tone="default" text="No live campaigns are tied to this world yet." />
+          <Notice tone="default" text="No live campaigns are tied to this project yet." />
         )}
       </Surface>
 
       <Surface
-        eyebrow="Vault Surface"
-        title="Rewards in this world"
-        description="Vault items currently linked through this world's active lanes."
+        eyebrow="Rewards"
+        title="Rewards in this project"
+        description="Rewards currently linked through this project's active campaigns."
       >
         {projectRewards.length > 0 ? (
           <div className="grid gap-4 xl:grid-cols-2">
@@ -190,7 +190,7 @@ export function ProjectDetailScreen() {
             ))}
           </div>
         ) : (
-          <Notice tone="default" text="No rewards are linked to this world yet." />
+          <Notice tone="default" text="No rewards are linked to this project yet." />
         )}
       </Surface>
     </div>

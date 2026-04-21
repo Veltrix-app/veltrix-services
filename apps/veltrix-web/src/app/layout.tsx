@@ -19,9 +19,9 @@ const orbitron = Orbitron({
 });
 
 export const metadata: Metadata = {
-  title: "Veltrix Web",
+  title: "Veltrix",
   description:
-    "Consumer mission-control web app for campaigns, quests, rewards and live progress.",
+    "Veltrix is the operating system for project launches, community execution, member journeys and safety workflows.",
 };
 
 export default function RootLayout({

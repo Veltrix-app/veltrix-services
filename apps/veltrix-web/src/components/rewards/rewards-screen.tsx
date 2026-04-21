@@ -124,7 +124,7 @@ export function RewardsScreen() {
       setActiveDistributionId(distributionId);
       setDistributionMessage({
         tone: "default",
-        text: "Routing this campaign pool into the payout queue now.",
+        text: "Routing this campaign payout into the payout queue now.",
       });
 
       const result = await claimRewardDistribution(distributionId);
@@ -135,7 +135,7 @@ export function RewardsScreen() {
       setDistributionMessage({
         tone: "success",
         text: result.alreadyQueued
-          ? "This campaign payout was already in the queue and has been re-synced into your vault state."
+          ? "This campaign payout was already in the queue and has been re-synced into your rewards state."
           : "Campaign payout claim queued. Operators can now move it through processing and payout.",
       });
     } catch (error) {
@@ -154,9 +154,9 @@ export function RewardsScreen() {
       <section className="grid gap-6 2xl:grid-cols-[minmax(0,1.25fr)_380px]">
         <div className="overflow-hidden rounded-[38px] border border-amber-300/12 bg-[radial-gradient(circle_at_top_left,rgba(255,196,0,0.18),transparent_26%),radial-gradient(circle_at_86%_10%,rgba(255,255,255,0.08),transparent_18%),linear-gradient(145deg,rgba(7,18,24,0.98),rgba(4,9,13,0.95))] p-6 shadow-[0_34px_120px_rgba(0,0,0,0.42)] sm:p-8">
           <div className="flex flex-wrap items-center gap-3 text-[11px] font-bold uppercase tracking-[0.34em] text-amber-300">
-            <span>Loot Vault</span>
+            <span>Rewards</span>
             <span className="rounded-full border border-amber-300/16 bg-amber-300/10 px-3 py-1 tracking-[0.24em] text-amber-100">
-              Unlock Pressure
+              Unlocks
             </span>
           </div>
 
@@ -186,7 +186,7 @@ export function RewardsScreen() {
                       </h3>
                       <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
                         {featuredReward.description ||
-                          "This vault item is live with real rarity, real cost pressure and real unlock desire."}
+                          "This reward is live with real rarity, real cost pressure and real unlock appeal."}
                       </p>
                     </div>
 
@@ -209,7 +209,7 @@ export function RewardsScreen() {
                       prefetch={false}
                       className="inline-flex items-center gap-2 rounded-full bg-amber-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-amber-200"
                     >
-                      Open vault item
+                      Open reward
                       <ArrowRight className="h-4 w-4" />
                     </Link>
                     <Link
@@ -217,14 +217,14 @@ export function RewardsScreen() {
                       prefetch={false}
                       className="glass-button inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:border-amber-300/30"
                     >
-                      View source lane
+                      View linked campaign
                     </Link>
                   </div>
                 </div>
 
                 <div className="rounded-[28px] border border-white/10 bg-black/24 p-4">
                   <p className="font-display text-[11px] font-bold uppercase tracking-[0.28em] text-amber-200">
-                    Vault queue
+                    Up next
                   </p>
                   <div className="mt-4 space-y-3">
                     {queueRewards.slice(0, 4).map((reward, index) => (
@@ -261,7 +261,7 @@ export function RewardsScreen() {
                   >
                     <div className="flex items-center justify-between gap-3">
                       <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
-                        Vault heat {index + 1}
+                        Reward pick {index + 1}
                       </p>
                       <Gem className="h-4 w-4 text-amber-300" />
                     </div>
@@ -281,12 +281,12 @@ export function RewardsScreen() {
 
         <div className="space-y-6">
           <Surface
-            eyebrow="Vault Read"
+            eyebrow="Reward Read"
             title="Payoff pressure"
             description="See what is hot, what is ready and what still needs grind."
           >
             <div className="grid gap-4 sm:grid-cols-3 2xl:grid-cols-1">
-              <MetricTile label="Vault items" value={String(enrichedRewards.length)} />
+              <MetricTile label="Rewards" value={String(enrichedRewards.length)} />
               <MetricTile label="Claimable" value={String(claimableRewardCount)} />
               <MetricTile label="Locked" value={String(lockedCount)} />
             </div>
@@ -299,24 +299,24 @@ export function RewardsScreen() {
           </Surface>
 
           <Surface
-            eyebrow="Vault Filters"
-            title="Refine reward vault"
-            description="Trim the vault down to what is claimable, premium or worth chasing next."
+            eyebrow="Reward Filters"
+            title="Refine rewards"
+            description="Trim the rewards list down to what is claimable, premium or worth chasing next."
           >
             <div className="space-y-4">
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search loot, rarity, source lanes..."
+                placeholder="Search rewards, rarity, linked campaigns..."
                 className="glass-button w-full rounded-[22px] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-amber-300/40"
               />
               <div className="flex flex-wrap gap-2">
-                <FilterButton active={filter === "all"} onClick={() => setFilter("all")} label="All loot" />
+                <FilterButton active={filter === "all"} onClick={() => setFilter("all")} label="All rewards" />
                 <FilterButton active={filter === "claimable"} onClick={() => setFilter("claimable")} label="Claimable" />
                 <FilterButton active={filter === "high-value"} onClick={() => setFilter("high-value")} label="High value" />
               </div>
               <div className="grid gap-3 sm:grid-cols-3">
-                <SignalTile label="Vault" value={String(filteredRewards.length)} accent="text-white" compact />
+                <SignalTile label="Rewards" value={String(filteredRewards.length)} accent="text-white" compact />
                 <SignalTile label="Ready" value={String(claimableRewardCount)} accent="text-lime-200" compact />
                 <SignalTile label="Premium" value={String(highValueCount)} accent="text-amber-200" compact />
               </div>
@@ -335,8 +335,8 @@ export function RewardsScreen() {
               <p className="mt-3 font-semibold text-white">{communitySnapshot.readinessLabel}</p>
               <p className="mt-2 leading-6 text-slate-300">
                 {communitySnapshot.claimableRewards > 0
-                  ? "Your current journey already has claimable reward pressure, so the vault should feel like the payoff layer of the same rail."
-                  : "The vault is still part of the same member journey, but the next unlock likely still lives in missions or signals before it lands here."}
+                  ? "Your current journey already has claimable reward pressure, so the reward hub should feel like the payoff layer of the same journey."
+                  : "Rewards are still part of the same member journey, but the next unlock likely still lives in missions or signals before it lands here."}
               </p>
             </div>
             <CommunityStatusPanel
@@ -348,12 +348,19 @@ export function RewardsScreen() {
               mode="compact"
               actionLimit={2}
             />
+            <div className="mt-4 text-sm leading-6 text-slate-400">
+              Reward availability, payout timing and eligibility can vary by project.{" "}
+              <Link href="/rewards/disclaimer" className="font-semibold text-amber-200 underline underline-offset-4">
+                Read the reward disclaimer
+              </Link>
+              .
+            </div>
           </Surface>
 
           <Surface
             eyebrow="Campaign Pools"
             title="Claimable AESP distributions"
-            description="Classic vault items now sit beside campaign pool payouts that become claimable when reward finalization lands."
+            description="Direct rewards now sit beside campaign pool payouts that become claimable when reward finalization lands."
           >
             <div className="grid gap-4 sm:grid-cols-3 2xl:grid-cols-1">
               <MetricTile label="Claimable lanes" value={String(claimableDistributionRows.length)} />
@@ -459,7 +466,7 @@ export function RewardsScreen() {
                   </div>
                 ))
               ) : (
-                <EmptyNotice text="No campaign pool distributions have landed in the vault yet." />
+                <EmptyNotice text="No campaign pool distributions have landed in rewards yet." />
               )}
             </div>
           </Surface>
@@ -467,9 +474,9 @@ export function RewardsScreen() {
       </section>
 
       <Surface
-        eyebrow="Vault Catalog"
+        eyebrow="Reward Catalog"
         title="Choose your payoff"
-        description="The vault should feel like desirable unlocks, not just reward rows."
+        description="Rewards should feel like desirable unlocks, not just reward rows."
       >
         <div className="mt-1">
           {loading ? (
@@ -504,13 +511,13 @@ export function RewardsScreen() {
                   </div>
 
                   <p className="mt-4 line-clamp-3 text-sm leading-7 text-slate-300">
-                    {reward.description || "Vault entry is live, but still needs a stronger prize briefing."}
+                    {reward.description || "Reward entry is live, but still needs a stronger prize briefing."}
                   </p>
 
                   <div className="mt-5 grid gap-3 sm:grid-cols-4">
                     <MiniMetric label="Cost" value={`${reward.cost} XP`} />
                     <MiniMetric label="Type" value={reward.rewardType} />
-                    <MiniMetric label="Lane" value={reward.linkedCampaignTitle} />
+                    <MiniMetric label="Campaign" value={reward.linkedCampaignTitle} />
                     <MiniMetric label="State" value={reward.claimable ? "Ready" : "Locked"} />
                   </div>
 
@@ -557,7 +564,7 @@ function ArtworkPanel({
         src={src}
         alt={alt}
         tone="amber"
-        fallbackLabel="Vault art offline"
+        fallbackLabel="Reward art offline"
         className="absolute inset-0"
         imgClassName="h-full w-full object-cover opacity-84"
       />
@@ -577,7 +584,7 @@ function QueueThumb({ src, alt }: { src: string | null; alt: string }) {
         src={src}
         alt={alt}
         tone="amber"
-        fallbackLabel="Vault art offline"
+        fallbackLabel="Reward art offline"
         className="absolute inset-0"
         imgClassName="h-full w-full object-cover opacity-85"
       />

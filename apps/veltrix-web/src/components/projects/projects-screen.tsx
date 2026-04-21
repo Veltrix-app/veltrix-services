@@ -68,8 +68,8 @@ export function ProjectsScreen() {
     return items;
   }, [enrichedProjects, filter, query]);
 
-  const [featuredWorld, ...queueWorlds] = filteredProjects;
-  const scoutWorlds = enrichedProjects.slice(0, 3);
+  const [featuredProject, ...queueProjects] = filteredProjects;
+  const scoutProjects = enrichedProjects.slice(0, 3);
   const snapshot = {
     total: enrichedProjects.length,
     featured: enrichedProjects.filter((project) => project.featured).length,
@@ -81,84 +81,84 @@ export function ProjectsScreen() {
       <section className="grid gap-6 2xl:grid-cols-[minmax(0,1.25fr)_380px]">
         <div className="overflow-hidden rounded-[38px] border border-cyan-300/12 bg-[radial-gradient(circle_at_top_left,rgba(0,204,255,0.18),transparent_28%),radial-gradient(circle_at_86%_10%,rgba(192,255,0,0.12),transparent_20%),linear-gradient(145deg,rgba(7,18,24,0.98),rgba(4,9,13,0.95))] p-6 shadow-[0_34px_120px_rgba(0,0,0,0.42)] sm:p-8">
           <div className="flex flex-wrap items-center gap-3 text-[11px] font-bold uppercase tracking-[0.34em] text-cyan-300">
-            <span>World Browser</span>
+            <span>Project Browser</span>
             <span className="rounded-full border border-cyan-300/16 bg-cyan-300/10 px-3 py-1 tracking-[0.24em] text-cyan-100">
-              Realm Select
+              Live Projects
             </span>
           </div>
 
-          {featuredWorld ? (
+          {featuredProject ? (
             <div className="mt-6 space-y-6">
               <div className="grid gap-6 xl:grid-cols-[minmax(0,1.12fr)_320px]">
                 <div className="space-y-5">
                   <ArtworkPanel
-                    src={featuredWorld.bannerUrl}
-                    alt={featuredWorld.name}
-                    badge={featuredWorld.chain ?? featuredWorld.category ?? "Live world"}
+                    src={featuredProject.bannerUrl}
+                    alt={featuredProject.name}
+                    badge={featuredProject.chain ?? featuredProject.category ?? "Live project"}
                     className="h-64"
                   />
 
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="max-w-[14ch]">
                       <div className="flex flex-wrap gap-2">
-                        {featuredWorld.chain ? (
+                        {featuredProject.chain ? (
                           <span className="rounded-full border border-cyan-300/16 bg-cyan-300/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.24em] text-cyan-100">
-                            {featuredWorld.chain}
+                            {featuredProject.chain}
                           </span>
                         ) : null}
-                        {featuredWorld.category ? (
+                        {featuredProject.category ? (
                           <span className="rounded-full border border-white/10 bg-white/6 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.24em] text-slate-300">
-                            {featuredWorld.category}
+                            {featuredProject.category}
                           </span>
                         ) : null}
                       </div>
                       <h3 className="font-display mt-4 text-balance text-[clamp(2.2rem,4vw,4.5rem)] font-black leading-[0.92] tracking-[0.04em] text-white">
-                        {featuredWorld.name}
+                        {featuredProject.name}
                       </h3>
                       <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-                        {featuredWorld.description ||
-                          "This world is hot on the grid with active lanes, real reward pressure and strong community pull."}
+                        {featuredProject.description ||
+                          "This project is active with live campaigns, real reward pressure and strong community pull."}
                       </p>
                     </div>
 
                     <StatusChip
-                      label={featuredWorld.featured ? "Prime world" : "Live world"}
-                      tone={featuredWorld.featured ? "positive" : "info"}
+                      label={featuredProject.featured ? "Featured" : "Live"}
+                      tone={featuredProject.featured ? "positive" : "info"}
                     />
                   </div>
 
                   <div className="grid gap-4 md:grid-cols-4">
-                    <FeatureStat label="Lanes" value={String(featuredWorld.campaignCount)} />
-                    <FeatureStat label="Live XP" value={String(featuredWorld.liveXp)} />
-                    <FeatureStat label="Citizens" value={featuredWorld.members.toLocaleString()} />
-                    <FeatureStat label="Clear rate" value={`${featuredWorld.completionRate}%`} />
+                    <FeatureStat label="Campaigns" value={String(featuredProject.campaignCount)} />
+                    <FeatureStat label="Live XP" value={String(featuredProject.liveXp)} />
+                    <FeatureStat label="Members" value={featuredProject.members.toLocaleString()} />
+                    <FeatureStat label="Clear rate" value={`${featuredProject.completionRate}%`} />
                   </div>
 
                   <div className="flex flex-wrap gap-3">
                     <Link
-                      href={`/projects/${featuredWorld.id}`}
+                      href={`/projects/${featuredProject.id}`}
                       prefetch={false}
                       className="inline-flex items-center gap-2 rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
                     >
-                      Enter world
+                      Open project
                       <ArrowRight className="h-4 w-4" />
                     </Link>
                     <Link
-                      href={`/communities/${featuredWorld.id}`}
+                      href={`/communities/${featuredProject.id}`}
                       prefetch={false}
                       className="glass-button inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:border-cyan-300/30"
                     >
-                      Open command view
+                      Open community
                     </Link>
                   </div>
                 </div>
 
                 <div className="rounded-[28px] border border-white/10 bg-black/24 p-4">
                   <p className="font-display text-[11px] font-bold uppercase tracking-[0.28em] text-cyan-200">
-                    Scout queue
+                    Up next
                   </p>
                   <div className="mt-4 space-y-3">
-                    {queueWorlds.slice(0, 3).map((project, index) => (
+                    {queueProjects.slice(0, 3).map((project, index) => (
                       <Link
                         key={project.id}
                         href={`/projects/${project.id}`}
@@ -168,11 +168,11 @@ export function ProjectsScreen() {
                         <QueueThumb src={project.bannerUrl} alt={project.name} />
                         <div className="min-w-0 flex-1">
                           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
-                            Scout {index + 1}
+                            Project {index + 1}
                           </p>
                           <p className="mt-1 truncate text-sm font-semibold text-white">{project.name}</p>
                           <p className="mt-1 text-xs uppercase tracking-[0.22em] text-slate-500">
-                            {project.campaignCount} lanes live
+                            {project.campaignCount} campaigns live
                           </p>
                         </div>
                         <span className="text-sm font-semibold text-cyan-200">{project.liveXp} XP</span>
@@ -183,7 +183,7 @@ export function ProjectsScreen() {
               </div>
 
               <div className="grid gap-4 sm:grid-cols-3">
-                {scoutWorlds.map((project, index) => (
+                {scoutProjects.map((project, index) => (
                   <Link
                     key={project.id}
                     href={`/projects/${project.id}`}
@@ -192,38 +192,38 @@ export function ProjectsScreen() {
                   >
                     <div className="flex items-center justify-between gap-3">
                       <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
-                        Hot slot {index + 1}
+                        Spotlight {index + 1}
                       </p>
                       <Compass className="h-4 w-4 text-cyan-300" />
                     </div>
                     <p className="mt-3 truncate text-lg font-black text-white">{project.name}</p>
                     <div className="mt-4 grid grid-cols-2 gap-3">
-                      <MiniMetric label="Lanes" value={String(project.campaignCount)} />
-                      <MiniMetric label="Users" value={project.members.toLocaleString()} />
+                      <MiniMetric label="Campaigns" value={String(project.campaignCount)} />
+                      <MiniMetric label="Members" value={project.members.toLocaleString()} />
                     </div>
                   </Link>
                 ))}
               </div>
             </div>
           ) : (
-            <EmptyNotice text="No live worlds are visible yet." />
+            <EmptyNotice text="No live projects are visible yet." />
           )}
         </div>
 
         <div className="space-y-6">
           <Surface
-            eyebrow="Grid Pulse"
-            title="Realm read"
-            description="A tighter scout read on the worlds that matter right now."
+            eyebrow="Project Pulse"
+            title="Live read"
+            description="A tighter scouting read on the projects that matter right now."
           >
             <div className="grid gap-4 sm:grid-cols-3 2xl:grid-cols-1">
-              <MetricTile label="Worlds online" value={String(snapshot.total)} />
-              <MetricTile label="Prime zones" value={String(snapshot.featured)} />
+              <MetricTile label="Projects live" value={String(snapshot.total)} />
+              <MetricTile label="Featured" value={String(snapshot.featured)} />
               <MetricTile label="Live ecosystems" value={String(snapshot.live)} />
             </div>
 
             <div className="mt-5 space-y-3">
-              {scoutWorlds.map((project, index) => (
+              {scoutProjects.map((project, index) => (
                 <div
                   key={project.id}
                   className="rounded-[22px] border border-white/8 bg-black/20 px-4 py-3"
@@ -244,19 +244,19 @@ export function ProjectsScreen() {
 
           <Surface
             eyebrow="Scout Filters"
-            title="Refine world list"
-            description="Trim the catalog down fast, then dive straight into the best worlds."
+            title="Refine project list"
+            description="Trim the catalog down fast, then dive straight into the best projects."
           >
             <div className="space-y-4">
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search worlds, chains, categories..."
+                placeholder="Search projects, chains, categories..."
                 className="glass-button w-full rounded-[22px] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/40"
               />
               <div className="flex flex-wrap gap-2">
-                <FilterButton active={filter === "all"} onClick={() => setFilter("all")} label="All worlds" />
-                <FilterButton active={filter === "featured"} onClick={() => setFilter("featured")} label="Prime worlds" />
+                <FilterButton active={filter === "all"} onClick={() => setFilter("all")} label="All projects" />
+                <FilterButton active={filter === "featured"} onClick={() => setFilter("featured")} label="Featured" />
                 <FilterButton active={filter === "ecosystem"} onClick={() => setFilter("ecosystem")} label="Live ecosystems" />
               </div>
               <div className="grid gap-3 sm:grid-cols-3">
@@ -270,13 +270,13 @@ export function ProjectsScreen() {
       </section>
 
       <Surface
-        eyebrow="World Catalog"
-        title="Choose your next world"
-        description="The world grid should feel like entering realms, not scanning records."
+        eyebrow="Project Catalog"
+        title="Choose your next project"
+        description="Project discovery should feel intentional, not like scanning records."
       >
         <div className="mt-1">
           {loading ? (
-            <EmptyNotice text="Loading live worlds..." />
+            <EmptyNotice text="Loading live projects..." />
           ) : error ? (
             <ErrorNotice text={error} />
           ) : filteredProjects.length > 0 ? (
@@ -291,14 +291,14 @@ export function ProjectsScreen() {
                   <ArtworkPanel
                     src={project.bannerUrl}
                     alt={project.name}
-                    badge={project.category ?? project.chain ?? "World"}
+                    badge={project.category ?? project.chain ?? "Project"}
                     className="mb-5 h-44"
                   />
 
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="truncate text-2xl font-black text-white">{project.name}</p>
-                      <p className="mt-2 text-sm text-cyan-200">{project.chain ?? project.category ?? "Open grid"}</p>
+                      <p className="mt-2 text-sm text-cyan-200">{project.chain ?? project.category ?? "Open project"}</p>
                     </div>
                     <StatusChip
                       label={project.featured ? "Prime" : project.campaignCount > 0 ? "Live" : "Idle"}
@@ -307,13 +307,13 @@ export function ProjectsScreen() {
                   </div>
 
                   <p className="mt-4 line-clamp-3 text-sm leading-7 text-slate-300">
-                    {project.description || "This world is live, but still needs a stronger public briefing."}
+                    {project.description || "This project is live, but still needs a stronger public briefing."}
                   </p>
 
                   <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                    <MiniMetric label="Lanes" value={String(project.campaignCount)} />
+                    <MiniMetric label="Campaigns" value={String(project.campaignCount)} />
                     <MiniMetric label="XP" value={String(project.liveXp)} />
-                    <MiniMetric label="Users" value={project.members.toLocaleString()} />
+                    <MiniMetric label="Members" value={project.members.toLocaleString()} />
                   </div>
 
                   <div className="mt-5 flex items-center justify-between border-t border-white/8 pt-4">
@@ -324,7 +324,7 @@ export function ProjectsScreen() {
                       <p className="mt-2 text-sm font-semibold text-white">{project.completionRate}% avg clear</p>
                     </div>
                     <span className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-200">
-                      Enter world
+                      Open project
                       <ArrowRight className="h-4 w-4" />
                     </span>
                   </div>
@@ -332,7 +332,7 @@ export function ProjectsScreen() {
               ))}
             </div>
           ) : (
-            <EmptyNotice text="No worlds match this filter yet." />
+            <EmptyNotice text="No projects match this filter yet." />
           )}
         </div>
       </Surface>
@@ -357,7 +357,7 @@ function ArtworkPanel({
         src={src}
         alt={alt}
         tone="cyan"
-        fallbackLabel="World art offline"
+        fallbackLabel="Project art offline"
         className="absolute inset-0"
         imgClassName="h-full w-full object-cover opacity-82"
       />

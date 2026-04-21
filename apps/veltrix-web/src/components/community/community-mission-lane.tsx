@@ -26,11 +26,11 @@ export function CommunityMissionLane({ snapshot }: CommunityMissionLaneProps) {
     return (
       <div className="rounded-[26px] border border-white/8 bg-black/20 p-5">
         <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
-          Mission lane
+          Mission path
         </p>
-        <p className="mt-3 text-lg font-black text-white">No live journey lane yet</p>
+        <p className="mt-3 text-lg font-black text-white">No live journey path yet</p>
         <p className="mt-3 text-sm leading-6 text-slate-300">
-          As soon as your community rail has a clear next move, it will show up here instead of hiding behind generic links.
+          As soon as your community journey has a clear next move, it will show up here instead of hiding behind generic links.
         </p>
       </div>
     );
@@ -48,7 +48,7 @@ export function CommunityMissionLane({ snapshot }: CommunityMissionLaneProps) {
                 </span>
                 <StatusChip label={item.priority} tone={getPriorityTone(item.priority)} />
                 <StatusChip
-                  label={item.completed ? "Done" : item.locked ? "Locked" : `Lane ${index + 1}`}
+                  label={item.completed ? "Done" : item.locked ? "Locked" : `Path ${index + 1}`}
                   tone={item.completed ? "positive" : item.locked ? "warning" : "default"}
                 />
               </div>

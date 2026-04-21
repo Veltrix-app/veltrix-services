@@ -63,21 +63,21 @@ export function HomeScreen() {
           <div className="relative z-10 flex flex-wrap items-start justify-between gap-4">
             <div className="max-w-[13ch]">
               <p className="font-display text-[11px] font-bold uppercase tracking-[0.34em] text-lime-300">
-                Mission Launcher
+                Live now
               </p>
               <h3 className="font-display mt-4 text-balance text-[clamp(2.4rem,5vw,5.2rem)] font-black leading-[0.9] tracking-[0.03em] text-white">
-                {featuredCampaign?.title ?? "Grid standing by"}
+                {featuredCampaign?.title ?? "Your next launch is standing by"}
               </h3>
               <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
                 {featuredCampaign?.description ??
-                  "The command layer is hot. As soon as live lanes hit your account, this board becomes your main launch surface."}
+                  "As soon as a campaign, quest or reward is live for you, this becomes the fastest route back into the product."}
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
               {featuredProject ? <StatusChip label={featuredProject.name} tone="info" /> : null}
               <StatusChip
-                label={featuredCampaign ? (featuredCampaign.featured ? "Prime lane" : "Live lane") : "Stand by"}
+                label={featuredCampaign ? (featuredCampaign.featured ? "Featured" : "Live") : "Stand by"}
                 tone={featuredCampaign?.featured ? "positive" : "default"}
               />
             </div>
@@ -89,22 +89,22 @@ export function HomeScreen() {
               prefetch={false}
               className="rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-lime-200"
             >
-              {featuredCampaign ? "Launch mission" : "Open board"}
+              {featuredCampaign ? "Open campaign" : "Open campaigns"}
             </Link>
             <Link
               href={featuredProject ? `/projects/${featuredProject.id}` : "/projects"}
               prefetch={false}
               className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
             >
-              Enter world
+              View project
             </Link>
           </div>
 
           <div className="relative z-10 mt-8 grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
             <div className="grid gap-4 sm:grid-cols-3">
               <FeatureStat label="XP budget" value={featuredCampaign ? String(featuredCampaign.xpBudget) : "0"} />
-              <FeatureStat label="Mission heat" value={String(quests.length)} />
-              <FeatureStat label="Signals" value={String(notifications.length)} />
+              <FeatureStat label="Open quests" value={String(quests.length)} />
+              <FeatureStat label="Updates" value={String(notifications.length)} />
             </div>
 
             <div className="rounded-[28px] border border-white/10 bg-black/24 p-4">
@@ -136,7 +136,7 @@ export function HomeScreen() {
                     </Link>
                   ))
                 ) : (
-                  <Notice text="No queued missions yet." tone="default" compact />
+                  <Notice text="No queued campaigns yet." tone="default" compact />
                 )}
               </div>
             </div>
@@ -145,9 +145,9 @@ export function HomeScreen() {
 
         <div className="space-y-6">
           <Surface
-            eyebrow="Pilot Status"
-            title={profile?.username ?? "Guest Pilot"}
-            description="Identity, current standing and mission readiness."
+            eyebrow="Account status"
+            title={profile?.username ?? "Guest member"}
+            description="Identity, current standing and readiness across your active launches."
           >
             <div className="grid gap-4 sm:grid-cols-2">
               <MetricTile label="Tier" value={profile?.contributionTier ?? "Explorer"} />
@@ -164,9 +164,9 @@ export function HomeScreen() {
           </Surface>
 
           <Surface
-            eyebrow="Signal Feed"
-            title="Command updates"
-            description="Recent approvals, waits and unlocks from the live grid."
+            eyebrow="Recent updates"
+            title="What changed"
+            description="Recent approvals, waits and unlocks across your current activity."
           >
             <div className="space-y-3">
               {activityFeed.length > 0 ? (
@@ -177,13 +177,13 @@ export function HomeScreen() {
                   </div>
                 ))
               ) : (
-                <Notice text="No live notifications yet." tone="default" compact />
+                <Notice text="No new notifications yet." tone="default" compact />
               )}
             </div>
           </Surface>
 
           <Surface
-            eyebrow="Community Rail"
+            eyebrow="Community journey"
             title="Your member journey"
             description="The next community move now lives directly on Home instead of hiding behind side flows."
           >
@@ -202,12 +202,12 @@ export function HomeScreen() {
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
         <Surface
-          eyebrow="Mission Board"
-          title="Active mission lanes"
+          eyebrow="Quest board"
+          title="Open quests"
           description="The next move should be obvious, rewarding and fast to open."
         >
           {loading ? (
-            <Notice text="Loading live missions..." tone="default" />
+            <Notice text="Loading quests..." tone="default" />
           ) : error ? (
             <Notice text={error} tone="error" />
           ) : activeMissions.length > 0 ? (
@@ -231,23 +231,23 @@ export function HomeScreen() {
                     <StatusChip label={mission.status} tone={getQuestTone(mission.status)} />
                   </div>
                   <div className="mt-5 flex items-center justify-between border-t border-white/8 pt-4">
-                    <p className="text-sm font-semibold text-lime-200">+{mission.xp} XP payout</p>
+                    <p className="text-sm font-semibold text-lime-200">+{mission.xp} XP</p>
                     <span className="font-display text-[11px] uppercase tracking-[0.22em] text-cyan-300">
-                      Open mission
+                      Open quest
                     </span>
                   </div>
                 </Link>
               ))}
             </div>
           ) : (
-            <Notice text="No active mission lanes yet." tone="default" />
+            <Notice text="No open quests yet." tone="default" />
           )}
         </Surface>
 
         <Surface
-          eyebrow="World Browser"
-          title="Hot worlds"
-          description="The quickest route into the most active ecosystems on the grid."
+          eyebrow="Projects"
+          title="Featured projects"
+          description="The quickest route into the ecosystems that are active for you right now."
         >
           <div className="space-y-4">
             {projectsPreview.length > 0 ? (
@@ -269,7 +269,7 @@ export function HomeScreen() {
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <p className="truncate text-lg font-black text-white">{project.name}</p>
-                          <p className="mt-1 text-sm text-lime-200">{project.category ?? "World"}</p>
+                          <p className="mt-1 text-sm text-lime-200">{project.category ?? "Project"}</p>
                         </div>
                         <StatusChip label={project.chain ?? "Live"} tone="info" />
                       </div>
@@ -281,7 +281,7 @@ export function HomeScreen() {
                 </Link>
               ))
             ) : (
-              <Notice text="No worlds online yet." tone="default" />
+              <Notice text="No projects are visible yet." tone="default" />
             )}
           </div>
         </Surface>
@@ -290,7 +290,7 @@ export function HomeScreen() {
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
         <Surface
           eyebrow="Live Raids"
-          title="Squad pressure"
+          title="Team actions"
           description="High-urgency coordinated pushes happening right now."
         >
           <div className="grid gap-4 md:grid-cols-3">
@@ -323,9 +323,9 @@ export function HomeScreen() {
         </Surface>
 
         <Surface
-          eyebrow="Loot Vault"
-          title="Unlock pressure"
-          description="Claimable and high-desire rewards currently on your radar."
+          eyebrow="Rewards"
+          title="Ready to claim"
+          description="Claimable and high-interest rewards currently on your radar."
         >
           <div className="space-y-4">
             {rewardMoments.length > 0 ? (
@@ -355,16 +355,16 @@ export function HomeScreen() {
                 </Link>
               ))
             ) : (
-              <Notice text="No reward pressure yet." tone="default" />
+              <Notice text="No rewards are ready yet." tone="default" />
             )}
           </div>
         </Surface>
       </section>
 
       <Surface
-        eyebrow="Grid Read"
-        title="Live board state"
-        description="A clean systems readout from the same live surfaces as the mobile app."
+        eyebrow="Snapshot"
+        title="Live account state"
+        description="A clean readout of the same launches, quests and rewards that power the rest of your experience."
       >
         <div className="grid gap-4 sm:grid-cols-4">
           <FeatureStat label="Approved" value={String(approvedQuestCount)} />

@@ -34,10 +34,10 @@ export function CommunityHomeScreen() {
         <div className="space-y-6">
           <Surface
             eyebrow="Next Best Action"
-            title={snapshot.nextBestAction?.label ?? "Community rail standing by"}
+            title={snapshot.nextBestAction?.label ?? "Community journey ready"}
             description={
               snapshot.nextBestAction?.description ??
-              "Pick a world or arm your identity stack to activate your next move."
+              "Finish setup, pick a mission or jump into the next meaningful project surface."
             }
           >
             <div className="space-y-3">
@@ -53,15 +53,15 @@ export function CommunityHomeScreen() {
           <Surface
             eyebrow="Fast Jumps"
             title="Where to move next"
-            description="The community layer should always route you into the next meaningful surface."
+            description="The community experience should always route you into the next meaningful surface."
           >
             <div className="flex flex-wrap gap-3">
-              <QuickLink href="/notifications" label="Signal center" />
-              <QuickLink href="/profile" label="Pilot profile" />
-              <QuickLink href="/rewards" label="Reward vault" />
+              <QuickLink href="/notifications" label="Signals" />
+              <QuickLink href="/profile" label="Profile" />
+              <QuickLink href="/rewards" label="Rewards" />
               <QuickLink
                 href={snapshot.projectId ? `/communities/${snapshot.projectId}` : "/projects"}
-                label="Project world"
+                label="Project"
               />
             </div>
           </Surface>
@@ -71,17 +71,17 @@ export function CommunityHomeScreen() {
       <CommunityRecognitionStrip snapshot={snapshot} />
 
       <Surface
-        eyebrow="Mission Lane"
-        title="The moves that matter right now"
-        description="The lane below should feel like your real route forward, not a flat backlog."
+        eyebrow="Mission Path"
+        title="What matters right now"
+        description="The path below should feel like your real route forward, not a flat backlog."
       >
         <CommunityMissionLane snapshot={snapshot} />
       </Surface>
 
       <Surface
-        eyebrow="Journey Rail"
-        title="Your community control lane"
-        description="Status, next unlock, action rail and manual progress logging all stay together here."
+        eyebrow="Journey Status"
+        title="Your community status"
+        description="Status, next unlock, guided actions and manual progress logging all stay together here."
       >
         <CommunityStatusPanel
           snapshot={snapshot}
@@ -94,30 +94,30 @@ export function CommunityHomeScreen() {
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <Surface
-          eyebrow="Momentum Paths"
-          title="Lane-specific routes"
-          description="The journey keeps a dedicated path ready depending on whether you are onboarding, active or coming back."
+          eyebrow="Journey Paths"
+          title="Routes by momentum"
+          description="The journey keeps a dedicated route ready depending on whether you are onboarding, active or returning."
         >
           <div className="grid gap-4 md:grid-cols-3">
             <RailCard
               href="/community/onboarding"
-              label="Onboarding rail"
+              label="Onboarding path"
               eyebrow="Readiness"
-              copy="Link providers, verify wallet and clear the first mission without leaving the member rail."
+              copy="Link providers, verify your wallet and clear the first mission without leaving the guided member journey."
               live={snapshot.lane === "onboarding"}
             />
             <RailCard
               href="/community"
-              label="Active lane"
+              label="Active path"
               eyebrow="Momentum"
               copy="Recognition, next unlocks and live missions stay concentrated on the main Community Home."
               live={snapshot.lane === "active"}
             />
             <RailCard
               href="/community/comeback"
-              label="Comeback rail"
+              label="Comeback path"
               eyebrow="Re-entry"
-              copy="Signals, reactivation nudges and faster routes back into pressure stay isolated from the full backlog."
+              copy="Signals, reactivation nudges and fast routes back into momentum stay isolated from the full backlog."
               live={snapshot.lane === "comeback"}
             />
           </div>
@@ -132,12 +132,12 @@ export function CommunityHomeScreen() {
             <ValueCard
               icon={Sparkles}
               title="Recognition"
-              copy="Your title, streak and mission lane keep the community rail feeling personal instead of anonymous."
+              copy="Your title, streak and mission path keep the community experience feeling personal instead of anonymous."
             />
             <ValueCard
               icon={Trophy}
               title="Status"
-              copy={`This lane currently routes you through ${getLaneHref(snapshot.lane)} with a clear next unlock in sight.`}
+              copy={`This journey currently routes you through ${getLaneHref(snapshot.lane)} with a clear next unlock in sight.`}
             />
           </div>
         </Surface>

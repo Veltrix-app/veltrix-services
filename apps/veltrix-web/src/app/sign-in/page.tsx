@@ -4,9 +4,9 @@ import { SignInScreen } from "@/components/auth/sign-in-screen";
 export default function SignInPage() {
   return (
     <AppShell
-      eyebrow="Access"
-      title="Sign in to Veltrix Web"
-      description="Authenticate your pilot to unlock mission state, linked systems and live vault routing."
+      eyebrow="Account"
+      title="Sign in to Veltrix"
+      description="Access your account to track progress, claim rewards and keep your linked identities ready."
     >
       <SignInScreen />
     </AppShell>

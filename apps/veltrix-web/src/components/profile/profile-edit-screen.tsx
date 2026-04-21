@@ -100,7 +100,7 @@ export function ProfileEditScreen() {
       if (bannerInputRef.current) bannerInputRef.current.value = "";
     }
 
-    setAssetMessage(`${kind === "avatar" ? "Avatar" : "Banner"} uploaded and armed for profile save.`);
+    setAssetMessage(`${kind === "avatar" ? "Avatar" : "Banner"} uploaded and ready for profile save.`);
     setUploadingKind(null);
   }
 
@@ -166,7 +166,7 @@ export function ProfileEditScreen() {
       }
 
       setWallet(nextWallet);
-      setWalletMessage("Wallet verified and armed as your primary identity wallet.");
+      setWalletMessage("Wallet verified and set as your primary identity wallet.");
     } catch (nextError) {
       setWalletMessage(
         nextError instanceof Error ? nextError.message : "Could not connect your wallet."
@@ -195,7 +195,7 @@ export function ProfileEditScreen() {
     <div className="space-y-6">
       {communitySnapshot.lane === "onboarding" ? (
         <div className="rounded-[24px] border border-cyan-300/20 bg-cyan-300/10 px-4 py-5 text-sm text-cyan-100">
-          Your onboarding rail is using this edit surface as the live identity loadout.{" "}
+          Your onboarding path is using this edit surface as the live identity setup.{" "}
           <Link
             href={communitySnapshot.nextBestAction?.route ?? communitySnapshot.preferredRoute}
             className="font-semibold underline underline-offset-4"
@@ -210,11 +210,11 @@ export function ProfileEditScreen() {
           Edit Profile
         </p>
         <h3 className="mt-4 text-3xl font-black tracking-tight text-white sm:text-5xl">
-          Build a launch-ready identity surface.
+          Build a launch-ready profile.
         </h3>
         <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-          Avatar, banner, wallet and profile fields now live in one command-grade edit flow instead
-          of manual URL plumbing, so the journey can treat identity as a real loadout instead of setup debt.
+          Avatar, banner, wallet and profile fields now live in one guided edit flow instead of
+          manual URL plumbing, so the journey can treat identity as a real member profile instead of setup debt.
         </p>
       </section>
 
@@ -252,7 +252,7 @@ export function ProfileEditScreen() {
               <AssetUploader
                 kind="avatar"
                 label="Avatar"
-                hint="Pilot portrait used across the app."
+                hint="Member portrait used across the app."
                 uploading={uploadingKind === "avatar"}
                 imageUrl={avatarUrl}
                 circular
@@ -272,16 +272,16 @@ export function ProfileEditScreen() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-lime-200">
-                    Wallet layer
+                    Wallet setup
                   </p>
                   <p className="mt-2 text-sm leading-6 text-slate-300">
-                    Connect a browser wallet, sign the Veltrix challenge, and arm it as your
+                    Connect a browser wallet, sign the Veltrix challenge, and set it as your
                     verified identity wallet for future verification and reward eligibility.
                   </p>
                 </div>
                 <div className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm font-semibold text-white">
                   {profile?.walletVerified && wallet
-                    ? `${shortenWallet(wallet)} • verified`
+                    ? `${shortenWallet(wallet)} - verified`
                     : shortenWallet(wallet)}
                 </div>
               </div>
@@ -352,7 +352,7 @@ export function ProfileEditScreen() {
                   {title || "Operator"}
                 </span>
                 <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.24em] text-white">
-                  {wallet ? "Wallet armed" : "Wallet pending"}
+                    {wallet ? "Wallet ready" : "Wallet pending"}
                 </span>
               </div>
 
@@ -381,7 +381,7 @@ export function ProfileEditScreen() {
               <p className="text-sm leading-7 text-slate-300">{bio || "No bio set yet."}</p>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <MiniStat label="Wallet" value={shortenWallet(wallet)} />
-                <MiniStat label="Visual state" value={avatarUrl || bannerUrl ? "Armed" : "Fallback"} />
+              <MiniStat label="Visual state" value={avatarUrl || bannerUrl ? "Ready" : "Fallback"} />
               </div>
             </div>
           </div>

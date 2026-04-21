@@ -421,7 +421,7 @@ export async function loadDiscordIdentitySnapshot(
     authUserId,
     discordUserId,
     discordUsername: connectedAccount.username ?? "Linked Discord",
-    profileUsername: profile?.username ?? "Pilot",
+    profileUsername: profile?.username ?? "Member",
     globalXp: Number(globalReputation?.total_xp ?? 0),
     globalLevel: Number(globalReputation?.level ?? 1),
     globalTrust: Number(globalReputation?.trust_score ?? 50),
@@ -542,7 +542,7 @@ export async function loadDiscordLeaderboard(
           discordUserId: discordUserIdByAuthUserId.get(row.auth_user_id) ?? "",
           displayName:
             usernamesByAuthUserId.get(row.auth_user_id) ??
-            `Pilot ${row.auth_user_id.slice(0, 6)}`,
+            `Member ${row.auth_user_id.slice(0, 6)}`,
           xp: Number(row.xp ?? 0),
           level: Number(row.level ?? 1),
           trust: Number(row.trust_score ?? 50),
@@ -582,7 +582,7 @@ export async function loadDiscordLeaderboard(
         discordUserId: discordUserIdByAuthUserId.get(row.auth_user_id) ?? "",
         displayName:
           usernamesByAuthUserId.get(row.auth_user_id) ??
-          `Pilot ${row.auth_user_id.slice(0, 6)}`,
+          `Member ${row.auth_user_id.slice(0, 6)}`,
         xp: Number(row.total_xp ?? 0),
         level: Number(row.level ?? 1),
         trust: Number(row.trust_score ?? 50),
@@ -688,7 +688,7 @@ export async function loadDiscordLeaderboard(
         authUserId,
         discordUserId: discordUserIdByAuthUserId.get(authUserId) ?? "",
         displayName:
-          usernamesByAuthUserId.get(authUserId) ?? `Pilot ${authUserId.slice(0, 6)}`,
+          usernamesByAuthUserId.get(authUserId) ?? `Member ${authUserId.slice(0, 6)}`,
         xp: xpByAuthUserId.get(authUserId) ?? 0,
         level: reputation?.level ?? 1,
         trust: reputation?.trust ?? 50,

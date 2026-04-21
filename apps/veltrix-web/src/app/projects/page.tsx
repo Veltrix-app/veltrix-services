@@ -6,10 +6,10 @@ export default function ProjectsPage() {
   return (
     <AppShell
       eyebrow="Projects"
-      title="World Browser"
-      description="Scan the live worlds behind campaigns, reward lanes and faction progression."
+      title="Project Browser"
+      description="Scan the live projects behind campaigns, rewards and progression."
     >
-      <ProtectedState allowPreview previewLabel="World preview">
+      <ProtectedState allowPreview previewLabel="Project preview">
         <ProjectsScreen />
       </ProtectedState>
     </AppShell>

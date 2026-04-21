@@ -7,7 +7,7 @@ export default function CommunityComebackPage() {
     <AppShell
       eyebrow="Community"
       title="Comeback flows for returning members"
-      description="Signals, re-entry missions and reward pressure stay isolated in a dedicated comeback rail so returning members can move fast."
+      description="Signals, re-entry missions and reward pressure stay isolated in a dedicated comeback path so returning members can move fast."
     >
       <ProtectedState>
         <CommunityComebackScreen />

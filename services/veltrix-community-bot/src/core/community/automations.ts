@@ -161,7 +161,7 @@ function getCommunityAutomationOwnerLabel(automationType: CommunityAutomationTyp
   if (automationType === "leaderboard_pulse") return "Push leaderboard momentum";
   if (automationType === "mission_digest") return "Broadcast the mission board";
   if (automationType === "raid_reminder") return "Re-ignite live raid pressure";
-  if (automationType === "newcomer_pulse") return "Pull newcomers into the first lane";
+  if (automationType === "newcomer_pulse") return "Pull newcomers into the first journey";
   if (automationType === "reactivation_pulse") return "Bring dormant contributors back";
   return "Push campaign activation";
 }
@@ -175,35 +175,35 @@ function getCommunityAutomationOwnerSummary(input: {
   lastResultSummary: string;
 }) {
   if (input.executionPosture === "running") {
-    return "Execution is currently in flight and will settle back into the rail once this run finishes.";
+    return "Execution is currently in flight and will settle back into the workflow once this run finishes.";
   }
 
   if (input.status !== "active") {
-    return "This rail is paused and will stay parked until the project owner re-arms it.";
+    return "This workflow is paused and will stay parked until the project owner reactivates it.";
   }
 
   if (input.executionPosture === "blocked") {
     return (
       input.lastResultSummary ||
-      "The last attempt failed while this rail was due. An owner or captain should resolve it before schedule takes another pass."
+      "The last attempt failed while this workflow was due. An owner or captain should resolve it before schedule takes another pass."
     );
   }
 
   if (input.executionPosture === "degraded") {
     return (
       input.lastResultSummary ||
-      "The last attempt failed outside the current window. Keep the rail visible and re-arm it deliberately."
+      "The last attempt failed outside the current window. Keep the workflow visible and reactivate it deliberately."
     );
   }
 
   if (input.executionPosture === "ready") {
     if (input.cadence === "manual") {
-      return "This rail is ready for a manual run whenever the owner or captain wants to push it.";
+      return "This workflow is ready for a manual run whenever the owner or captain wants to push it.";
     }
 
     return input.nextRunAt
-      ? `This rail is ready and its next scheduled window is ${new Date(input.nextRunAt).toLocaleString()}.`
-      : "This rail is ready for the next scheduled window.";
+      ? `This workflow is ready and its next scheduled window is ${new Date(input.nextRunAt).toLocaleString()}.`
+      : "This workflow is ready for the next scheduled window.";
   }
 
   return input.nextRunAt
@@ -701,7 +701,7 @@ async function loadContributorSegmentSummary(projectId: string): Promise<Contrib
       ? Math.floor((Date.now() - new Date(lastActiveAt).getTime()) / (24 * 60 * 60 * 1000))
       : null;
     const fullStackReady = hasCommandReady && providers.has("x") && walletVerified;
-    const displayName = usernames.get(authUserId) ?? `pilot-${authUserId.slice(0, 6)}`;
+        const displayName = usernames.get(authUserId) ?? `member-${authUserId.slice(0, 6)}`;
 
     if (hasCommandReady) {
       commandReady += 1;
@@ -781,7 +781,7 @@ async function loadActivationBoardCandidate(projectId: string): Promise<Activati
       recommendedLane === "reactivation"
         ? "Re-ignite dormant contributors with a comeback wave around this campaign."
         : recommendedLane === "core"
-          ? "Lean into your core rail and raise pressure with raids and leaderboard visibility."
+          ? "Lean into your core journey and raise pressure with raids and leaderboard visibility."
           : "Use a newcomer starter push to move fresh contributors into this campaign.",
   };
 }
@@ -945,7 +945,7 @@ async function runMissionDigest(projectId: string, providerScope: ProviderScope)
     providerScope,
     title: `${state.project.name} mission board`,
     body: [
-      "Today's mission rail is live inside Veltrix.",
+      "Today's mission path is live inside Veltrix.",
       state.campaigns.length
         ? `Campaigns: ${state.campaigns.slice(0, 2).map((item) => item.title).join(" | ")}`
         : "Campaigns: none live right now",
@@ -1073,9 +1073,9 @@ async function runNewcomerPulse(projectId: string, providerScope: ProviderScope)
   const deliveries = await dispatchProjectCommunityMessage({
     projectId,
     providerScope,
-    title: `${state.project.name} starter lane`,
+    title: `${state.project.name} starter journey`,
     body: [
-      `${summary.newcomers} fresh contributor${summary.newcomers === 1 ? "" : "s"} are waiting for a clean first lane.`,
+      `${summary.newcomers} fresh contributor${summary.newcomers === 1 ? "" : "s"} are waiting for a clean first journey.`,
       summary.starterNames.length > 0
         ? `Starter queue: ${summary.starterNames.join(" | ")}`
         : "Starter queue is live and ready for a guided first mission.",
@@ -1092,7 +1092,7 @@ async function runNewcomerPulse(projectId: string, providerScope: ProviderScope)
       { label: "Watchlist", value: String(summary.watchlist) },
     ],
     url: journeyLinks.onboardingUrl,
-    buttonLabel: "Open onboarding rail",
+    buttonLabel: "Open onboarding path",
   });
   const nudgeSummary =
     deliveries > 0
@@ -1113,7 +1113,7 @@ async function runNewcomerPulse(projectId: string, providerScope: ProviderScope)
     sourceTable: "community_automations",
     sourceId: projectId,
     action: "community_newcomer_wave_posted",
-    summary: `Posted newcomer starter lane for ${state.project.name}.`,
+    summary: `Posted newcomer starter journey for ${state.project.name}.`,
     metadata: {
       deliveries,
       providerScope,
@@ -1151,13 +1151,13 @@ async function runReactivationPulse(projectId: string, providerScope: ProviderSc
   const deliveries = await dispatchProjectCommunityMessage({
     projectId,
     providerScope,
-    title: `${state.project.name} comeback rail`,
+    title: `${state.project.name} comeback path`,
     body: [
       `${summary.reactivation} contributor${summary.reactivation === 1 ? "" : "s"} are ready for a comeback wave.`,
       summary.comebackNames.length > 0
         ? `Comeback queue: ${summary.comebackNames.join(" | ")}`
         : "Dormant contributors are ready to be pulled back into live campaign pressure.",
-      "Open the current mission lanes, raid rails and leaderboard pulse to reactivate the rail.",
+      "Open the current missions, raid board and leaderboard pulse to reactivate this journey.",
     ].join("\n"),
     eyebrow: "COMEBACK WAVE",
     projectName: state.project.name,
@@ -1170,7 +1170,7 @@ async function runReactivationPulse(projectId: string, providerScope: ProviderSc
       { label: "Watchlist", value: String(summary.watchlist) },
     ],
     url: journeyLinks.comebackUrl,
-    buttonLabel: "Open comeback rail",
+    buttonLabel: "Open comeback path",
   });
   const nudgeSummary =
     deliveries > 0

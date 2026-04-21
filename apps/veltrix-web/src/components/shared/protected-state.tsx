@@ -7,8 +7,8 @@ import { useAuth } from "@/components/providers/auth-provider";
 export function ProtectedState({
   children,
   allowPreview = false,
-  previewLabel = "Public preview",
-  previewCopy = "Explore the live grid first. Sign in only when you want to track progress, claim rewards or launch verified actions.",
+  previewLabel = "Product preview",
+  previewCopy = "Browse the current experience first. Sign in when you want to save progress, claim rewards or unlock community actions.",
 }: {
   children: React.ReactNode;
   allowPreview?: boolean;
@@ -20,7 +20,7 @@ export function ProtectedState({
   if (!initialized) {
     return (
       <div className="rounded-[28px] border border-white/10 bg-white/[0.04] px-6 py-10 text-sm text-slate-300">
-        Loading account surface...
+        Loading account...
       </div>
     );
   }
@@ -41,13 +41,13 @@ export function ProtectedState({
                 href="/sign-in"
                 className="rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-lime-200"
               >
-                Enter grid
+                Sign in
               </Link>
               <Link
                 href="/sign-in"
                 className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
               >
-                Create pilot
+                Create account
               </Link>
             </div>
           </div>

@@ -44,12 +44,12 @@ function getStatusTone(tone: LiveCommunityJourneyAction["tone"]) {
 
 function getLaneLabel(lane: LiveCommunityJourneySnapshot["lane"]) {
   if (lane === "onboarding") {
-    return "Onboarding rail";
+    return "Onboarding path";
   }
   if (lane === "comeback") {
-    return "Comeback rail";
+    return "Comeback path";
   }
-  return "Active rail";
+  return "Active path";
 }
 
 function getLaneAccent(lane: LiveCommunityJourneySnapshot["lane"]) {
@@ -113,7 +113,7 @@ export function CommunityStatusPanel({
 
     setMessage({
       tone: "success",
-      text: `${action.label} logged into your ${getLaneLabel(snapshot.lane).toLowerCase()}.`,
+      text: `${action.label} logged into your current journey.`,
     });
     setActiveActionKey(null);
   }

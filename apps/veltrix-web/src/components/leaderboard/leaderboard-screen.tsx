@@ -9,7 +9,7 @@ export function LeaderboardScreen() {
   const { leaderboard, loading, error } = useLiveUserData({
     datasets: ["leaderboard"],
   });
-  const [featuredPilot, ...rankingQueue] = leaderboard;
+  const [featuredMember, ...rankingQueue] = leaderboard;
 
   return (
     <div className="space-y-6">
@@ -18,11 +18,11 @@ export function LeaderboardScreen() {
           <div className="flex flex-wrap items-center gap-3 text-[11px] font-bold uppercase tracking-[0.34em] text-amber-300">
             <span>Leaderboard</span>
             <span className="rounded-full border border-amber-300/16 bg-amber-300/10 px-3 py-1 tracking-[0.24em] text-amber-100">
-              Rank Grid
+              Live Board
             </span>
           </div>
 
-          {featuredPilot ? (
+          {featuredMember ? (
             <div className="mt-6 space-y-6">
               <div className="grid gap-6 xl:grid-cols-[minmax(0,1.12fr)_320px]">
                 <div className="space-y-5">
@@ -34,25 +34,25 @@ export function LeaderboardScreen() {
                           Rank #1
                         </span>
                         <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.24em] text-slate-300">
-                          Level {featuredPilot.level}
+                          Level {featuredMember.level}
                         </span>
                       </div>
                       <h3 className="font-display mt-4 text-balance text-[clamp(2.2rem,4vw,4.5rem)] font-black leading-[0.92] tracking-[0.04em] text-white">
-                        {featuredPilot.username}
+                        {featuredMember.username}
                       </h3>
                       <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-                        Top pilot on the live board right now. This is the pace every other operator is chasing.
+                        Top member on the live board right now. This is the pace every other contributor is chasing.
                       </p>
                     </div>
 
-                    <StatusChip label={`${featuredPilot.xp} XP`} tone="info" />
+                    <StatusChip label={`${featuredMember.xp} XP`} tone="info" />
                   </div>
 
                   <div className="grid gap-4 md:grid-cols-4">
-                    <FeatureStat label="XP" value={String(featuredPilot.xp)} />
-                    <FeatureStat label="Level" value={String(featuredPilot.level)} />
+                    <FeatureStat label="XP" value={String(featuredMember.xp)} />
+                    <FeatureStat label="Level" value={String(featuredMember.level)} />
                     <FeatureStat label="Rank" value="#1" />
-                    <FeatureStat label="Status" value={featuredPilot.isCurrentUser ? "You" : "Live"} />
+                    <FeatureStat label="Status" value={featuredMember.isCurrentUser ? "You" : "Live"} />
                   </div>
                 </div>
 
@@ -79,9 +79,9 @@ export function LeaderboardScreen() {
               </div>
 
               <div className="grid gap-4 sm:grid-cols-3">
-                <QuickRead label="Pilots on board" value={String(leaderboard.length)} />
-                <QuickRead label="Top level" value={String(featuredPilot.level)} />
-                <QuickRead label="Current leader" value={featuredPilot.isCurrentUser ? "You" : featuredPilot.username} />
+                <QuickRead label="Members on board" value={String(leaderboard.length)} />
+                <QuickRead label="Top level" value={String(featuredMember.level)} />
+                <QuickRead label="Current leader" value={featuredMember.isCurrentUser ? "You" : featuredMember.username} />
               </div>
             </div>
           ) : (
@@ -96,10 +96,10 @@ export function LeaderboardScreen() {
             description="A faster read on how competitive the live board is right now."
           >
             <div className="space-y-3">
-              <SignalTile icon={Crown} label="Top rank" value={featuredPilot ? "#1" : "-"} accent="text-amber-200" />
-              <SignalTile icon={Shield} label="Pilots" value={String(leaderboard.length)} accent="text-cyan-200" />
-              <SignalTile icon={Trophy} label="Current leader XP" value={featuredPilot ? String(featuredPilot.xp) : "0"} accent="text-lime-200" />
-              <SignalTile icon={Zap} label="Board level" value={featuredPilot ? String(featuredPilot.level) : "0"} accent="text-white" />
+              <SignalTile icon={Crown} label="Top rank" value={featuredMember ? "#1" : "-"} accent="text-amber-200" />
+              <SignalTile icon={Shield} label="Members" value={String(leaderboard.length)} accent="text-cyan-200" />
+              <SignalTile icon={Trophy} label="Current leader XP" value={featuredMember ? String(featuredMember.xp) : "0"} accent="text-lime-200" />
+              <SignalTile icon={Zap} label="Board level" value={featuredMember ? String(featuredMember.level) : "0"} accent="text-white" />
             </div>
           </Surface>
         </div>
@@ -158,10 +158,10 @@ function RankBanner() {
         <Trophy className="h-8 w-8" />
       </div>
       <p className="font-display text-[11px] font-bold uppercase tracking-[0.3em] text-amber-200">
-        Rank Grid
+        Live Board
       </p>
       <p className="mt-3 max-w-[18rem] text-sm leading-7 text-slate-300">
-        The live ranking board shows who is actually driving momentum across the grid.
+        The live leaderboard shows who is actually driving momentum across the community.
       </p>
     </div>
   );
