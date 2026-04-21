@@ -3,6 +3,7 @@ import type { OnchainIngressEvent, SupportedOnchainEventType, TrustSnapshotRow }
 import { calculateEffectiveXp, getDefaultActionMultiplier, getDefaultBaseValue, getTrustMultiplierFromScore } from "./scoring.js";
 import { emitXpEvent } from "./ledger.js";
 import { writeAdminAuditLog } from "../ops/admin-audit.js";
+import { upsertTrustCasesFromSignals } from "../trust/trust-cases.js";
 import { deriveOnchainTrustAssessment, type SuspiciousSignal } from "./trust.js";
 
 function normalizeAddress(value: string) {
@@ -361,6 +362,20 @@ export async function ingestOnchainEvents(input: {
           signals: trustAssessment.suspiciousSignals,
           baseMetadata: baseReviewMetadata,
         });
+
+        await upsertTrustCasesFromSignals({
+          projectId: input.projectId,
+          authUserId: walletLink.auth_user_id,
+          walletAddress,
+          sourceType: "onchain_signal",
+          sourceId: ingressSourceId,
+          signals: trustAssessment.suspiciousSignals,
+          signalPayload: {
+            ...baseReviewMetadata,
+            reasons: trustAssessment.reasons,
+            rawEvent,
+          },
+        });
       }
 
       results.push({
@@ -440,6 +455,21 @@ export async function ingestOnchainEvents(input: {
         baseMetadata: {
           ...baseReviewMetadata,
           reasons: trustAssessment.reasons,
+        },
+      });
+
+      await upsertTrustCasesFromSignals({
+        projectId: input.projectId,
+        authUserId: walletLink.auth_user_id,
+        walletAddress,
+        sourceType: "onchain_signal",
+        sourceId: onchainEvent.id,
+        signals: trustAssessment.suspiciousSignals,
+        signalPayload: {
+          ...baseReviewMetadata,
+          reasons: trustAssessment.reasons,
+          onchainEventId: onchainEvent.id,
+          rawEvent,
         },
       });
     }
