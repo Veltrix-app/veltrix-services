@@ -1,5 +1,10 @@
 import { supabaseAdmin } from "../../lib/supabase.js";
 import { writeAdminAuditLog } from "../ops/admin-audit.js";
+import {
+  buildPayoutCaseDedupeKey,
+  resolvePayoutCaseByDedupeKey,
+  upsertPayoutCase,
+} from "../payout/payout-cases.js";
 import { getStakeWeight } from "./staking.js";
 
 function asNumber(value: unknown, fallback = 0) {
@@ -18,6 +23,12 @@ function roundAmount(value: number, digits = 6) {
 export async function finalizeCampaignRewards(input: { campaignId: string }) {
   let projectId: string | null = null;
   let rewardAsset = "campaign_pool";
+  let campaignTitle = "campaign";
+  const finalizationDedupeKey = buildPayoutCaseDedupeKey([
+    "campaign",
+    input.campaignId,
+    "finalization_failure",
+  ]);
 
   try {
     const { data: campaign, error: campaignError } = await supabaseAdmin
@@ -35,6 +46,7 @@ export async function finalizeCampaignRewards(input: { campaignId: string }) {
     }
 
     projectId = (campaign.project_id as string | null) ?? null;
+    campaignTitle = asTrimmedString(campaign.title) || "campaign";
 
     const rewardPoolAmount = asNumber(campaign.reward_pool_amount, 0);
     if (rewardPoolAmount <= 0) {
@@ -164,7 +176,7 @@ export async function finalizeCampaignRewards(input: { campaignId: string }) {
       sourceTable: "reward_distributions",
       sourceId: input.campaignId,
       action: "reward_finalization_completed",
-      summary: `Reward distributions finalized for ${asTrimmedString(campaign.title) || "campaign"}.`,
+      summary: `Reward distributions finalized for ${campaignTitle}.`,
       metadata: {
         rewardAsset,
         rewardPoolAmount,
@@ -172,6 +184,15 @@ export async function finalizeCampaignRewards(input: { campaignId: string }) {
         totalDistributed: result.totalDistributed,
       },
     });
+
+    if (projectId) {
+      await resolvePayoutCaseByDedupeKey({
+        projectId,
+        dedupeKey: finalizationDedupeKey,
+        summary: `Campaign reward finalization recovered for ${campaignTitle}.`,
+        notes: `Finalized ${result.recipients} recipient payout${result.recipients === 1 ? "" : "s"} after the latest run.`,
+      });
+    }
 
     return result;
   } catch (error) {
@@ -186,6 +207,31 @@ export async function finalizeCampaignRewards(input: { campaignId: string }) {
         rewardAsset,
       },
     });
+
+    if (projectId) {
+      await upsertPayoutCase({
+        projectId,
+        campaignId: input.campaignId,
+        caseType: "campaign_finalization_failure",
+        severity: "high",
+        status: "blocked",
+        sourceType: "campaign_finalization",
+        sourceId: input.campaignId,
+        dedupeKey: finalizationDedupeKey,
+        summary: error instanceof Error ? error.message : "Reward finalization failed.",
+        evidenceSummary: `Campaign payout finalization for ${campaignTitle} failed and still needs operator follow-through.`,
+        rawPayload: {
+          campaignId: input.campaignId,
+          campaignTitle,
+          rewardAsset,
+          error: error instanceof Error ? error.message : "Reward finalization failed.",
+        },
+        metadata: {
+          campaignTitle,
+          rewardAsset,
+        },
+      });
+    }
     throw error;
   }
 }
