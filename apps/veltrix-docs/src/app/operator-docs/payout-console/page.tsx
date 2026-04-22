@@ -238,6 +238,33 @@ export default function PayoutConsoleDocsPage() {
           },
         ],
       }}
+      playbookExamples={{
+        title: "Payout Console playbook examples",
+        description: "These examples show how payout safety should read when the queue is quiet, a bounded retry is available or inventory posture is now blocking claims.",
+        items: [
+          {
+            label: "Quiet payout lane",
+            meta: "Empty state",
+            trigger: "Shown when there are no active blocked claims, delivery failures or payout disputes in the current queue view.",
+            copy: "No active payout issues right now. Claims and delivery history will appear here when a reward path needs review.",
+            outcome: "A calm state should still teach operators what kinds of failures promote into payout cases.",
+          },
+          {
+            label: "Retry provider sync",
+            meta: "Recovery action",
+            trigger: "Shown when the case is eligible for a safe retry and the current operator has permission to move it forward.",
+            copy: "Retry provider sync",
+            outcome: "The action should make it clear that a bounded recovery step is happening, not an invisible background magic fix.",
+          },
+          {
+            label: "Blocked inventory warning",
+            meta: "Warning copy",
+            trigger: "Shown when current claim pressure has run into exhausted or unsafe reward stock and new claims cannot continue normally.",
+            copy: "Claims are blocked because reward inventory is exhausted. Refill inventory or pause the reward before new claims continue.",
+            outcome: "The warning should connect reward posture directly to member-facing claim consequences and the next operator move.",
+          },
+        ],
+      }}
     />
   );
 }

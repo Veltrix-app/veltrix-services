@@ -238,6 +238,33 @@ export default function TrustConsoleDocsPage() {
           },
         ],
       }}
+      playbookExamples={{
+        title: "Trust Console playbook examples",
+        description: "These examples show how trust review should sound when visibility is bounded, project input is needed or a signal moves beyond watch posture.",
+        items: [
+          {
+            label: "Bounded project visibility",
+            meta: "Empty state",
+            trigger: "Shown when a project can reach the trust console but only has summary-level grants and cannot inspect member-level evidence yet.",
+            copy: "Trust detail is bounded on this project. Ask an owner for case-detail access if you need member-level evidence.",
+            outcome: "This teaches the visibility boundary directly on the page instead of making the project guess whether something is broken.",
+          },
+          {
+            label: "Request project input",
+            meta: "Action button",
+            trigger: "Shown when internal trust review cannot move forward until a project confirms wallet, campaign or member context.",
+            copy: "Request project input",
+            outcome: "The control should make the direction of the handoff explicit so waiting states stay understandable on both sides.",
+          },
+          {
+            label: "Escalated trust warning",
+            meta: "Warning copy",
+            trigger: "Shown when watch-band signals or repeated suspicious patterns now justify a real trust case rather than passive monitoring.",
+            copy: "This member has moved beyond watch posture. Open a trust case and keep the timeline explicit before applying broader action.",
+            outcome: "The warning should explain why the system is escalating the review posture instead of merely surfacing a harsher badge.",
+          },
+        ],
+      }}
     />
   );
 }

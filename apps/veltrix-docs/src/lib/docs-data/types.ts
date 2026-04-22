@@ -9,6 +9,9 @@ export type DocsSnapshotSlug =
 export type DocsReferenceSlug =
   | "docs-coverage-map"
   | "control-atlas"
+  | "empty-states-and-zero-data"
+  | "action-buttons-and-safe-next-moves"
+  | "warning-copy-and-escalation-language"
   | "builder-controls-and-state-actions"
   | "visibility-and-grant-controls"
   | "warning-badges-and-status-cues"
@@ -37,6 +40,9 @@ export type DocsReferenceSlug =
 export type DocsStateExplorerSlug =
   | "docs-coverage"
   | "control-atlas"
+  | "empty-states"
+  | "action-behavior"
+  | "warning-semantics"
   | "recovery-actions"
   | "delivery-controls"
   | "lifecycle"

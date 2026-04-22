@@ -1,4 +1,5 @@
 import { DocsPageFrame } from "@/components/docs/docs-page-frame";
+import { DocsPlaybookSection, type DocsPlaybookExample } from "@/components/docs/docs-playbook-section";
 import { DocsReferenceBlock } from "@/components/docs/docs-reference-block";
 import { DocsSection } from "@/components/docs/docs-section";
 import { DocsSnapshotFrame } from "@/components/docs/docs-snapshot-frame";
@@ -27,6 +28,7 @@ export function DocsFlagshipPage({
   keyRules,
   controlAtlas,
   deepDive,
+  playbookExamples,
 }: Readonly<{
   eyebrow: string;
   title: string;
@@ -65,6 +67,11 @@ export function DocsFlagshipPage({
     title: string;
     description?: string;
     sections: DocsReferenceSection[];
+  };
+  playbookExamples?: {
+    title: string;
+    description?: string;
+    items: DocsPlaybookExample[];
   };
 }>) {
   const snapshot = loadDocsSurfaceSnapshot(snapshotSlug);
@@ -219,6 +226,14 @@ export function DocsFlagshipPage({
             ))}
           </div>
         </DocsSection>
+      ) : null}
+
+      {playbookExamples ? (
+        <DocsPlaybookSection
+          title={playbookExamples.title}
+          description={playbookExamples.description}
+          items={playbookExamples.items}
+        />
       ) : null}
     </DocsPageFrame>
   );

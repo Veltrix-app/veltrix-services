@@ -344,6 +344,27 @@ export const docsTracks: DocsTrackDefinition[] = [
         summary: "Deeper control-level pages for the concrete action rails, badges and grants that appear across the product.",
         items: [
           {
+            href: "/reference/empty-states-and-zero-data",
+            label: "Empty States and Zero-Data",
+            summary: "How empty, blocked, quiet and not-yet-configured product states should be explained instead of reading like generic blanks.",
+            status: "live",
+            kind: "reference",
+          },
+          {
+            href: "/reference/action-buttons-and-safe-next-moves",
+            label: "Action Buttons and Safe Next Moves",
+            summary: "What core action families do, when they appear and how they move projects or operators into the right next surface.",
+            status: "live",
+            kind: "reference",
+          },
+          {
+            href: "/reference/warning-copy-and-escalation-language",
+            label: "Warning Copy and Escalation Language",
+            summary: "How warnings, blocked states and escalation prompts should be phrased so people understand risk without panic or ambiguity.",
+            status: "live",
+            kind: "reference",
+          },
+          {
             href: "/reference/builder-controls-and-state-actions",
             label: "Builder Controls and State Actions",
             summary: "Entry controls, lifecycle actions, duplicate flows and launch posture actions across the builder family.",

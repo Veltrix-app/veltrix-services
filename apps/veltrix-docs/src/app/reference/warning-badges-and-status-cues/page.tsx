@@ -11,6 +11,7 @@ export default function WarningBadgesAndStatusCuesPage() {
       relatedHrefs={[
         "/reference",
         "/reference/control-atlas",
+        "/reference/warning-copy-and-escalation-language",
         "/reference/status-labels",
         "/reference/warning-and-flag-lifecycle",
         "/project-docs/launch-workspace",

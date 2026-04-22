@@ -235,6 +235,33 @@ export default function QuestStudioDocsPage() {
           },
         ],
       }}
+      playbookExamples={{
+        title: "Quest Studio playbook examples",
+        description: "These examples show how a quest page should guide a builder from vague mission drafts into clear action, proof and reward posture.",
+        items: [
+          {
+            label: "No action clarity yet",
+            meta: "Empty state",
+            trigger: "Shown when a quest draft exists but the member task and its destination are still too vague to preview well.",
+            copy: "Define the member action first. The quest needs a clear destination and success behavior before verification or reward posture can mean anything.",
+            outcome: "This keeps the builder from feeling like a proof settings page before the mission itself is understandable.",
+          },
+          {
+            label: "Publish quest button",
+            meta: "Lifecycle action",
+            trigger: "Shown when action, verification and reward framing are coherent enough to move out of draft posture.",
+            copy: "Publish quest",
+            outcome: "The button should feel like a deliberate state change after the mission is legible, not a casual save action.",
+          },
+          {
+            label: "Verification warning",
+            meta: "Warning copy",
+            trigger: "Shown when the member task is clear but the proof model is weak, missing or likely to create manual review pressure later.",
+            copy: "This quest is understandable, but verification posture is still weak. Tighten the proof model before expecting clean completion trust.",
+            outcome: "The warning should connect builder decisions directly to later trust, review and operator consequences.",
+          },
+        ],
+      }}
     />
   );
 }

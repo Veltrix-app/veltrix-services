@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { DocsPageFrame } from "@/components/docs/docs-page-frame";
+import { DocsPlaybookSection } from "@/components/docs/docs-playbook-section";
 import { DocsReferenceBlock } from "@/components/docs/docs-reference-block";
 import { DocsSection } from "@/components/docs/docs-section";
 import { DocsSnapshotFrame } from "@/components/docs/docs-snapshot-frame";
@@ -156,6 +157,14 @@ export function DocsGuidePage({
             ))}
           </div>
         </DocsSection>
+      ) : null}
+
+      {page.playbookExamples ? (
+        <DocsPlaybookSection
+          title={page.playbookExamples.title}
+          description={page.playbookExamples.description}
+          items={page.playbookExamples.items}
+        />
       ) : null}
     </DocsPageFrame>
   );

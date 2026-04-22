@@ -70,6 +70,108 @@ const docsStateExplorerDatasets: DocsStateExplorerDataset[] = [
     ],
   },
   {
+    slug: "empty-states",
+    title: "Empty-state posture",
+    summary: "Empty states in Veltrix should explain what is missing, why it matters and what the safest next move is.",
+    states: [
+      {
+        label: "Not configured yet",
+        summary: "The surface is empty because the project or operator has not created the underlying object or completed the prerequisite setup.",
+        bullets: [
+          "This state should name what is still missing rather than apologizing that nothing is here.",
+          "Launch Workspace, builder pages and integration surfaces often use this posture before the first object exists.",
+          "Good empty copy should point directly to the builder, setting or connection that resolves the gap.",
+        ],
+      },
+      {
+        label: "Configured but quiet",
+        summary: "The surface is technically healthy, but there is currently no live pressure, no matching activity or no open work in this slice.",
+        bullets: [
+          "This state should reassure the reader that the system is calm rather than implying something failed.",
+          "Overview, analytics, trust history and payout history often need this calm-posture empty state.",
+          "The safest next move may be to keep monitoring instead of forcing the user into a fake action.",
+        ],
+      },
+      {
+        label: "Blocked by another surface",
+        summary: "The page is empty because another prerequisite or owning surface still has unresolved work.",
+        bullets: [
+          "This state should name the blocking dependency: launch readiness, inventory posture, permissions, provider health or review ownership.",
+          "It should route to the exact surface that can actually unblock the current page.",
+          "This prevents empty states from reading like dead ends when the real problem lives elsewhere.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "action-behavior",
+    title: "Action behavior posture",
+    summary: "Veltrix action buttons should explain what they change, who can use them and what surface or state comes next.",
+    states: [
+      {
+        label: "Open or route",
+        summary: "Some buttons primarily move the user into the next surface with context preserved rather than mutating data immediately.",
+        bullets: [
+          "Examples include opening a builder from Launch Workspace or following a deep link from a bot command.",
+          "These actions should communicate destination and purpose so they read like guided next moves, not generic navigation.",
+          "The docs should make it explicit when a button is a context-preserving route rather than a state change.",
+        ],
+      },
+      {
+        label: "Change lifecycle or posture",
+        summary: "Other buttons change the state of an object or workflow: publish, pause, archive, duplicate or apply a grant.",
+        bullets: [
+          "These actions need clear consequence language because other surfaces will read the object differently afterward.",
+          "Lifecycle and permission buttons should explain their downstream effects, not just their labels.",
+          "The docs should treat these as trust-bearing actions because they materially change product posture.",
+        ],
+      },
+      {
+        label: "Recover or resolve",
+        summary: "Recovery actions narrow live work toward closure through retries, rescans, escalations, annotations or explicit resolution states.",
+        bullets: [
+          "These buttons are strongest when the current blocker, owner and waiting state are already visible nearby.",
+          "Project-safe recovery buttons should read more bounded than internal-only operator controls.",
+          "The docs should explain what history gets written when one of these actions succeeds.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "warning-semantics",
+    title: "Warning semantics",
+    summary: "Warning copy should tell the reader what kind of risk exists, how urgent it is and whether the next move is local, cross-surface or operator-owned.",
+    states: [
+      {
+        label: "Advisory warning",
+        summary: "The system is surfacing pressure or drift, but the current posture is still usable if the reader understands the caveat.",
+        bullets: [
+          "This warning should explain what feels risky without sounding like a hard failure.",
+          "Examples include watch-band trust posture, early launch incompleteness or mild integration drift.",
+          "The docs should show that advisory warnings guide prioritization more than immediate incident response.",
+        ],
+      },
+      {
+        label: "Blocking warning",
+        summary: "The current path cannot proceed safely until something specific changes.",
+        bullets: [
+          "This copy should name the blocker directly: missing project input, blocked claim, absent provider setup or unresolved incident ownership.",
+          "Blocking warnings should usually pair with a bounded next action or a link to the owning surface.",
+          "The docs should distinguish blocked from merely concerning so users do not overreact to every caution label.",
+        ],
+      },
+      {
+        label: "Escalation language",
+        summary: "Some warnings are really coordination prompts that explain who needs to act next across teams or consoles.",
+        bullets: [
+          "These cues should use explicit waiting-state and ownership language instead of vague urgency wording.",
+          "Examples include awaiting internal review, needs project input or incident promotion posture.",
+          "The docs should show how escalation copy reduces ambiguity by naming the lane of responsibility clearly.",
+        ],
+      },
+    ],
+  },
+  {
     slug: "recovery-actions",
     title: "Recovery action posture",
     summary: "Recovery controls move a live issue toward closure through a bounded sequence: clarify, act safely, then write history.",

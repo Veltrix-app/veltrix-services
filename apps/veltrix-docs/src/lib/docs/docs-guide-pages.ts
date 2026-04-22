@@ -1,3 +1,5 @@
+import type { DocsPlaybookExample } from "@/components/docs/docs-playbook-section";
+
 type DocsGuideState = {
   label: string;
   summary: string;
@@ -70,6 +72,11 @@ type DocsGuideDefinition = {
     title: string;
     description?: string;
     sections: DocsGuideSection[];
+  };
+  playbookExamples?: {
+    title: string;
+    description?: string;
+    items: DocsPlaybookExample[];
   };
 };
 
@@ -3279,6 +3286,347 @@ const docsGuidePages: DocsGuideDefinition[] = [
   },
 ];
 
+const docsGuidePlaybookExamples: Record<
+  string,
+  {
+    title: string;
+    description?: string;
+    items: DocsPlaybookExample[];
+  }
+> = {
+  "project-docs/launch-workspace": {
+    title: "Launch Workspace playbook examples",
+    description: "These examples show how the launch hub should speak when posture is empty, partially ready or clearly blocked.",
+    items: [
+      {
+        label: "Fresh project launch state",
+        meta: "Empty state",
+        trigger: "Shown when a project has not created a campaign spine yet and the launch checklist is still mostly blank.",
+        copy: "No launch spine yet. Open Campaign Studio to define the first campaign architecture for this project.",
+        outcome: "The page should point to the highest-value first builder instead of listing every possible tool equally.",
+      },
+      {
+        label: "Readiness next move",
+        meta: "Primary CTA",
+        trigger: "Shown after the launch page detects that campaign structure exists but quest or reward coverage is still missing.",
+        copy: "Open Quest Studio",
+        outcome: "This keeps the launch hub action-oriented and helps a project move through readiness in a clear sequence.",
+      },
+      {
+        label: "Launch-blocking warning",
+        meta: "Warning copy",
+        trigger: "Shown when the launch posture is structurally usable but still missing an incentive or final delivery layer.",
+        copy: "Launch posture is usable, but rewards are still missing. Add a reward before treating this path as member-ready.",
+        outcome: "The warning should explain exactly why the project is not truly ready instead of using vague red status language.",
+      },
+    ],
+  },
+  "project-docs/raid-studio": {
+    title: "Raid Studio playbook examples",
+    description: "These examples show how raid setup should guide timing, channel posture and captain execution.",
+    items: [
+      {
+        label: "No channel posture yet",
+        meta: "Empty state",
+        trigger: "Shown when the raid exists as a draft shell but no live execution channel or timing window has been selected.",
+        copy: "Select the live channel and timing window before assigning captains or publishing this raid.",
+        outcome: "The builder should make it obvious that staffing and launch pressure depend on a concrete raid environment first.",
+      },
+      {
+        label: "Assign captain action",
+        meta: "Safe next move",
+        trigger: "Shown when the raid structure is ready but nobody is clearly responsible for running the action once it goes live.",
+        copy: "Assign captain seat",
+        outcome: "This keeps execution accountability explicit and prevents raids from becoming owner-only planning objects.",
+      },
+      {
+        label: "Cadence warning",
+        meta: "Warning copy",
+        trigger: "Shown when the raid timing conflicts with current campaign pressure or overlaps an existing activation burst.",
+        copy: "This raid overlaps an active launch burst. Confirm that captain coverage and member attention can support both windows.",
+        outcome: "The warning should read like an operational caution, not a generic validation error.",
+      },
+    ],
+  },
+  "project-docs/rewards": {
+    title: "Rewards playbook examples",
+    description: "These examples show how reward posture should explain inventory, member expectation and claim readiness.",
+    items: [
+      {
+        label: "No reward coverage yet",
+        meta: "Empty state",
+        trigger: "Shown when a project has missions live or almost ready but no reward path exists yet.",
+        copy: "No reward path yet. Create a reward so this campaign can explain what members unlock after completion.",
+        outcome: "The reward page should frame incentives as part of the mission system, not as an optional afterthought.",
+      },
+      {
+        label: "Grant payout detail",
+        meta: "Action button",
+        trigger: "Shown to project owners when payout health exists and another teammate needs bounded visibility into blocked claims or delivery posture.",
+        copy: "Grant payout detail",
+        outcome: "This reinforces that visibility and action rights are explicit and owner-managed rather than ambient project permissions.",
+      },
+      {
+        label: "Inventory exhaustion warning",
+        meta: "Warning copy",
+        trigger: "Shown when remaining reward stock can no longer safely support the currently open claim path.",
+        copy: "Claims are blocked because reward inventory is exhausted. Refill inventory or pause the reward before new claims continue.",
+        outcome: "The warning should connect stock pressure directly to the member-facing consequence and the next operator move.",
+      },
+    ],
+  },
+  "project-docs/member-journey": {
+    title: "Member Journey playbook examples",
+    description: "These examples show how member-facing posture should react to missing progress, new missions and comeback pressure.",
+    items: [
+      {
+        label: "New member journey start",
+        meta: "Empty state",
+        trigger: "Shown when a member has linked in but has not yet entered an onboarding or mission lane.",
+        copy: "No mission lane yet. Start with the onboarding path so this member can link identity, complete the first action and unlock a clearer next step.",
+        outcome: "The journey page should reduce ambiguity by routing the member into one crisp opening path.",
+      },
+      {
+        label: "Resume the next mission",
+        meta: "Action button",
+        trigger: "Shown when the member has already completed setup and the system knows the next highest-value mission.",
+        copy: "Resume next mission",
+        outcome: "The primary CTA should feel like a continuation of progress, not a generic browse action.",
+      },
+      {
+        label: "Comeback pressure warning",
+        meta: "Warning copy",
+        trigger: "Shown when a member has gone cold and the system is shifting from normal journey posture into reactivation mode.",
+        copy: "Momentum is cooling. Surface a comeback mission or recognition prompt before this member drifts into passive status.",
+        outcome: "This helps teams understand why comeback rails exist and what kind of intervention is appropriate.",
+      },
+    ],
+  },
+  "project-docs/bot-commands": {
+    title: "Bot command playbook examples",
+    description: "These examples show how command posture should communicate availability, permission bounds and deep-link follow-through.",
+    items: [
+      {
+        label: "No command family enabled",
+        meta: "Empty state",
+        trigger: "Shown when a project has community rails available but no mission, captain or profile command family is enabled yet.",
+        copy: "No command families are live yet. Enable a mission or profile rail before expecting chat-side activation to carry this project.",
+        outcome: "The docs should make it clear that chat delivery is a deliberate operating choice, not an always-on side effect.",
+      },
+      {
+        label: "Enable mission commands",
+        meta: "Action button",
+        trigger: "Shown when the project wants chat-side entry into live missions without opening broader captain rails.",
+        copy: "Enable mission commands",
+        outcome: "This gives the project a clean bounded next move and keeps command families legible.",
+      },
+      {
+        label: "Permission-bound command warning",
+        meta: "Warning copy",
+        trigger: "Shown when a project member expects to use a captain or review command without the seat or grant required for it.",
+        copy: "This command is scoped to captain seats or owner-granted access. Update permissions before using it as a live ops rail.",
+        outcome: "The warning should explain the boundary instead of sounding like the bot simply failed.",
+      },
+    ],
+  },
+  "project-docs/integrations": {
+    title: "Integrations playbook examples",
+    description: "These examples show how integrations should explain missing dependencies and readiness impact.",
+    items: [
+      {
+        label: "No provider connected",
+        meta: "Empty state",
+        trigger: "Shown when a workflow depends on a provider or verification rail that has not been configured for the project.",
+        copy: "No integration connected yet. Add the provider before enabling this verification or delivery path.",
+        outcome: "The page should connect missing setup directly to the product capability that remains unavailable.",
+      },
+      {
+        label: "Open provider settings",
+        meta: "Action button",
+        trigger: "Shown when the project has chosen a feature path that cannot proceed until credentials, asset context or sync behavior is configured.",
+        copy: "Open provider settings",
+        outcome: "This keeps setup work close to the blocked capability and reduces route-hunting through settings.",
+      },
+      {
+        label: "Stale sync warning",
+        meta: "Warning copy",
+        trigger: "Shown when the provider link exists but current sync posture is old enough to weaken verification or on-chain confidence.",
+        copy: "Integration is connected, but sync posture is stale. Refresh the provider before treating downstream signals as current.",
+        outcome: "The warning should frame stale data as a trust issue, not just a cosmetic freshness badge.",
+      },
+    ],
+  },
+  "project-docs/project-settings": {
+    title: "Project Settings playbook examples",
+    description: "These examples show how governance, grants and project-safe defaults should read inside settings.",
+    items: [
+      {
+        label: "No extra grants configured",
+        meta: "Empty state",
+        trigger: "Shown when a project is still operating entirely on owner defaults and no bounded roles have been granted yet.",
+        copy: "No team-specific grants yet. Add bounded access only where someone needs to see or act beyond the owner default.",
+        outcome: "This helps the page teach principle-first governance instead of encouraging blanket permissions.",
+      },
+      {
+        label: "Review role access",
+        meta: "Action button",
+        trigger: "Shown when a project wants another teammate to help with trust, payout or on-chain review without elevating them to owner.",
+        copy: "Review role access",
+        outcome: "The control should feel like a careful permission review, not a generic invite button.",
+      },
+      {
+        label: "Unsafe grant warning",
+        meta: "Warning copy",
+        trigger: "Shown when the current settings would give a teammate visibility or actions broader than the project-safe posture expects.",
+        copy: "This grant expands beyond the project-safe default. Confirm that the teammate really needs this level of visibility or action authority.",
+        outcome: "The warning should slow the owner down and make the governance consequence explicit.",
+      },
+    ],
+  },
+  "operator-docs/claims-and-resolution": {
+    title: "Claims and Resolution playbook examples",
+    description: "These examples show how case-driven claims work should speak when the queue is calm, blocked or actively recovering.",
+    items: [
+      {
+        label: "Quiet queue state",
+        meta: "Empty state",
+        trigger: "Shown when there are no active blocked claims, payout disputes or manual claim reviews waiting in the current lane.",
+        copy: "No active payout issues right now. Claims and delivery history will appear here when a reward path needs review.",
+        outcome: "A healthy empty state should still teach what kinds of cases land here without pretending the page is useless when quiet.",
+      },
+      {
+        label: "Retry project flow",
+        meta: "Action button",
+        trigger: "Shown when a case is waiting on a safe recovery step and the current operator has bounded permission to run it.",
+        copy: "Retry project flow",
+        outcome: "The action should state that it is a bounded retry, not an opaque technical rerun.",
+      },
+      {
+        label: "Awaiting project input warning",
+        meta: "Warning copy",
+        trigger: "Shown when claim resolution cannot continue until the project confirms reward, wallet or member context.",
+        copy: "Needs project input. A project owner must confirm the reward or wallet context before this claim can move out of review.",
+        outcome: "This keeps the waiting state specific and prevents operators from mistaking it for a silent system stall.",
+      },
+    ],
+  },
+  "operator-docs/escalations": {
+    title: "Escalations playbook examples",
+    description: "These examples show how escalation language should narrow ownership and next action rather than creating panic.",
+    items: [
+      {
+        label: "No open escalations",
+        meta: "Empty state",
+        trigger: "Shown when the current lane has no unresolved handoffs waiting on another team or surface.",
+        copy: "No active escalations. New cross-surface pressure will appear here when a case needs broader coordination.",
+        outcome: "This gives the page a calm, useful baseline while teaching what qualifies as an escalation event.",
+      },
+      {
+        label: "Request project input",
+        meta: "Action button",
+        trigger: "Shown when an internal operator needs the project to confirm context before a trust, payout or on-chain case can proceed.",
+        copy: "Request project input",
+        outcome: "The control should explicitly name the direction of the handoff so the queue stays easy to reason about.",
+      },
+      {
+        label: "Cross-system coordination warning",
+        meta: "Warning copy",
+        trigger: "Shown when a problem now spans more than one console or requires named ownership before any further retries or resolutions happen.",
+        copy: "This issue now spans multiple systems. Assign a named owner before opening more recovery actions.",
+        outcome: "The warning should prevent action spam and reinforce that escalations are coordination events, not just louder alerts.",
+      },
+    ],
+  },
+  "operator-docs/overview-and-analytics": {
+    title: "Overview and Analytics playbook examples",
+    description: "These examples show how summary surfaces should route operators from macro posture into the right console.",
+    items: [
+      {
+        label: "Healthy platform snapshot",
+        meta: "Empty state",
+        trigger: "Shown when health signals are within expected bounds and no major incident, payout or trust pressure requires immediate operator intervention.",
+        copy: "Platform posture is stable. Stay here for trend visibility, then drill into the next console only when a metric shifts out of its normal band.",
+        outcome: "The summary page should still teach how to use the surface when nothing dramatic is wrong.",
+      },
+      {
+        label: "Open affected console",
+        meta: "Action button",
+        trigger: "Shown when a metric card or health signal clearly maps to one console as the next best investigation surface.",
+        copy: "Open affected console",
+        outcome: "The action should preserve the idea that Overview is a routing layer, not the place where deep recovery happens.",
+      },
+      {
+        label: "Metric-drift warning",
+        meta: "Warning copy",
+        trigger: "Shown when a trend is outside the normal band long enough to justify console investigation even before a formal incident exists.",
+        copy: "Health is drifting outside the normal band. Move into the linked console before this turns into a broader incident posture.",
+        outcome: "This warning helps operators see the difference between summary drift and a full promoted incident.",
+      },
+    ],
+  },
+  "operator-docs/runbooks": {
+    title: "Runbook playbook examples",
+    description: "These examples show how a runbook page should tell someone what kind of incident they are in and what the safest first move is.",
+    items: [
+      {
+        label: "No matching runbook yet",
+        meta: "Empty state",
+        trigger: "Shown when an operator lands on a runbook family that has no active incident or no playbook matching the current console pressure.",
+        copy: "No active playbook in this lane right now. Use the linked console or escalation surface to confirm whether this is a true incident before improvising.",
+        outcome: "The page should discourage random action and reinforce that runbooks start from classification.",
+      },
+      {
+        label: "Open recovery checklist",
+        meta: "Action button",
+        trigger: "Shown when the system has enough context to narrow the operator into a specific bounded recovery sequence.",
+        copy: "Open recovery checklist",
+        outcome: "This keeps the runbook focused on repeatable first moves instead of a wall of passive text.",
+      },
+      {
+        label: "Escalate instead of retry warning",
+        meta: "Warning copy",
+        trigger: "Shown when the current issue has already exceeded a safe local retry posture and now needs coordination.",
+        copy: "Do not fire more local retries here. Escalate and assign an owner before taking the next recovery step.",
+        outcome: "The warning should actively protect the platform from reactive operator behavior.",
+      },
+    ],
+  },
+  "operator-docs/incident-handling": {
+    title: "Incident Handling playbook examples",
+    description: "These examples show how cross-system incidents should sound once the platform moves beyond a single-console issue.",
+    items: [
+      {
+        label: "No open incident posture",
+        meta: "Empty state",
+        trigger: "Shown when local console pressure exists but nothing has yet been promoted into a named cross-system incident.",
+        copy: "No active incident posture. Keep working in the underlying console until pressure spans multiple systems or named coordination is required.",
+        outcome: "This teaches operators that not every noisy console deserves incident treatment.",
+      },
+      {
+        label: "Assign incident owner",
+        meta: "Action button",
+        trigger: "Shown when multiple surfaces are now involved and response quality depends on clear coordination rather than more local actions.",
+        copy: "Assign incident owner",
+        outcome: "The action should immediately signal that people-coordination is now the first control, not another retry.",
+      },
+      {
+        label: "Promoted incident warning",
+        meta: "Warning copy",
+        trigger: "Shown when cross-system pressure, health drift or repeated failures justify moving into broader incident posture.",
+        copy: "This issue has moved beyond a local case. Coordinate the response across the affected consoles before declaring recovery.",
+        outcome: "The warning should mark the boundary between console work and true incident handling in a very legible way.",
+      },
+    ],
+  },
+};
+
 export function getDocsGuidePage(track: "project-docs" | "operator-docs", slug: string) {
-  return docsGuidePages.find((page) => page.track === track && page.slug === slug);
+  const page = docsGuidePages.find((entry) => entry.track === track && entry.slug === slug);
+
+  if (!page) {
+    return undefined;
+  }
+
+  const playbookExamples = docsGuidePlaybookExamples[`${track}/${slug}`];
+  return playbookExamples ? { ...page, playbookExamples } : page;
 }

@@ -239,6 +239,33 @@ export default function OnchainConsoleDocsPage() {
           },
         ],
       }}
+      playbookExamples={{
+        title: "On-chain Console playbook examples",
+        description: "These examples show how chain-side recovery should explain bounded visibility, safe retries and the difference between quiet health and real chain pressure.",
+        items: [
+          {
+            label: "No active chain recovery",
+            meta: "Empty state",
+            trigger: "Shown when the current project or operator lane has no unresolved ingress, enrichment or sync failures.",
+            copy: "No unresolved on-chain cases right now. New validation failures, suspicious chain signals or recovery jobs will appear here when they need attention.",
+            outcome: "The empty state should clarify what belongs in this console without pretending healthy chain posture means the page has no purpose.",
+          },
+          {
+            label: "Rerun project enrichment",
+            meta: "Project-safe action",
+            trigger: "Shown when a case is blocked by stale or failed derived metadata and the current role has bounded permission to refresh it.",
+            copy: "Rerun project enrichment",
+            outcome: "This reinforces the distinction between safe project-scoped recovery and deeper internal provider control.",
+          },
+          {
+            label: "Bounded wallet-detail warning",
+            meta: "Warning copy",
+            trigger: "Shown when a project can see the on-chain case but not the deeper wallet or event detail required for full investigation.",
+            copy: "Wallet detail is still bounded on this project. Ask an owner for deeper access before using this case for member-level review.",
+            outcome: "The warning should explain the permission boundary instead of making the user think data is missing or broken.",
+          },
+        ],
+      }}
     />
   );
 }

@@ -237,6 +237,33 @@ export default function CampaignStudioDocsPage() {
           },
         ],
       }}
+      playbookExamples={{
+        title: "Campaign Studio playbook examples",
+        description: "These examples show how the campaign builder should talk when a project is starting cold, handing work downstream or missing a launch-critical piece.",
+        items: [
+          {
+            label: "First campaign empty state",
+            meta: "Empty state",
+            trigger: "Shown when a project opens Campaign Studio from Launch Workspace without an existing campaign spine.",
+            copy: "No campaign spine yet. Start by defining the launch goal and mission map before opening quest or reward builders.",
+            outcome: "The builder should keep the team focused on architecture first instead of jumping straight into disconnected mission objects.",
+          },
+          {
+            label: "Quest handoff button",
+            meta: "Primary CTA",
+            trigger: "Shown after the campaign architecture is coherent enough for the next layer of mission building.",
+            copy: "Open Quest Studio",
+            outcome: "This makes the downstream handoff explicit and preserves the sense that quests belong to a planned campaign structure.",
+          },
+          {
+            label: "Readiness warning",
+            meta: "Warning copy",
+            trigger: "Shown when the campaign exists as draft architecture but still lacks enough quest, raid or reward coverage to feel launch-ready.",
+            copy: "Campaign architecture is in place, but execution coverage is still thin. Add quests, raids or rewards before treating this launch path as ready.",
+            outcome: "The warning should explain the missing structural layer instead of flashing a generic incomplete badge.",
+          },
+        ],
+      }}
     />
   );
 }

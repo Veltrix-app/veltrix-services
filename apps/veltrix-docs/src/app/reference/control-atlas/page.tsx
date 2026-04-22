@@ -11,6 +11,8 @@ export default function ControlAtlasPage() {
       relatedHrefs={[
         "/reference",
         "/reference/docs-coverage-map",
+        "/reference/empty-states-and-zero-data",
+        "/reference/action-buttons-and-safe-next-moves",
         "/reference/permissions",
         "/reference/warning-and-flag-lifecycle",
         "/project-docs/launch-workspace",

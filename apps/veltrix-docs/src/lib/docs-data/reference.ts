@@ -236,6 +236,400 @@ const docsReferenceDatasets: DocsReferenceDataset[] = [
     },
   },
   {
+    slug: "empty-states-and-zero-data",
+    title: "Empty States and Zero-Data",
+    summary: "The reference model for how Veltrix should explain blank, calm, blocked or not-yet-configured surfaces without leaving users guessing.",
+    entries: [
+      { label: "Not configured yet", meta: "Setup posture", summary: "Use when the surface is empty because the user has not created the underlying object or connected the required setup yet." },
+      { label: "Configured but quiet", meta: "Calm posture", summary: "Use when the system is healthy but currently has no open work, incidents, claims or matching activity in that slice." },
+      { label: "Blocked elsewhere", meta: "Dependency posture", summary: "Use when the page is empty because another surface or owner still has unresolved prerequisite work." },
+      { label: "No permission to see detail", meta: "Bounded visibility", summary: "Use when the console intentionally withholds deeper detail and the correct next move is to understand the boundary, not assume the data is missing." },
+    ],
+    matrix: {
+      title: "Empty-state matrix",
+      description: "An empty surface should help the user understand what kind of emptiness they are seeing and what to do next.",
+      columns: ["State type", "What it means", "Best next move"],
+      rows: [
+        {
+          label: "No object yet",
+          values: ["The campaign, quest, reward, raid or provider connection does not exist yet", "Open the builder or setup path that creates the missing object", "Use an explicit creation CTA with route context"],
+          summary: "This is the most common builder-side empty state and should feel like a guided starting line rather than a blank panel.",
+        },
+        {
+          label: "Healthy but no activity",
+          values: ["The surface is structurally ready but currently has no matching activity, incidents or queued work", "Reassure the reader and explain what would make this surface populate later", "Prefer calm copy over urgency language"],
+          summary: "Analytics, resolution history and quiet safety consoles often need this posture so users do not confuse calmness with failure.",
+        },
+        {
+          label: "Blocked by dependency",
+          values: ["Another surface still owns the missing prerequisite or unresolved blocker", "Route directly to the owning surface or next bounded action", "Name the dependency clearly"],
+          summary: "A good dependency empty state prevents users from clicking around randomly when the answer already lives in Launch, Integrations, Claims or another lane.",
+        },
+        {
+          label: "Summary-only empty",
+          values: ["The user can see that the console exists but not the deeper detail", "Explain the permission boundary or owner-managed grant path", "Avoid implying the system failed to load"],
+          summary: "This posture matters for trust, payout and on-chain because bounded visibility is a feature, not a bug.",
+        },
+      ],
+    },
+    deepDive: {
+      title: "How empty states should behave in a serious product manual",
+      description: "An empty state is part of product logic. The docs should explain what the system knows, what it does not know yet and whether the user can change that from here.",
+      sections: [
+        {
+          title: "Empty should still be informative",
+          description: "A surface without rows, cases or objects should still teach the user what category of product posture they are looking at.",
+          items: [
+            {
+              label: "Name the missing thing",
+              meta: "Clarity rule",
+              summary: "The strongest empty states tell the reader exactly what object, capability or prerequisite is still absent instead of speaking in generic placeholder language.",
+            },
+            {
+              label: "Explain whether the system is calm or incomplete",
+              meta: "Interpretation rule",
+              summary: "Quiet history and incomplete setup are very different postures, so the copy should make that difference legible immediately.",
+            },
+            {
+              label: "Preserve product confidence",
+              meta: "UX rule",
+              summary: "A good empty state should reassure the reader that the system understands the surface, even if the answer is currently 'nothing here yet'.",
+            },
+          ],
+        },
+        {
+          title: "Dependency empties should route cleanly",
+          description: "When another surface owns the next move, the empty state should act like a handoff, not a dead end.",
+          items: [
+            {
+              label: "Point to the owning surface",
+              meta: "Navigation rule",
+              summary: "If Launch Workspace, Integrations, Project Settings or another console is the real unblocker, the empty state should say so explicitly.",
+            },
+            {
+              label: "Keep the next move bounded",
+              meta: "Action rule",
+              summary: "The state should recommend one safe next step instead of presenting a bag of unrelated links or options.",
+            },
+            {
+              label: "Avoid implied blame",
+              meta: "Tone rule",
+              summary: "Dependency empties should explain the blocker without sounding accusatory toward the project, operator or another team lane.",
+            },
+          ],
+        },
+        {
+          title: "Bounded empties should explain visibility",
+          description: "When a page is intentionally quiet because of permissions, the docs should treat that as part of the control system.",
+          items: [
+            {
+              label: "Permission language should be explicit",
+              meta: "Access rule",
+              summary: "Readers should understand whether they are seeing a summary-only surface, a hidden detail area or a true absence of data.",
+            },
+            {
+              label: "Owner-managed grants matter",
+              meta: "Governance rule",
+              summary: "If deeper detail exists behind owner-controlled grants, the docs should explain that path rather than implying the data is unavailable to everyone.",
+            },
+            {
+              label: "The UI should still feel complete",
+              meta: "Product rule",
+              summary: "Even bounded pages should read as deliberate product surfaces, not partial or broken loads.",
+            },
+          ],
+        },
+        {
+          title: "Surface-level examples",
+          description: "These examples show how empty states should sound on real Veltrix surfaces instead of as abstract rules only.",
+          items: [
+            {
+              label: "\"No launch spine yet. Open Campaign Studio to define the first campaign architecture for this project.\"",
+              meta: "Launch Workspace example",
+              summary: "This is a good not-configured-yet empty state because it names the missing object and gives one explicit next move.",
+            },
+            {
+              label: "\"No active payout issues right now. Claims and delivery history will appear here when a reward path needs review.\"",
+              meta: "Payout calm-state example",
+              summary: "This is a good configured-but-quiet message because it reassures the reader that the system is healthy instead of implying a failed load.",
+            },
+            {
+              label: "\"Trust detail is bounded on this project. Ask an owner for case-detail access if you need member-level evidence.\"",
+              meta: "Summary-only example",
+              summary: "This is a good bounded empty state because it explains that the silence comes from permissions rather than missing data.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    slug: "action-buttons-and-safe-next-moves",
+    title: "Action Buttons and Safe Next Moves",
+    summary: "The reference model for what core action buttons do, when they appear and how they move users into the next safe product posture.",
+    entries: [
+      { label: "Open or continue", meta: "Routing actions", summary: "Buttons that move the user into a builder, workflow or linked surface with context preserved." },
+      { label: "Change state", meta: "Lifecycle actions", summary: "Buttons that publish, pause, resume, archive, duplicate or otherwise change how the system treats the object." },
+      { label: "Recover or resolve", meta: "Case actions", summary: "Buttons that retry, rerun, rescan, annotate, escalate, resolve or dismiss live issues with explicit boundaries." },
+      { label: "Grant or reveal", meta: "Visibility actions", summary: "Buttons that expand visibility, apply grants or otherwise change who can see and do what next." },
+    ],
+    matrix: {
+      title: "Action behavior matrix",
+      description: "A button is easier to understand when readers know whether it routes, mutates state, starts recovery or changes access.",
+      columns: ["Action family", "What changes", "What good docs should explain"],
+      rows: [
+        {
+          label: "Open builder or continue flow",
+          values: ["The user moves into another surface with source context attached", "Why this surface is next and what context will already be present", "That the action routes rather than mutates state directly"],
+          summary: "These buttons are common in Launch Workspace, builders, bots and summary pages where the product is guiding the next move.",
+        },
+        {
+          label: "Publish, pause, archive, duplicate",
+          values: ["The object's lifecycle posture changes", "What downstream surfaces will now read differently", "Which users can safely take the action"],
+          summary: "Lifecycle buttons should be documented as trust-bearing controls because they affect the full operating system around the object.",
+        },
+        {
+          label: "Retry, rerun, rescan, resolve",
+          values: ["A live issue moves into bounded recovery or closure", "What blocker should already be visible before this action is used", "What history will be written after the action completes"],
+          summary: "These controls matter most in trust, payout and on-chain flows where the system must stay explainable while recovering.",
+        },
+        {
+          label: "Grant access or reveal detail",
+          values: ["Another user or lane can now see more or do more", "Which visibility or action boundary changed", "Whether the change is owner-only or broadly available"],
+          summary: "Grant actions are governance controls and should never read like casual toggles.",
+        },
+      ],
+    },
+    deepDive: {
+      title: "How to document button behavior in a product-grade manual",
+      description: "The docs should tell readers what a button changes, why it is safe, when it appears and what the next surface or state will be afterward.",
+      sections: [
+        {
+          title: "Route buttons should preserve narrative",
+          description: "Buttons that open another page should still explain the story of why the user is going there next.",
+          items: [
+            {
+              label: "Source context matters",
+              meta: "Routing rule",
+              summary: "Open-builder and deep-link actions should preserve whether the user came from launch, a command, a case or another surface so the next page feels intentional.",
+            },
+            {
+              label: "The destination should be implied",
+              meta: "Labeling rule",
+              summary: "Action text should help the reader understand whether they are starting a new object, continuing an existing flow or inspecting the underlying cause of a warning.",
+            },
+            {
+              label: "Routing is still product logic",
+              meta: "Docs rule",
+              summary: "Even non-mutating buttons deserve explicit docs because they shape how users learn the product and move through it safely.",
+            },
+          ],
+        },
+        {
+          title: "State-changing buttons need consequence language",
+          description: "Lifecycle and governance actions should be documented through their downstream effect, not only their label.",
+          items: [
+            {
+              label: "State transitions should name the new posture",
+              meta: "Lifecycle rule",
+              summary: "Publish, pause, archive and similar actions should explain what the object becomes afterward and how other surfaces will now treat it.",
+            },
+            {
+              label: "Irreversibility should be legible",
+              meta: "Safety rule",
+              summary: "If an action is harder to undo, the docs should say so plainly rather than assuming the user will infer that from the label.",
+            },
+            {
+              label: "Role boundaries should stay visible",
+              meta: "Governance rule",
+              summary: "A button may exist on the page but still be owner-only, operator-only or bounded to a project-safe subset of users.",
+            },
+          ],
+        },
+        {
+          title: "Recovery buttons should name the safe next move",
+          description: "Recovery actions are strongest when the docs describe the current blocker and the specific effect of the action.",
+          items: [
+            {
+              label: "Retry versus resolve should not blur",
+              meta: "Recovery rule",
+              summary: "Retry actions re-attempt work, while resolve actions close posture explicitly. The docs should distinguish those outcomes clearly.",
+            },
+            {
+              label: "Escalate is a coordination action",
+              meta: "Support rule",
+              summary: "Escalation buttons should explain that they move ownership or attention, not the underlying technical state directly.",
+            },
+            {
+              label: "Timeline writes matter",
+              meta: "Audit rule",
+              summary: "The docs should say when an action creates a note, event or visible history entry so operators understand why the timeline changes afterward.",
+            },
+          ],
+        },
+        {
+          title: "Surface-level button examples",
+          description: "These examples show how concrete Veltrix buttons should be interpreted when someone reads the docs page for that surface.",
+          items: [
+            {
+              label: "\"Open Campaign Studio\"",
+              meta: "Launch Workspace example",
+              summary: "This is a route button. It should be documented as a context-preserving handoff into campaign architecture, not as a state mutation on the launch page itself.",
+            },
+            {
+              label: "\"Publish quest\"",
+              meta: "Quest lifecycle example",
+              summary: "This is a lifecycle button. The docs should explain that the quest becomes live, member-visible and part of active execution posture after the action succeeds.",
+            },
+            {
+              label: "\"Retry provider sync\"",
+              meta: "On-chain recovery example",
+              summary: "This is a bounded recovery button. The docs should say that it re-attempts the project-safe sync path without granting access to global provider jobs.",
+            },
+            {
+              label: "\"Grant payout detail\"",
+              meta: "Project permissions example",
+              summary: "This is a visibility action. The docs should explain that it changes what another teammate may inspect, not the payout case itself.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    slug: "warning-copy-and-escalation-language",
+    title: "Warning Copy and Escalation Language",
+    summary: "The reference model for how Veltrix phrases warnings, blocked states, waiting states and escalation prompts so risk feels clear without becoming vague or alarmist.",
+    entries: [
+      { label: "Advisory warning", meta: "Watch posture", summary: "Use when the system wants attention or prioritization but the current path is still usable if the reader understands the caveat." },
+      { label: "Blocking warning", meta: "Needs action", summary: "Use when the current path cannot proceed safely until a specific missing input, setup step or owner action is resolved." },
+      { label: "Waiting-state prompt", meta: "Coordination language", summary: "Use when the issue is already in motion but the next step belongs to another lane such as internal review, project response or a queued recovery job." },
+      { label: "Escalation language", meta: "Cross-surface coordination", summary: "Use when the system needs to signal who now owns the next move and why the issue has left a local surface or queue." },
+    ],
+    matrix: {
+      title: "Warning semantics matrix",
+      description: "Warning copy should help readers separate caution, blockage, coordination and incident pressure instead of flattening them into one scary tone.",
+      columns: ["Warning style", "What it means", "What the copy should do next"],
+      rows: [
+        {
+          label: "Advisory warning",
+          values: ["There is pressure, drift or incompleteness, but the surface is still usable", "Explain the caveat plainly and recommend a priority-aware next move", "Avoid panic language"],
+          summary: "Advisory warnings are common in launch readiness, trust watch bands and integration drift.",
+        },
+        {
+          label: "Blocking warning",
+          values: ["The current action path is not safe or possible until a dependency changes", "Name the exact blocker and the surface or owner that can remove it", "Pair with a bounded CTA when possible"],
+          summary: "These warnings should feel specific and actionable, not generic.",
+        },
+        {
+          label: "Waiting-state language",
+          values: ["The system is already waiting on another lane or queued recovery step", "Clarify who owns the next move and whether the reader should act or simply monitor", "Reduce duplicate action attempts"],
+          summary: "This language matters especially in escalations, claims and operator consoles where several teams can otherwise step on each other.",
+        },
+        {
+          label: "Escalation prompt",
+          values: ["The issue has exceeded local handling and now needs named coordination", "Signal ownership, next action and the lane of responsibility clearly", "Preserve calmness while conveying seriousness"],
+          summary: "Escalation copy is strongest when it explains coordination, not just severity.",
+        },
+      ],
+    },
+    deepDive: {
+      title: "How warning and escalation copy should behave in a public product manual",
+      description: "The docs should explain not only what warning families exist, but how they should sound and what kind of next-step clarity they owe the reader.",
+      sections: [
+        {
+          title: "Warnings should separate risk from failure",
+          description: "Not every warning means the system is broken, and the docs should teach that difference explicitly.",
+          items: [
+            {
+              label: "Advisory copy should calm and clarify",
+              meta: "Tone rule",
+              summary: "When the system is surfacing caution rather than blockage, the copy should help users prioritize without implying urgent failure everywhere.",
+            },
+            {
+              label: "Blocking copy should stay specific",
+              meta: "Clarity rule",
+              summary: "A blocking warning should say what is blocked and why, not hide behind generic phrases like 'something needs attention'.",
+            },
+            {
+              label: "Different surfaces can share the same semantics",
+              meta: "Consistency rule",
+              summary: "Launch, trust, payout and integrations should all use recognizably similar warning semantics even when the underlying cause differs.",
+            },
+          ],
+        },
+        {
+          title: "Waiting-state language should reduce coordination confusion",
+          description: "Once an issue is already in motion, the copy should keep readers from duplicating work or assuming the wrong owner.",
+          items: [
+            {
+              label: "Name the waiting lane",
+              meta: "Coordination rule",
+              summary: "Phrases like awaiting internal review or needs project input should tell readers exactly which side owns the next move.",
+            },
+            {
+              label: "Distinguish waiting from stuck",
+              meta: "State rule",
+              summary: "Queued retries and in-flight escalations are different from stalled incidents, and the copy should not blur those states together.",
+            },
+            {
+              label: "Keep next actions bounded",
+              meta: "Action rule",
+              summary: "If the reader should not act yet, the copy should make that clear instead of suggesting broad intervention.",
+            },
+          ],
+        },
+        {
+          title: "Escalation copy should explain ownership, not only urgency",
+          description: "The strongest escalation language tells the team who needs to act next and why local handling is no longer enough.",
+          items: [
+            {
+              label: "Escalation is a coordination event",
+              meta: "Support rule",
+              summary: "The docs should frame escalation language as a handoff into named ownership rather than a generic increase in severity.",
+            },
+            {
+              label: "Seriousness should stay calm",
+              meta: "Tone rule",
+              summary: "Even incident-promoting copy should sound controlled and operator-grade, not dramatic or alarmist.",
+            },
+            {
+              label: "Cross-surface links complete the message",
+              meta: "Navigation rule",
+              summary: "Escalation language is strongest when it points toward the console, runbook or owner lane that now carries the next meaningful action.",
+            },
+          ],
+        },
+        {
+          title: "Surface-level copy examples",
+          description: "These examples show how warning and escalation language should sound on real surfaces when the product is under pressure.",
+          items: [
+            {
+              label: "\"Launch posture is usable, but rewards are still missing. Add a reward before treating this path as member-ready.\"",
+              meta: "Advisory launch example",
+              summary: "This is good advisory copy because it signals meaningful incompleteness without implying the launch surface is broken.",
+            },
+            {
+              label: "\"Claims are blocked because reward inventory is exhausted. Refill inventory or pause the reward before new claims continue.\"",
+              meta: "Blocking payout example",
+              summary: "This is good blocking copy because it names the blocker directly and points to the bounded next move instead of using vague urgency language.",
+            },
+            {
+              label: "\"Awaiting internal review. The project does not need to act yet unless the owner requests more context.\"",
+              meta: "Waiting-state example",
+              summary: "This is good waiting-state language because it clarifies ownership and prevents duplicate action attempts from the wrong lane.",
+            },
+            {
+              label: "\"Needs project input. A project owner must confirm the wallet or reward context before resolution can continue.\"",
+              meta: "Escalation example",
+              summary: "This is good escalation language because it tells the reader who owns the next move and why the issue has left simple local handling.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     slug: "builder-controls-and-state-actions",
     title: "Builder Controls and State Actions",
     summary: "The map of the controls that shape launch posture, open builders, preserve context and move content safely through lifecycle states.",

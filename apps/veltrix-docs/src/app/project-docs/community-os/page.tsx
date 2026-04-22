@@ -234,6 +234,33 @@ export default function CommunityOsDocsPage() {
           },
         ],
       }}
+      playbookExamples={{
+        title: "Community OS playbook examples",
+        description: "These examples show how Community OS should speak when a team has no operating rhythm yet, needs a clear next action or is drifting into weak follow-through.",
+        items: [
+          {
+            label: "No live community rhythm",
+            meta: "Empty state",
+            trigger: "Shown when campaigns or quests exist but commands, automations or captain follow-through are not yet configured.",
+            copy: "No community operating rhythm yet. Enable a command or automation rail before expecting this project to sustain launch momentum.",
+            outcome: "The empty state should make it clear that Community OS exists to operationalize the launch, not just report on it.",
+          },
+          {
+            label: "Open automation center",
+            meta: "Primary CTA",
+            trigger: "Shown when owner posture is healthy enough to move from passive observation into repeatable execution.",
+            copy: "Open automation center",
+            outcome: "This action helps the page route owners toward systemized follow-through instead of manual community hustle.",
+          },
+          {
+            label: "Captain coverage warning",
+            meta: "Warning copy",
+            trigger: "Shown when the project is asking captains to execute recurring work without enough seat coverage or clear accountability.",
+            copy: "Captain execution is expected here, but coverage is still thin. Assign seats or narrow the live command rail before pressure builds.",
+            outcome: "The warning should read like an operating caution tied to accountability, not a generic permission issue.",
+          },
+        ],
+      }}
     />
   );
 }
