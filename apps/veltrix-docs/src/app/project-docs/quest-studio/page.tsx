@@ -9,6 +9,7 @@ export default function QuestStudioDocsPage() {
       actions={[
         { href: "/project-docs", label: "Back to Project Docs" },
         { href: "/reference", label: "Open Reference" },
+        { href: "/reference/builder-controls-and-state-actions", label: "Builder Controls" },
       ]}
       chips={["Flagship page", "Guided builder", "Verification and preview"]}
       relatedHrefs={[
@@ -16,6 +17,8 @@ export default function QuestStudioDocsPage() {
         "/project-docs/campaign-studio",
         "/project-docs/community-os",
         "/reference",
+        "/reference/builder-controls-and-state-actions",
+        "/reference/warning-badges-and-status-cues",
         "/reference/lifecycle-states",
         "/reference/builder-and-handoff-model",
         "/reference/verification-and-reward-model",
@@ -80,6 +83,76 @@ export default function QuestStudioDocsPage() {
             label: "Preview is part of the builder",
             meta: "Experience rule",
             summary: "The member-facing presentation is not an afterthought; it is part of how the builder validates the quest design.",
+          },
+        ],
+      }}
+      controlAtlas={{
+        title: "The controls that matter most inside Quest Studio",
+        description:
+          "Quest Studio becomes much easier to understand once the key controls are grouped by what they change: action clarity, proof trust, incentive posture and member-facing presentation.",
+        sections: [
+          {
+            title: "Action and placement controls",
+            description: "These controls define what the member is being asked to do and where that mission belongs.",
+            items: [
+              {
+                label: "Action type and destination",
+                meta: "Mission control",
+                summary: "This control changes what the quest actually asks of the member and whether the CTA feels specific or vague later on.",
+              },
+              {
+                label: "Placement inside project or campaign context",
+                meta: "Architecture control",
+                summary: "Placement matters because the same quest reads differently when it sits at onboarding, mid-campaign or in a comeback lane.",
+              },
+              {
+                label: "Member-facing title and framing",
+                meta: "Experience control",
+                summary: "Preview-facing language should help the team judge the quest from the member side before it goes live.",
+              },
+            ],
+          },
+          {
+            title: "Verification and trust controls",
+            description: "These controls explain why the product will trust a completion signal after the mission runs live.",
+            items: [
+              {
+                label: "Verification type",
+                meta: "Proof control",
+                summary: "This is one of the most important quest controls because it changes how the system decides whether completion is credible, manual or provider-backed.",
+              },
+              {
+                label: "Review posture and proof depth",
+                meta: "Trust control",
+                summary: "Controls in this family affect whether the later operator side sees clean verification, manual review pressure or ambiguous mission proof.",
+              },
+              {
+                label: "Connected provider or integration dependency",
+                meta: "Dependency control",
+                summary: "Some quest controls only become meaningful when the right integration rail exists, which is why Quest Studio links back into integrations and on-chain or verification models.",
+              },
+            ],
+          },
+          {
+            title: "Reward and preview controls",
+            description: "These controls shape why the quest matters to a member and how that choice later affects payout and recognition posture.",
+            items: [
+              {
+                label: "Reward framing",
+                meta: "Incentive control",
+                summary: "This control changes whether the quest reads as conversion, unlock or recognition and influences later claim pressure.",
+              },
+              {
+                label: "Member preview",
+                meta: "Validation control",
+                summary: "The preview is important because it lets the team test whether the quest feels understandable before any operator has to explain it later.",
+              },
+              {
+                label: "Save, publish and return-path actions",
+                meta: "State control",
+                summary: "Quest lifecycle controls matter because they decide when a mission becomes active and how the team returns to the wider campaign or launch posture afterward.",
+              },
+            ],
           },
         ],
       }}

@@ -20,6 +20,7 @@ export default function ProjectDocsPage() {
       description="This track explains the project-facing parts of Veltrix: how launches are set up, how campaigns and missions are built, how communities are operated and how members move through the product."
       actions={[
         { href: "/reference", label: "Open Reference" },
+        { href: "/reference/control-atlas", label: "Open Control Atlas" },
         { href: "/release-notes", label: "Open Release Notes" },
       ]}
       chips={["Launch setup", "Studios", "Community OS", "Member Journey"]}
@@ -27,6 +28,8 @@ export default function ProjectDocsPage() {
         "/",
         "/operator-docs",
         "/reference",
+        "/reference/docs-coverage-map",
+        "/reference/control-atlas",
         "/project-docs/campaign-studio",
         "/project-docs/quest-studio",
         "/project-docs/community-os",
@@ -188,14 +191,14 @@ export default function ProjectDocsPage() {
                 summary: "Campaigns, quests, raids and rewards all depend on the same lifecycle posture and action safety rules.",
               },
               {
+                label: "Control atlas",
+                meta: "Function layer",
+                summary: "Builder controls, warning cues and delivery rails now have dedicated atlas pages so a reader can inspect what individual controls actually change.",
+              },
+              {
                 label: "Project-first context",
                 meta: "System posture",
                 summary: "Studios, launch and community routes should always explain how project context is carried forward automatically.",
-              },
-              {
-                label: "Member-facing consequences",
-                meta: "Journey layer",
-                summary: "Project-side setup only makes sense when the docs also show what that means for the member journey.",
               },
             ]}
           />

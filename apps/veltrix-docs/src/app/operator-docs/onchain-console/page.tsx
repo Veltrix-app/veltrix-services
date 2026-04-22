@@ -9,6 +9,7 @@ export default function OnchainConsoleDocsPage() {
       actions={[
         { href: "/operator-docs", label: "Back to Operator Docs" },
         { href: "/reference", label: "Open Reference" },
+        { href: "/reference/recovery-and-resolution-actions", label: "Recovery Actions" },
       ]}
       chips={["Flagship page", "On-chain recovery", "Project-safe actions"]}
       relatedHrefs={[
@@ -16,6 +17,9 @@ export default function OnchainConsoleDocsPage() {
         "/operator-docs/trust-console",
         "/operator-docs/payout-console",
         "/reference",
+        "/reference/visibility-and-grant-controls",
+        "/reference/warning-badges-and-status-cues",
+        "/reference/recovery-and-resolution-actions",
         "/reference/onchain-case-types",
         "/reference/permissions",
         "/reference/signal-and-scoring-models",
@@ -83,6 +87,76 @@ export default function OnchainConsoleDocsPage() {
             label: "Recovery must stay case-driven",
             meta: "Operating rule",
             summary: "On-chain issues should remain visible as explicit cases with timeline context, not disappear into technical job abstractions.",
+          },
+        ],
+      }}
+      controlAtlas={{
+        title: "The controls that matter most inside On-chain Console",
+        description:
+          "On-chain Console is easier to reason about when its controls are separated into validation cues, project-safe recovery moves and internal-only deeper rails.",
+        sections: [
+          {
+            title: "Validation and visibility controls",
+            description: "These controls explain whether the chain-side issue is even eligible to continue through the normal path.",
+            items: [
+              {
+                label: "Asset-match and wallet-link cues",
+                meta: "Validation control",
+                summary: "These controls matter because unmatched assets and unlinked wallets are deterministic reasons an event or case will not behave like a normal healthy flow.",
+              },
+              {
+                label: "Summary-only versus deeper detail",
+                meta: "Visibility control",
+                summary: "Projects should understand why they only see bounded health and case context until an owner explicitly grants more detail.",
+              },
+              {
+                label: "Signal and warning chips",
+                meta: "Interpretation control",
+                summary: "These cues explain whether the issue is a simple validation failure, a suspicious accepted event or a deeper recovery problem.",
+              },
+            ],
+          },
+          {
+            title: "Project-safe recovery controls",
+            description: "These are the main actions a project may be allowed to use when helping with chain-side recovery.",
+            items: [
+              {
+                label: "Retry case",
+                meta: "Recovery control",
+                summary: "A bounded retry action re-attempts the case path when the system believes the original failure may now recover cleanly.",
+              },
+              {
+                label: "Rerun enrichment",
+                meta: "Derived-state control",
+                summary: "This control is for rebuilding derived metadata and signal context after an enrichment failure or stale state.",
+              },
+              {
+                label: "Rescan project assets",
+                meta: "Scope control",
+                summary: "This action rechecks asset-linked context without crossing into global provider or infrastructure control.",
+              },
+            ],
+          },
+          {
+            title: "Internal-only deeper rails",
+            description: "Some controls remain deliberately outside project reach because they touch broader platform health.",
+            items: [
+              {
+                label: "Global provider sync",
+                meta: "Operator-only control",
+                summary: "This remains internal because it changes broader sync posture, not just the state of one project-bound case.",
+              },
+              {
+                label: "Blocked recovery and escalation actions",
+                meta: "Case management control",
+                summary: "Internal operators still need the deeper power to triage, escalate and classify harder chain-side issues.",
+              },
+              {
+                label: "Timeline and outcome writes",
+                meta: "History control",
+                summary: "As with other safety consoles, the history layer is part of the control anatomy because it records what actually happened to the case.",
+              },
+            ],
           },
         ],
       }}

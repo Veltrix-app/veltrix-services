@@ -2,6 +2,142 @@ import type { DocsStateExplorerDataset } from "@/lib/docs-data/types";
 
 const docsStateExplorerDatasets: DocsStateExplorerDataset[] = [
   {
+    slug: "docs-coverage",
+    title: "Documentation coverage layers",
+    summary: "Veltrix Docs is strongest when a domain is covered from three angles: surface, workflow and exact reference language.",
+    states: [
+      {
+        label: "Surface coverage",
+        summary: "Surface pages explain what a page or console is, where to find it and how it fits into the rest of the system.",
+        bullets: [
+          "This is where snapshots, anatomy blocks and connected-surface context are most useful.",
+          "Surface coverage helps a reader orient quickly before they need deeper procedural detail.",
+          "A strong encyclopedia should make the surface feel legible without requiring product access first.",
+        ],
+      },
+      {
+        label: "Workflow coverage",
+        summary: "Workflow pages explain how people move across surfaces and why the product sequences work the way it does.",
+        bullets: [
+          "Good workflow coverage prevents the docs from becoming a pile of disconnected screen explanations.",
+          "This is where handoffs, bounded actions and operating loops become easiest to understand.",
+          "A workflow layer is especially important for launches, trust review and recovery paths.",
+        ],
+      },
+      {
+        label: "Reference coverage",
+        summary: "Reference pages define the exact states, grants, case types and models the rest of the docs link back to.",
+        bullets: [
+          "Reference is what keeps the encyclopedia precise instead of slowly drifting into fuzzy paraphrases.",
+          "This layer carries status labels, permission matrices and scoring or signal logic.",
+          "Coverage becomes complete when surface and workflow pages have a strong reference backbone behind them.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "control-atlas",
+    title: "Control atlas families",
+    summary: "Veltrix controls fall into a few repeatable families: state transitions, visibility grants, signaling layers, recovery actions and delivery rails.",
+    states: [
+      {
+        label: "State and builder controls",
+        summary: "These controls change the shape or readiness of objects: open builders, publish, pause, archive, duplicate or move through launch posture.",
+        bullets: [
+          "They are strongest when they preserve context and clearly explain the next safe move.",
+          "Launch and builder surfaces rely heavily on this control family.",
+          "These controls should feel architectural rather than merely administrative.",
+        ],
+      },
+      {
+        label: "Visibility and signaling controls",
+        summary: "These controls explain or reveal posture: summary-only access, detail grants, warnings, flags, severity labels and readiness bands.",
+        bullets: [
+          "They do not always mutate state directly, but they strongly shape how humans interpret the system.",
+          "Trust, payout and on-chain consoles depend on these controls to stay bounded and explainable.",
+          "A good docs atlas should show why these labels exist, not only where they appear.",
+        ],
+      },
+      {
+        label: "Recovery and delivery controls",
+        summary: "These controls move work forward after something has already happened: retries, reruns, rescans, escalations, command rails and automation toggles.",
+        bullets: [
+          "They exist to keep the live system moving without exposing unsafe global operations to everyone.",
+          "Projects often get only the bounded version of these controls, while operators retain deeper ones.",
+          "The atlas should help readers recognize where a control belongs in the operating model.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "recovery-actions",
+    title: "Recovery action posture",
+    summary: "Recovery controls move a live issue toward closure through a bounded sequence: clarify, act safely, then write history.",
+    states: [
+      {
+        label: "Clarify the blocker",
+        summary: "Before a retry or resolve action makes sense, the system should already explain what is blocked, who owns it and what lane it belongs to.",
+        bullets: [
+          "Blocked, needs project input and retry queued are not cosmetic labels; they guide which recovery control is safe next.",
+          "The console should make the current owner and waiting state readable before anyone takes action.",
+          "This is what keeps recovery controls from becoming a random button set.",
+        ],
+      },
+      {
+        label: "Run the bounded action",
+        summary: "Safe recovery actions are intentionally narrow: retry, rerun, rescan, annotate, escalate, resolve or dismiss depending on the console.",
+        bullets: [
+          "Project-safe actions should stay visibly narrower than internal-only operator actions.",
+          "The docs should explain the consequence of each action, not only the label on the button.",
+          "A control is strongest when readers understand what layer of the system it changes.",
+        ],
+      },
+      {
+        label: "Write back into history",
+        summary: "Recovery is not complete until the product can show what changed and why the case or incident is now in a new posture.",
+        bullets: [
+          "Timeline entries are part of the recovery control family because they preserve explainability.",
+          "A resolved case without visible history weakens future support and trust.",
+          "This is why the docs atlas treats history as part of the action model.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "delivery-controls",
+    title: "Delivery control posture",
+    summary: "Command and automation controls are the delivery rails that move project or community intent into member-visible action.",
+    states: [
+      {
+        label: "Define the command posture",
+        summary: "The first question is which commands or bot rails should exist for the project and who is supposed to use them.",
+        bullets: [
+          "Mission, profile, leaderboard, raid and captain commands serve different audiences and should be documented that way.",
+          "Owner-level settings decide whether certain command families are active at all.",
+          "The docs should explain command scope as part of community operations rather than as standalone syntax.",
+        ],
+      },
+      {
+        label: "Bound delivery through scope",
+        summary: "Delivery controls are stronger when they make the difference between member, captain and operator rails obvious.",
+        bullets: [
+          "Command visibility and action scope should stay consistent with the broader permission posture of the product.",
+          "Automation toggles and command scopes both shape who receives what behavior and when.",
+          "This is why delivery controls belong in the atlas next to grants and recovery rails.",
+        ],
+      },
+      {
+        label: "Route back into the product",
+        summary: "A delivery control often matters because it hands the user back into the right surface with context preserved.",
+        bullets: [
+          "Deep links complete the command flow when a bot response is only the first step.",
+          "Automations and commands should feel like extensions of the web product, not parallel tools.",
+          "The docs should help readers see delivery controls as part of one operating system.",
+        ],
+      },
+    ],
+  },
+  {
     slug: "lifecycle",
     title: "Lifecycle posture",
     summary: "The common progression from preparation to activation to historical state.",

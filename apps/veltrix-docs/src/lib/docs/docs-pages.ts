@@ -318,6 +318,69 @@ export const docsTracks: DocsTrackDefinition[] = [
       "Reference is the exact layer of the docs product. It explains the language and rules that every other page depends on.",
     sections: [
       {
+        id: "coverage-and-controls",
+        label: "Coverage and control atlas",
+        summary: "Meta reference pages that show how the encyclopedia is structured and how the main product controls are distributed.",
+        items: [
+          {
+            href: "/reference/docs-coverage-map",
+            label: "Docs Coverage Map",
+            summary: "Which product domains already have surface, workflow and reference coverage, and how to read that depth map.",
+            status: "live",
+            kind: "reference",
+          },
+          {
+            href: "/reference/control-atlas",
+            label: "Control Atlas",
+            summary: "The cross-surface map of state controls, permission grants, warning rails and recovery actions across the product.",
+            status: "live",
+            kind: "reference",
+          },
+        ],
+      },
+      {
+        id: "granular-controls",
+        label: "Granular control families",
+        summary: "Deeper control-level pages for the concrete action rails, badges and grants that appear across the product.",
+        items: [
+          {
+            href: "/reference/builder-controls-and-state-actions",
+            label: "Builder Controls and State Actions",
+            summary: "Entry controls, lifecycle actions, duplicate flows and launch posture actions across the builder family.",
+            status: "live",
+            kind: "reference",
+          },
+          {
+            href: "/reference/visibility-and-grant-controls",
+            label: "Visibility and Grant Controls",
+            summary: "Summary-only defaults, detail grants and action grants across project and operator surfaces.",
+            status: "live",
+            kind: "reference",
+          },
+          {
+            href: "/reference/warning-badges-and-status-cues",
+            label: "Warning Badges and Status Cues",
+            summary: "The meaning of readiness bands, warning chips, waiting states and resolution labels across the product.",
+            status: "live",
+            kind: "reference",
+          },
+          {
+            href: "/reference/recovery-and-resolution-actions",
+            label: "Recovery and Resolution Actions",
+            summary: "Retry, rerun, rescan, annotate, escalate, resolve and dismiss across the safety consoles.",
+            status: "live",
+            kind: "reference",
+          },
+          {
+            href: "/reference/command-and-automation-controls",
+            label: "Command and Automation Controls",
+            summary: "Command scopes, automation posture and deep-link delivery rails across community and member flows.",
+            status: "live",
+            kind: "reference",
+          },
+        ],
+      },
+      {
         id: "core-system",
         label: "Core system",
         summary: "Shared system vocabulary used across launch, community, member and operator surfaces.",

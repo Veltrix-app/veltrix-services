@@ -9,6 +9,7 @@ export default function CampaignStudioDocsPage() {
       actions={[
         { href: "/project-docs", label: "Back to Project Docs" },
         { href: "/reference", label: "Open Reference" },
+        { href: "/reference/builder-controls-and-state-actions", label: "Builder Controls" },
       ]}
       chips={["Flagship page", "Storyboard builder", "Launch posture"]}
       relatedHrefs={[
@@ -16,6 +17,8 @@ export default function CampaignStudioDocsPage() {
         "/project-docs/quest-studio",
         "/project-docs/community-os",
         "/reference",
+        "/reference/builder-controls-and-state-actions",
+        "/reference/warning-badges-and-status-cues",
         "/reference/lifecycle-states",
         "/reference/launch-and-readiness-model",
         "/reference/builder-and-handoff-model",
@@ -82,6 +85,76 @@ export default function CampaignStudioDocsPage() {
             label: "Member-facing consequences",
             meta: "Journey rule",
             summary: "The campaign architecture only matters because it shapes the quest, raid and reward experience for members later.",
+          },
+        ],
+      }}
+      controlAtlas={{
+        title: "The controls that matter most inside Campaign Studio",
+        description:
+          "Campaign Studio has many fields, but a smaller set of controls really determine how the campaign behaves in the wider system. These are the ones worth understanding first.",
+        sections: [
+          {
+            title: "Entry and placement controls",
+            description: "These controls decide where the campaign comes from and how it stays connected to the launch posture around it.",
+            items: [
+              {
+                label: "Open from Launch Workspace",
+                meta: "Entry control",
+                summary: "This matters because it carries project and readiness context into the builder instead of starting a detached create flow.",
+              },
+              {
+                label: "Campaign goal and lane selection",
+                meta: "Architecture control",
+                summary: "These settings shape the mission map and determine what kinds of quest, raid and reward objects will make sense downstream.",
+              },
+              {
+                label: "Return to launch posture",
+                meta: "Loop control",
+                summary: "After campaign edits, the system should route back into launch or campaign context so the team can re-read what changed in the wider stack.",
+              },
+            ],
+          },
+          {
+            title: "Lifecycle and publication controls",
+            description: "These controls are the difference between a campaign existing as draft structure and becoming a live part of the product.",
+            items: [
+              {
+                label: "Publish and ready-state actions",
+                meta: "State control",
+                summary: "These actions move the campaign from preparation into live posture and should therefore stay auditable and explicit.",
+              },
+              {
+                label: "Pause and archive",
+                meta: "Containment control",
+                summary: "These actions let a team contain launch risk or preserve history without destroying the campaign object outright.",
+              },
+              {
+                label: "Duplicate and template actions",
+                meta: "Acceleration control",
+                summary: "These controls help teams reuse strong mission architecture without starting from scratch every time.",
+              },
+            ],
+          },
+          {
+            title: "Downstream handoff controls",
+            description: "Campaign Studio matters because it hands context into the rest of the builder family.",
+            items: [
+              {
+                label: "Quest handoff",
+                meta: "Builder control",
+                summary: "Quest creation should inherit campaign placement so the mission feels like part of the architecture rather than a detached object.",
+              },
+              {
+                label: "Reward framing",
+                meta: "Incentive control",
+                summary: "Reward posture belongs here because it changes the conversion and recognition logic of the campaign itself.",
+              },
+              {
+                label: "Mission-map visibility",
+                meta: "Interpretation control",
+                summary: "Campaign controls are stronger when the system keeps the resulting mission structure visible instead of hiding it behind raw form state.",
+              },
+            ],
           },
         ],
       }}

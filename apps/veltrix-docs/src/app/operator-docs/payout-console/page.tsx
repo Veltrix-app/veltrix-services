@@ -9,6 +9,7 @@ export default function PayoutConsoleDocsPage() {
       actions={[
         { href: "/operator-docs", label: "Back to Operator Docs" },
         { href: "/reference", label: "Open Reference" },
+        { href: "/reference/recovery-and-resolution-actions", label: "Recovery Actions" },
       ]}
       chips={["Flagship page", "Payout safety", "Claim resolution"]}
       relatedHrefs={[
@@ -16,6 +17,9 @@ export default function PayoutConsoleDocsPage() {
         "/operator-docs/trust-console",
         "/operator-docs/onchain-console",
         "/reference",
+        "/reference/visibility-and-grant-controls",
+        "/reference/warning-badges-and-status-cues",
+        "/reference/recovery-and-resolution-actions",
         "/reference/payout-case-types",
         "/reference/permissions",
         "/reference/signal-and-scoring-models",
@@ -82,6 +86,76 @@ export default function PayoutConsoleDocsPage() {
             label: "Claims are part of a broader payout system",
             meta: "Model rule",
             summary: "This console is not just a claim list; it is the safety and resolution layer over claims, delivery and inventory pressure.",
+          },
+        ],
+      }}
+      controlAtlas={{
+        title: "The controls that matter most inside Payout Console",
+        description:
+          "Payout Console becomes clearer when its main controls are grouped into grant posture, blocked-state interpretation and recovery or closure actions.",
+        sections: [
+          {
+            title: "Visibility and collaboration controls",
+            description: "These controls shape how much of payout posture a project can inspect and what safe role it can play in resolution.",
+            items: [
+              {
+                label: "Summary-only visibility",
+                meta: "Baseline control",
+                summary: "This control family keeps the project informed about claim and payout health without immediately exposing deeper operator detail.",
+              },
+              {
+                label: "Grantable claim detail",
+                meta: "Expansion control",
+                summary: "Owners can expose more claim and payout context when a teammate needs to help resolve a blocked flow.",
+              },
+              {
+                label: "Project-safe action grants",
+                meta: "Participation control",
+                summary: "Safe payout actions such as annotate, escalate or bounded retry are explicitly separate from internal payout recovery power.",
+              },
+            ],
+          },
+          {
+            title: "Blocked-state and warning controls",
+            description: "These controls help the team read why a claim or payout path is not behaving normally.",
+            items: [
+              {
+                label: "Blocked and needs project input cues",
+                meta: "Status control",
+                summary: "These labels matter because they tell the operator whether the issue is waiting on local context, inventory correction or deeper review.",
+              },
+              {
+                label: "Retry queued cue",
+                meta: "Recovery posture",
+                summary: "This control family explains when the system is already attempting a safe recovery step rather than leaving the case idle.",
+              },
+              {
+                label: "Inventory pressure visibility",
+                meta: "Risk control",
+                summary: "Inventory-related cues are critical because a payout issue often starts earlier in reward posture than the final claim event itself.",
+              },
+            ],
+          },
+          {
+            title: "Recovery and closure controls",
+            description: "These are the actions that actually move payout cases toward a new outcome.",
+            items: [
+              {
+                label: "Retry and unblock actions",
+                meta: "Recovery control",
+                summary: "These actions attempt to move the payout path forward once the system has enough clarity to do so safely.",
+              },
+              {
+                label: "Resolve and dismiss",
+                meta: "Outcome control",
+                summary: "These controls finalize the case posture and write a clear explanation back into the history layer.",
+              },
+              {
+                label: "Resolution log",
+                meta: "Audit control",
+                summary: "The resolution log is part of the control model because it preserves how payout confidence was restored.",
+              },
+            ],
           },
         ],
       }}

@@ -9,12 +9,15 @@ export default function CommunityOsDocsPage() {
       actions={[
         { href: "/project-docs", label: "Back to Project Docs" },
         { href: "/reference", label: "Open Reference" },
+        { href: "/reference/command-and-automation-controls", label: "Delivery Controls" },
       ]}
       chips={["Flagship page", "Owner and captain modes", "Community execution"]}
       relatedHrefs={[
         "/project-docs",
         "/operator-docs",
         "/reference",
+        "/reference/visibility-and-grant-controls",
+        "/reference/command-and-automation-controls",
         "/reference/permissions",
         "/reference/automation-types",
         "/reference/community-and-member-signal-model",
@@ -79,6 +82,76 @@ export default function CommunityOsDocsPage() {
             label: "Signals drive action",
             meta: "Outcome rule",
             summary: "The page should keep health, cohorts and activation pressure tied to next actions rather than passive reporting.",
+          },
+        ],
+      }}
+      controlAtlas={{
+        title: "The controls that matter most inside Community OS",
+        description:
+          "Community OS is a dense operating surface, but the most important controls cluster around role posture, delivery rails and signal-driven follow-through.",
+        sections: [
+          {
+            title: "Role and scope controls",
+            description: "These controls determine who is deciding, who is executing and how much authority each lane carries.",
+            items: [
+              {
+                label: "Owner versus captain mode",
+                meta: "Role control",
+                summary: "This is one of the core Community OS controls because it changes the level of visibility, accountability and decision posture on the page.",
+              },
+              {
+                label: "Captain permissions and seats",
+                meta: "Scope control",
+                summary: "Seat-based controls matter because they keep community execution bounded instead of turning every teammate into a full operator.",
+              },
+              {
+                label: "Project-level visibility settings",
+                meta: "Governance control",
+                summary: "These controls shape which team members can inspect community health, commands and operational context at all.",
+              },
+            ],
+          },
+          {
+            title: "Command and automation controls",
+            description: "These are the delivery rails that turn owner intent into recurring or chat-based execution.",
+            items: [
+              {
+                label: "Command family toggles",
+                meta: "Delivery control",
+                summary: "Command controls decide which member and captain rails exist for the project and therefore how the community experiences the operating system in chat.",
+              },
+              {
+                label: "Automation cadence and enablement",
+                meta: "Cadence control",
+                summary: "Automation settings matter because they determine whether follow-through happens manually or through a timed system rail.",
+              },
+              {
+                label: "Deep-link handoffs",
+                meta: "Routing control",
+                summary: "Community controls are stronger when command or automation outputs route people back into the right member or project surface with context preserved.",
+              },
+            ],
+          },
+          {
+            title: "Signal and action controls",
+            description: "Community OS should help teams interpret health and decide what to do next, not only report numbers.",
+            items: [
+              {
+                label: "Cohort and health views",
+                meta: "Signal control",
+                summary: "These controls shape what pressure the team notices first and which member groups should receive attention next.",
+              },
+              {
+                label: "Captain action accountability",
+                meta: "Execution control",
+                summary: "Community OS needs visible action ownership so the system can explain what work is already in motion and what still needs pickup.",
+              },
+              {
+                label: "Escalation into wider support rails",
+                meta: "Cross-system control",
+                summary: "When community work exposes trust, payout or incident pressure, the operating surface should help teams hand that work into the right console cleanly.",
+              },
+            ],
           },
         ],
       }}

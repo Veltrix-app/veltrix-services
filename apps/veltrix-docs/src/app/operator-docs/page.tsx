@@ -20,6 +20,7 @@ export default function OperatorDocsPage() {
       description="This track explains the deeper operational side of Veltrix. It is public, but structured to show how the consoles, cases, escalations and recovery paths work without exposing unsafe detail."
       actions={[
         { href: "/reference", label: "Open Reference" },
+        { href: "/reference/control-atlas", label: "Open Control Atlas" },
         { href: "/release-notes", label: "Open Release Notes" },
       ]}
       chips={["Trust", "Payouts", "On-chain", "Escalations"]}
@@ -27,6 +28,8 @@ export default function OperatorDocsPage() {
         "/",
         "/project-docs",
         "/reference",
+        "/reference/docs-coverage-map",
+        "/reference/control-atlas",
         "/operator-docs/trust-console",
         "/operator-docs/payout-console",
         "/operator-docs/onchain-console",
@@ -188,14 +191,14 @@ export default function OperatorDocsPage() {
                 summary: "Internal operators keep full control, while projects receive explicit visibility and action grants where the system allows it.",
               },
               {
+                label: "Control atlas",
+                meta: "Function layer",
+                summary: "Grant controls, warning cues and recovery actions now have dedicated atlas pages so the main operator controls are easier to interpret directly.",
+              },
+              {
                 label: "Case timelines",
                 meta: "Explainability",
                 summary: "Every action writes history, which is why trust, payout and on-chain all share the same case-driven language.",
-              },
-              {
-                label: "Escalation state",
-                meta: "Resolution layer",
-                summary: "Waiting on internal, waiting on project and resolved posture all need to read consistently across consoles.",
               },
             ]}
           />

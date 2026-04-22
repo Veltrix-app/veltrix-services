@@ -7,6 +7,13 @@ export type DocsSnapshotSlug =
   | "onchain-console";
 
 export type DocsReferenceSlug =
+  | "docs-coverage-map"
+  | "control-atlas"
+  | "builder-controls-and-state-actions"
+  | "visibility-and-grant-controls"
+  | "warning-badges-and-status-cues"
+  | "recovery-and-resolution-actions"
+  | "command-and-automation-controls"
   | "lifecycle-states"
   | "permissions"
   | "entities-and-relationships"
@@ -28,6 +35,10 @@ export type DocsReferenceSlug =
   | "status-labels";
 
 export type DocsStateExplorerSlug =
+  | "docs-coverage"
+  | "control-atlas"
+  | "recovery-actions"
+  | "delivery-controls"
   | "lifecycle"
   | "permissions"
   | "launch-readiness"

@@ -25,6 +25,7 @@ export function DocsFlagshipPage({
   whatItIs,
   whereToFind,
   keyRules,
+  controlAtlas,
   deepDive,
 }: Readonly<{
   eyebrow: string;
@@ -54,6 +55,11 @@ export function DocsFlagshipPage({
     title: string;
     description?: string;
     items: DocsReferenceEntry[];
+  };
+  controlAtlas?: {
+    title: string;
+    description?: string;
+    sections: DocsReferenceSection[];
   };
   deepDive?: {
     title: string;
@@ -180,6 +186,21 @@ export function DocsFlagshipPage({
           items={keyRules.items}
         />
       </div>
+
+      {controlAtlas ? (
+        <DocsSection eyebrow="Control anatomy" title={controlAtlas.title} description={controlAtlas.description}>
+          <div className={`grid gap-4 ${controlAtlas.sections.length >= 3 ? "xl:grid-cols-3" : "xl:grid-cols-2"}`}>
+            {controlAtlas.sections.map((section) => (
+              <DocsReferenceBlock
+                key={section.title}
+                title={section.title}
+                description={section.description}
+                items={section.items}
+              />
+            ))}
+          </div>
+        </DocsSection>
+      ) : null}
 
       {deepDive ? (
         <DocsSection

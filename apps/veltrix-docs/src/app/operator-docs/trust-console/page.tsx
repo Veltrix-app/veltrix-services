@@ -9,6 +9,7 @@ export default function TrustConsoleDocsPage() {
       actions={[
         { href: "/operator-docs", label: "Back to Operator Docs" },
         { href: "/reference", label: "Open Reference" },
+        { href: "/reference/recovery-and-resolution-actions", label: "Recovery Actions" },
       ]}
       chips={["Flagship page", "Trust review", "Permissioned console"]}
       relatedHrefs={[
@@ -16,6 +17,9 @@ export default function TrustConsoleDocsPage() {
         "/operator-docs/payout-console",
         "/operator-docs/onchain-console",
         "/reference",
+        "/reference/visibility-and-grant-controls",
+        "/reference/warning-badges-and-status-cues",
+        "/reference/recovery-and-resolution-actions",
         "/reference/trust-case-types",
         "/reference/permissions",
         "/reference/signal-and-scoring-models",
@@ -82,6 +86,76 @@ export default function TrustConsoleDocsPage() {
             label: "Timeline is non-optional",
             meta: "Explainability rule",
             summary: "Trust work must stay auditable as it moves across internal and project-facing rails.",
+          },
+        ],
+      }}
+      controlAtlas={{
+        title: "The controls that matter most inside Trust Console",
+        description:
+          "Trust Console is easiest to understand when its controls are grouped into visibility, signal interpretation and formal case actions rather than treated as one long moderation page.",
+        sections: [
+          {
+            title: "Visibility and grant controls",
+            description: "These controls determine who can see trust posture and who can only see a bounded summary.",
+            items: [
+              {
+                label: "Summary-only and detail grants",
+                meta: "Visibility control",
+                summary: "These controls define whether a project sees only a calm trust summary or deeper case detail that still stays within bounded safety rules.",
+              },
+              {
+                label: "Action grants",
+                meta: "Participation control",
+                summary: "A project may be able to annotate or escalate a case without receiving the same evidence visibility or final resolution authority as internal operators.",
+              },
+              {
+                label: "Owner-managed expansion",
+                meta: "Governance control",
+                summary: "The owner controls how collaborative the trust console becomes for a project team, while internal ops keeps the deepest rail.",
+              },
+            ],
+          },
+          {
+            title: "Warning and severity controls",
+            description: "These controls help operators interpret why the console is pressuring a case into review in the first place.",
+            items: [
+              {
+                label: "Warning chips and severity bands",
+                meta: "Signal control",
+                summary: "These cues tell the operator whether the issue is a watch posture, a higher-severity trust concern or a hard-threshold rejection consequence.",
+              },
+              {
+                label: "Trust score posture",
+                meta: "Interpretation control",
+                summary: "The console uses score bands and signal severity together so the docs should explain that a case can be risky even when some activity was technically accepted.",
+              },
+              {
+                label: "Case-type classification",
+                meta: "Normalization control",
+                summary: "Classification turns noisy trust signals into a legible case object before ownership and escalation begin.",
+              },
+            ],
+          },
+          {
+            title: "Case and closure controls",
+            description: "These controls actually move the trust case through its human workflow.",
+            items: [
+              {
+                label: "Annotate and request project input",
+                meta: "Collaboration control",
+                summary: "These actions preserve context and make it visible when the issue is waiting on a bounded project contribution.",
+              },
+              {
+                label: "Resolve and dismiss",
+                meta: "Outcome control",
+                summary: "These controls matter because they officially close the review posture and preserve the reason in history.",
+              },
+              {
+                label: "Timeline updates",
+                meta: "History control",
+                summary: "The timeline is part of the control system because it records what changed after every significant trust action.",
+              },
+            ],
           },
         ],
       }}

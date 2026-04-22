@@ -2,6 +2,770 @@ import type { DocsReferenceDataset } from "@/lib/docs-data/types";
 
 const docsReferenceDatasets: DocsReferenceDataset[] = [
   {
+    slug: "docs-coverage-map",
+    title: "Docs Coverage Map",
+    summary: "The atlas view of which Veltrix product domains are covered by surface docs, workflow docs and exact reference language.",
+    entries: [
+      { label: "Project launch and builders", meta: "Surface and workflow heavy", summary: "Launch Workspace, Campaign Studio, Quest Studio, Raid Studio and reward flows now have both narrative surface coverage and system-model depth." },
+      { label: "Community and member journey", meta: "Cross-lane coverage", summary: "Community OS, member journey, commands and integrations are documented from both the project operating side and the member consequence side." },
+      { label: "Safety consoles", meta: "Deep operator coverage", summary: "Trust, payout and on-chain each have flagship console docs, workflows and reference pages for scoring, cases, states and bounded visibility." },
+      { label: "Observability and support", meta: "Operator and reference coverage", summary: "Overview, analytics, escalations, runbooks and incident handling are documented as a connected operating layer rather than isolated pages." },
+      { label: "Bots and delivery rails", meta: "Project and reference coverage", summary: "Bot commands and automation rails are documented through project usage, reference dictionaries and workflow context." },
+      { label: "Public launch and legal surfaces", meta: "Supporting coverage", summary: "The public site, privacy, terms, support and reward disclaimer exist in the product and are part of the docs-aware launch posture even if they need fewer deep reference pages." },
+    ],
+    matrix: {
+      title: "Coverage depth matrix",
+      description: "This map shows where the encyclopedia is already deep across surfaces, workflows and exact system language.",
+      columns: ["Surface docs", "Workflow docs", "Reference depth"],
+      rows: [
+        {
+          label: "Launch and builder domain",
+          values: ["Strong", "Strong", "Strong"],
+          summary: "Launch Workspace, builders and their operating models now read as one of the deepest domains in the docs product.",
+        },
+        {
+          label: "Community and member domain",
+          values: ["Strong", "Strong", "Strong"],
+          summary: "Community OS, member journey, commands and connected signal models now explain both execution and downstream member effect.",
+        },
+        {
+          label: "Safety console domain",
+          values: ["Strong", "Strong", "Strong"],
+          summary: "Trust, payout and on-chain are now covered through console pages, workflows and detailed scoring, case and recovery reference pages.",
+        },
+        {
+          label: "Observability and support domain",
+          values: ["Strong", "Strong", "Medium to strong"],
+          summary: "Overview, analytics, escalations, runbooks and incident handling have good operating coverage, with room for future ultra-granular playbook references if needed.",
+        },
+        {
+          label: "Public site and support domain",
+          values: ["Medium", "Light", "Light"],
+          summary: "These surfaces are intentionally simpler but still belong in the atlas so the docs reflect the whole public system.",
+        },
+      ],
+    },
+    deepDive: {
+      title: "How to read the coverage map",
+      description: "The goal of this page is not to grade the product for its own sake, but to make it easy to see whether a reader can understand each domain from multiple angles.",
+      sections: [
+        {
+          title: "Coverage should be layered",
+          description: "A domain becomes easy to understand when the docs explain the page itself, the repeated workflow and the exact system rules behind both.",
+          items: [
+            {
+              label: "Surface layer",
+              meta: "What it is",
+              summary: "Surface docs orient the reader by showing anatomy, route placement and connected pages.",
+            },
+            {
+              label: "Workflow layer",
+              meta: "How it moves",
+              summary: "Workflow docs explain the actual sequence of decisions, handoffs and safe actions across several surfaces.",
+            },
+            {
+              label: "Reference layer",
+              meta: "Why it is exact",
+              summary: "Reference pages prevent drift by defining the shared states, permissions, case types and scoring logic once.",
+            },
+          ],
+        },
+        {
+          title: "The deepest areas are the operating core",
+          description: "The docs are most mature where the product would otherwise feel most complex or opaque.",
+          items: [
+            {
+              label: "Builders and launch",
+              meta: "Project core",
+              summary: "Because launch setup is where first impressions are formed, the encyclopedia now gives it both strategic and exact operational treatment.",
+            },
+            {
+              label: "Trust, payout and on-chain",
+              meta: "Safety core",
+              summary: "These domains needed the deepest explanation because warnings, flags and bounded visibility are easy to misunderstand without real system context.",
+            },
+            {
+              label: "Community and member loop",
+              meta: "Growth core",
+              summary: "This area now explains how commands, captains, cohorts and journey signals reinforce one another instead of reading like separate subsystems.",
+            },
+          ],
+        },
+        {
+          title: "The next level of completeness is control-level coverage",
+          description: "Once domain-level coverage is strong, the next useful layer is explaining concrete controls, actions and visibility rules page by page.",
+          items: [
+            {
+              label: "Why a control atlas exists",
+              meta: "Docs evolution",
+              summary: "Readers often need to know not only what a surface is, but what each family of controls changes and who should use it.",
+            },
+            {
+              label: "Coverage is now broad enough for that layer",
+              meta: "Atlas readiness",
+              summary: "Because the main domains already have strong narrative and reference coverage, the docs product can now support a cross-surface control atlas usefully.",
+            },
+            {
+              label: "The atlas should stay linked",
+              meta: "Navigation rule",
+              summary: "Control-level explanations are strongest when they remain tied to the domains and workflows that use them rather than floating as an abstract glossary.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    slug: "control-atlas",
+    title: "Control Atlas",
+    summary: "The map of the main control families across launch, builders, community surfaces and safety consoles.",
+    entries: [
+      { label: "Builder entry controls", meta: "Route and context controls", summary: "Launch Workspace entries, project-first create routes and campaign handoffs decide where a creation session begins and which context it inherits." },
+      { label: "Lifecycle controls", meta: "State controls", summary: "Publish, pause, resume, archive and duplicate actions move objects through safe lifecycle posture rather than letting them drift informally." },
+      { label: "Verification and incentive controls", meta: "Mission controls", summary: "Action placement, proof posture and reward framing determine not only mission design but later claim and payout consequences." },
+      { label: "Visibility and permission grants", meta: "Access controls", summary: "Summary-only defaults, detail grants and action grants control how much of a shared console a project teammate can actually see or use." },
+      { label: "Warnings, flags and severity labels", meta: "Signal controls", summary: "These controls do not always mutate data directly, but they change how the system explains trust, payout, readiness and on-chain posture." },
+      { label: "Recovery and escalation controls", meta: "Resolution controls", summary: "Retry, rerun, rescan, annotate, escalate, resolve and dismiss keep live systems recoverable without exposing unsafe global actions broadly." },
+      { label: "Command and automation controls", meta: "Delivery controls", summary: "Bot toggles, command scopes and automation rails extend community and member-facing execution beyond the core web surfaces." },
+    ],
+    matrix: {
+      title: "Control family matrix",
+      description: "This matrix shows where the major control families live, what they change and who usually operates them.",
+      columns: ["Primary surfaces", "What the controls change", "Typical operator"],
+      rows: [
+        {
+          label: "Builder entry and launch controls",
+          values: ["Launch Workspace, Campaign Studio, Quest Studio, Raid Studio", "Which builder opens next and what context it inherits", "Project founders and operators"],
+          summary: "These controls shape the structure and sequencing of setup rather than only the content inside a form.",
+        },
+        {
+          label: "Lifecycle controls",
+          values: ["Campaign, quest, raid and reward detail surfaces", "Whether an object is draft, ready, live, paused or archived", "Project owners and leads"],
+          summary: "Lifecycle-safe controls are some of the most important trust-preserving actions in the product.",
+        },
+        {
+          label: "Permission and visibility controls",
+          values: ["Trust, payout, on-chain and community consoles", "What a user can see and what actions they can take", "Owners and internal operators"],
+          summary: "These controls keep shared consoles collaborative without turning them into unsafe all-access workspaces.",
+        },
+        {
+          label: "Signal and warning controls",
+          values: ["Launch, trust, payout, on-chain, overview", "How the system frames risk, readiness and urgency", "Project teams and operators"],
+          summary: "Warnings and labels are part of the control atlas because they shape interpretation and next action.",
+        },
+        {
+          label: "Recovery controls",
+          values: ["Claims, moderation, on-chain and support rails", "How an issue is retried, rerun, escalated or closed", "Internal operators with bounded project participation"],
+          summary: "These controls are strongest when they are explicit about what is safe for projects and what stays internal-only.",
+        },
+        {
+          label: "Delivery controls",
+          values: ["Community OS, bot command settings, integrations", "How community intent reaches members and channels", "Owners, captains and community leads"],
+          summary: "Delivery controls bridge community operations and the member-facing product experience.",
+        },
+      ],
+    },
+    deepDive: {
+      title: "How control families should be read",
+      description: "Controls become easier to understand once they are grouped by what they are trying to change in the product rather than by whichever page happens to host them.",
+      sections: [
+        {
+          title: "State controls",
+          description: "Some controls primarily move an object or workflow into a new posture.",
+          items: [
+            {
+              label: "Publish, pause and archive",
+              meta: "Lifecycle family",
+              summary: "These are state-transition controls because they change the object's operating posture across the whole product.",
+            },
+            {
+              label: "Launch readiness actions",
+              meta: "Setup family",
+              summary: "Builder-entry actions and launch checklist prompts are also stateful because they move the project toward a safer launch tier.",
+            },
+            {
+              label: "Why this matters",
+              meta: "Interpretation rule",
+              summary: "Readers should know when a control changes a core object state versus when it merely reveals more context.",
+            },
+          ],
+        },
+        {
+          title: "Visibility controls",
+          description: "Other controls exist primarily to bound what different people can see or interpret.",
+          items: [
+            {
+              label: "Summary-only defaults",
+              meta: "Access family",
+              summary: "These controls intentionally expose a calmer, safer posture to most project users before any deeper detail is granted.",
+            },
+            {
+              label: "Warnings and flags",
+              meta: "Signal family",
+              summary: "Labels, bands and warning chips help readers interpret health and risk without always granting deeper action rights.",
+            },
+            {
+              label: "Why this matters",
+              meta: "Product rule",
+              summary: "A docs atlas should treat signaling and visibility as first-class controls because they change behavior even when they do not mutate an object directly.",
+            },
+          ],
+        },
+        {
+          title: "Recovery controls",
+          description: "The last major family is about moving a live issue toward closure while preserving safety and history.",
+          items: [
+            {
+              label: "Retry, rerun and rescan",
+              meta: "Bounded recovery",
+              summary: "These controls are safe when they are scoped tightly to a case or project context and leave history behind.",
+            },
+            {
+              label: "Annotate, escalate, resolve and dismiss",
+              meta: "Case management",
+              summary: "These actions shape ownership, explanation and closure more than raw system data, which is why they belong in the atlas too.",
+            },
+            {
+              label: "Why this matters",
+              meta: "Trust rule",
+              summary: "A live system feels more trustworthy when people can tell which recovery controls are safe, who can use them and what they will write back into the history layer.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    slug: "builder-controls-and-state-actions",
+    title: "Builder Controls and State Actions",
+    summary: "The map of the controls that shape launch posture, open builders, preserve context and move content safely through lifecycle states.",
+    entries: [
+      { label: "Builder entry actions", meta: "Open and route", summary: "Launch Workspace and project-first create actions determine which builder opens next and which context it inherits automatically." },
+      { label: "Lifecycle state actions", meta: "Publish, pause, archive", summary: "These controls move campaigns, quests, raids and rewards through safe operating posture instead of relying on hidden toggles." },
+      { label: "Return-to-posture actions", meta: "Back into launch or operations", summary: "After a builder step, the system should route the team back into Launch Workspace or another operating surface so they can re-read readiness." },
+      { label: "Duplicate and template actions", meta: "Acceleration controls", summary: "Starter packs, templates and duplicate flows exist to reduce blank-canvas risk without breaking the system's structural rules." },
+    ],
+    matrix: {
+      title: "Builder control matrix",
+      description: "These controls are about shaping structure and state, not merely editing fields in place.",
+      columns: ["Common surfaces", "What the control changes", "Why it matters"],
+      rows: [
+        {
+          label: "Open builder from launch",
+          values: ["Launch Workspace, project overview", "Creates a new builder session with project context already attached", "Preserves project-first posture and reduces route hunting"],
+          summary: "Entry controls are strongest when they keep the reason for the builder legible before the user starts filling fields.",
+        },
+        {
+          label: "Publish, pause, resume, archive",
+          values: ["Campaign, quest, raid, reward detail pages", "Moves the object into a new lifecycle state", "Makes live posture auditable and reversible"],
+          summary: "Lifecycle actions are core trust-preserving controls because they govern how things become active or inactive.",
+        },
+        {
+          label: "Duplicate, template, starter pack",
+          values: ["Launch Workspace, studios", "Copies or scaffolds known-good structure", "Speeds up creation without sacrificing coherence"],
+          summary: "These controls help teams build faster while staying inside the product's structural model.",
+        },
+      ],
+    },
+    deepDive: {
+      title: "How to interpret builder and state controls",
+      description: "The docs should help readers tell the difference between controls that open structure, controls that change posture and controls that accelerate setup.",
+      sections: [
+        {
+          title: "Entry controls should preserve context",
+          description: "A create button is not neutral if it decides whether the next builder understands the project and campaign it belongs to.",
+          items: [
+            {
+              label: "Project-first create actions",
+              meta: "Routing model",
+              summary: "These controls matter because they prevent teams from rebuilding context by hand after they enter a studio.",
+            },
+            {
+              label: "Launch-based entry is intentional",
+              meta: "Readiness model",
+              summary: "The docs should explain that Launch Workspace is part of the control system because it decides which builder should be opened next and why.",
+            },
+            {
+              label: "Campaign-first sequencing",
+              meta: "Architecture rule",
+              summary: "Entry actions are better when they reflect the mission architecture model rather than a flat list of create buttons.",
+            },
+          ],
+        },
+        {
+          title: "Lifecycle controls change trust posture",
+          description: "Publishing or pausing content is one of the most important moments in the product because it changes what the system treats as live.",
+          items: [
+            {
+              label: "State transitions should stay visible",
+              meta: "Lifecycle rule",
+              summary: "A good docs page explains not only that a control exists, but which downstream surfaces now read the object differently afterward.",
+            },
+            {
+              label: "Pause is a safety action",
+              meta: "Operational rule",
+              summary: "Pause and resume belong in the same atlas as publish because they govern live risk and recovery without destroying history.",
+            },
+            {
+              label: "Archive protects history",
+              meta: "Historical rule",
+              summary: "Archive controls matter because they preserve context while removing clutter from active operations.",
+            },
+          ],
+        },
+        {
+          title: "Acceleration controls should respect architecture",
+          description: "Templates and duplicates only help if they preserve the system's mental model.",
+          items: [
+            {
+              label: "Starter packs reduce blank-canvas risk",
+              meta: "Launch rule",
+              summary: "These controls are strongest when they create the first good shape of a launch rather than just filling random fields quickly.",
+            },
+            {
+              label: "Duplicate is not copy without meaning",
+              meta: "Builder rule",
+              summary: "A duplicate action should still preserve the parent-child campaign and mission logic that made the original object coherent.",
+            },
+            {
+              label: "The docs should explain the why",
+              meta: "Docs rule",
+              summary: "Acceleration controls are part of the product architecture, not mere convenience shortcuts.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    slug: "visibility-and-grant-controls",
+    title: "Visibility and Grant Controls",
+    summary: "The map of summary-only defaults, detail grants and action grants across community and safety consoles.",
+    entries: [
+      { label: "Summary-only defaults", meta: "Safe baseline", summary: "Most project-facing safety consoles begin from a bounded summary posture so people can see health without inheriting deep operational detail." },
+      { label: "Detail grants", meta: "Expanded visibility", summary: "Owners can expose case detail, member-level context, wallet detail or other bounded views when a teammate needs more than summaries." },
+      { label: "Action grants", meta: "Bounded participation", summary: "Annotate, escalate, retry or resolve-style actions are granted separately from visibility, which keeps shared consoles controllable." },
+      { label: "Role-shaped visibility", meta: "Owner, captain, operator", summary: "Different product roles are defined by their intended scope of action and context, not only by a broad title." },
+    ],
+    matrix: {
+      title: "Grant control matrix",
+      description: "Visibility and action grants are deliberately separate so the product can be collaborative without becoming unsafe.",
+      columns: ["Default posture", "Grantable expansion", "Who usually controls it"],
+      rows: [
+        {
+          label: "Trust",
+          values: ["View-only", "Case detail and bounded actions", "Project owner and internal trust ops"],
+          summary: "Trust uses the strictest bounded visibility model because evidence and review posture can be sensitive.",
+        },
+        {
+          label: "Payout",
+          values: ["Summary-only", "Claim detail and project-safe actions", "Project owner and internal payout ops"],
+          summary: "Payout grants help a project coordinate without handing out internal recovery power.",
+        },
+        {
+          label: "On-chain",
+          values: ["Summary-only", "Wallet detail and project-safe recovery actions", "Project owner and internal chain ops"],
+          summary: "On-chain grants are shaped around the line between project-safe retries and internal-only infrastructure control.",
+        },
+        {
+          label: "Community and captain rails",
+          values: ["Role-scoped", "Captain-specific execution rights", "Owners and workspace admins"],
+          summary: "Community visibility is broader than safety-console visibility, but it still uses explicit role shaping.",
+        },
+      ],
+    },
+    deepDive: {
+      title: "How to interpret visibility and grant controls",
+      description: "The atlas should help readers understand that visibility is part of product behavior, not a side topic hidden in settings.",
+      sections: [
+        {
+          title: "Why summary-only exists",
+          description: "Bounded default visibility is a design choice that protects teams from accidental oversharing and unsafe collaboration.",
+          items: [
+            {
+              label: "Safety before convenience",
+              meta: "Product posture",
+              summary: "Summary-only defaults help the product stay open enough to be collaborative while still protecting internal-only evidence or recovery paths.",
+            },
+            {
+              label: "Calmer posture for most users",
+              meta: "UX rule",
+              summary: "Most teammates need to know what is wrong before they need all the details of why, which is why summaries are a stable first layer.",
+            },
+            {
+              label: "The docs should say this explicitly",
+              meta: "Docs rule",
+              summary: "Readers trust the system more when the docs explain why a bounded view exists instead of making it feel arbitrary.",
+            },
+          ],
+        },
+        {
+          title: "Detail and action grants are different",
+          description: "A user who can see more is not automatically someone who should act more.",
+          items: [
+            {
+              label: "Seeing a case is not resolving a case",
+              meta: "Grant split",
+              summary: "This split keeps the product from collapsing into broad, unsafe role buckets.",
+            },
+            {
+              label: "Project-safe actions need their own category",
+              meta: "Safety rule",
+              summary: "Some actions are safe for a project lead or captain, while deeper controls remain internal-only even if detail access is granted.",
+            },
+            {
+              label: "The docs should name the boundary",
+              meta: "Interpretation rule",
+              summary: "Readers should be able to tell whether a grant changes visibility, action or both.",
+            },
+          ],
+        },
+        {
+          title: "Owners are the local authority",
+          description: "Owner-managed grants are one of the key ways Veltrix balances autonomy and safety.",
+          items: [
+            {
+              label: "Owner intent shapes the console",
+              meta: "Governance model",
+              summary: "Project owners decide how collaborative or tightly bounded a project-side console should become for their team.",
+            },
+            {
+              label: "Internal operators still keep the deep rail",
+              meta: "Platform rule",
+              summary: "Even when projects get more detail or safe actions, internal operators retain the deepest control surfaces.",
+            },
+            {
+              label: "The docs should reflect both layers",
+              meta: "Cross-track rule",
+              summary: "A strong encyclopedia shows how local owner control and platform-level operator authority coexist.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    slug: "warning-badges-and-status-cues",
+    title: "Warning Badges and Status Cues",
+    summary: "The atlas of labels, chips, bands and status language that explain readiness, trust, payout pressure and recovery posture across the product.",
+    entries: [
+      { label: "Readiness cues", meta: "Launch and builder posture", summary: "Blocked, warming up, launchable and live-ready style language helps teams understand how safe the current launch posture is." },
+      { label: "Warning and flag cues", meta: "Trust and on-chain posture", summary: "Warnings, flags, severity labels and suspicious bands explain why an issue deserves watch or deeper review." },
+      { label: "Waiting-state cues", meta: "Escalation and recovery posture", summary: "Needs project input, retry queued and similar labels explain what the system is waiting on next." },
+      { label: "Outcome cues", meta: "Resolution posture", summary: "Resolved, dismissed, paused and archived labels explain closure and ongoing state without requiring the user to infer it." },
+    ],
+    matrix: {
+      title: "Status cue matrix",
+      description: "These labels matter because they change interpretation and next action even when they are not direct action controls.",
+      columns: ["Typical surfaces", "What the cue explains", "Why it matters"],
+      rows: [
+        {
+          label: "Readiness bands",
+          values: ["Launch Workspace, builders", "How structurally safe the current launch or object posture is", "Helps projects know whether to keep building, fix blockers or go live"],
+          summary: "Readiness cues are one of the main ways the product teaches launch posture in plain language.",
+        },
+        {
+          label: "Warnings and severity labels",
+          values: ["Trust, on-chain, overview", "Whether activity or cases should be watched, reviewed or treated as high risk", "Prevents scoring and signal systems from becoming opaque"],
+          summary: "These cues let the product express concern without turning every signal into an immediate hard block.",
+        },
+        {
+          label: "Waiting-state labels",
+          values: ["Escalations, payout, on-chain, support", "Who or what the system is currently waiting on", "Helps teams distinguish stalled work from active queued recovery"],
+          summary: "Waiting-state cues are essential for coordination because they reduce ambiguity under pressure.",
+        },
+        {
+          label: "Outcome labels",
+          values: ["History, timelines, lifecycle surfaces", "What state a case, object or workflow ended in", "Preserves trust and auditability across the product"],
+          summary: "These cues are what make the product's history layer readable later on.",
+        },
+      ],
+    },
+    deepDive: {
+      title: "How to interpret warning and status cues",
+      description: "The same cue family often appears on different surfaces, but its role is always to make the current posture legible and actionable.",
+      sections: [
+        {
+          title: "Warnings are explanation layers",
+          description: "A warning chip is not just decoration; it compresses a deeper model into a quick cue that a human can act on.",
+          items: [
+            {
+              label: "Warnings should point to a deeper explanation",
+              meta: "UX rule",
+              summary: "A cue is strongest when the docs can point the reader to the exact reference page or console model that generated it.",
+            },
+            {
+              label: "Severity should feel earned",
+              meta: "Signal rule",
+              summary: "Labels like watch, high or blocked should map to explicit thresholds, not vague product mood.",
+            },
+            {
+              label: "The docs should preserve calmness",
+              meta: "Interpretation rule",
+              summary: "Status cues should help the reader prioritize, not overwhelm them with unexplained alarm language.",
+            },
+          ],
+        },
+        {
+          title: "Waiting states deserve their own family",
+          description: "A system can be healthy, blocked or simply waiting; those are meaningfully different postures.",
+          items: [
+            {
+              label: "Needs project input",
+              meta: "Coordination cue",
+              summary: "This label matters because it tells the operator and the project that the next move is local context, not another blind retry.",
+            },
+            {
+              label: "Retry queued",
+              meta: "Recovery cue",
+              summary: "Queued work is different from unresolved work, and the docs should preserve that difference.",
+            },
+            {
+              label: "Waiting on internal",
+              meta: "Escalation cue",
+              summary: "This label is part of how the platform makes shared consoles feel coordinated rather than mysterious.",
+            },
+          ],
+        },
+        {
+          title: "Outcome cues protect trust",
+          description: "The product feels more serious when it makes endings as readable as warnings.",
+          items: [
+            {
+              label: "Resolved and dismissed should stay visible",
+              meta: "History rule",
+              summary: "These cues matter because they explain what happened after the pressure or warning phase ended.",
+            },
+            {
+              label: "Paused and archived are structural states",
+              meta: "Lifecycle rule",
+              summary: "They are not merely administrative labels; they change how other surfaces interpret the object.",
+            },
+            {
+              label: "The docs should connect cue to consequence",
+              meta: "Docs rule",
+              summary: "Readers should learn what each cue means for action, visibility and later product behavior, not only what text appears on screen.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    slug: "recovery-and-resolution-actions",
+    title: "Recovery and Resolution Actions",
+    summary: "The map of retry, rerun, rescan, annotate, escalate, resolve and dismiss actions across safety consoles and support rails.",
+    entries: [
+      { label: "Retry-style actions", meta: "Technical recovery", summary: "Retry, rerun and rescan actions attempt a bounded recovery step when the system already knows the most likely safe next move." },
+      { label: "Coordination actions", meta: "Ownership and handoff", summary: "Annotate and escalate actions help people coordinate context before a deeper recovery action is taken." },
+      { label: "Outcome actions", meta: "Closure and history", summary: "Resolve and dismiss actions formally move a case or incident into a known historical posture." },
+      { label: "Pause and freeze actions", meta: "Containment", summary: "Some actions exist to stop further damage or pressure while the team investigates or waits on another lane." },
+    ],
+    matrix: {
+      title: "Recovery action matrix",
+      description: "The same words can appear across consoles, but the action is only safe when the docs explain its scope and consequence.",
+      columns: ["Typical surfaces", "What the action changes", "Who usually uses it"],
+      rows: [
+        {
+          label: "Retry, rerun, rescan",
+          values: ["Payout, on-chain, support rails", "Attempts a bounded technical recovery step", "Internal operators or owner-granted project leads"],
+          summary: "These actions are safest when tightly scoped to the current case or project context.",
+        },
+        {
+          label: "Annotate and escalate",
+          values: ["Trust, payout, on-chain, escalations", "Adds context or moves the issue into another lane", "Projects and operators, depending on grants"],
+          summary: "These are collaboration controls more than technical controls, which is why they belong in the atlas too.",
+        },
+        {
+          label: "Resolve and dismiss",
+          values: ["All case-driven consoles", "Changes the official outcome posture and timeline history", "Mostly operators, sometimes project-bounded users"],
+          summary: "Closure actions matter because they end ambiguity and preserve auditability.",
+        },
+        {
+          label: "Pause and freeze",
+          values: ["Lifecycle surfaces, payout or reward rails", "Contains risk by stopping a live path temporarily", "Owners and operators"],
+          summary: "Containment controls help prevent deeper damage while preserving history and reversibility.",
+        },
+      ],
+    },
+    deepDive: {
+      title: "How to interpret recovery actions",
+      description: "Recovery controls make the most sense when the docs explain what layer of the system they are acting on.",
+      sections: [
+        {
+          title: "Some actions are technical",
+          description: "Retry, rerun and rescan change the runtime path of a case more than its human ownership model.",
+          items: [
+            {
+              label: "Retry repeats a bounded path",
+              meta: "Recovery family",
+              summary: "Use retry when the system believes the previous failure may resolve through the same path once the immediate issue is cleared.",
+            },
+            {
+              label: "Rerun and rescan target derived work",
+              meta: "Derived-state family",
+              summary: "These actions are for recalculating enrichment, metadata or asset-linked state rather than replaying the full original flow.",
+            },
+            {
+              label: "The docs should explain scope first",
+              meta: "Safety rule",
+              summary: "Readers need to know whether the action affects only the current case, the project or a wider infrastructure rail.",
+            },
+          ],
+        },
+        {
+          title: "Some actions are collaborative",
+          description: "Annotate and escalate shape how a team understands and moves an issue even if they do not directly fix the underlying runtime problem.",
+          items: [
+            {
+              label: "Annotate preserves context",
+              meta: "History family",
+              summary: "Annotation matters because it reduces context loss across project and operator handoffs.",
+            },
+            {
+              label: "Escalate changes the lane",
+              meta: "Ownership family",
+              summary: "Escalation should make the next owner and waiting state clearer, not just toss the problem to another team.",
+            },
+            {
+              label: "The docs should name the human effect",
+              meta: "Interpretation rule",
+              summary: "A recovery atlas is stronger when it explains what an action does socially and operationally, not only technically.",
+            },
+          ],
+        },
+        {
+          title: "Some actions are formal closure",
+          description: "Resolve, dismiss, pause and freeze shape the official operating posture of the case or object afterward.",
+          items: [
+            {
+              label: "Resolve is a product state change",
+              meta: "Closure family",
+              summary: "Resolve matters because it tells every later reader that the issue is considered closed and why.",
+            },
+            {
+              label: "Dismiss still means something",
+              meta: "Audit family",
+              summary: "Dismissal is not deletion; it is a recorded decision that the case does not require further action.",
+            },
+            {
+              label: "Pause and freeze contain risk",
+              meta: "Containment family",
+              summary: "Containment controls help teams stop pressure before they have a full answer, which is why they belong in the same atlas as recovery and closure.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    slug: "command-and-automation-controls",
+    title: "Command and Automation Controls",
+    summary: "The map of command scopes, toggles, automation posture and deep-link behavior across community and member-facing delivery rails.",
+    entries: [
+      { label: "Command scope controls", meta: "Member, captain, project rails", summary: "These controls decide which commands exist for members, captains or project teams and how much each audience can do with them." },
+      { label: "Activation toggles", meta: "Enable and route", summary: "Projects control whether command families and delivery rails are active so community posture stays intentional." },
+      { label: "Automation posture controls", meta: "Cadence and follow-through", summary: "Automations extend community operating intent across time and should be understood as part of the product's delivery layer." },
+      { label: "Deep-link handoff controls", meta: "Cross-surface routing", summary: "Many command responses are only the first step; deep links send members or captains back into the right web surface with context preserved." },
+    ],
+    matrix: {
+      title: "Delivery control matrix",
+      description: "Delivery rails matter because they determine how project and community intent reaches real users.",
+      columns: ["Typical surfaces", "What the control changes", "Who usually manages it"],
+      rows: [
+        {
+          label: "Command scope and toggles",
+          values: ["Community OS, command settings, bots", "Which commands are active and who can use them", "Owners and community leads"],
+          summary: "These controls decide whether a command rail exists at all and what audience it serves.",
+        },
+        {
+          label: "Captain command posture",
+          values: ["Captain lanes and bot rails", "How much execution power captains receive", "Owners and admins"],
+          summary: "Captain controls are stronger when the docs show how they differ from member commands and deeper operator actions.",
+        },
+        {
+          label: "Automation cadence and enablement",
+          values: ["Community OS, automation center", "When follow-through happens and whether it is active", "Owners, operators and automation leads"],
+          summary: "Automation controls shape ongoing execution, not just one-time responses.",
+        },
+        {
+          label: "Deep-link handoffs",
+          values: ["Bot outputs, notifications, member surfaces", "Where a user goes next after a command or automation fires", "The system, configured by project posture"],
+          summary: "These controls help delivery rails feel like part of the product instead of disconnected notification tools.",
+        },
+      ],
+    },
+    deepDive: {
+      title: "How to interpret command and automation controls",
+      description: "Delivery controls are easiest to understand when the docs explain how they connect operating intent to member or captain behavior.",
+      sections: [
+        {
+          title: "Command controls shape audience and tone",
+          description: "A command rail should exist for a reason, not simply because the bot can support it.",
+          items: [
+            {
+              label: "Member commands guide the journey",
+              meta: "Experience family",
+              summary: "Commands like profile, missions and leaderboard should be documented as journey and recognition surfaces, not just chat utilities.",
+            },
+            {
+              label: "Captain commands guide execution",
+              meta: "Operations family",
+              summary: "Captain rails should explain assigned work, next action and bounded authority in the same language the community console uses.",
+            },
+            {
+              label: "The docs should explain both scope and purpose",
+              meta: "Docs rule",
+              summary: "Readers should understand not only what a command does, but who it is for and why the system offers it.",
+            },
+          ],
+        },
+        {
+          title: "Automation controls extend community intent over time",
+          description: "Automations are not a side feature; they are how the product keeps certain kinds of follow-through from becoming manual labor.",
+          items: [
+            {
+              label: "Cadence should feel strategic",
+              meta: "Timing model",
+              summary: "Automation toggles matter because they determine when the system should nudge, post, refresh or follow through without human intervention.",
+            },
+            {
+              label: "Ownership still matters",
+              meta: "Governance rule",
+              summary: "A strong docs atlas should explain who configures automation posture and how it ties back to owner or operator responsibility.",
+            },
+            {
+              label: "The system should stay observable",
+              meta: "Control rule",
+              summary: "Commands and automations both feel more trustworthy when the product makes their run posture and outputs legible.",
+            },
+          ],
+        },
+        {
+          title: "Deep links complete the delivery loop",
+          description: "A command reply or automation message is often only the first half of the real control effect.",
+          items: [
+            {
+              label: "Bot outputs should route intentionally",
+              meta: "Handoff family",
+              summary: "Deep links matter because they hand the user back into the right member or project surface with context preserved.",
+            },
+            {
+              label: "Delivery controls bridge tracks",
+              meta: "System rule",
+              summary: "These controls connect project docs, community operations and member journey documentation into one delivery story.",
+            },
+            {
+              label: "The docs should explain the loop",
+              meta: "Docs posture",
+              summary: "Delivery controls are strongest when the reader can see how the action starts in a bot or automation rail and ends in a product surface.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     slug: "lifecycle-states",
     title: "Lifecycle States",
     summary: "The common state language used across campaigns, quests, raids, rewards and operator flows.",
