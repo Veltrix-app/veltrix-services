@@ -36,6 +36,19 @@ export type DocsSnapshotPanel = {
   highlights: string[];
 };
 
+export type DocsSnapshotPhase = {
+  label: string;
+  title: string;
+  summary: string;
+};
+
+export type DocsSnapshotSignal = {
+  label: string;
+  value: string;
+  summary: string;
+  tone?: "cyan" | "lime" | "slate";
+};
+
 export type DocsSurfaceSnapshot = {
   slug: DocsSnapshotSlug;
   title: string;
@@ -44,7 +57,9 @@ export type DocsSurfaceSnapshot = {
   refreshedFrom: string;
   posture: string;
   stats: DocsSnapshotStat[];
+  phases: DocsSnapshotPhase[];
   panels: DocsSnapshotPanel[];
+  signals: DocsSnapshotSignal[];
 };
 
 export type DocsReferenceEntry = {

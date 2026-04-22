@@ -84,13 +84,28 @@ export function DocsWorkflowPage({
             },
           ]}
         >
-          <div className="grid gap-4 lg:grid-cols-3">
-            {page.stepFlow.states.slice(0, 3).map((state) => (
-              <div key={state.label} className="rounded-[22px] border border-white/8 bg-black/20 p-4">
-                <p className="text-base font-black text-white">{state.label}</p>
-                <p className="mt-3 text-sm leading-6 text-slate-400">{state.summary}</p>
-              </div>
-            ))}
+          <div className="space-y-4">
+            <div className="grid gap-3 md:grid-cols-2">
+              {page.stepFlow.states.map((state, index) => (
+                <div key={state.label} className="rounded-[22px] border border-white/8 bg-black/20 p-4">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-cyan-200">Step {String(index + 1).padStart(2, "0")}</p>
+                  <p className="mt-3 text-base font-black text-white">{state.label}</p>
+                  <p className="mt-3 text-sm leading-6 text-slate-400">{state.summary}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid gap-3 lg:grid-cols-3">
+              {page.handoffs.items.slice(0, 3).map((handoff) => (
+                <div key={handoff.label} className="rounded-[22px] border border-white/8 bg-black/20 p-4">
+                  {handoff.meta ? (
+                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-lime-200">{handoff.meta}</p>
+                  ) : null}
+                  <p className="mt-3 text-base font-black text-white">{handoff.label}</p>
+                  <p className="mt-3 text-sm leading-6 text-slate-400">{handoff.summary}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </DocsSnapshotFrame>
 
