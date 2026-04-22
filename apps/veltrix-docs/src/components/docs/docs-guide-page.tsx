@@ -2,8 +2,10 @@ import { notFound } from "next/navigation";
 import { DocsPageFrame } from "@/components/docs/docs-page-frame";
 import { DocsReferenceBlock } from "@/components/docs/docs-reference-block";
 import { DocsSection } from "@/components/docs/docs-section";
+import { DocsSnapshotFrame } from "@/components/docs/docs-snapshot-frame";
 import { DocsStateExplorer } from "@/components/docs/docs-state-explorer";
 import { getDocsGuidePage } from "@/lib/docs/docs-guide-pages";
+import { getDocsRelatedPages } from "@/lib/docs/docs-nav";
 
 export function DocsGuidePage({
   track,
@@ -17,6 +19,14 @@ export function DocsGuidePage({
   if (!page) {
     notFound();
   }
+
+  const connectedSurfaces = getDocsRelatedPages(page.relatedHrefs)
+    .filter((relatedPage) => relatedPage.href !== `/${track}/${slug}`)
+    .map((relatedPage) => ({
+      label: relatedPage.label,
+      meta: `${relatedPage.kind} · ${relatedPage.status}`,
+      summary: relatedPage.summary,
+    }));
 
   return (
     <DocsPageFrame
@@ -54,17 +64,43 @@ export function DocsGuidePage({
         </ul>
       </DocsSection>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.95fr)]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
+        <DocsSnapshotFrame
+          title={`${page.surfaceTitle} snapshot`}
+          description={`A docs-safe visual model of how ${page.surfaceTitle} is structured in the current Veltrix product system.`}
+          caption={`Read-only docs model · ${track === "project-docs" ? "Project track" : "Operator track"}`}
+          stats={[
+            {
+              label: "Track",
+              value: track === "project-docs" ? "Project" : "Operator",
+            },
+            {
+              label: "Primary lens",
+              value: page.chips[0] ?? "Surface",
+            },
+            {
+              label: "Workflow depth",
+              value: page.howItWorks ? `${page.howItWorks.states.length} states` : "Reference-led",
+            },
+          ]}
+        >
+          <div className="grid gap-4 lg:grid-cols-3">
+            {page.surfaceAnatomy.items.map((item) => (
+              <div key={item.label} className="rounded-[22px] border border-white/8 bg-black/20 p-4">
+                <p className="text-base font-black text-white">{item.label}</p>
+                {item.meta ? (
+                  <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.18em] text-cyan-200">{item.meta}</p>
+                ) : null}
+                <p className="mt-3 text-sm leading-6 text-slate-400">{item.summary}</p>
+              </div>
+            ))}
+          </div>
+        </DocsSnapshotFrame>
+
         <DocsReferenceBlock
           title={page.whereToFind.title}
           description={page.whereToFind.description}
           items={page.whereToFind.items}
-        />
-
-        <DocsReferenceBlock
-          title={page.surfaceAnatomy.title}
-          description={page.surfaceAnatomy.description}
-          items={page.surfaceAnatomy.items}
         />
       </div>
 
@@ -79,11 +115,17 @@ export function DocsGuidePage({
         ) : null}
 
         <DocsReferenceBlock
-          title={page.keyRules.title}
-          description={page.keyRules.description}
-          items={page.keyRules.items}
+          title="Connected surfaces"
+          description="These pages help explain the surrounding system so this surface or workflow never reads in isolation."
+          items={connectedSurfaces}
         />
       </div>
+
+      <DocsReferenceBlock
+        title={page.keyRules.title}
+        description={page.keyRules.description}
+        items={page.keyRules.items}
+      />
     </DocsPageFrame>
   );
 }

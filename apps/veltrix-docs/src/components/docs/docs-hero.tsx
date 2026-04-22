@@ -25,7 +25,7 @@ export function DocsHero({
       <div className="grid gap-8 xl:grid-cols-[minmax(0,1.25fr)_minmax(280px,0.75fr)] xl:items-end">
         <div className="max-w-5xl">
           <p className="docs-display docs-kicker text-cyan-200">{eyebrow}</p>
-          <h1 className="docs-display mt-4 max-w-[16ch] text-balance text-[clamp(2.15rem,4.8vw,4.6rem)] font-black leading-[0.94] tracking-[0.015em] text-white">
+          <h1 className="docs-display mt-4 max-w-[20ch] text-balance text-[clamp(1.9rem,3.6vw,3.55rem)] font-black leading-[0.98] tracking-[0.01em] text-white">
             {title}
           </h1>
           <p className="mt-5 max-w-3xl text-base leading-8 text-slate-300">{description}</p>
