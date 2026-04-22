@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+:root {
+  --docs-bg: #091116;
+  --docs-surface: rgba(255, 255, 255, 0.03);
+  --docs-surface-strong: rgba(255, 255, 255, 0.06);
+  --docs-line: rgba(255, 255, 255, 0.08);
+  --docs-text: #f4f7fa;
+  --docs-text-muted: #9aa8b6;
+  --docs-accent: #c9ff55;
+  --docs-accent-soft: rgba(201, 255, 85, 0.14);
+  --docs-cyan: #6fe6ff;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-display);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(201, 255, 85, 0.12), transparent 24%),
+    radial-gradient(circle at 88% 10%, rgba(74, 217, 255, 0.14), transparent 24%),
+    linear-gradient(180deg, #081117 0%, #071014 42%, #05090c 100%);
+  color: var(--docs-text);
+  font-family: var(--font-sans), sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.docs-shell-grid {
+  display: grid;
+  min-height: 100vh;
+  grid-template-columns: 300px minmax(0, 1fr);
+}
+
+.docs-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  border-right: 1px solid var(--docs-line);
+  background: linear-gradient(180deg, rgba(5, 10, 14, 0.92), rgba(7, 16, 20, 0.88));
+  backdrop-filter: blur(18px);
+}
+
+.docs-main {
+  min-width: 0;
+}
+
+.docs-container {
+  width: min(100%, 1360px);
+  margin: 0 auto;
+  padding: 24px 32px 32px;
+}
+
+.docs-panel {
+  border: 1px solid var(--docs-line);
+  background: var(--docs-surface);
+  backdrop-filter: blur(14px);
+}
+
+.docs-card {
+  border: 1px solid var(--docs-line);
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+}
+
+.docs-kicker {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.docs-display {
+  font-family: var(--font-display), sans-serif;
+}
+
+@media (max-width: 1120px) {
+  .docs-shell-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .docs-sidebar {
+    position: relative;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--docs-line);
+  }
+}
+
+@media (max-width: 768px) {
+  .docs-container {
+    padding: 18px 20px 24px;
+  }
+}

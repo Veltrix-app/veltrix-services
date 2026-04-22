@@ -3,5 +3,7 @@ dist/
 .env
 .env.local
 .worktrees/
+.next/
+*.tsbuildinfo
 .DS_Store
 Thumbs.db
