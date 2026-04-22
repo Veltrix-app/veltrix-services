@@ -11,6 +11,12 @@ type DocsWorkflowEntry = {
   meta?: string;
 };
 
+type DocsWorkflowSection = {
+  title: string;
+  description?: string;
+  items: DocsWorkflowEntry[];
+};
+
 type DocsWorkflowDefinition = {
   track: "project-docs" | "operator-docs";
   slug: string;
@@ -55,6 +61,11 @@ type DocsWorkflowDefinition = {
     description?: string;
     items: DocsWorkflowEntry[];
   };
+  deepDive?: {
+    title: string;
+    description?: string;
+    sections: DocsWorkflowSection[];
+  };
 };
 
 const docsWorkflowPages: DocsWorkflowDefinition[] = [
@@ -78,6 +89,8 @@ const docsWorkflowPages: DocsWorkflowDefinition[] = [
       "/project-docs/raid-studio",
       "/project-docs/rewards",
       "/reference/lifecycle-states",
+      "/reference/launch-and-readiness-model",
+      "/reference/builder-and-handoff-model",
     ],
     rail: {
       eyebrow: "Primary users",
@@ -201,6 +214,76 @@ const docsWorkflowPages: DocsWorkflowDefinition[] = [
         },
       ],
     },
+    deepDive: {
+      title: "Why the launch workflow starts from readiness, not from a random create button.",
+      description:
+        "Launch is an operating sequence, not just a collection of creation routes. This deeper model explains why the product starts with posture, then architecture, then supporting objects.",
+      sections: [
+        {
+          title: "Readiness should lead builder choice",
+          description: "Teams make better launch decisions when the system first shows what is missing rather than asking them to guess where to start.",
+          items: [
+            {
+              label: "The workspace surfaces structural gaps",
+              meta: "Launch model",
+              summary: "Readiness should reflect whether the project already has enough architecture, execution and incentive coverage to support a real public launch.",
+            },
+            {
+              label: "Missing context is the biggest early risk",
+              meta: "Risk model",
+              summary: "Without a launch hub, projects often create isolated objects that later need to be stitched back into a coherent system.",
+            },
+            {
+              label: "The docs should preserve sequence",
+              meta: "Docs rule",
+              summary: "A workflow page should help teams understand why the first move is what it is, not just what routes exist.",
+            },
+          ],
+        },
+        {
+          title: "Campaign comes before content sprawl",
+          description: "The workflow gives Campaign Studio priority because campaigns define the frame other builders inherit.",
+          items: [
+            {
+              label: "Architecture precedes objects",
+              meta: "Builder model",
+              summary: "A strong campaign reduces the chance that quests, raids and rewards become disconnected pieces that confuse members later.",
+            },
+            {
+              label: "Handoffs should preserve meaning",
+              meta: "System rule",
+              summary: "When supporting builders inherit project and campaign context, the launch plan stays legible across routes.",
+            },
+            {
+              label: "This is why launch is project-first",
+              meta: "Navigation rule",
+              summary: "The workflow intentionally favors project-driven handoffs over detached object creation.",
+            },
+          ],
+        },
+        {
+          title: "Launch should resolve into operations",
+          description: "The workflow is complete only when the project can leave setup mode and move into live community and member-facing execution.",
+          items: [
+            {
+              label: "Readiness must return after each step",
+              meta: "Feedback model",
+              summary: "The team should always be able to re-read launch posture after creating a new campaign, quest, raid or reward.",
+            },
+            {
+              label: "Community and member layers are downstream",
+              meta: "Execution model",
+              summary: "Launch is not just creation; it is the setup that makes Community OS and Member Journey feel coherent once the system goes live.",
+            },
+            {
+              label: "The docs should end on live posture",
+              meta: "Outcome rule",
+              summary: "A launch workflow should conclude with a credible operating state, not merely a set of published objects.",
+            },
+          ],
+        },
+      ],
+    },
   },
   {
     track: "project-docs",
@@ -221,6 +304,8 @@ const docsWorkflowPages: DocsWorkflowDefinition[] = [
       "/project-docs/rewards",
       "/project-docs/member-journey",
       "/reference/lifecycle-states",
+      "/reference/builder-and-handoff-model",
+      "/reference/verification-and-reward-model",
     ],
     rail: {
       eyebrow: "Primary users",
@@ -341,6 +426,76 @@ const docsWorkflowPages: DocsWorkflowDefinition[] = [
         },
       ],
     },
+    deepDive: {
+      title: "Why campaign building is documented as a goal-to-journey system instead of a one-page create flow.",
+      description:
+        "Campaigns matter because they shape the architecture that quests, rewards and the member journey later inherit. This deeper layer explains those dependencies explicitly.",
+      sections: [
+        {
+          title: "Campaigns turn strategy into structure",
+          description: "The campaign layer exists so projects can reason about progression, pressure and outcome before creating support objects.",
+          items: [
+            {
+              label: "Goal posture determines the mission map",
+              meta: "Strategy model",
+              summary: "Growth, activation, comeback and on-chain goals should lead to different campaign shapes, which is why the docs start with intent rather than fields.",
+            },
+            {
+              label: "Structure protects clarity",
+              meta: "Architecture rule",
+              summary: "Campaign documentation should keep the reader aware that coherence is more valuable than a long list of configurable objects.",
+            },
+            {
+              label: "Storyboard-first is intentional",
+              meta: "Builder rule",
+              summary: "The product uses a storyboard-style campaign surface because the system benefits when teams can see the shape of the journey they are building.",
+            },
+          ],
+        },
+        {
+          title: "Supporting objects should inherit their place",
+          description: "Quest and reward flows make more sense when they enter as children of a campaign rather than standalone artifacts.",
+          items: [
+            {
+              label: "Quest context should not be re-explained manually",
+              meta: "Handoff model",
+              summary: "The workflow should show that builders inherit project and campaign context so teams do not need to restate why a quest exists.",
+            },
+            {
+              label: "Rewards should reinforce the map",
+              meta: "Incentive model",
+              summary: "Campaign documentation should explain how incentive placement either strengthens or weakens the mission architecture.",
+            },
+            {
+              label: "The campaign remains the parent surface",
+              meta: "System rule",
+              summary: "Even after supporting objects are added, the campaign should stay readable as the primary framing layer.",
+            },
+          ],
+        },
+        {
+          title: "Member clarity is the final validation layer",
+          description: "The campaign is only successful if the member-facing experience feels as coherent as the builder did.",
+          items: [
+            {
+              label: "Journey fit should be visible",
+              meta: "Experience model",
+              summary: "Projects need to understand how the campaign structure translates into missions, recognition and reward posture for actual members.",
+            },
+            {
+              label: "Campaigns should close the loop",
+              meta: "Outcome rule",
+              summary: "This workflow should teach that member comprehension and momentum are the real test of campaign quality.",
+            },
+            {
+              label: "Docs should connect across tracks",
+              meta: "Docs rule",
+              summary: "A strong campaign page points naturally into Member Journey and reward safety explanations rather than stopping at the builder.",
+            },
+          ],
+        },
+      ],
+    },
   },
   {
     track: "project-docs",
@@ -361,6 +516,7 @@ const docsWorkflowPages: DocsWorkflowDefinition[] = [
       "/project-docs/integrations",
       "/project-docs/member-journey",
       "/reference/bot-commands",
+      "/reference/community-and-member-signal-model",
     ],
     rail: {
       eyebrow: "Primary users",
@@ -481,6 +637,76 @@ const docsWorkflowPages: DocsWorkflowDefinition[] = [
         },
       ],
     },
+    deepDive: {
+      title: "Why community operations are documented as a feedback loop between owner posture, captain execution and member response.",
+      description:
+        "Community work is only coherent when decisions, command delivery and member outcomes keep informing one another. This deeper model explains that loop.",
+      sections: [
+        {
+          title: "Owner posture frames the operating week",
+          description: "The community workflow begins with the owner view because someone has to decide what matters before tasks get distributed.",
+          items: [
+            {
+              label: "Health and cohorts provide context",
+              meta: "Decision model",
+              summary: "Owner posture should explain where the community needs pressure, rescue or reactivation instead of only showing recent activity.",
+            },
+            {
+              label: "Automations are part of strategy",
+              meta: "Operating model",
+              summary: "The docs should explain automations as extensions of owner intent, not as a disconnected utility layer.",
+            },
+            {
+              label: "The product separates decide and execute",
+              meta: "Role model",
+              summary: "Owner and captain views exist separately because deciding what matters is not the same job as carrying it out.",
+            },
+          ],
+        },
+        {
+          title: "Commands and integrations are the delivery rails",
+          description: "Once the operating posture is clear, the community system pushes that intent through bots and connected surfaces.",
+          items: [
+            {
+              label: "Commands are not side utilities",
+              meta: "Activation rule",
+              summary: "The workflow should teach that bot commands are one of the main ways community operations turn into member-visible action.",
+            },
+            {
+              label: "Integrations create the proof and sync layer",
+              meta: "System dependency",
+              summary: "Connected systems influence what can be verified, delivered or measured when the community team acts.",
+            },
+            {
+              label: "Captain accountability stays visible",
+              meta: "Execution rule",
+              summary: "Projects should understand how assigned action and seat-based scope keep the delivery rails trustworthy.",
+            },
+          ],
+        },
+        {
+          title: "Member response closes the system loop",
+          description: "Community operations only make sense if the project can see the effect on actual member movement.",
+          items: [
+            {
+              label: "Mission and comeback posture respond",
+              meta: "Journey model",
+              summary: "The member-facing product should visibly change when community operations are doing a good job of pushing members forward or bringing them back.",
+            },
+            {
+              label: "Signals should change next decisions",
+              meta: "Feedback rule",
+              summary: "Owner posture on the next cycle should reflect what captains and commands actually accomplished.",
+            },
+            {
+              label: "The docs should show a loop, not a line",
+              meta: "Docs rule",
+              summary: "Community operations are more truthfully described as an ongoing cycle of observe, execute and re-read than as a one-time setup flow.",
+            },
+          ],
+        },
+      ],
+    },
   },
   {
     track: "operator-docs",
@@ -501,6 +727,8 @@ const docsWorkflowPages: DocsWorkflowDefinition[] = [
       "/reference/trust-case-types",
       "/reference/permissions",
       "/reference/status-labels",
+      "/reference/trust-score-and-severity-bands",
+      "/reference/warning-and-flag-lifecycle",
     ],
     rail: {
       eyebrow: "Primary users",
@@ -621,6 +849,76 @@ const docsWorkflowPages: DocsWorkflowDefinition[] = [
         },
       ],
     },
+    deepDive: {
+      title: "Why trust review is documented around case formation, bounded visibility and explainable closure.",
+      description:
+        "Trust is only defensible if the platform can show how signals became cases, why severity was chosen and how project participation stayed limited and intentional.",
+      sections: [
+        {
+          title: "Signals need normalization before review",
+          description: "Warnings, flags and suspicious patterns should become explicit trust cases before deep investigation starts.",
+          items: [
+            {
+              label: "Severity is chosen, not guessed",
+              meta: "Scoring model",
+              summary: "The docs should explain that trust bands and case types exist so operators can distinguish watch posture from rejection-worthy behavior.",
+            },
+            {
+              label: "Warnings and cases are different layers",
+              meta: "Lifecycle rule",
+              summary: "A flag may inform a case, but the case is the product object that can carry ownership, timeline and outcome.",
+            },
+            {
+              label: "Classification protects consistency",
+              meta: "Ops rule",
+              summary: "Normalizing trust issues into known types reduces drift between operators and makes the console easier to read.",
+            },
+          ],
+        },
+        {
+          title: "Project participation stays permissioned",
+          description: "Trust review often benefits from project context, but that does not mean every project user should see raw evidence or act freely.",
+          items: [
+            {
+              label: "Summary-only is the safer baseline",
+              meta: "Visibility model",
+              summary: "The docs should explain why project teams start with limited trust visibility unless the owner grants more.",
+            },
+            {
+              label: "Evidence stays bounded",
+              meta: "Safety rule",
+              summary: "Internal trust operators may see raw signals or wallet patterns that the project should only encounter through a summarized, purposeful view.",
+            },
+            {
+              label: "Escalation is the bridge",
+              meta: "Handoff model",
+              summary: "When project input is genuinely needed, the case should move into a readable waiting state instead of exposing internal review mechanics directly.",
+            },
+          ],
+        },
+        {
+          title: "Closure should remain explainable later",
+          description: "Trust work earns credibility when future operators can still understand why a case ended the way it did.",
+          items: [
+            {
+              label: "Resolution notes matter",
+              meta: "Audit model",
+              summary: "Resolved or dismissed trust cases should preserve the reason the platform arrived at that conclusion.",
+            },
+            {
+              label: "The timeline protects support quality",
+              meta: "Support rule",
+              summary: "A readable history makes future review, escalation and dispute handling calmer and more consistent.",
+            },
+            {
+              label: "The docs should reward precision",
+              meta: "Docs rule",
+              summary: "Trust workflow pages should help readers understand that a precise, documented outcome is a core feature of the system.",
+            },
+          ],
+        },
+      ],
+    },
   },
   {
     track: "operator-docs",
@@ -641,6 +939,7 @@ const docsWorkflowPages: DocsWorkflowDefinition[] = [
       "/operator-docs/escalations",
       "/reference/payout-case-types",
       "/reference/status-labels",
+      "/reference/payout-risk-and-resolution-model",
     ],
     rail: {
       eyebrow: "Primary users",
@@ -761,6 +1060,76 @@ const docsWorkflowPages: DocsWorkflowDefinition[] = [
         },
       ],
     },
+    deepDive: {
+      title: "Why payout resolution is documented as a failure-driven safety workflow rather than a generic support queue.",
+      description:
+        "Claims and payouts need a deeper model because blocked flows, retries and disputes all imply different risk and recovery paths.",
+      sections: [
+        {
+          title: "Payout issues start as failure posture",
+          description: "The workflow becomes clearer once the docs explain what kind of breakdown happened before any action is taken.",
+          items: [
+            {
+              label: "Different failures imply different moves",
+              meta: "Case model",
+              summary: "Blocked claims, delivery failures and inventory risk should not collapse into one ambiguous problem label because they need different next actions.",
+            },
+            {
+              label: "The queue should be interpretive",
+              meta: "Support rule",
+              summary: "Operators need the console to explain why the path stopped, not just to show that something is pending.",
+            },
+            {
+              label: "Risk posture shapes urgency",
+              meta: "Resolution rule",
+              summary: "The docs should help readers understand which failures are safe to retry quickly and which ones deserve deeper review first.",
+            },
+          ],
+        },
+        {
+          title: "Safe retries and project blockers are distinct",
+          description: "A payout workflow is stronger when it separates bounded recovery actions from situations that still need project clarification or operator judgment.",
+          items: [
+            {
+              label: "Project-safe actions stay narrow",
+              meta: "Permission model",
+              summary: "Projects may annotate, escalate or take limited retry actions when the owner allows it, but deeper payout control should remain internal.",
+            },
+            {
+              label: "Waiting states should explain the blocker",
+              meta: "Escalation rule",
+              summary: "The workflow should make it obvious whether the case is waiting on project input, an internal retry or a manual operator decision.",
+            },
+            {
+              label: "This boundary protects trust",
+              meta: "Safety rule",
+              summary: "Keeping project-safe recovery distinct from internal overrides helps the platform stay both collaborative and controlled.",
+            },
+          ],
+        },
+        {
+          title: "Resolution history protects member confidence",
+          description: "A payout issue has member-facing consequences, so closure needs to be understandable later too.",
+          items: [
+            {
+              label: "Timeline entries explain the fix",
+              meta: "Audit model",
+              summary: "Retries, resolves and dismissals should all write back into the case history so later support work has something dependable to read.",
+            },
+            {
+              label: "Repeated issues should get easier",
+              meta: "Learning rule",
+              summary: "Good payout history helps operators and projects recognize familiar patterns and respond with less confusion next time.",
+            },
+            {
+              label: "The docs should link risk to resolution",
+              meta: "Docs rule",
+              summary: "A payout workflow page should teach not only what to click, but why the system is asking for a particular recovery move.",
+            },
+          ],
+        },
+      ],
+    },
   },
   {
     track: "operator-docs",
@@ -781,6 +1150,8 @@ const docsWorkflowPages: DocsWorkflowDefinition[] = [
       "/reference/onchain-case-types",
       "/reference/permissions",
       "/reference/status-labels",
+      "/reference/onchain-signal-and-recovery-model",
+      "/reference/warning-and-flag-lifecycle",
     ],
     rail: {
       eyebrow: "Primary users",
@@ -898,6 +1269,76 @@ const docsWorkflowPages: DocsWorkflowDefinition[] = [
           label: "History is part of reliability",
           meta: "Reliability rule",
           summary: "Good on-chain recovery documentation always shows how the system preserves context after the issue is handled.",
+        },
+      ],
+    },
+    deepDive: {
+      title: "Why on-chain recovery is documented as a normalized case system with project-safe action boundaries.",
+      description:
+        "Raw chain events and job logs are too noisy to reason about directly. The docs should explain how Veltrix turns that noise into bounded recovery work.",
+      sections: [
+        {
+          title: "Raw failures become readable cases",
+          description: "The first job of the on-chain workflow is normalization: turning ingress, sync and enrichment problems into known case types.",
+          items: [
+            {
+              label: "Classification makes recovery legible",
+              meta: "Case model",
+              summary: "Operators can choose the right next step faster when the system already knows whether the issue is ingress, enrichment, provider sync or anomaly related.",
+            },
+            {
+              label: "Warnings and cases are not identical",
+              meta: "Signal model",
+              summary: "Some chain-side signals stay at the watch layer, while others become operator-facing cases once they need ownership and action.",
+            },
+            {
+              label: "The console should hide infrastructure noise",
+              meta: "UX rule",
+              summary: "The docs should frame on-chain recovery around product-readable cases, not around raw job terminology alone.",
+            },
+          ],
+        },
+        {
+          title: "Project-safe actions stop at the boundary",
+          description: "The on-chain console is shared, but the action surface should still distinguish clearly between safe project participation and internal-only recovery jobs.",
+          items: [
+            {
+              label: "Retry, rerun and rescan are bounded",
+              meta: "Permission model",
+              summary: "Project-side actions should stay limited to safe recovery moves that only affect the relevant project context.",
+            },
+            {
+              label: "Global provider jobs stay internal",
+              meta: "Safety rule",
+              summary: "The docs should make it unambiguous that broader sync or infrastructure actions remain under internal control.",
+            },
+            {
+              label: "Owner grants control participation",
+              meta: "Governance rule",
+              summary: "Projects only get deeper visibility or action rights when the owner explicitly expands beyond summary-only posture.",
+            },
+          ],
+        },
+        {
+          title: "Recovery history is part of reliability",
+          description: "The platform becomes easier to operate when every retry, rerun or rescan leaves behind a readable timeline.",
+          items: [
+            {
+              label: "Queued work should stay visible",
+              meta: "Waiting-state model",
+              summary: "Operators and projects should be able to tell whether the system is waiting on a retry, still blocked or genuinely recovered.",
+            },
+            {
+              label: "Resolution should explain the new posture",
+              meta: "Outcome rule",
+              summary: "Closing an on-chain case should show whether the issue recovered, escalated or was dismissed after deeper review.",
+            },
+            {
+              label: "The docs should teach observability",
+              meta: "Docs rule",
+              summary: "Recovery pages should help readers understand why the timeline and status layers are just as important as the action buttons themselves.",
+            },
+          ],
         },
       ],
     },

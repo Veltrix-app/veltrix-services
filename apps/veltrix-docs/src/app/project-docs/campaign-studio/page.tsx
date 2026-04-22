@@ -17,6 +17,9 @@ export default function CampaignStudioDocsPage() {
         "/project-docs/community-os",
         "/reference",
         "/reference/lifecycle-states",
+        "/reference/launch-and-readiness-model",
+        "/reference/builder-and-handoff-model",
+        "/reference/verification-and-reward-model",
       ]}
       rail={
         <div className="space-y-4">
@@ -28,7 +31,7 @@ export default function CampaignStudioDocsPage() {
         </div>
       }
       snapshotSlug="campaign-studio"
-      stateExplorerSlug="lifecycle"
+      stateExplorerSlug="builder-handoffs"
       whatItIs={{
         description:
           "Campaign Studio is the project-facing campaign builder. It is not just a form for campaign metadata. It is the place where launch intent, mission structure, reward posture and readiness all meet.",
@@ -79,6 +82,85 @@ export default function CampaignStudioDocsPage() {
             label: "Member-facing consequences",
             meta: "Journey rule",
             summary: "The campaign architecture only matters because it shapes the quest, raid and reward experience for members later.",
+          },
+        ],
+      }}
+      deepDive={{
+        title: "How Campaign Studio actually works as a system layer",
+        description:
+          "Campaign Studio is strongest when the docs explain not only the builder layout, but also why campaign sits above quest, raid and reward depth inside the wider launch model.",
+        sections: [
+          {
+            title: "Why campaign is the architecture layer",
+            description: "Campaign exists so the system has a strategic parent object before it creates individual missions.",
+            items: [
+              {
+                label: "Goal before object sprawl",
+                meta: "Builder rule",
+                summary:
+                  "Campaign Studio starts from launch intent because later quest, raid and reward objects only make sense once the project has decided what the launch is trying to accomplish.",
+              },
+              {
+                label: "Mission map before execution depth",
+                meta: "Structure rule",
+                summary:
+                  "The campaign layer gives the product a place to show sequencing, pressure and reward posture before the team starts managing single mission surfaces one by one.",
+              },
+              {
+                label: "Member path starts here",
+                meta: "Journey consequence",
+                summary:
+                  "Campaign decisions matter because they shape what members later see as an ordered mission path rather than disconnected content objects.",
+              },
+            ],
+          },
+          {
+            title: "How readiness influences the builder",
+            description: "Campaign Studio is not separate from launch posture; it is one of the main ways launch readiness becomes real.",
+            items: [
+              {
+                label: "Launch Workspace handoff",
+                meta: "Project-first routing",
+                summary:
+                  "Projects should usually enter Campaign Studio from Launch Workspace or project context so the builder inherits the right readiness and operating state.",
+              },
+              {
+                label: "Lifecycle-safe editing",
+                meta: "State model",
+                summary:
+                  "Campaign actions follow the shared lifecycle posture, which keeps publication and activation readable instead of burying state changes in ad hoc toggles.",
+              },
+              {
+                label: "Missing content still matters",
+                meta: "Readiness pressure",
+                summary:
+                  "Campaigns can exist before quests, raids and rewards are ready, but the docs should explain that this still leaves the project in a warming-up or blocked posture depending on the rest of launch readiness.",
+              },
+            ],
+          },
+          {
+            title: "Why rewards and quests are linked here",
+            description: "Campaign Studio should make its downstream consequence obvious instead of forcing readers to infer it.",
+            items: [
+              {
+                label: "Quests inherit placement",
+                meta: "Builder handoff",
+                summary:
+                  "Quest Studio should receive project and campaign context so the quest reads as part of the campaign spine rather than a detached task.",
+              },
+              {
+                label: "Rewards create conversion pressure",
+                meta: "Incentive model",
+                summary:
+                  "Reward posture belongs inside campaign architecture because incentives help determine how the mission path converts and what later payout pressure might exist.",
+              },
+              {
+                label: "Community OS is downstream",
+                meta: "Execution loop",
+                summary:
+                  "Once the campaign is live, Community OS becomes the place where the project watches whether the architecture is actually creating movement.",
+              },
+            ],
           },
         ],
       }}

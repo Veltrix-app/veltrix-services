@@ -17,6 +17,8 @@ export default function CommunityOsDocsPage() {
         "/reference",
         "/reference/permissions",
         "/reference/automation-types",
+        "/reference/community-and-member-signal-model",
+        "/reference/builder-and-handoff-model",
       ]}
       rail={
         <div className="space-y-4">
@@ -28,7 +30,7 @@ export default function CommunityOsDocsPage() {
         </div>
       }
       snapshotSlug="community-os"
-      stateExplorerSlug="permissions"
+      stateExplorerSlug="community-signals"
       whatItIs={{
         description:
           "Community OS is the project-facing workspace for day-to-day execution. It is where owner posture, captain posture, automations, command rails and health signals live together.",
@@ -77,6 +79,85 @@ export default function CommunityOsDocsPage() {
             label: "Signals drive action",
             meta: "Outcome rule",
             summary: "The page should keep health, cohorts and activation pressure tied to next actions rather than passive reporting.",
+          },
+        ],
+      }}
+      deepDive={{
+        title: "How Community OS turns launch structure into daily movement",
+        description:
+          "Community OS should be documented as a loop between owner posture, captain execution, command rails and member-facing response, not as a static admin dashboard.",
+        sections: [
+          {
+            title: "Why owner and captain are separate",
+            description: "The split is a product design choice, not an arbitrary permission detail.",
+            items: [
+              {
+                label: "Owner mode",
+                meta: "Strategic posture",
+                summary:
+                  "Owner posture is where the project reads health, cohorts, automations and next action pressure before deciding what the community needs now.",
+              },
+              {
+                label: "Captain mode",
+                meta: "Execution posture",
+                summary:
+                  "Captain posture exists so live community action remains bounded, accountable and distinct from the broader decision rights the owner holds.",
+              },
+              {
+                label: "Permission split matters",
+                meta: "Role model",
+                summary:
+                  "The docs should show that this role separation is what keeps community execution coherent once launches become busy and multi-person.",
+              },
+            ],
+          },
+          {
+            title: "Why commands and automations belong here",
+            description: "These are not side tools; they are part of the operating model.",
+            items: [
+              {
+                label: "Commands as delivery rails",
+                meta: "Activation layer",
+                summary:
+                  "Discord and Telegram commands carry community and mission posture into live chat surfaces, which is why they belong inside Community OS documentation.",
+              },
+              {
+                label: "Automations as operating rhythm",
+                meta: "Cadence layer",
+                summary:
+                  "Automations give the project repeatable follow-through on reminders, activations and upkeep instead of relying on manual community hustle alone.",
+              },
+              {
+                label: "Health signals create next actions",
+                meta: "Outcome layer",
+                summary:
+                  "Cohorts, activation trends and community health only matter because they tell the owner or captain what to do next.",
+              },
+            ],
+          },
+          {
+            title: "Why this page connects to the member journey",
+            description: "The docs should always close the loop from community work back into member behavior.",
+            items: [
+              {
+                label: "Member response is the proof",
+                meta: "Feedback loop",
+                summary:
+                  "Onboarding progress, comeback motion, recognition and mission completion are how the project learns whether community work is actually doing something useful.",
+              },
+              {
+                label: "Commands change the journey",
+                meta: "Chat-to-product flow",
+                summary:
+                  "Commands and community prompts can route members into their next mission, reward or profile surface, which is why Community OS has direct consequence inside the webapp.",
+              },
+              {
+                label: "Builders feed this layer",
+                meta: "System loop",
+                summary:
+                  "Campaigns, quests, raids and rewards create the content and incentives that Community OS later operationalizes and measures.",
+              },
+            ],
           },
         ],
       }}

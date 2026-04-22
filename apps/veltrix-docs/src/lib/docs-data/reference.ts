@@ -152,6 +152,239 @@ const docsReferenceDatasets: DocsReferenceDataset[] = [
     },
   },
   {
+    slug: "launch-and-readiness-model",
+    title: "Launch and Readiness Model",
+    summary: "The exact model behind Launch Workspace, readiness groups, hard blockers, soft blockers and why a project is or is not launchable.",
+    entries: [
+      { label: "Identity group", meta: "Profile, brand, contact", summary: "Launch posture starts with whether the project looks real, branded and reachable enough to be taken seriously." },
+      { label: "Community rail group", meta: "Providers, targets, push tests", summary: "Connected providers and configured Discord or Telegram targets matter because launch cannot distribute safely without them." },
+      { label: "Content spine group", meta: "Campaigns, quests, raids", summary: "The readiness model checks whether the project has an actual campaign and mission stack rather than a blank shell." },
+      { label: "Rewards and operations groups", meta: "Outcomes and calmness", summary: "Reward presence, assets, incidents and active overrides all influence whether launch posture feels safe or still fragile." },
+    ],
+    matrix: {
+      title: "Readiness group map",
+      description: "Launch posture is deliberately broader than content completeness alone.",
+      columns: ["What it checks", "What blocks it", "Why it matters"],
+      rows: [
+        {
+          label: "Identity",
+          values: ["Profile basics, logo, banner, contact path", "Missing profile, weak brand surface or no contact route", "Public launch confidence starts with whether the project itself feels real"],
+        },
+        {
+          label: "Community rail",
+          values: ["Connected providers, targets, push tests", "No provider, no target or untested delivery", "Launch fails operationally if the project cannot actually distribute and activate"],
+        },
+        {
+          label: "Content spine",
+          values: ["Campaigns plus quest or raid rails", "No campaign or no mission rail", "Members need somewhere meaningful to go once the launch is live"],
+        },
+        {
+          label: "Operations",
+          values: ["Incidents and overrides", "Critical incidents or active unsafe overrides", "A launch can be structurally complete and still operationally unsafe"],
+        },
+      ],
+    },
+    deepDive: {
+      title: "How readiness is actually derived",
+      description: "These explanations come from the project launch-readiness helper rather than from generic PM language.",
+      sections: [
+        {
+          title: "Hard blockers",
+          description: "Hard blockers stop the launch from being called ready even if other areas look healthy.",
+          items: [
+            { label: "No live providers", meta: "Critical blocker", summary: "If the project has no usable provider rails, launch posture is blocked because verification and delivery cannot happen safely." },
+            { label: "No campaign spine", meta: "Critical blocker", summary: "The readiness helper treats the first campaign as required because quests, raids and rewards need a parent mission structure." },
+            { label: "No live mission rail", meta: "Critical blocker", summary: "Launch needs at least one quest or raid so members have a real first action instead of only a promise." },
+          ],
+        },
+        {
+          title: "Soft blockers and warming-up posture",
+          description: "Soft blockers do not fully stop launch, but they explain why the posture is still fragile.",
+          items: [
+            { label: "No reward surface yet", meta: "Warning", summary: "The project can still move forward, but the launch lacks a clear conversion or recognition layer." },
+            { label: "No push test logged", meta: "Warning", summary: "Delivery rails may be connected, but launch still lacks proof that they work end-to-end." },
+            { label: "Nothing live yet", meta: "Warning", summary: "A project can be structurally complete and still not have moved anything into active posture." },
+          ],
+        },
+        {
+          title: "Readiness tiers",
+          description: "The score and blocker mix ultimately decide the launch tier.",
+          items: [
+            { label: "Blocked", meta: "Hard blocker present", summary: "At least one critical prerequisite is missing or unsafe, so the project should not be treated as launch-ready." },
+            { label: "Warming up or launchable", meta: "Intermediate tiers", summary: "The project has momentum, but either the score or the warning posture says more tightening is still needed." },
+            { label: "Live ready", meta: "High score plus no blockers", summary: "The project looks coherent, equipped and calm enough to handle real launch traffic." },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    slug: "builder-and-handoff-model",
+    title: "Builder and Handoff Model",
+    summary: "The exact model for how Launch Workspace, Campaign Studio, Quest Studio, Raid Studio and reward flows pass context into each other.",
+    entries: [
+      { label: "Project-first entry", meta: "Workspace context", summary: "The system prefers starting from project or launch context so builder sessions inherit the right project and campaign state automatically." },
+      { label: "Campaign as parent architecture", meta: "Mission structure", summary: "Campaign Studio defines the mission map that later quests, raids and rewards should fit inside." },
+      { label: "Quest and raid as execution builders", meta: "Action layers", summary: "Quest and raid builders turn strategy into concrete member and activation motions without replacing the campaign architecture above them." },
+      { label: "Return to operating posture", meta: "Readiness loop", summary: "After creation, the system should return users to Launch Workspace or Community OS so they can judge what changed next." },
+    ],
+    matrix: {
+      title: "Builder relationship map",
+      description: "Builders should read like one family, not a loose collection of forms.",
+      columns: ["Primary role", "Receives context from", "Feeds into"],
+      rows: [
+        {
+          label: "Launch Workspace",
+          values: ["Readiness and routing", "Project state and onboarding facts", "Campaign, quest, raid and reward builders"],
+        },
+        {
+          label: "Campaign Studio",
+          values: ["Mission architecture", "Project context and launch posture", "Quest, raid and reward placement"],
+        },
+        {
+          label: "Quest / Raid Studio",
+          values: ["Execution builders", "Project or campaign context", "Member journey and community activation"],
+        },
+        {
+          label: "Rewards",
+          values: ["Incentive layer", "Campaign or quest context", "Claims, payout posture and member motivation"],
+        },
+      ],
+    },
+    deepDive: {
+      title: "Why the handoff model matters",
+      description: "A product like Veltrix breaks down fast if builders feel detached from each other or from the launch state around them.",
+      sections: [
+        {
+          title: "Why Campaign usually comes first",
+          description: "The system treats campaign as the architectural parent of later mission objects.",
+          items: [
+            { label: "Goal before objects", meta: "Strategy rule", summary: "Campaign Studio forces intent and mission structure into view before a team can drown in individual quest or raid fields." },
+            { label: "Placement becomes clearer", meta: "Builder rule", summary: "Quest, raid and reward creation all become easier to explain when the campaign already exists as a frame." },
+            { label: "Member path stays coherent", meta: "Journey rule", summary: "Campaign structure helps the later member journey feel like a route rather than disconnected tasks." },
+          ],
+        },
+        {
+          title: "Why Launch Workspace exists",
+          description: "Launch Workspace is not only a convenience menu; it is the routing and readiness hub for the whole builder family.",
+          items: [
+            { label: "Route memory should not be required", meta: "UX rule", summary: "Projects should not need to know hidden admin routes before they can launch effectively." },
+            { label: "Readiness should update after each build step", meta: "State rule", summary: "Returning to launch posture makes creation feel cumulative rather than like scattered one-off sessions." },
+            { label: "The next move should stay obvious", meta: "Operating rule", summary: "Builder handoffs are strongest when the product tells the team what to open next and why." },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    slug: "verification-and-reward-model",
+    title: "Verification and Reward Model",
+    summary: "The exact model for how member action, proof logic, reward framing and downstream claim posture stay connected across project builders.",
+    entries: [
+      { label: "Action layer", meta: "What the member actually does", summary: "Quest and raid builders first need a clear member or community action before verification and reward logic can make sense." },
+      { label: "Verification layer", meta: "Why the system trusts completion", summary: "Proof posture explains whether completion is manual, provider-backed or derived from a structured input." },
+      { label: "Reward layer", meta: "Why the action matters", summary: "Rewards affect motivation before they ever become claims, so they need to be explained inside the builder model, not only inside payout docs." },
+      { label: "Claim consequence", meta: "Downstream ops", summary: "Later claim and payout pressure is part of the same system story and should be linked back into builder docs explicitly." },
+    ],
+    matrix: {
+      title: "Mission-to-claim map",
+      description: "This is the bridge between project-side creation and operator-side payout behavior.",
+      columns: ["Builder decision", "Immediate effect", "Downstream consequence"],
+      rows: [
+        {
+          label: "Action design",
+          values: ["Changes what the member is asked to do", "Shapes CTA clarity and mission placement", "Influences later journey and completion quality"],
+        },
+        {
+          label: "Verification type",
+          values: ["Changes how proof is supplied or checked", "Shapes trust in completion", "Affects review posture and what can later become a payout-safe claim"],
+        },
+        {
+          label: "Reward framing",
+          values: ["Changes motivation and conversion", "Keeps incentive visible during building", "Can later create inventory pressure or payout cases"],
+        },
+      ],
+    },
+    deepDive: {
+      title: "How the model should be read",
+      description: "Project docs should explain all four layers together so teams understand consequence, not just configuration.",
+      sections: [
+        {
+          title: "Why verification deserves its own explanation",
+          description: "Verification is one of the easiest places for builder docs to become too shallow.",
+          items: [
+            { label: "Manual confirmation", meta: "Human-trust posture", summary: "Manual verification is strongest when the docs explain that it trades automation for controlled review and deliberate proof handling." },
+            { label: "Provider-backed proof", meta: "Automation posture", summary: "Provider checks feel lighter operationally, but the docs should explain their dependencies on connected rails and data quality." },
+            { label: "Structured config still matters", meta: "Builder clarity", summary: "Even machine-checkable proof needs structured configuration so the operator side later understands what was supposed to be verified." },
+          ],
+        },
+        {
+          title: "Why reward docs must mention claims",
+          description: "Projects make better incentive choices when they also understand the operational tail behind them.",
+          items: [
+            { label: "A reward is not only a perk", meta: "Conversion model", summary: "Rewards create meaning and momentum, but they also create delivery, stock and dispute consequences later." },
+            { label: "Inventory is part of builder quality", meta: "Launch rule", summary: "A reward setup that cannot support expected demand weakens the launch even if the quest itself looks strong." },
+            { label: "Payout Console is downstream, not separate", meta: "Cross-track rule", summary: "Project docs should make it obvious that payout operations are the downstream consequence of earlier reward choices." },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    slug: "community-and-member-signal-model",
+    title: "Community and Member Signal Model",
+    summary: "The exact model for how Community OS, commands, cohorts, health and the member journey feed each other.",
+    entries: [
+      { label: "Owner posture", meta: "Strategic operating layer", summary: "Owner mode reads health, cohorts, automations and next pressure to decide what matters most for the project now." },
+      { label: "Captain and command posture", meta: "Execution layer", summary: "Captain scopes and bot commands turn owner intent into daily action without collapsing all permissions into one lane." },
+      { label: "Community health signals", meta: "Operational feedback", summary: "Cohorts, activation trends, readiness signals and commands all help explain whether community work is producing motion." },
+      { label: "Member-facing loop", meta: "Journey and recognition", summary: "The member journey is where projects see whether their community and content decisions are actually changing behavior and status." },
+    ],
+    matrix: {
+      title: "Community feedback loop map",
+      description: "Community OS is strongest when it is read as a loop rather than a dashboard.",
+      columns: ["Starts from", "Moves through", "Shows up as"],
+      rows: [
+        {
+          label: "Owner decision",
+          values: ["Health, cohorts, commands, automations", "Captain follow-through and command rails", "Visible community action and pressure"],
+        },
+        {
+          label: "Command or automation",
+          values: ["Bot rails or scheduled follow-through", "Community channels and member prompts", "Signals, missions, raids or claims becoming visible to members"],
+        },
+        {
+          label: "Member response",
+          values: ["Journey lane and recognition posture", "Mission completion and comeback or onboarding movement", "Updated health and outcome signals back in Community OS"],
+        },
+      ],
+    },
+    deepDive: {
+      title: "Why the community layer needs deeper docs",
+      description: "This is where a lot of products become vague. Veltrix should explain the loop clearly instead of treating community work as generic growth activity.",
+      sections: [
+        {
+          title: "Owner versus captain is a design choice",
+          description: "The docs should make the role split feel intentional and productive.",
+          items: [
+            { label: "Owner mode", meta: "Decide and inspect", summary: "Owner posture is about what needs attention, which cohort is drifting and which operating rail needs to move next." },
+            { label: "Captain mode", meta: "Carry out bounded work", summary: "Captain posture exists so daily community execution stays accountable without exposing deeper owner or safety-console control." },
+            { label: "Command rails bridge both", meta: "Execution bridge", summary: "Commands are how operating posture gets delivered into live community spaces without leaving the product model." },
+          ],
+        },
+        {
+          title: "Why member journey belongs here too",
+          description: "Member-facing movement is the proof that community operations are doing something real.",
+          items: [
+            { label: "Onboarding and comeback are outputs", meta: "Journey rule", summary: "Those lanes are not isolated member pages; they are shaped by launch content, commands, provider rails and community follow-through." },
+            { label: "Recognition is feedback", meta: "Community reward loop", summary: "Streaks, milestones and next unlocks help projects see whether the community layer is turning activity into status and retention." },
+            { label: "Signals should come back upstream", meta: "Outcome rule", summary: "Community OS becomes much stronger when the docs show that member behavior flows back into project-side health and cohort views." },
+          ],
+        },
+      ],
+    },
+  },
+  {
     slug: "signal-and-scoring-models",
     title: "Signal and Scoring Models",
     summary: "The shared map for how Veltrix turns raw system activity into warnings, severity bands, cases and bounded project visibility.",

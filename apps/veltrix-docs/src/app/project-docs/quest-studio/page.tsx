@@ -17,6 +17,9 @@ export default function QuestStudioDocsPage() {
         "/project-docs/community-os",
         "/reference",
         "/reference/lifecycle-states",
+        "/reference/builder-and-handoff-model",
+        "/reference/verification-and-reward-model",
+        "/reference/community-and-member-signal-model",
       ]}
       rail={
         <div className="space-y-4">
@@ -28,7 +31,7 @@ export default function QuestStudioDocsPage() {
         </div>
       }
       snapshotSlug="quest-studio"
-      stateExplorerSlug="lifecycle"
+      stateExplorerSlug="verification-reward"
       whatItIs={{
         description:
           "Quest Studio is the mission-focused builder for a single quest. Its job is to make action, verification, reward posture and member-facing presentation feel like one coherent object.",
@@ -77,6 +80,85 @@ export default function QuestStudioDocsPage() {
             label: "Preview is part of the builder",
             meta: "Experience rule",
             summary: "The member-facing presentation is not an afterthought; it is part of how the builder validates the quest design.",
+          },
+        ],
+      }}
+      deepDive={{
+        title: "How Quest Studio turns one mission into a trusted and incentivized product moment",
+        description:
+          "Quest Studio is deeper than a task form. It combines action clarity, proof logic, reward framing and member-facing presentation into one mission model.",
+        sections: [
+          {
+            title: "Why action and proof are separated",
+            description: "The docs should make this split feel intentional because it is a core product principle.",
+            items: [
+              {
+                label: "Action posture",
+                meta: "Member language",
+                summary:
+                  "The member first needs to understand what to do and why it belongs in the campaign path before the system starts talking about verification or reward logic.",
+              },
+              {
+                label: "Proof posture",
+                meta: "Trust layer",
+                summary:
+                  "Verification is separate because trusting a completion signal is a different problem than designing a clear mission action in the first place.",
+              },
+              {
+                label: "Operators need both",
+                meta: "Console consequence",
+                summary:
+                  "This split also helps the later operator side explain why something was accepted, manually reviewed or disputed instead of burying those concepts in one blob of builder settings.",
+              },
+            ],
+          },
+          {
+            title: "How reward framing belongs in the same builder",
+            description: "Reward logic changes the quest long before anything reaches a claim queue.",
+            items: [
+              {
+                label: "Incentive changes behavior",
+                meta: "Motivation model",
+                summary:
+                  "Rewards shape whether the quest feels like a meaningful mission, a conversion step or a recognition moment, which is why the docs should not explain rewards only on separate pages.",
+              },
+              {
+                label: "Claim posture starts upstream",
+                meta: "Downstream consequence",
+                summary:
+                  "A quest reward can later create inventory pressure, claim reviews or payout incidents, so the builder docs should acknowledge that operational tail directly.",
+              },
+              {
+                label: "Preview needs reward context",
+                meta: "Member-facing rule",
+                summary:
+                  "The quest preview is stronger when it shows both CTA clarity and what the member stands to unlock or earn from finishing the mission.",
+              },
+            ],
+          },
+          {
+            title: "Why project and campaign context matter",
+            description: "Quest creation should not feel detached from the wider project system.",
+            items: [
+              {
+                label: "Campaign placement",
+                meta: "Architecture rule",
+                summary:
+                  "Quest Studio is strongest when it inherits its project and campaign lane, because that keeps the mission tied to the broader launch path instead of forcing the team to reconstruct placement manually.",
+              },
+              {
+                label: "Community and member consequences",
+                meta: "Execution loop",
+                summary:
+                  "Once a quest is live, Community OS, bot commands and the member journey all become part of how that quest is experienced and measured.",
+              },
+              {
+                label: "Builder return path",
+                meta: "Launch rule",
+                summary:
+                  "After a quest is shaped, the system should route the team back into Campaign or Launch posture so they can judge what the quest changed in the wider stack.",
+              },
+            ],
           },
         ],
       }}

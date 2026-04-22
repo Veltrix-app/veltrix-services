@@ -70,6 +70,142 @@ const docsStateExplorerDatasets: DocsStateExplorerDataset[] = [
     ],
   },
   {
+    slug: "launch-readiness",
+    title: "Launch readiness flow",
+    summary: "Launch posture is a structured progression from identity and provider setup into content, rewards and calm operations.",
+    states: [
+      {
+        label: "Identity and provider baseline",
+        summary: "A project starts by proving it is real, reachable and technically connected enough to launch safely.",
+        bullets: [
+          "Profile basics, brand surface and contact path all contribute to launch credibility.",
+          "Provider rails and community targets matter before any campaign is considered truly launchable.",
+          "The launch model is intentionally broader than 'do you have content yet'.",
+        ],
+      },
+      {
+        label: "Content and reward spine",
+        summary: "Once identity and delivery are healthy, the launch posture checks whether the project has an actual campaign and mission stack to send members into.",
+        bullets: [
+          "Campaigns create the launch spine, quests and raids create movement, and rewards create conversion or recognition pressure.",
+          "The readiness model treats missing campaigns and missing mission rails as hard blockers.",
+          "A launch is not considered mature if the project has infrastructure but nothing meaningful for members to do.",
+        ],
+      },
+      {
+        label: "Operations calmness",
+        summary: "The last layer asks whether incidents, overrides and delivery posture are calm enough to support real traffic.",
+        bullets: [
+          "Critical incidents and active overrides change launch posture even when content is present.",
+          "Push tests and calm operations matter because launch safety is operational, not just editorial.",
+          "This is why Launch Workspace belongs in the docs as a real operating model rather than a convenience page.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "builder-handoffs",
+    title: "Builder handoff flow",
+    summary: "Project creation works best when the system hands context cleanly from launch posture into campaign, quest, raid and reward surfaces.",
+    states: [
+      {
+        label: "Project-first entry",
+        summary: "The project or launch workspace chooses the next builder so the user starts with the right context already attached.",
+        bullets: [
+          "Project context should be the default source of builder truth.",
+          "This reduces route memory and keeps the builder family feeling like one system.",
+          "The docs should frame this as a product rule rather than a convenience feature.",
+        ],
+      },
+      {
+        label: "Campaign as architecture layer",
+        summary: "Campaign Studio usually comes before quest or raid depth because it provides the mission structure that later objects depend on.",
+        bullets: [
+          "Campaigns define intent, mission map and readiness posture.",
+          "Quest, raid and reward builders should inherit this structure rather than recreate it.",
+          "The docs should keep that parent-child relationship explicit.",
+        ],
+      },
+      {
+        label: "Builders return to operating posture",
+        summary: "After content creation, the system should route users back into readiness or execution layers so they can judge what changed.",
+        bullets: [
+          "Launch Workspace is the natural return point during setup.",
+          "Community OS becomes the natural return point once the launch is live.",
+          "Good docs should explain that builders are part of a loop, not isolated one-off forms.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "verification-reward",
+    title: "Verification and reward flow",
+    summary: "Quest action, proof, incentive and downstream claim posture belong to one connected model rather than separate tools.",
+    states: [
+      {
+        label: "Action first",
+        summary: "The member task needs to be clear before any proof or reward logic becomes meaningful.",
+        bullets: [
+          "The docs should keep the member action readable in plain product language.",
+          "Placement inside a campaign lane matters because it changes why the action exists at all.",
+          "Action clarity is the prerequisite for later verification confidence.",
+        ],
+      },
+      {
+        label: "Verification posture",
+        summary: "Proof logic should explain whether completion is manual, provider-driven or structured through explicit inputs.",
+        bullets: [
+          "Verification is a trust layer, not just a form field.",
+          "Manual review and provider checks carry different latency and certainty posture.",
+          "This is why Quest Studio needs a deeper docs explanation than a generic builder page.",
+        ],
+      },
+      {
+        label: "Reward and claim consequence",
+        summary: "Reward logic changes not only motivation, but later claim pressure, payout cases and member expectations.",
+        bullets: [
+          "A reward is part of mission design before it ever becomes a payout event.",
+          "The docs should connect Quest and Reward decisions to the Payout Console without forcing people to infer the relationship.",
+          "Public docs are stronger when they show both motivation and operational consequence in the same model.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "community-signals",
+    title: "Community and member signal flow",
+    summary: "Community OS, commands and the member journey are linked by health, cohort, mission and recognition signals.",
+    states: [
+      {
+        label: "Owner posture",
+        summary: "Community work starts with owner-level visibility into health, cohorts, automations and next action pressure.",
+        bullets: [
+          "Owner mode is about choosing the next important move, not doing every task directly.",
+          "Health signals should point toward action rather than sit as passive reporting.",
+          "The docs should explain that owner posture is strategic but still operational.",
+        ],
+      },
+      {
+        label: "Captain and command execution",
+        summary: "Captain lanes and bot commands turn owner posture into daily work and member activation.",
+        bullets: [
+          "Command rails are part of community operations, not a detached utility layer.",
+          "Captain permissions are narrower than owner permissions on purpose.",
+          "This is where the system moves from visibility into actual community motion.",
+        ],
+      },
+      {
+        label: "Member-facing feedback loop",
+        summary: "Recognition, missions, signals and next-best-action routing show whether community work is actually moving the member journey.",
+        bullets: [
+          "The member journey closes the loop on community operations.",
+          "Recognition, claimable rewards and mission lanes are all output signals from earlier project decisions.",
+          "The docs should keep this loop explicit so Community OS never reads like internal busywork.",
+        ],
+      },
+    ],
+  },
+  {
     slug: "trust-flow",
     title: "Trust case flow",
     summary: "Trust cases move through review, escalation and resolution with explicit ownership.",

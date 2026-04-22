@@ -4,6 +4,7 @@ import { DocsReferenceBlock } from "@/components/docs/docs-reference-block";
 import { DocsSection } from "@/components/docs/docs-section";
 import { DocsSnapshotFrame } from "@/components/docs/docs-snapshot-frame";
 import { DocsStateExplorer } from "@/components/docs/docs-state-explorer";
+import type { DocsReferenceSection } from "@/lib/docs-data";
 import { getDocsGuidePage } from "@/lib/docs/docs-guide-pages";
 import { getDocsRelatedPages } from "@/lib/docs/docs-nav";
 
@@ -126,6 +127,21 @@ export function DocsGuidePage({
         description={page.keyRules.description}
         items={page.keyRules.items}
       />
+
+      {page.deepDive ? (
+        <DocsSection eyebrow="System model" title={page.deepDive.title} description={page.deepDive.description}>
+          <div className={`grid gap-4 ${page.deepDive.sections.length >= 3 ? "xl:grid-cols-3" : "xl:grid-cols-2"}`}>
+            {page.deepDive.sections.map((section: DocsReferenceSection) => (
+              <DocsReferenceBlock
+                key={section.title}
+                title={section.title}
+                description={section.description}
+                items={section.items}
+              />
+            ))}
+          </div>
+        </DocsSection>
+      ) : null}
     </DocsPageFrame>
   );
 }

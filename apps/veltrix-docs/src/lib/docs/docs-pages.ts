@@ -367,6 +367,41 @@ export const docsTracks: DocsTrackDefinition[] = [
         ],
       },
       {
+        id: "project-operating-models",
+        label: "Project operating models",
+        summary: "The exact models behind launch posture, builder handoffs, quest verification and community-to-member feedback loops.",
+        items: [
+          {
+            href: "/reference/launch-and-readiness-model",
+            label: "Launch and Readiness Model",
+            summary: "How launch posture is scored from project identity, provider setup, content spine, rewards and calm operations.",
+            status: "live",
+            kind: "reference",
+          },
+          {
+            href: "/reference/builder-and-handoff-model",
+            label: "Builder and Handoff Model",
+            summary: "How Launch Workspace, Campaign Studio, Quest Studio, Raid Studio and reward flows hand context into each other.",
+            status: "live",
+            kind: "reference",
+          },
+          {
+            href: "/reference/verification-and-reward-model",
+            label: "Verification and Reward Model",
+            summary: "How action, proof, incentive and claim consequence stay connected across quests and rewards.",
+            status: "live",
+            kind: "reference",
+          },
+          {
+            href: "/reference/community-and-member-signal-model",
+            label: "Community and Member Signal Model",
+            summary: "How owner posture, captain execution, command rails and member journey signals form one operating loop.",
+            status: "live",
+            kind: "reference",
+          },
+        ],
+      },
+      {
         id: "signals-and-scoring",
         label: "Signals and scoring",
         summary: "How warnings, flags, severity bands and recovery posture are actually produced inside the product.",

@@ -4,6 +4,7 @@ import { DocsReferenceBlock } from "@/components/docs/docs-reference-block";
 import { DocsSection } from "@/components/docs/docs-section";
 import { DocsSnapshotFrame } from "@/components/docs/docs-snapshot-frame";
 import { DocsStateExplorer } from "@/components/docs/docs-state-explorer";
+import type { DocsReferenceSection } from "@/lib/docs-data";
 import { getDocsRelatedPages } from "@/lib/docs/docs-nav";
 import { getDocsWorkflowPage } from "@/lib/docs/docs-workflow-pages";
 
@@ -144,6 +145,21 @@ export function DocsWorkflowPage({
           items={page.keyRules.items}
         />
       </div>
+
+      {page.deepDive ? (
+        <DocsSection eyebrow="System model" title={page.deepDive.title} description={page.deepDive.description}>
+          <div className={`grid gap-4 ${page.deepDive.sections.length >= 3 ? "xl:grid-cols-3" : "xl:grid-cols-2"}`}>
+            {page.deepDive.sections.map((section: DocsReferenceSection) => (
+              <DocsReferenceBlock
+                key={section.title}
+                title={section.title}
+                description={section.description}
+                items={section.items}
+              />
+            ))}
+          </div>
+        </DocsSection>
+      ) : null}
     </DocsPageFrame>
   );
 }

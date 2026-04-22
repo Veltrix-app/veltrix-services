@@ -11,6 +11,12 @@ type DocsGuideEntry = {
   meta?: string;
 };
 
+type DocsGuideSection = {
+  title: string;
+  description?: string;
+  items: DocsGuideEntry[];
+};
+
 type DocsGuideDefinition = {
   track: "project-docs" | "operator-docs";
   slug: string;
@@ -55,6 +61,11 @@ type DocsGuideDefinition = {
     description?: string;
     items: DocsGuideEntry[];
   };
+  deepDive?: {
+    title: string;
+    description?: string;
+    sections: DocsGuideSection[];
+  };
 };
 
 const docsGuidePages: DocsGuideDefinition[] = [
@@ -71,7 +82,14 @@ const docsGuidePages: DocsGuideDefinition[] = [
       { href: "/project-docs", label: "Back to Project Docs" },
       { href: "/reference", label: "Open Reference" },
     ],
-    relatedHrefs: ["/project-docs", "/project-docs/campaign-studio", "/project-docs/quest-studio", "/reference/lifecycle-states"],
+    relatedHrefs: [
+      "/project-docs",
+      "/project-docs/campaign-studio",
+      "/project-docs/quest-studio",
+      "/reference/lifecycle-states",
+      "/reference/launch-and-readiness-model",
+      "/reference/builder-and-handoff-model",
+    ],
     rail: {
       eyebrow: "Primary users",
       title: "Founders and launch operators.",
@@ -180,6 +198,76 @@ const docsGuidePages: DocsGuideDefinition[] = [
         },
       ],
     },
+    deepDive: {
+      title: "Why Launch Workspace behaves like a project operating hub instead of a generic tools index.",
+      description:
+        "Launch Workspace is the place where readiness, builder sequencing and project-safe handoffs stay visible together. This deeper model explains why the page is framed around launch posture rather than forms.",
+      sections: [
+        {
+          title: "Readiness is compositional",
+          description: "Launch posture is not a single status bit. It reflects whether the project has enough structure, execution rails and incentive coverage to launch safely.",
+          items: [
+            {
+              label: "Architecture coverage",
+              meta: "Campaign layer",
+              summary: "The workspace reads whether the project has a campaign or mission structure to anchor the rest of the launch.",
+            },
+            {
+              label: "Execution coverage",
+              meta: "Quest, raid and community layer",
+              summary: "Readiness improves as the project adds concrete action surfaces and the community operating rails needed to support them.",
+            },
+            {
+              label: "Incentive coverage",
+              meta: "Reward and claim posture",
+              summary: "The launch should not read as ready if incentives, reward posture or the downstream claim consequences are still undefined.",
+            },
+          ],
+        },
+        {
+          title: "Builder handoffs stay project-first",
+          description: "The hub exists so teams do not need route knowledge before they can launch well.",
+          items: [
+            {
+              label: "Context follows the team",
+              meta: "Navigation rule",
+              summary: "When someone leaves Launch Workspace for a builder, the project context should already be attached so the builder can explain why this object belongs here.",
+            },
+            {
+              label: "Return path matters",
+              meta: "Sequencing rule",
+              summary: "The team should be able to return to one readiness view and see what changed, instead of mentally recomputing launch posture from multiple pages.",
+            },
+            {
+              label: "Starter packs reduce blank-canvas risk",
+              meta: "Acceleration rule",
+              summary: "Templates belong here because the launch hub is where a team decides what kind of launch system they are trying to shape.",
+            },
+          ],
+        },
+        {
+          title: "Checklist pressure is intentional product language",
+          description: "The launch page should explain what still blocks a strong launch rather than just list every available tool.",
+          items: [
+            {
+              label: "Missing pieces become visible",
+              meta: "Pressure model",
+              summary: "The checklist exists to surface structural gaps before they become live launch mistakes or member confusion.",
+            },
+            {
+              label: "Priority is more useful than exhaustiveness",
+              meta: "Docs rule",
+              summary: "The workspace should orient the team toward the next highest-value builder or fix, not overwhelm them with every possible configuration surface.",
+            },
+            {
+              label: "Launch posture connects to later operations",
+              meta: "System rule",
+              summary: "Readiness is only credible if it feeds naturally into community operations, member journey and safety rails after launch goes live.",
+            },
+          ],
+        },
+      ],
+    },
   },
   {
     track: "project-docs",
@@ -194,7 +282,14 @@ const docsGuidePages: DocsGuideDefinition[] = [
       { href: "/project-docs", label: "Back to Project Docs" },
       { href: "/reference", label: "Open Reference" },
     ],
-    relatedHrefs: ["/project-docs", "/project-docs/community-os", "/project-docs/campaign-studio", "/reference/lifecycle-states"],
+    relatedHrefs: [
+      "/project-docs",
+      "/project-docs/community-os",
+      "/project-docs/campaign-studio",
+      "/reference/lifecycle-states",
+      "/reference/builder-and-handoff-model",
+      "/reference/community-and-member-signal-model",
+    ],
     rail: {
       eyebrow: "Primary users",
       title: "Growth operators and community leads.",
@@ -303,6 +398,76 @@ const docsGuidePages: DocsGuideDefinition[] = [
         },
       ],
     },
+    deepDive: {
+      title: "Why Raid Studio is documented as an activation system, not just another builder form.",
+      description:
+        "Raids create short, high-pressure community moments. The docs need to explain the execution model, staffing posture and feedback loops that make raids work safely.",
+      sections: [
+        {
+          title: "Raids are time-bound activation objects",
+          description: "Raid behavior depends on cadence and channel pressure in a way static quests do not.",
+          items: [
+            {
+              label: "Cadence changes risk",
+              meta: "Timing model",
+              summary: "A raid's quality depends on when it runs, how often it repeats and how clearly the urgency is framed for the team.",
+            },
+            {
+              label: "Channel posture shapes outcome",
+              meta: "Execution model",
+              summary: "The same raid objective behaves differently depending on whether it runs in Discord, Telegram or another coordinated community surface.",
+            },
+            {
+              label: "Operational shape comes before copy",
+              meta: "Builder model",
+              summary: "Raid docs should emphasize who runs the moment and how it is staffed before diving into content details.",
+            },
+          ],
+        },
+        {
+          title: "Captain execution is part of the builder story",
+          description: "Raid setup only becomes real when someone can run it well after it leaves the creation surface.",
+          items: [
+            {
+              label: "Staffing should be explicit",
+              meta: "Ownership rule",
+              summary: "Raid docs need to explain how captains or community operators inherit responsibility rather than assuming the team will sort it out later.",
+            },
+            {
+              label: "Project-safe controls matter",
+              meta: "Safety rule",
+              summary: "Teams should understand the boundary between configuring a raid and triggering wider operator or bot-side behavior that needs guardrails.",
+            },
+            {
+              label: "Community OS completes the handoff",
+              meta: "Connected surface",
+              summary: "Raid Studio belongs next to Community OS in the docs because that is where staffing, commands and accountability continue.",
+            },
+          ],
+        },
+        {
+          title: "Raids feed member and community signals",
+          description: "A raid should be understood as part of a larger signal loop rather than a one-off event.",
+          items: [
+            {
+              label: "Participation affects community health",
+              meta: "Signal model",
+              summary: "Successful or weak raid participation changes how teams should read community momentum and captain effectiveness.",
+            },
+            {
+              label: "Rewards and recognition amplify the effect",
+              meta: "Motivation model",
+              summary: "If raids tie into incentives or member recognition, the docs should explain how that changes the activation posture.",
+            },
+            {
+              label: "The raid belongs in the wider launch architecture",
+              meta: "System rule",
+              summary: "Projects should always see how a raid supports a campaign or launch goal, not only how to publish it.",
+            },
+          ],
+        },
+      ],
+    },
   },
   {
     track: "project-docs",
@@ -317,7 +482,14 @@ const docsGuidePages: DocsGuideDefinition[] = [
       { href: "/project-docs", label: "Back to Project Docs" },
       { href: "/reference", label: "Open Reference" },
     ],
-    relatedHrefs: ["/project-docs", "/operator-docs/payout-console", "/reference/payout-case-types", "/reference/lifecycle-states"],
+    relatedHrefs: [
+      "/project-docs",
+      "/operator-docs/payout-console",
+      "/reference/payout-case-types",
+      "/reference/lifecycle-states",
+      "/reference/verification-and-reward-model",
+      "/reference/payout-risk-and-resolution-model",
+    ],
     rail: {
       eyebrow: "Primary users",
       title: "Founders, operators and growth leads.",
@@ -426,6 +598,76 @@ const docsGuidePages: DocsGuideDefinition[] = [
         },
       ],
     },
+    deepDive: {
+      title: "Why reward docs need to explain incentive design and payout consequences at the same time.",
+      description:
+        "Rewards change both member motivation and operator workload. A complete reward page should explain how configuration, claim posture and safety all connect.",
+      sections: [
+        {
+          title: "Rewards are incentive architecture",
+          description: "Reward objects should be explained through the behavior they are supposed to shape, not just by what they deliver.",
+          items: [
+            {
+              label: "Rewards reinforce mission posture",
+              meta: "Behavior model",
+              summary: "Good reward setup helps a quest, raid or campaign feel worth doing at the right moment in the member journey.",
+            },
+            {
+              label: "Placement changes interpretation",
+              meta: "Journey model",
+              summary: "The same reward means something different when it appears at onboarding, in an advanced quest path or as community recognition later on.",
+            },
+            {
+              label: "Verification and reward belong together",
+              meta: "Builder rule",
+              summary: "Projects should understand that proof of action and incentive design are linked because one shapes the trustworthiness of the other.",
+            },
+          ],
+        },
+        {
+          title: "Claim safety starts at reward setup",
+          description: "Many payout problems are downstream consequences of unclear reward posture or inventory planning.",
+          items: [
+            {
+              label: "Inventory pressure is predictive",
+              meta: "Risk model",
+              summary: "Projects should understand that low stock, high demand or ambiguous eligibility can become payout cases later.",
+            },
+            {
+              label: "Claim load is not neutral",
+              meta: "Operational rule",
+              summary: "A reward that creates heavy claim activity should be documented with its operator consequences, not only its member appeal.",
+            },
+            {
+              label: "Payout Console is part of the reward story",
+              meta: "Cross-track rule",
+              summary: "Project-side reward docs should point into the operator layer so teams understand how issues are resolved when claims go wrong.",
+            },
+          ],
+        },
+        {
+          title: "Project and operator visibility stay different",
+          description: "Reward setup is public to projects, but payout recovery should still respect bounded console access.",
+          items: [
+            {
+              label: "Projects design the incentive",
+              meta: "Project-facing layer",
+              summary: "The project docs should explain reward intent, placement and readiness in terms the team can act on directly.",
+            },
+            {
+              label: "Operators own the deeper safety layer",
+              meta: "Operator-facing layer",
+              summary: "Delivery failures, disputes and retry logic belong in the payout console because those actions need stronger guardrails.",
+            },
+            {
+              label: "Owners decide who can see more",
+              meta: "Permission rule",
+              summary: "Where project-side payout visibility exists, it should remain explicit and granted rather than assumed for every teammate.",
+            },
+          ],
+        },
+      ],
+    },
   },
   {
     track: "project-docs",
@@ -440,7 +682,14 @@ const docsGuidePages: DocsGuideDefinition[] = [
       { href: "/project-docs", label: "Back to Project Docs" },
       { href: "/reference", label: "Open Reference" },
     ],
-    relatedHrefs: ["/project-docs", "/project-docs/quest-studio", "/project-docs/rewards", "/reference/status-labels"],
+    relatedHrefs: [
+      "/project-docs",
+      "/project-docs/quest-studio",
+      "/project-docs/rewards",
+      "/reference/status-labels",
+      "/reference/community-and-member-signal-model",
+      "/reference/verification-and-reward-model",
+    ],
     rail: {
       eyebrow: "Primary users",
       title: "Teams shaping the member experience.",
@@ -549,6 +798,76 @@ const docsGuidePages: DocsGuideDefinition[] = [
         },
       ],
     },
+    deepDive: {
+      title: "Why the member journey is documented as a system of routes, signals and recognition rather than just a set of screens.",
+      description:
+        "Member Journey is where all project-side setup turns into an actual user experience. The docs need to explain the routing logic and signal loops underneath it.",
+      sections: [
+        {
+          title: "Routing is stateful, not decorative",
+          description: "Members should not land on arbitrary screens. The journey layer exists to route them based on readiness, momentum and context.",
+          items: [
+            {
+              label: "Preferred routes shape the first move",
+              meta: "Routing model",
+              summary: "Onboarding, comeback and community-home posture should change based on what the member still needs to do or recover.",
+            },
+            {
+              label: "Readiness labels create clarity",
+              meta: "Status model",
+              summary: "The docs should explain how readiness language helps a member know whether they are just starting, active, blocked or ready for deeper work.",
+            },
+            {
+              label: "Mission lanes prevent dead ends",
+              meta: "Navigation rule",
+              summary: "Member-facing mission prioritization exists so the product keeps giving people a meaningful next move instead of a flat list of tasks.",
+            },
+          ],
+        },
+        {
+          title: "Community and builder signals feed the journey",
+          description: "The member-facing product reflects what the project configured and how the community is operating, not just member-local actions.",
+          items: [
+            {
+              label: "Quest and reward setup influence the lane",
+              meta: "Builder model",
+              summary: "Projects should understand that the structure they create changes what the member sees first and what feels important.",
+            },
+            {
+              label: "Community operations change momentum",
+              meta: "Signal model",
+              summary: "Commands, automations and activation pressure can change who needs comeback guidance, who is active and who is ready for deeper progression.",
+            },
+            {
+              label: "The docs should close the loop",
+              meta: "System rule",
+              summary: "Member Journey pages should keep pointing back to the project and community layers that produce the experience members actually feel.",
+            },
+          ],
+        },
+        {
+          title: "Recognition is part of operating logic",
+          description: "Recognition, streaks and profile posture are not cosmetic if they change retention and contribution behavior.",
+          items: [
+            {
+              label: "Recognition reinforces return behavior",
+              meta: "Retention model",
+              summary: "Status, streaks and unlocks help the product explain why a member should come back instead of only what they can click next.",
+            },
+            {
+              label: "Rewards and recognition work together",
+              meta: "Motivation model",
+              summary: "The docs should show where recognition complements material incentives instead of treating them like separate systems.",
+            },
+            {
+              label: "Personalization must stay legible",
+              meta: "Experience rule",
+              summary: "Members should feel guided by the system without losing the ability to understand why a route or priority changed.",
+            },
+          ],
+        },
+      ],
+    },
   },
   {
     track: "project-docs",
@@ -563,7 +882,13 @@ const docsGuidePages: DocsGuideDefinition[] = [
       { href: "/project-docs", label: "Back to Project Docs" },
       { href: "/reference/bot-commands", label: "Open Command Reference" },
     ],
-    relatedHrefs: ["/project-docs", "/project-docs/community-os", "/reference/bot-commands", "/reference/automation-types"],
+    relatedHrefs: [
+      "/project-docs",
+      "/project-docs/community-os",
+      "/reference/bot-commands",
+      "/reference/automation-types",
+      "/reference/community-and-member-signal-model",
+    ],
     rail: {
       eyebrow: "Primary users",
       title: "Community leads and growth operators.",
@@ -673,6 +998,76 @@ const docsGuidePages: DocsGuideDefinition[] = [
         },
       ],
     },
+    deepDive: {
+      title: "Why bot command docs need to explain scope, delivery posture and system handoffs instead of only listing slash commands.",
+      description:
+        "Commands are one of the main delivery rails for community execution. The docs should explain how command visibility, output and deep-linking fit into the rest of Veltrix.",
+      sections: [
+        {
+          title: "Commands extend the community operating model",
+          description: "Bot rails belong inside the product system because they deliver the actions decided elsewhere.",
+          items: [
+            {
+              label: "Commands are action surfaces",
+              meta: "Activation model",
+              summary: "A command like /missions or /captain is meaningful because it reflects community posture, project settings and member status at the moment it is called.",
+            },
+            {
+              label: "Output quality affects trust",
+              meta: "UX rule",
+              summary: "Command docs should explain why concise, rich replies and good failure copy are part of the product, not mere bot polish.",
+            },
+            {
+              label: "Deep links complete the flow",
+              meta: "Handoff model",
+              summary: "Bot responses should route people back into the right member or project surface when a command alone is not enough.",
+            },
+          ],
+        },
+        {
+          title: "Command scope is permissioned",
+          description: "Not everyone should see or use the same command posture, and the docs should explain those boundaries.",
+          items: [
+            {
+              label: "Owner and project toggles matter",
+              meta: "Project model",
+              summary: "Projects can decide which command rails are active because commands are part of how the community operating system behaves publicly.",
+            },
+            {
+              label: "Captain and member scopes differ",
+              meta: "Permission rule",
+              summary: "Captain commands should be documented as an execution layer that sits above the member-facing command set, not as one flat list.",
+            },
+            {
+              label: "Boundaries stay visible",
+              meta: "Docs rule",
+              summary: "A good command page explains why someone can or cannot do something, not just the syntax of the command itself.",
+            },
+          ],
+        },
+        {
+          title: "Command rails connect to other surfaces",
+          description: "A command is usually the first visible step in a longer system path.",
+          items: [
+            {
+              label: "Community OS defines posture",
+              meta: "Control layer",
+              summary: "Projects should understand that command behavior is shaped in Community OS and related settings, not invented in the bot itself.",
+            },
+            {
+              label: "Member Journey resolves the action",
+              meta: "Experience layer",
+              summary: "Many commands hand people into community home, missions, rewards or profile context after the initial response.",
+            },
+            {
+              label: "Integrations and verification still matter",
+              meta: "System dependency",
+              summary: "Command docs should explain when external connections or verification rules affect whether a command can succeed fully.",
+            },
+          ],
+        },
+      ],
+    },
   },
   {
     track: "project-docs",
@@ -687,7 +1082,14 @@ const docsGuidePages: DocsGuideDefinition[] = [
       { href: "/project-docs", label: "Back to Project Docs" },
       { href: "/reference", label: "Open Reference" },
     ],
-    relatedHrefs: ["/project-docs", "/project-docs/quest-studio", "/project-docs/bot-commands", "/operator-docs/onchain-console"],
+    relatedHrefs: [
+      "/project-docs",
+      "/project-docs/quest-studio",
+      "/project-docs/bot-commands",
+      "/operator-docs/onchain-console",
+      "/reference/verification-and-reward-model",
+      "/reference/onchain-signal-and-recovery-model",
+    ],
     rail: {
       eyebrow: "Primary users",
       title: "Founders, operators and technical growth teams.",
@@ -796,6 +1198,76 @@ const docsGuidePages: DocsGuideDefinition[] = [
         },
       ],
     },
+    deepDive: {
+      title: "Why integration docs should explain product contracts, recovery posture and bounded visibility instead of raw API trivia.",
+      description:
+        "Integrations are valuable because of the product behavior they unlock. The docs should focus on those contracts and on what happens when they drift or fail.",
+      sections: [
+        {
+          title: "Integrations are product contracts",
+          description: "Every connection powers a specific part of the Veltrix system, from verification to on-chain recovery.",
+          items: [
+            {
+              label: "Verification depends on source quality",
+              meta: "Proof model",
+              summary: "Projects should understand that integrations often determine what the system can verify confidently and what remains weaker evidence.",
+            },
+            {
+              label: "Delivery rails depend on sync posture",
+              meta: "Activation model",
+              summary: "Bot, community and member-facing experiences are only as strong as the data and events integrations can supply reliably.",
+            },
+            {
+              label: "The docs should stay product-led",
+              meta: "Documentation rule",
+              summary: "Integration pages should describe what changes in the product when a connection is healthy, missing or degraded.",
+            },
+          ],
+        },
+        {
+          title: "Failures should become explainable cases",
+          description: "Broken integrations are part of the safety and observability story, not just hidden technical glitches.",
+          items: [
+            {
+              label: "Trust, payout and on-chain consoles inherit failures",
+              meta: "Safety model",
+              summary: "If an external dependency breaks a verification, claim or chain flow, the docs should explain which console becomes responsible next.",
+            },
+            {
+              label: "Recovery posture varies by surface",
+              meta: "Recovery rule",
+              summary: "Some integration issues can be retried safely from a project context, while others remain internal-only operator work.",
+            },
+            {
+              label: "Observability closes the loop",
+              meta: "Platform rule",
+              summary: "Projects should see that failed integrations are not invisible; they become snapshots, cases or escalations elsewhere in the platform.",
+            },
+          ],
+        },
+        {
+          title: "Projects only need the bounded contract view",
+          description: "The docs should keep public integration explanations useful without dumping raw internal mechanics.",
+          items: [
+            {
+              label: "Projects see the consequences",
+              meta: "Visibility model",
+              summary: "What matters most at the project level is what the integration enables, what it blocks and what action the team can safely take.",
+            },
+            {
+              label: "Operators see the deeper payload",
+              meta: "Operator model",
+              summary: "When failure analysis requires raw job or payload context, that belongs in the operator layer rather than the public project docs.",
+            },
+            {
+              label: "Cross-links preserve depth",
+              meta: "Docs rule",
+              summary: "Integration pages should link into the exact reference and console pages that explain recovery in deeper detail.",
+            },
+          ],
+        },
+      ],
+    },
   },
   {
     track: "project-docs",
@@ -810,7 +1282,14 @@ const docsGuidePages: DocsGuideDefinition[] = [
       { href: "/project-docs", label: "Back to Project Docs" },
       { href: "/reference/permissions", label: "Open Permissions" },
     ],
-    relatedHrefs: ["/project-docs", "/reference/permissions", "/project-docs/launch-workspace", "/project-docs/community-os"],
+    relatedHrefs: [
+      "/project-docs",
+      "/reference/permissions",
+      "/project-docs/launch-workspace",
+      "/project-docs/community-os",
+      "/reference/launch-and-readiness-model",
+      "/reference/community-and-member-signal-model",
+    ],
     rail: {
       eyebrow: "Primary users",
       title: "Owners and workspace administrators.",
@@ -916,6 +1395,76 @@ const docsGuidePages: DocsGuideDefinition[] = [
           label: "Commercial posture matters",
           meta: "Billing rule",
           summary: "Billing and subscription posture should be explained as part of workspace continuity, not treated like an unrelated checkout screen.",
+        },
+      ],
+    },
+    deepDive: {
+      title: "Why Project Settings should be documented as governance infrastructure instead of a leftover admin corner.",
+      description:
+        "Settings determine who can operate the system, what posture the workspace can sustain and how the team keeps access and continuity under control.",
+      sections: [
+        {
+          title: "Workspace governance shapes every surface",
+          description: "A launch or community workflow is only as coherent as the team structure and workspace posture behind it.",
+          items: [
+            {
+              label: "Team structure changes operating power",
+              meta: "Governance model",
+              summary: "Who belongs to the workspace and what responsibility they can hold determines how well the rest of the product can actually be used.",
+            },
+            {
+              label: "Personal and project posture still connect",
+              meta: "Identity model",
+              summary: "Profile settings matter because user identity and account posture influence how someone moves through project and operator surfaces.",
+            },
+            {
+              label: "Settings are upstream of operations",
+              meta: "System rule",
+              summary: "Docs should show settings as an upstream layer that quietly shapes launch, community and safety consoles.",
+            },
+          ],
+        },
+        {
+          title: "Permission posture must stay explicit",
+          description: "As the product grows deeper, access should be explained through exact grants and bounded visibility rather than vague role labels alone.",
+          items: [
+            {
+              label: "Owner intent matters",
+              meta: "Access model",
+              summary: "Owners decide which teammates can see or act inside project-bound safety and community layers, so settings docs should connect clearly to those permission systems.",
+            },
+            {
+              label: "Summary-only defaults are intentional",
+              meta: "Visibility rule",
+              summary: "Where bounded consoles exist, the default posture should be documented as minimal visibility with explicit expansion by the owner.",
+            },
+            {
+              label: "Reference pages hold the exact language",
+              meta: "Docs rule",
+              summary: "Settings pages should explain the operating meaning of permissions while pointing into Reference for precise matrices and state labels.",
+            },
+          ],
+        },
+        {
+          title: "Commercial posture protects continuity",
+          description: "Billing and subscription settings should be framed as part of keeping the workspace alive and stable.",
+          items: [
+            {
+              label: "Billing affects continuity",
+              meta: "Commercial model",
+              summary: "Projects should understand how workspace continuity, access and plan posture connect rather than seeing billing as an isolated purchase surface.",
+            },
+            {
+              label: "Administrative clarity reduces surprises",
+              meta: "Stability rule",
+              summary: "Good settings docs make it clear who can manage commercial posture and what happens when those settings change.",
+            },
+            {
+              label: "Governance should feel intentional",
+              meta: "Product rule",
+              summary: "The docs should help settings read like part of the operating system, not like a neglected utility page.",
+            },
+          ],
         },
       ],
     },
@@ -1043,6 +1592,76 @@ const docsGuidePages: DocsGuideDefinition[] = [
         },
       ],
     },
+    deepDive: {
+      title: "Why claims and payout resolution are documented as a case-driven safety layer instead of a simple claims queue.",
+      description:
+        "Claims only become trustworthy when the system can explain why something is blocked, who can act and how the outcome gets written back into history.",
+      sections: [
+        {
+          title: "Claim pressure becomes payout cases",
+          description: "The product should shape blocked claims, disputes and delivery failures into explicit cases before recovery work begins.",
+          items: [
+            {
+              label: "Classification creates the recovery path",
+              meta: "Case model",
+              summary: "A blocked claim, delivery failure or inventory risk should point toward a different next step, which is why the docs should explain case types clearly.",
+            },
+            {
+              label: "The queue should answer why",
+              meta: "Support rule",
+              summary: "Claims pages should explain why the normal path stopped instead of asking operators or projects to infer the issue from raw logs.",
+            },
+            {
+              label: "Case state is the product language",
+              meta: "Status model",
+              summary: "Open, blocked, retry-queued and resolved posture should be explicit so claim handling remains legible.",
+            },
+          ],
+        },
+        {
+          title: "Project participation is bounded by default",
+          description: "Projects should only see and do what the owner has allowed inside payout resolution.",
+          items: [
+            {
+              label: "Summary-only is the default posture",
+              meta: "Visibility model",
+              summary: "The docs should explain that project teams usually start with summary access and receive more detail or actions through explicit grants.",
+            },
+            {
+              label: "Project-safe actions stay limited",
+              meta: "Permission rule",
+              summary: "Annotate, escalate or bounded retry actions should be documented as fundamentally different from internal-only payout overrides.",
+            },
+            {
+              label: "Owners control expansion",
+              meta: "Governance rule",
+              summary: "The payout console should read as a shared but permissioned console, not a fully self-serve project tool.",
+            },
+          ],
+        },
+        {
+          title: "Resolution history is part of the product promise",
+          description: "A claim is not really resolved unless the console can show what changed and why it is safe now.",
+          items: [
+            {
+              label: "Retries should leave a trace",
+              meta: "Audit model",
+              summary: "Operators and projects need to see when a recovery step ran, whether it worked and what the case state became afterward.",
+            },
+            {
+              label: "Disputes need visible closure",
+              meta: "Trust rule",
+              summary: "Dismissal, resolution or escalation all need written outcomes so later support work does not start from zero.",
+            },
+            {
+              label: "The docs should protect confidence",
+              meta: "Product rule",
+              summary: "Explicit history is one of the main ways the claims layer earns member and project trust over time.",
+            },
+          ],
+        },
+      ],
+    },
   },
   {
     track: "operator-docs",
@@ -1162,6 +1781,76 @@ const docsGuidePages: DocsGuideDefinition[] = [
           label: "Cross-console consistency matters",
           meta: "Platform rule",
           summary: "Escalation posture should read the same way across trust, payout, on-chain and support surfaces.",
+        },
+      ],
+    },
+    deepDive: {
+      title: "Why escalation docs focus on ownership, waiting state and next action instead of generic severity language.",
+      description:
+        "Escalations are only useful when they tell the team who owns the issue, what it is waiting on and what should happen next across all safety consoles.",
+      sections: [
+        {
+          title: "Ownership is the backbone",
+          description: "Escalation posture starts with naming the current operator, project contact or lane that has the ball.",
+          items: [
+            {
+              label: "Current owner should never be hidden",
+              meta: "Coordination model",
+              summary: "The docs should explain that escalation only becomes meaningful once a case or incident has visible ownership attached to it.",
+            },
+            {
+              label: "Ownership crosses consoles",
+              meta: "Platform rule",
+              summary: "Trust, payout, on-chain and community work should all use the same ownership logic so support can scan the platform quickly.",
+            },
+            {
+              label: "Named owners improve accountability",
+              meta: "Support rule",
+              summary: "A clear owner reduces stalled cases and helps runbooks, overview and community follow-through stay aligned.",
+            },
+          ],
+        },
+        {
+          title: "Waiting state explains why a case is paused",
+          description: "Not every unresolved case is simply slow; some are explicitly waiting on project input, internal review or queued recovery.",
+          items: [
+            {
+              label: "Waiting on project is distinct",
+              meta: "Status model",
+              summary: "Project-facing waiting posture matters because it changes both urgency and who is expected to act next.",
+            },
+            {
+              label: "Queued recovery is still active work",
+              meta: "Recovery model",
+              summary: "Cases waiting on a retry or enrichment run should not read as abandoned; the docs should make that posture legible.",
+            },
+            {
+              label: "Status labels are practical language",
+              meta: "Docs rule",
+              summary: "The escalation page should help readers interpret waiting states quickly rather than burying them in abstract definitions.",
+            },
+          ],
+        },
+        {
+          title: "Escalation ends in a handoff or closure",
+          description: "The point of escalation is controlled movement, not permanent limbo.",
+          items: [
+            {
+              label: "Handoffs need enough context",
+              meta: "Handoff model",
+              summary: "The receiving team or project should inherit the case with enough timeline and next-step context to continue cleanly.",
+            },
+            {
+              label: "Escalation can resolve indirectly",
+              meta: "Outcome rule",
+              summary: "Some escalations end when ownership moves and the next lane resolves the issue; the docs should show that as a coherent path.",
+            },
+            {
+              label: "The platform should read consistently",
+              meta: "System rule",
+              summary: "Escalation language becomes much more valuable when it reads the same way everywhere the user encounters it.",
+            },
+          ],
         },
       ],
     },
@@ -1288,6 +1977,76 @@ const docsGuidePages: DocsGuideDefinition[] = [
         },
       ],
     },
+    deepDive: {
+      title: "Why Overview and Analytics are documented as an intervention layer instead of a dashboard gallery.",
+      description:
+        "These pages only matter if they turn platform signals into pressure, ownership and better decisions. The docs should explain how summary surfaces remain operational.",
+      sections: [
+        {
+          title: "Snapshots aggregate real system posture",
+          description: "Overview and analytics are only credible because other consoles and jobs generate the signals they summarize.",
+          items: [
+            {
+              label: "Metric snapshots come from live subsystems",
+              meta: "Aggregation model",
+              summary: "Trust, payout, on-chain, community and support systems all feed the health and outcome cards shown in the summary layer.",
+            },
+            {
+              label: "Summary cards should compress complexity",
+              meta: "Operator model",
+              summary: "The goal is to help someone scan the platform quickly, not to duplicate every local console in miniature.",
+            },
+            {
+              label: "Deploy hygiene belongs here too",
+              meta: "Platform rule",
+              summary: "If deploy posture or job health affects platform stability, the summary surfaces should expose that pressure in the same command-center language.",
+            },
+          ],
+        },
+        {
+          title: "Trends should point toward action",
+          description: "Analytics becomes useful when it explains where the platform is drifting and which team should care.",
+          items: [
+            {
+              label: "Outcomes beat vanity metrics",
+              meta: "Reporting rule",
+              summary: "Charts and counts should help operators understand whether launches, community work or safety systems are improving or degrading.",
+            },
+            {
+              label: "Named ownership matters at summary level",
+              meta: "Escalation model",
+              summary: "A summary page becomes more actionable when it preserves which issues still have an owner, waiting state or next action attached.",
+            },
+            {
+              label: "Trend pages should route back into consoles",
+              meta: "Navigation rule",
+              summary: "Overview and analytics should help someone decide where to go next in the product, not trap them inside a reporting surface.",
+            },
+          ],
+        },
+        {
+          title: "Summary and detail should stay in sync",
+          description: "The docs need to explain that the high-level posture must always agree with the underlying cases and runs.",
+          items: [
+            {
+              label: "Health without detail is weak",
+              meta: "Trust rule",
+              summary: "If a summary page cannot be traced back to the underlying console state, operators will stop trusting it.",
+            },
+            {
+              label: "Detail without summary is noisy",
+              meta: "Usability rule",
+              summary: "Conversely, operators need the summary layer so they do not have to infer platform posture from dozens of local issues.",
+            },
+            {
+              label: "The docs should teach both directions",
+              meta: "Docs rule",
+              summary: "Readers should learn how to move from summary to detail and back again as part of the operating model.",
+            },
+          ],
+        },
+      ],
+    },
   },
   {
     track: "operator-docs",
@@ -1410,6 +2169,76 @@ const docsGuidePages: DocsGuideDefinition[] = [
         },
       ],
     },
+    deepDive: {
+      title: "Why runbooks are treated as living operator tools rather than static incident notes.",
+      description:
+        "Runbooks matter because they reduce improvisation under pressure. The docs should explain how they are triggered, how they bound response and how they leave learning behind.",
+      sections: [
+        {
+          title: "Runbooks begin at signal recognition",
+          description: "A runbook is relevant only when the operator can classify what kind of degraded behavior they are looking at.",
+          items: [
+            {
+              label: "Signals should point into a playbook",
+              meta: "Trigger model",
+              summary: "Overview, escalations and console-specific incidents should make it clear which playbook category the operator is in.",
+            },
+            {
+              label: "Classification prevents action spam",
+              meta: "Ops rule",
+              summary: "The docs should reinforce that operators should not fire every possible retry or pause action until they know what type of issue they are facing.",
+            },
+            {
+              label: "Runbooks are part of product posture",
+              meta: "Platform rule",
+              summary: "A serious public product needs discoverable playbooks just as much as it needs visible consoles.",
+            },
+          ],
+        },
+        {
+          title: "Playbooks intentionally narrow the response",
+          description: "A good runbook makes the next few choices smaller and safer.",
+          items: [
+            {
+              label: "Bounded recovery protects the platform",
+              meta: "Response model",
+              summary: "Operators should understand which actions are safe first moves and which ones are escalation-only or last-resort paths.",
+            },
+            {
+              label: "Consistency matters more than heroics",
+              meta: "Operations rule",
+              summary: "Runbooks help different operators respond the same way to similar problems, which improves product stability over time.",
+            },
+            {
+              label: "Cross-surface links keep context intact",
+              meta: "Docs rule",
+              summary: "A runbook should always point back into the surface that exposed the issue so the operator never loses the live state of the problem.",
+            },
+          ],
+        },
+        {
+          title: "Runbooks should improve future response",
+          description: "Recovery is only half the value; better future recognition is the other half.",
+          items: [
+            {
+              label: "Outcomes need visible capture",
+              meta: "Learning model",
+              summary: "The team should be able to see whether a runbook led to resolution, escalation, monitoring or a follow-up change in posture.",
+            },
+            {
+              label: "Repeat incidents should get easier",
+              meta: "Improvement rule",
+              summary: "A useful runbook helps the next operator respond with more clarity and less time-to-understanding.",
+            },
+            {
+              label: "Docs and platform history should align",
+              meta: "System rule",
+              summary: "The public explanation of the playbook should match the real operating patterns the platform now uses.",
+            },
+          ],
+        },
+      ],
+    },
   },
   {
     track: "operator-docs",
@@ -1529,6 +2358,76 @@ const docsGuidePages: DocsGuideDefinition[] = [
           label: "History improves future response",
           meta: "Learning rule",
           summary: "Incident handling should leave behind enough context that future operators can respond faster and more consistently.",
+        },
+      ],
+    },
+    deepDive: {
+      title: "Why incident handling is documented above any single console.",
+      description:
+        "Incidents are cross-system coordination events. The docs should explain how local case pressure becomes broader incident posture and how the platform recovers coherently.",
+      sections: [
+        {
+          title: "Incidents are promoted from local pressure",
+          description: "Not every issue is an incident. The incident model begins when the problem is larger than one console or team lane.",
+          items: [
+            {
+              label: "Repeated or multi-system pressure matters",
+              meta: "Promotion model",
+              summary: "When several consoles degrade together or an issue creates wider launch and support risk, the system should treat it as an incident instead of local noise.",
+            },
+            {
+              label: "Health drift is often the clue",
+              meta: "Detection model",
+              summary: "Overview and analytics help reveal when a pattern is no longer isolated and needs coordinated attention.",
+            },
+            {
+              label: "The docs should distinguish scale clearly",
+              meta: "Docs rule",
+              summary: "Readers need to understand why incident handling exists above trust, payout or on-chain resolution alone.",
+            },
+          ],
+        },
+        {
+          title: "Coordination uses shared language",
+          description: "Once promoted, an incident needs named owners, runbooks and waiting-state posture that everyone can read.",
+          items: [
+            {
+              label: "Ownership and escalation are central",
+              meta: "Coordination model",
+              summary: "Incident work is mostly about aligning people and systems, not just triggering technical actions.",
+            },
+            {
+              label: "Runbooks narrow the recovery path",
+              meta: "Response rule",
+              summary: "The docs should explain how incident handling leans on runbooks so the response stays bounded and repeatable.",
+            },
+            {
+              label: "Consoles remain the execution layer",
+              meta: "Surface rule",
+              summary: "Even during an incident, recovery often still happens inside the underlying trust, payout, on-chain or community surfaces.",
+            },
+          ],
+        },
+        {
+          title: "Closure should leave the platform smarter",
+          description: "A resolved incident should make future detection and response better, not just restore green status.",
+          items: [
+            {
+              label: "History becomes training data for operators",
+              meta: "Learning model",
+              summary: "Incident timelines, runbook outcomes and overview signals help future operators recognize similar patterns faster.",
+            },
+            {
+              label: "Release notes and observability matter",
+              meta: "Platform improvement",
+              summary: "The docs should connect incident handling back into platform evolution so public product posture and recovery practice stay aligned.",
+            },
+            {
+              label: "Recovery includes confidence repair",
+              meta: "Trust rule",
+              summary: "Part of incident closure is making sure projects and operators can understand what happened and why the system is stable again.",
+            },
+          ],
         },
       ],
     },
