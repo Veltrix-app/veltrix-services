@@ -9,6 +9,8 @@ export type DocsSnapshotSlug =
 export type DocsReferenceSlug =
   | "lifecycle-states"
   | "permissions"
+  | "entities-and-relationships"
+  | "permission-matrices"
   | "trust-case-types"
   | "payout-case-types"
   | "onchain-case-types"
@@ -51,11 +53,25 @@ export type DocsReferenceEntry = {
   meta?: string;
 };
 
+export type DocsReferenceMatrixRow = {
+  label: string;
+  values: string[];
+  summary?: string;
+};
+
+export type DocsReferenceMatrix = {
+  title: string;
+  description?: string;
+  columns: string[];
+  rows: DocsReferenceMatrixRow[];
+};
+
 export type DocsReferenceDataset = {
   slug: DocsReferenceSlug;
   title: string;
   summary: string;
   entries: DocsReferenceEntry[];
+  matrix?: DocsReferenceMatrix;
 };
 
 export type DocsStateExplorerState = {

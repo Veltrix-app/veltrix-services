@@ -343,6 +343,27 @@ export const docsTracks: DocsTrackDefinition[] = [
             status: "live",
             kind: "reference",
           },
+          {
+            href: "/reference/entities-and-relationships",
+            label: "Entities and Relationships",
+            summary: "The atlas view of how projects, campaigns, missions, community and safety consoles fit together.",
+            status: "live",
+            kind: "reference",
+          },
+        ],
+      },
+      {
+        id: "access-and-maps",
+        label: "Access and maps",
+        summary: "The exact cross-console maps that help readers compare system boundaries quickly.",
+        items: [
+          {
+            href: "/reference/permission-matrices",
+            label: "Permission Matrices",
+            summary: "The side-by-side matrix view of trust, payout, on-chain and community access posture.",
+            status: "live",
+            kind: "reference",
+          },
         ],
       },
       {

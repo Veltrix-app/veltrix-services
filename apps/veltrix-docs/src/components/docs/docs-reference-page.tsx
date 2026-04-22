@@ -1,7 +1,9 @@
 import { DocsPageFrame } from "@/components/docs/docs-page-frame";
 import { DocsReferenceBlock } from "@/components/docs/docs-reference-block";
+import { DocsReferenceMatrix } from "@/components/docs/docs-reference-matrix";
 import { DocsSection } from "@/components/docs/docs-section";
 import { DocsStateExplorer } from "@/components/docs/docs-state-explorer";
+import { getDocsRelatedPages } from "@/lib/docs/docs-nav";
 import { loadDocsReferenceDataset, loadDocsStateExplorerDataset, type DocsReferenceSlug, type DocsStateExplorerSlug } from "@/lib/docs-data";
 
 export function DocsReferencePage({
@@ -23,6 +25,11 @@ export function DocsReferencePage({
 }>) {
   const dataset = loadDocsReferenceDataset(referenceSlug);
   const stateExplorer = stateExplorerSlug ? loadDocsStateExplorerDataset(stateExplorerSlug) : undefined;
+  const connectedPages = getDocsRelatedPages(relatedHrefs).map((page) => ({
+    label: page.label,
+    meta: `${page.kind} / ${page.status}`,
+    summary: page.summary,
+  }));
 
   if (!dataset) {
     return null;
@@ -56,6 +63,16 @@ export function DocsReferencePage({
       >
         <DocsReferenceBlock title={dataset.title} items={dataset.entries} />
       </DocsSection>
+
+      <div className={`grid gap-6 ${dataset.matrix ? "xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]" : ""}`}>
+        {dataset.matrix ? <DocsReferenceMatrix matrix={dataset.matrix} /> : null}
+
+        <DocsReferenceBlock
+          title="Connected docs surfaces"
+          description="These are the main pages that depend on this exact reference language."
+          items={connectedPages}
+        />
+      </div>
 
       {stateExplorer ? (
         <DocsStateExplorer
