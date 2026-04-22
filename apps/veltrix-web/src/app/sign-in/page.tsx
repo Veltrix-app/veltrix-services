@@ -6,7 +6,7 @@ export default function SignInPage() {
     <AppShell
       eyebrow="Account"
       title="Sign in to Veltrix"
-      description="Access your account to track progress, claim rewards and keep your linked identities ready."
+      description="Access your workspace, continue live projects and recover your operator context without reopening setup from scratch."
     >
       <SignInScreen />
     </AppShell>

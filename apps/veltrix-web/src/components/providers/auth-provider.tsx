@@ -34,7 +34,15 @@ type AuthContextValue = {
   signUp: (
     email: string,
     password: string,
-    username: string
+    username: string,
+    redirectTo?: string
+  ) => Promise<{ ok: boolean; error?: string }>;
+  requestPasswordReset: (
+    email: string,
+    redirectTo?: string
+  ) => Promise<{ ok: boolean; error?: string }>;
+  updatePassword: (
+    password: string
   ) => Promise<{ ok: boolean; error?: string }>;
   updateProfile: (
     input: ProfileUpdateInput
@@ -501,7 +509,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { ok: true };
   }
 
-  async function signUp(email: string, password: string, username: string) {
+  async function signUp(
+    email: string,
+    password: string,
+    username: string,
+    redirectTo?: string
+  ) {
     if (!publicEnv.authConfigured || !supabase) {
       return { ok: false, error: "Supabase envs are not configured yet." };
     }
@@ -512,6 +525,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: redirectTo,
+        data: {
+          username,
+        },
+      },
     });
 
     if (signUpError) {
@@ -528,61 +547,73 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { ok: false, error: "No auth user returned." };
     }
 
-    const [{ error: profileError }, { error: reputationError }, { error: progressError }] =
-      await Promise.all([
-        supabase.from("user_profiles").insert({
-          auth_user_id: nextAuthUserId,
-          username,
-          avatar_url: "",
-          banner_url: "",
-          title: "Elite Raider",
-          faction: "Unassigned",
-          bio: "No bio set yet.",
-          wallet: "",
-          xp: 0,
-          level: 1,
-          streak: 0,
-          status: "active",
-        }),
-        supabase.from("user_global_reputation").upsert({
-          auth_user_id: nextAuthUserId,
-          total_xp: 0,
-          level: 1,
-          streak: 0,
-          trust_score: 50,
-          sybil_score: 0,
-          contribution_tier: "explorer",
-          reputation_rank: 0,
-          quests_completed: 0,
-          raids_completed: 0,
-          rewards_claimed: 0,
-          status: "active",
-        }),
-        supabase.from("user_progress").insert({
-          auth_user_id: nextAuthUserId,
-          joined_communities: [],
-          confirmed_raids: [],
-          claimed_rewards: [],
-          opened_lootbox_ids: [],
-          unlocked_reward_ids: [],
-          quest_statuses: {},
-        }),
-      ]);
-
-    setLoading(false);
-
-    const persistenceError = profileError ?? reputationError ?? progressError;
-    if (persistenceError) {
-      setError(persistenceError.message);
-      return { ok: false, error: persistenceError.message };
-    }
-
     const nextSession =
       data.session ??
       (await supabase.auth.getSession()).data.session ??
       null;
 
     setSession(nextSession);
+    if (nextSession) {
+      try {
+        await ensureUserScaffold({
+          authUserId: nextAuthUserId,
+          email,
+          supabase,
+        });
+      } catch (nextError) {
+        setLoading(false);
+        const message =
+          nextError instanceof Error ? nextError.message : "Could not initialize your account.";
+        setError(message);
+        return { ok: false, error: message };
+      }
+    }
+
+    setLoading(false);
+
+    return { ok: true };
+  }
+
+  async function requestPasswordReset(email: string, redirectTo?: string) {
+    if (!publicEnv.authConfigured || !supabase) {
+      return { ok: false, error: "Supabase envs are not configured yet." };
+    }
+
+    setLoading(true);
+    setError(null);
+
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo,
+    });
+
+    setLoading(false);
+
+    if (resetError) {
+      setError(resetError.message);
+      return { ok: false, error: resetError.message };
+    }
+
+    return { ok: true };
+  }
+
+  async function updatePassword(password: string) {
+    if (!publicEnv.authConfigured || !supabase) {
+      return { ok: false, error: "Supabase envs are not configured yet." };
+    }
+
+    setLoading(true);
+    setError(null);
+
+    const { error: updateError } = await supabase.auth.updateUser({
+      password,
+    });
+
+    setLoading(false);
+
+    if (updateError) {
+      setError(updateError.message);
+      return { ok: false, error: updateError.message };
+    }
 
     return { ok: true };
   }
@@ -876,6 +907,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     authConfigured: publicEnv.authConfigured,
     signIn,
     signUp,
+    requestPasswordReset,
+    updatePassword,
     updateProfile,
     verifyWallet,
     unlinkWallet,

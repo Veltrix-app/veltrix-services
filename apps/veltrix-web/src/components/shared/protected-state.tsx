@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { SignInScreen } from "@/components/auth/sign-in-screen";
 import { useAuth } from "@/components/providers/auth-provider";
+import { publicAuthRoutes } from "@/lib/account/public-auth";
 
 export function ProtectedState({
   children,
@@ -38,13 +39,13 @@ export function ProtectedState({
             </div>
             <div className="flex flex-wrap gap-3">
               <Link
-                href="/sign-in"
+                href={publicAuthRoutes.signIn}
                 className="rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-lime-200"
               >
                 Sign in
               </Link>
               <Link
-                href="/sign-in"
+                href={publicAuthRoutes.signUp}
                 className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
               >
                 Create account

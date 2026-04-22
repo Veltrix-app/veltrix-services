@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Bot, Compass, LifeBuoy, ShieldCheck, Sparkles } from "lucide-react";
+import { publicAuthRoutes } from "@/lib/account/public-auth";
 import {
   launchAccessModes,
   launchFaqs,
@@ -43,7 +44,7 @@ export function PublicLaunchSite() {
               Book demo
             </Link>
             <Link
-              href="/sign-in"
+              href={publicAuthRoutes.start}
               className="inline-flex rounded-full bg-lime-300 px-4 py-2.5 text-sm font-black text-slate-950 transition hover:bg-lime-200"
             >
               Start now
@@ -66,7 +67,7 @@ export function PublicLaunchSite() {
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
-                href="/sign-in"
+                href={publicAuthRoutes.start}
                 className="inline-flex items-center gap-2 rounded-full bg-lime-300 px-6 py-3.5 text-sm font-black text-slate-950 transition hover:bg-lime-200"
               >
                 Start now
@@ -288,7 +289,7 @@ export function PublicLaunchSite() {
 
           <div className="flex flex-wrap items-center gap-3">
             <Link
-              href="/sign-in"
+              href={publicAuthRoutes.start}
               className="inline-flex items-center gap-2 rounded-full bg-lime-300 px-6 py-3.5 text-sm font-black text-slate-950 transition hover:bg-lime-200"
             >
               Start now
@@ -319,7 +320,7 @@ export function PublicLaunchSite() {
             <Link href="/rewards/disclaimer" className="transition hover:text-white">
               Reward disclaimer
             </Link>
-            <Link href="/sign-in" className="transition hover:text-white">
+            <Link href={publicAuthRoutes.signIn} className="transition hover:text-white">
               Sign in
             </Link>
           </div>
