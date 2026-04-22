@@ -108,6 +108,19 @@ export function DocsSidebar() {
 
         <div className="mt-auto grid gap-3 pt-6">
           <div className="rounded-[22px] border border-white/8 bg-white/[0.02] p-4">
+            <p className="docs-kicker text-cyan-200">Best first move</p>
+            <p className="mt-3 text-sm font-semibold text-white">
+              {activeTrack.id === "project-docs"
+                ? "Start from a workflow page if you're trying to complete something specific."
+                : activeTrack.id === "operator-docs"
+                  ? "Use workflow guides when the real question is about resolution, not just console structure."
+                  : activeTrack.id === "reference"
+                    ? "Open atlas and matrix pages first if you need the big system map before exact definitions."
+                    : "Pick the lane that matches the work, then use search to jump into the exact surface or workflow."}
+            </p>
+          </div>
+
+          <div className="rounded-[22px] border border-white/8 bg-white/[0.02] p-4">
             <div className="flex items-center gap-3">
               <Layers3 className="h-4 w-4 text-cyan-200" />
               <p className="text-sm font-semibold text-white">Docs-safe snapshots</p>

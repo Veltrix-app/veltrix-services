@@ -75,6 +75,45 @@ export default function DocsOverviewPage() {
         </div>
       </DocsSection>
 
+      <DocsSection
+        eyebrow="Suggested starts"
+        title="Start from the question you are actually trying to answer."
+        description="Most people do not begin with a route name in mind. These entrypoints are the strongest first jumps if you want the docs to help with real work immediately."
+      >
+        <div className="grid gap-4 xl:grid-cols-3">
+          {[
+            {
+              href: "/project-docs/workflows/launch-a-project",
+              eyebrow: "Founder path",
+              title: "Launch a project",
+              summary: "The strongest first read if you need to understand the clean order of operations from project readiness into the right builders.",
+            },
+            {
+              href: "/project-docs/workflows/build-a-campaign",
+              eyebrow: "Growth path",
+              title: "Build a campaign",
+              summary: "The best entrypoint when the core question is how strategy turns into a mission structure members can actually move through.",
+            },
+            {
+              href: "/operator-docs/workflows/review-a-trust-case",
+              eyebrow: "Operator path",
+              title: "Review a trust case",
+              summary: "Start here when the work is already live and the real question is how signals, ownership, project input and resolution fit together.",
+            },
+          ].map((entry) => (
+            <Link
+              key={entry.href}
+              href={entry.href}
+              className="rounded-[26px] border border-white/8 bg-black/20 p-5 transition hover:border-white/14 hover:bg-white/[0.04]"
+            >
+              <p className="docs-kicker text-cyan-200">{entry.eyebrow}</p>
+              <p className="mt-4 text-xl font-black text-white">{entry.title}</p>
+              <p className="mt-3 text-sm leading-7 text-slate-300">{entry.summary}</p>
+            </Link>
+          ))}
+        </div>
+      </DocsSection>
+
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
         <DocsSnapshotFrame
           title="How the docs system is structured"
@@ -168,7 +207,7 @@ export default function DocsOverviewPage() {
                   "Shared vocabulary stays stable across product and docs updates.",
                   "Other pages can link here instead of duplicating edge-case wording.",
                 ],
-                note: "Reference should read like the product’s source-of-truth dictionary, not like a marketing page.",
+                note: "Reference should read like the product's source-of-truth dictionary, not like a marketing page.",
               },
             ]}
           />
