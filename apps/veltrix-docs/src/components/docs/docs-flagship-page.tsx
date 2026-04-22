@@ -3,7 +3,14 @@ import { DocsReferenceBlock } from "@/components/docs/docs-reference-block";
 import { DocsSection } from "@/components/docs/docs-section";
 import { DocsSnapshotFrame } from "@/components/docs/docs-snapshot-frame";
 import { DocsStateExplorer } from "@/components/docs/docs-state-explorer";
-import { loadDocsStateExplorerDataset, loadDocsSurfaceSnapshot, type DocsReferenceEntry, type DocsSnapshotSlug, type DocsStateExplorerSlug } from "@/lib/docs-data";
+import {
+  loadDocsStateExplorerDataset,
+  loadDocsSurfaceSnapshot,
+  type DocsReferenceEntry,
+  type DocsReferenceSection,
+  type DocsSnapshotSlug,
+  type DocsStateExplorerSlug,
+} from "@/lib/docs-data";
 
 export function DocsFlagshipPage({
   eyebrow,
@@ -18,6 +25,7 @@ export function DocsFlagshipPage({
   whatItIs,
   whereToFind,
   keyRules,
+  deepDive,
 }: Readonly<{
   eyebrow: string;
   title: string;
@@ -46,6 +54,11 @@ export function DocsFlagshipPage({
     title: string;
     description?: string;
     items: DocsReferenceEntry[];
+  };
+  deepDive?: {
+    title: string;
+    description?: string;
+    sections: DocsReferenceSection[];
   };
 }>) {
   const snapshot = loadDocsSurfaceSnapshot(snapshotSlug);
@@ -167,6 +180,25 @@ export function DocsFlagshipPage({
           items={keyRules.items}
         />
       </div>
+
+      {deepDive ? (
+        <DocsSection
+          eyebrow="Scoring and signals"
+          title={deepDive.title}
+          description={deepDive.description}
+        >
+          <div className={`grid gap-4 ${deepDive.sections.length >= 3 ? "xl:grid-cols-3" : "xl:grid-cols-2"}`}>
+            {deepDive.sections.map((section) => (
+              <DocsReferenceBlock
+                key={section.title}
+                title={section.title}
+                description={section.description}
+                items={section.items}
+              />
+            ))}
+          </div>
+        </DocsSection>
+      ) : null}
     </DocsPageFrame>
   );
 }

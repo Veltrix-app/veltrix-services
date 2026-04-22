@@ -18,6 +18,9 @@ export default function TrustConsoleDocsPage() {
         "/reference",
         "/reference/trust-case-types",
         "/reference/permissions",
+        "/reference/signal-and-scoring-models",
+        "/reference/warning-and-flag-lifecycle",
+        "/reference/trust-score-and-severity-bands",
       ]}
       rail={
         <div className="space-y-4">
@@ -79,6 +82,85 @@ export default function TrustConsoleDocsPage() {
             label: "Timeline is non-optional",
             meta: "Explainability rule",
             summary: "Trust work must stay auditable as it moves across internal and project-facing rails.",
+          },
+        ],
+      }}
+      deepDive={{
+        title: "How trust warnings, scores and case pressure are produced",
+        description:
+          "Trust Console is much easier to understand once the docs make a hard distinction between explicit thresholds, cumulative score posture and the project-bounded view of both.",
+        sections: [
+          {
+            title: "What triggers trust pressure",
+            description: "These are the main signal families behind trust review.",
+            items: [
+              {
+                label: "Identity and freshness",
+                meta: "Fresh wallets and social proof",
+                summary:
+                  "Fresh verified wallets and missing connected socials lower the trust score, and the strongest freshness and identity gaps also emit suspicious signals that can open trust review.",
+              },
+              {
+                label: "Abuse-style event patterns",
+                meta: "Caps and spam thresholds",
+                summary:
+                  "Daily on-chain caps, event-type caps and repeated low-value transfers all create explicit signals because they look like farming or scripted activity rather than meaningful participation.",
+              },
+              {
+                label: "Retention and exposure posture",
+                meta: "Net buy, hold, LP retention",
+                summary:
+                  "Net-buy violations, short holds, short LP retention and exit-like activity all reduce trust because they suggest shallow or reversible engagement instead of lasting contribution.",
+              },
+            ],
+          },
+          {
+            title: "How severity is chosen",
+            description: "Trust severity is not random; it follows the runtime signal severity and score bands.",
+            items: [
+              {
+                label: "High severity",
+                meta: "Reject thresholds",
+                summary:
+                  "Hard failures such as cap abuse, net-buy violations, contract-call allowlist breaks and minimum-threshold misses usually surface as high-severity signals and often reject the event entirely.",
+              },
+              {
+                label: "Medium severity",
+                meta: "Watch bands",
+                summary:
+                  "Borderline or watch-posture patterns, such as barely-short hold duration or a watch trust band, stay visible as medium-pressure signals so operators can review without treating them as outright abuse.",
+              },
+              {
+                label: "Case severity follows signals",
+                meta: "Case model",
+                summary:
+                  "Trust cases inherit the suspicious-signal severity associated with the runtime mapping, and repeated evidence refreshes the existing case instead of multiplying duplicate cases.",
+              },
+            ],
+          },
+          {
+            title: "Why projects see a bounded version",
+            description: "The trust docs should explain this clearly because it is one of the most important platform safety rules.",
+            items: [
+              {
+                label: "Visibility and actions stay separate",
+                meta: "Grant model",
+                summary:
+                  "Project teams do not inherit trust detail or trust actions automatically; owners grant visibility and actions independently, and internal operators keep the deeper evidence and final authority.",
+              },
+              {
+                label: "Cases carry the explanation",
+                meta: "Public-safe posture",
+                summary:
+                  "Projects should understand why a case exists and what it is waiting on, but they do not need raw internal payloads to act on bounded project-side responsibilities.",
+              },
+              {
+                label: "Timeline preserves accountability",
+                meta: "Audit rule",
+                summary:
+                  "The trust timeline matters because it lets both internal operators and bounded project viewers understand what changed without exposing unsafe underlying data.",
+              },
+            ],
           },
         ],
       }}

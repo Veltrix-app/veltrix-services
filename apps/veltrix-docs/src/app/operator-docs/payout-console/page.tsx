@@ -18,6 +18,9 @@ export default function PayoutConsoleDocsPage() {
         "/reference",
         "/reference/payout-case-types",
         "/reference/permissions",
+        "/reference/signal-and-scoring-models",
+        "/reference/warning-and-flag-lifecycle",
+        "/reference/payout-risk-and-resolution-model",
       ]}
       rail={
         <div className="space-y-4">
@@ -79,6 +82,85 @@ export default function PayoutConsoleDocsPage() {
             label: "Claims are part of a broader payout system",
             meta: "Model rule",
             summary: "This console is not just a claim list; it is the safety and resolution layer over claims, delivery and inventory pressure.",
+          },
+        ],
+      }}
+      deepDive={{
+        title: "How payout warnings, blocked states and safe actions are actually determined",
+        description:
+          "Payout Console is easier to trust once the docs explain that payout safety is not a hidden score. It is a case-driven layer built from explicit failures, blocked states and visible retries.",
+        sections: [
+          {
+            title: "What creates payout pressure",
+            description: "Most payout warnings start from a known operational problem rather than a probabilistic model.",
+            items: [
+              {
+                label: "Blocked claims and manual review",
+                meta: "Queue entry",
+                summary:
+                  "When a claim cannot complete on the normal path, the system turns that blocked posture into a payout case so the issue can be owned, reviewed and resolved explicitly.",
+              },
+              {
+                label: "Delivery and finalization failures",
+                meta: "Runtime failures",
+                summary:
+                  "Campaign finalization failures and delivery issues become payout cases directly because the system already knows the payout path is broken or incomplete.",
+              },
+              {
+                label: "Inventory pressure",
+                meta: "Availability posture",
+                summary:
+                  "Reward stock and issuance pressure are treated as payout risk because they can block or distort claims even before a member reaches the final delivery step.",
+              },
+            ],
+          },
+          {
+            title: "How urgency is expressed",
+            description: "This console relies more on visible case state than on a single numeric score.",
+            items: [
+              {
+                label: "Blocked and needs project input",
+                meta: "Primary operator language",
+                summary:
+                  "These states matter more than a number because they tell the operator exactly why the case is stalled and what kind of intervention is needed next.",
+              },
+              {
+                label: "Retry queued",
+                meta: "Recovery in motion",
+                summary:
+                  "The product surfaces retry posture explicitly so operators and projects can see whether the issue is already being worked rather than simply lingering in the queue.",
+              },
+              {
+                label: "Severity stays contextual",
+                meta: "Failure-driven",
+                summary:
+                  "High or critical payout urgency usually comes from the consequence of the failure, such as finalization breakage or unresolved delivery, rather than from a derived payout-health score.",
+              },
+            ],
+          },
+          {
+            title: "Why project actions remain bounded",
+            description: "The docs should make the boundary between project participation and internal payout authority explicit.",
+            items: [
+              {
+                label: "Summary-only by default",
+                meta: "Safe posture",
+                summary:
+                  "Projects begin from summary-only payout visibility so they can understand health without inheriting internal-only details or operator recovery power.",
+              },
+              {
+                label: "Owner-granted actions",
+                meta: "Bounded collaboration",
+                summary:
+                  "Owners can grant safe actions like annotate, escalate or retry project-safe flows, but internal operators still control the deeper payout rails and final authority.",
+              },
+              {
+                label: "History keeps trust intact",
+                meta: "Explanation layer",
+                summary:
+                  "Readable payout history is what lets projects explain blocked claims and recovered payouts later without needing direct access to internal-only data.",
+              },
+            ],
           },
         ],
       }}

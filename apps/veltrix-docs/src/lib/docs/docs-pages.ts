@@ -367,6 +367,48 @@ export const docsTracks: DocsTrackDefinition[] = [
         ],
       },
       {
+        id: "signals-and-scoring",
+        label: "Signals and scoring",
+        summary: "How warnings, flags, severity bands and recovery posture are actually produced inside the product.",
+        items: [
+          {
+            href: "/reference/signal-and-scoring-models",
+            label: "Signal and Scoring Models",
+            summary: "The shared map for deterministic rules, watch bands, severity shaping and bounded console visibility.",
+            status: "live",
+            kind: "reference",
+          },
+          {
+            href: "/reference/warning-and-flag-lifecycle",
+            label: "Warning and Flag Lifecycle",
+            summary: "How raw events become warnings, review flags, cases and timeline history across the platform.",
+            status: "live",
+            kind: "reference",
+          },
+          {
+            href: "/reference/trust-score-and-severity-bands",
+            label: "Trust Score and Severity Bands",
+            summary: "The thresholds, penalties, bonuses and high- versus watch-band logic behind trust posture.",
+            status: "live",
+            kind: "reference",
+          },
+          {
+            href: "/reference/payout-risk-and-resolution-model",
+            label: "Payout Risk and Resolution Model",
+            summary: "How payout problems are classified through explicit failures and blocked states rather than a hidden score.",
+            status: "live",
+            kind: "reference",
+          },
+          {
+            href: "/reference/onchain-signal-and-recovery-model",
+            label: "On-chain Signal and Recovery Model",
+            summary: "The exact thresholds, case triggers and project-safe recovery boundaries behind chain-side warnings and cases.",
+            status: "live",
+            kind: "reference",
+          },
+        ],
+      },
+      {
         id: "safety-models",
         label: "Safety models",
         summary: "The exact case types and operating language for trust, payout and on-chain workflows.",

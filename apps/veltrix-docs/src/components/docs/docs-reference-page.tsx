@@ -74,6 +74,25 @@ export function DocsReferencePage({
         />
       </div>
 
+      {dataset.deepDive ? (
+        <DocsSection
+          eyebrow="Deep dive"
+          title={dataset.deepDive.title}
+          description={dataset.deepDive.description}
+        >
+          <div className={`grid gap-4 ${dataset.deepDive.sections.length >= 3 ? "xl:grid-cols-3" : "xl:grid-cols-2"}`}>
+            {dataset.deepDive.sections.map((section) => (
+              <DocsReferenceBlock
+                key={section.title}
+                title={section.title}
+                description={section.description}
+                items={section.items}
+              />
+            ))}
+          </div>
+        </DocsSection>
+      ) : null}
+
       {stateExplorer ? (
         <DocsStateExplorer
           eyebrow="State context"

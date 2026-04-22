@@ -8,7 +8,13 @@ export default function PayoutCaseTypesPage() {
       description="This page defines the payout case taxonomy used by the internal claims workspace and the project-bounded payout console."
       referenceSlug="payout-case-types"
       stateExplorerSlug="payout-flow"
-      relatedHrefs={["/reference", "/operator-docs/payout-console", "/operator-docs", "/reference/permissions"]}
+      relatedHrefs={[
+        "/reference",
+        "/reference/payout-risk-and-resolution-model",
+        "/operator-docs/payout-console",
+        "/operator-docs",
+        "/reference/permissions",
+      ]}
       rail={
         <div className="space-y-4">
           <p className="docs-kicker text-lime-300">Safety layer</p>

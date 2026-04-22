@@ -8,7 +8,14 @@ export default function OnchainCaseTypesPage() {
       description="This page defines the case taxonomy used by the internal on-chain workspace and the project-bounded on-chain console."
       referenceSlug="onchain-case-types"
       stateExplorerSlug="onchain-flow"
-      relatedHrefs={["/reference", "/operator-docs/onchain-console", "/operator-docs", "/reference/permissions"]}
+      relatedHrefs={[
+        "/reference",
+        "/reference/onchain-signal-and-recovery-model",
+        "/reference/trust-score-and-severity-bands",
+        "/operator-docs/onchain-console",
+        "/operator-docs",
+        "/reference/permissions",
+      ]}
       rail={
         <div className="space-y-4">
           <p className="docs-kicker text-cyan-200">Recovery layer</p>

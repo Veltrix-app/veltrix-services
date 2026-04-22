@@ -11,9 +11,14 @@ export type DocsReferenceSlug =
   | "permissions"
   | "entities-and-relationships"
   | "permission-matrices"
+  | "signal-and-scoring-models"
+  | "warning-and-flag-lifecycle"
   | "trust-case-types"
+  | "trust-score-and-severity-bands"
   | "payout-case-types"
+  | "payout-risk-and-resolution-model"
   | "onchain-case-types"
+  | "onchain-signal-and-recovery-model"
   | "automation-types"
   | "bot-commands"
   | "status-labels";
@@ -22,8 +27,12 @@ export type DocsStateExplorerSlug =
   | "lifecycle"
   | "permissions"
   | "trust-flow"
+  | "warning-flow"
+  | "trust-scoring"
   | "payout-flow"
-  | "onchain-flow";
+  | "payout-risk"
+  | "onchain-flow"
+  | "onchain-signals";
 
 export type DocsSnapshotStat = {
   label: string;
@@ -68,6 +77,18 @@ export type DocsReferenceEntry = {
   meta?: string;
 };
 
+export type DocsReferenceSection = {
+  title: string;
+  description?: string;
+  items: DocsReferenceEntry[];
+};
+
+export type DocsReferenceDeepDive = {
+  title: string;
+  description?: string;
+  sections: DocsReferenceSection[];
+};
+
 export type DocsReferenceMatrixRow = {
   label: string;
   values: string[];
@@ -87,6 +108,7 @@ export type DocsReferenceDataset = {
   summary: string;
   entries: DocsReferenceEntry[];
   matrix?: DocsReferenceMatrix;
+  deepDive?: DocsReferenceDeepDive;
 };
 
 export type DocsStateExplorerState = {
