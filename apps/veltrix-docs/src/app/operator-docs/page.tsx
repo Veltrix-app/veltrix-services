@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { DocsPageFrame } from "@/components/docs/docs-page-frame";
 import { DocsReferenceBlock } from "@/components/docs/docs-reference-block";
 import { DocsSection } from "@/components/docs/docs-section";
@@ -53,7 +54,11 @@ export default function OperatorDocsPage() {
 
               <div className="mt-5 grid gap-3">
                 {section.items.map((item) => (
-                  <div key={item.href} className="rounded-[20px] border border-white/8 bg-white/[0.03] p-4">
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="block rounded-[20px] border border-white/8 bg-white/[0.03] p-4 transition hover:border-white/14 hover:bg-white/[0.05]"
+                  >
                     <div className="flex items-start justify-between gap-3">
                       <p className="text-base font-black text-white">{item.label}</p>
                       <span
@@ -69,7 +74,7 @@ export default function OperatorDocsPage() {
                       </span>
                     </div>
                     <p className="mt-3 text-sm leading-6 text-slate-400">{item.summary}</p>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -93,10 +98,14 @@ export default function OperatorDocsPage() {
               <p className="docs-kicker text-cyan-200">Console layer</p>
               <div className="mt-4 grid gap-3 md:grid-cols-3">
                 {track.sections[0]?.items.map((item) => (
-                  <div key={item.href} className="rounded-[18px] border border-white/8 bg-white/[0.03] p-4">
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="block rounded-[18px] border border-white/8 bg-white/[0.03] p-4 transition hover:border-white/14 hover:bg-white/[0.05]"
+                  >
                     <p className="text-sm font-black text-white">{item.label}</p>
                     <p className="mt-2 text-sm leading-6 text-slate-400">{item.summary}</p>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -105,10 +114,14 @@ export default function OperatorDocsPage() {
               <p className="docs-kicker text-lime-300">Follow-through layer</p>
               <div className="mt-4 grid gap-3 md:grid-cols-2">
                 {track.sections[1]?.items.map((item) => (
-                  <div key={item.href} className="rounded-[18px] border border-white/8 bg-white/[0.03] p-4">
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="block rounded-[18px] border border-white/8 bg-white/[0.03] p-4 transition hover:border-white/14 hover:bg-white/[0.05]"
+                  >
                     <p className="text-sm font-black text-white">{item.label}</p>
                     <p className="mt-2 text-sm leading-6 text-slate-400">{item.summary}</p>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>

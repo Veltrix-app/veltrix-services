@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Search } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { DocsBreadcrumbs } from "@/components/docs/docs-breadcrumbs";
+import { DocsSearch } from "@/components/docs/docs-search";
 import { getDocsTrackByPath } from "@/lib/docs/docs-nav";
 
 export function DocsHeader() {
@@ -26,18 +26,7 @@ export function DocsHeader() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              className="inline-flex min-w-[280px] items-center justify-between gap-3 rounded-full border border-white/10 bg-white/[0.03] px-4 py-3 text-left text-sm text-slate-400 transition hover:border-white/14 hover:bg-white/[0.05]"
-            >
-              <span className="inline-flex items-center gap-3">
-                <Search className="h-4 w-4 text-slate-500" />
-                Search surfaces, workflows or states
-              </span>
-              <span className="rounded-full border border-white/10 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">
-                Soon
-              </span>
-            </button>
+            <DocsSearch />
 
             <Link
               href="/release-notes"

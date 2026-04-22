@@ -1,6 +1,7 @@
 import { DocsPageFrame } from "@/components/docs/docs-page-frame";
 import { DocsReferenceBlock } from "@/components/docs/docs-reference-block";
 import { DocsSection } from "@/components/docs/docs-section";
+import { getDocsRelatedPages } from "@/lib/docs/docs-nav";
 import { loadDocsReleaseNote } from "@/lib/docs/release-notes/notes";
 
 export function DocsReleaseNotePage({
@@ -13,6 +14,12 @@ export function DocsReleaseNotePage({
   if (!note) {
     return null;
   }
+
+  const relatedPages = getDocsRelatedPages(note.relatedHrefs).map((page) => ({
+    label: page.label,
+    meta: `${page.kind} · ${page.status}`,
+    summary: page.summary,
+  }));
 
   return (
     <DocsPageFrame
@@ -53,10 +60,7 @@ export function DocsReleaseNotePage({
       <DocsReferenceBlock
         title="Connected docs surfaces"
         description="These are the pages and tracks that best explain the product layers touched by this milestone."
-        items={note.relatedHrefs.map((href) => ({
-          label: href,
-          summary: "Use the related-pages rail above to move directly into the connected documentation context.",
-        }))}
+        items={relatedPages}
       />
     </DocsPageFrame>
   );

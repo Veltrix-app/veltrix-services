@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { DocsPageFrame } from "@/components/docs/docs-page-frame";
 import { DocsSection } from "@/components/docs/docs-section";
 import { listDocsReleaseNotes } from "@/lib/docs/release-notes/notes";
@@ -33,7 +34,11 @@ export default function ReleaseNotesPage() {
       >
         <div className="space-y-4">
           {notes.map((note, index) => (
-            <article key={note.slug} className="rounded-[26px] border border-white/8 bg-black/20 p-6">
+            <Link
+              key={note.slug}
+              href={`/release-notes/${note.slug}`}
+              className="block rounded-[26px] border border-white/8 bg-black/20 p-6 transition hover:border-white/14 hover:bg-white/[0.05]"
+            >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <p className="docs-kicker text-slate-500">0{index + 1}</p>
@@ -44,7 +49,7 @@ export default function ReleaseNotesPage() {
                 </span>
               </div>
               <p className="mt-4 max-w-4xl text-sm leading-7 text-slate-300">{note.summary}</p>
-            </article>
+            </Link>
           ))}
         </div>
       </DocsSection>
