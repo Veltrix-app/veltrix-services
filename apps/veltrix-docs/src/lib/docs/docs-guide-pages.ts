@@ -61,6 +61,11 @@ type DocsGuideDefinition = {
     description?: string;
     items: DocsGuideEntry[];
   };
+  controlAtlas?: {
+    title: string;
+    description?: string;
+    sections: DocsGuideSection[];
+  };
   deepDive?: {
     title: string;
     description?: string;
@@ -195,6 +200,76 @@ const docsGuidePages: DocsGuideDefinition[] = [
           label: "Handoffs stay explicit",
           meta: "Flow rule",
           summary: "Builder actions should clearly communicate which surface comes next and why.",
+        },
+      ],
+    },
+    controlAtlas: {
+      title: "Launch Workspace control anatomy explains how readiness, handoff and starter controls shape the next move.",
+      description:
+        "These controls matter because Launch Workspace should not just describe launch posture. It should actively route a project toward the highest-value next builder or fix.",
+      sections: [
+        {
+          title: "Readiness and checklist controls",
+          description: "The launch hub leads with posture cues that explain what is missing before a project opens another builder.",
+          items: [
+            {
+              label: "Readiness cards",
+              meta: "Always visible",
+              summary: "These cards summarize whether the project already has enough campaign, quest, raid or reward coverage to support a credible launch posture.",
+            },
+            {
+              label: "Blocking checklist cues",
+              meta: "Appears when posture is incomplete",
+              summary: "Warnings and incomplete states should only show when the project is missing something that meaningfully weakens launch quality or operator safety.",
+            },
+            {
+              label: "Priority labels",
+              meta: "Routing cue",
+              summary: "The page should communicate which missing area matters next so the team understands whether to solve structure, execution or incentive coverage first.",
+            },
+          ],
+        },
+        {
+          title: "Builder handoff controls",
+          description: "Launch Workspace is effective only if its action rails preserve project context and explain why a builder is the next step.",
+          items: [
+            {
+              label: "Open builder actions",
+              meta: "Primary CTA",
+              summary: "These controls move the user into Campaign, Quest, Raid or Reward creation with current project context already attached.",
+            },
+            {
+              label: "Context-preserving return path",
+              meta: "After builder use",
+              summary: "When a user comes back, the workspace should make it obvious what changed and whether that builder action improved readiness.",
+            },
+            {
+              label: "Launch-source tags",
+              meta: "Handoff cue",
+              summary: "Source context matters because it tells the builder this object belongs to a launch plan rather than a detached standalone creation flow.",
+            },
+          ],
+        },
+        {
+          title: "Starter and sequencing controls",
+          description: "Starter packs and sequencing rails reduce blank-canvas risk for projects that need to assemble a launch system quickly.",
+          items: [
+            {
+              label: "Starter pack selectors",
+              meta: "Accelerator control",
+              summary: "These controls offer a faster starting posture for teams that do not want to invent campaign and quest structure from nothing.",
+            },
+            {
+              label: "Suggested next step cues",
+              meta: "Priority cue",
+              summary: "This layer should explain whether the best next move is adding a builder surface, tightening incentives or returning later once another team member finishes setup.",
+            },
+            {
+              label: "Launch route grouping",
+              meta: "Navigation control",
+              summary: "Builder controls belong in a launch-specific cluster so the page reads like a project operating hub rather than a generic tools index.",
+            },
+          ],
         },
       ],
     },
@@ -398,6 +473,76 @@ const docsGuidePages: DocsGuideDefinition[] = [
         },
       ],
     },
+    controlAtlas: {
+      title: "Raid Studio control anatomy explains how timing, staffing and activation safety are shaped inside the builder.",
+      description:
+        "These controls matter because raid setup is operational, not just descriptive. The page should show how the builder turns a raid into something captains and operators can actually run.",
+      sections: [
+        {
+          title: "Timing and placement controls",
+          description: "Raids become legible when the builder makes cadence, channel and urgency explicit.",
+          items: [
+            {
+              label: "Cadence selectors",
+              meta: "Timing control",
+              summary: "These controls determine whether the raid is a one-off moment, a repeated rhythm or part of a broader activation schedule.",
+            },
+            {
+              label: "Channel posture inputs",
+              meta: "Placement control",
+              summary: "The builder should explain where the raid runs and why that channel changes how the activation will actually feel in practice.",
+            },
+            {
+              label: "Urgency cues",
+              meta: "State cue",
+              summary: "Warnings or emphasis should appear when the planned timing creates overlap, crowding or a weak fit with the rest of the campaign cadence.",
+            },
+          ],
+        },
+        {
+          title: "Staffing and captain controls",
+          description: "Raid quality depends on who will actually run the activation after the builder session ends.",
+          items: [
+            {
+              label: "Captain assignment cues",
+              meta: "Ownership control",
+              summary: "These controls help the project see whether the raid already has a clear execution owner or still needs staffing follow-through in Community OS.",
+            },
+            {
+              label: "Execution responsibility rails",
+              meta: "Handoff control",
+              summary: "The builder should point toward the captain or community workflow that will carry the raid once it is published.",
+            },
+            {
+              label: "Operational readiness badges",
+              meta: "Safety cue",
+              summary: "If a raid is structurally defined but still missing execution coverage, the page should flag that gap before the team treats it as ready.",
+            },
+          ],
+        },
+        {
+          title: "Launch-fit and activation controls",
+          description: "A raid should read as part of a larger operating plan rather than an isolated burst of activity.",
+          items: [
+            {
+              label: "Campaign connection cues",
+              meta: "System control",
+              summary: "These controls remind the project which campaign or launch posture the raid supports, so its timing and purpose remain legible.",
+            },
+            {
+              label: "Community-pressure warnings",
+              meta: "Operator cue",
+              summary: "Flags should appear when the raid adds pressure without enough staffing, command support or downstream reward clarity.",
+            },
+            {
+              label: "Publish versus return controls",
+              meta: "Decision control",
+              summary: "The builder should make it clear whether the team can safely proceed or should return to launch, community or reward setup first.",
+            },
+          ],
+        },
+      ],
+    },
     deepDive: {
       title: "Why Raid Studio is documented as an activation system, not just another builder form.",
       description:
@@ -595,6 +740,76 @@ const docsGuidePages: DocsGuideDefinition[] = [
           label: "Claim follow-through matters",
           meta: "System rule",
           summary: "Reward setup is only half the story; the docs should also explain how that setup turns into claim and payout operations.",
+        },
+      ],
+    },
+    controlAtlas: {
+      title: "Rewards control anatomy explains how configuration, inventory and claim posture are surfaced before incentives go live.",
+      description:
+        "These controls matter because reward setup changes both member motivation and downstream operator workload. The docs should explain what the project can shape directly and what will later become claim or payout pressure.",
+      sections: [
+        {
+          title: "Reward design controls",
+          description: "These controls define what the reward is, why it exists and where it belongs in the launch system.",
+          items: [
+            {
+              label: "Reward type and value inputs",
+              meta: "Builder control",
+              summary: "These fields decide what the member will receive and therefore what level of motivation or recognition the reward is supposed to create.",
+            },
+            {
+              label: "Placement and linkage cues",
+              meta: "System control",
+              summary: "The builder should communicate whether the reward belongs to a quest, a campaign milestone, a raid outcome or a broader recognition loop.",
+            },
+            {
+              label: "Verification-linked hints",
+              meta: "Trust cue",
+              summary: "The docs should call out when reward confidence depends on the verification posture attached to the action that unlocks it.",
+            },
+          ],
+        },
+        {
+          title: "Inventory and claim posture controls",
+          description: "Rewards should make supply and downstream claim risk visible before members ever try to redeem them.",
+          items: [
+            {
+              label: "Availability counters",
+              meta: "State control",
+              summary: "These cues show whether a reward has enough stock or delivery confidence to be published without creating obvious disappointment.",
+            },
+            {
+              label: "Inventory risk flags",
+              meta: "Warning cue",
+              summary: "A warning should appear when supply posture, distribution confidence or claim pressure make the reward unsafe to treat as simple launch-ready inventory.",
+            },
+            {
+              label: "Claim handoff indicators",
+              meta: "Lifecycle cue",
+              summary: "The page should explain that some reward settings move directly into Claims and Payout flows once members begin redeeming them.",
+            },
+          ],
+        },
+        {
+          title: "Escalation and resolution controls",
+          description: "The docs should also teach what happens when a reward produces downstream friction instead of a clean member experience.",
+          items: [
+            {
+              label: "Blocked-claim links",
+              meta: "Recovery control",
+              summary: "These links route the team into the bounded payout or claims context that explains why a redemption is stuck.",
+            },
+            {
+              label: "Project-safe freeze cues",
+              meta: "Safety control",
+              summary: "When allowed, teams may need to pause or freeze reward posture without stepping into full internal payout authority.",
+            },
+            {
+              label: "History and resolution badges",
+              meta: "Outcome cue",
+              summary: "The reward docs should explain how a project can tell whether a payout issue was resolved, dismissed or escalated to operator space.",
+            },
+          ],
         },
       ],
     },
@@ -798,6 +1013,76 @@ const docsGuidePages: DocsGuideDefinition[] = [
         },
       ],
     },
+    controlAtlas: {
+      title: "Member Journey control anatomy explains how routing, recognition and readiness cues shape what members see next.",
+      description:
+        "These controls matter because the member layer should feel intentional, not random. The docs should explain which cues are routing the member, which ones are simply informative and which ones reflect deeper readiness or trust posture.",
+      sections: [
+        {
+          title: "Routing and next-step controls",
+          description: "These controls guide the member toward the right path instead of forcing them to infer what matters next.",
+          items: [
+            {
+              label: "Preferred-route cues",
+              meta: "Journey control",
+              summary: "These cues determine whether a member should land in onboarding, comeback, missions or another lane based on current readiness and activity posture.",
+            },
+            {
+              label: "Next best action blocks",
+              meta: "Priority control",
+              summary: "The page should explain why one mission or action is elevated above others and what system signal made it the recommended next move.",
+            },
+            {
+              label: "Return-path prompts",
+              meta: "Continuity control",
+              summary: "When members leave the primary route, these prompts help them re-enter the right lane without losing momentum or context.",
+            },
+          ],
+        },
+        {
+          title: "Recognition and status controls",
+          description: "Member surfaces become more meaningful when recognition is not just decorative but clearly linked to platform state.",
+          items: [
+            {
+              label: "Recognition strips",
+              meta: "Signal cue",
+              summary: "These controls surface progress, milestones or identity signals that reinforce why the member should stay engaged with the product.",
+            },
+            {
+              label: "Readiness labels",
+              meta: "State cue",
+              summary: "Status labels explain whether the member is ready for richer actions or still missing setup such as profile completion or account linkage.",
+            },
+            {
+              label: "Unlock and level indicators",
+              meta: "Progress control",
+              summary: "The docs should explain what these cues are measuring and why they change the way later rewards or missions are presented.",
+            },
+          ],
+        },
+        {
+          title: "Cross-surface journey controls",
+          description: "The member layer only feels coherent when profile, rewards and notifications all preserve the same routing logic.",
+          items: [
+            {
+              label: "Reward handoff cues",
+              meta: "Connected surface control",
+              summary: "These controls explain when a reward page is part of the current journey and when it is only an informative side route.",
+            },
+            {
+              label: "Notification-driven routing",
+              meta: "Re-entry control",
+              summary: "Notifications should bring the member back into the correct lane instead of dropping them into disconnected detail pages with no guidance.",
+            },
+            {
+              label: "Profile readiness prompts",
+              meta: "Setup control",
+              summary: "The docs should spell out when profile or linkage tasks matter because they unlock safer verification, reward or campaign participation later on.",
+            },
+          ],
+        },
+      ],
+    },
     deepDive: {
       title: "Why the member journey is documented as a system of routes, signals and recognition rather than just a set of screens.",
       description:
@@ -995,6 +1280,76 @@ const docsGuidePages: DocsGuideDefinition[] = [
           label: "Deep links should complete the story",
           meta: "Routing rule",
           summary: "Chat commands should guide users into the right next surface instead of leaving them in a dead end.",
+        },
+      ],
+    },
+    controlAtlas: {
+      title: "Bot Commands control anatomy explains how command scope, deep links and fallback cues shape safe bot behavior.",
+      description:
+        "These controls matter because command surfaces bridge chat environments and product surfaces. The docs should explain what a command exposes, who can use it and how it safely hands context back into the webapp or portal.",
+      sections: [
+        {
+          title: "Command visibility controls",
+          description: "Not every command should appear to every audience or in every project posture.",
+          items: [
+            {
+              label: "Scope-aware command toggles",
+              meta: "Visibility control",
+              summary: "These controls decide whether missions, leaderboard, raid or captain commands are available in a given project context.",
+            },
+            {
+              label: "Role-specific command groups",
+              meta: "Audience cue",
+              summary: "The docs should clarify which commands are meant for members, which ones are captain-facing and which ones stay effectively operator-owned.",
+            },
+            {
+              label: "Project setting dependencies",
+              meta: "Configuration cue",
+              summary: "Some command groups only make sense when the project has the right integrations, community posture or permission setup in place.",
+            },
+          ],
+        },
+        {
+          title: "Deep-link and follow-through controls",
+          description: "Commands are strongest when they do not trap people in chat but instead hand them to the right product surface.",
+          items: [
+            {
+              label: "Deep-link targets",
+              meta: "Routing control",
+              summary: "These links send the user into the exact member or project surface that continues the action without forcing them to hunt for context.",
+            },
+            {
+              label: "Inline summary versus product handoff",
+              meta: "Decision control",
+              summary: "The docs should explain when a command response should resolve fully in chat and when it should deliberately route the user into the product.",
+            },
+            {
+              label: "Conversation continuity cues",
+              meta: "UX control",
+              summary: "Command wording and links should preserve why the user ran the command, not just dump them onto a generic homepage.",
+            },
+          ],
+        },
+        {
+          title: "Fallback and failure controls",
+          description: "Bots need explicit recovery language so degraded states still feel safe and product-aware.",
+          items: [
+            {
+              label: "Unavailable command responses",
+              meta: "Failure control",
+              summary: "The docs should explain what a bot says when a command is disabled, out of scope or blocked by missing project posture.",
+            },
+            {
+              label: "Permission mismatch cues",
+              meta: "Safety cue",
+              summary: "When a user lacks the required scope, the bot should explain the boundary instead of implying the command simply broke.",
+            },
+            {
+              label: "Recovery handoff links",
+              meta: "Support control",
+              summary: "Fallbacks should point to the correct product or support route when the problem cannot be solved inside chat alone.",
+            },
+          ],
         },
       ],
     },
@@ -1198,6 +1553,76 @@ const docsGuidePages: DocsGuideDefinition[] = [
         },
       ],
     },
+    controlAtlas: {
+      title: "Integrations control anatomy explains how provider health, verification posture and recovery actions are surfaced to projects.",
+      description:
+        "These controls matter because integrations are not just connection settings. They change what the system can verify, what the project is allowed to do and what operator recovery paths remain internal-only.",
+      sections: [
+        {
+          title: "Connection and provider controls",
+          description: "These controls establish whether a provider is attached and whether its current posture is healthy enough to depend on.",
+          items: [
+            {
+              label: "Connection status badges",
+              meta: "State control",
+              summary: "These badges tell the project whether a provider is connected, degraded, waiting on setup or fully unavailable.",
+            },
+            {
+              label: "Provider-specific setup fields",
+              meta: "Configuration control",
+              summary: "The docs should explain which credentials, channels or environment bindings are required before the integration can be treated as trustworthy.",
+            },
+            {
+              label: "Health drift warnings",
+              meta: "Warning cue",
+              summary: "Warnings appear when the provider is technically connected but still risky to depend on because sync, callback or verification posture is unstable.",
+            },
+          ],
+        },
+        {
+          title: "Verification and visibility controls",
+          description: "Once connected, an integration starts influencing which proofs, signals and member actions are available to the project.",
+          items: [
+            {
+              label: "Verification capability cues",
+              meta: "Feature control",
+              summary: "These controls indicate which kinds of proof or synchronization the project can now rely on because the integration is present.",
+            },
+            {
+              label: "Member-level visibility bounds",
+              meta: "Privacy cue",
+              summary: "The docs should explain that even connected integrations do not automatically grant unrestricted visibility into all member or wallet data.",
+            },
+            {
+              label: "Readiness prompts",
+              meta: "Workflow control",
+              summary: "The page should surface when launch, reward or member flows still depend on a provider that is not yet healthy enough to support them.",
+            },
+          ],
+        },
+        {
+          title: "Recovery and escalation controls",
+          description: "Integration pages should also teach the boundary between project-safe fixes and internal operator recovery.",
+          items: [
+            {
+              label: "Project-safe retry actions",
+              meta: "Recovery control",
+              summary: "These controls let a project retry or refresh bounded integration behavior without triggering global provider jobs.",
+            },
+            {
+              label: "Operator-only recovery rails",
+              meta: "Boundary cue",
+              summary: "The docs should make it clear which deeper sync or repair actions stay on the operator side even when a project can see the degraded state.",
+            },
+            {
+              label: "Escalation links",
+              meta: "Support control",
+              summary: "When a project cannot fix the issue itself, the page should route cleanly into the console or support context that owns the next action.",
+            },
+          ],
+        },
+      ],
+    },
     deepDive: {
       title: "Why integration docs should explain product contracts, recovery posture and bounded visibility instead of raw API trivia.",
       description:
@@ -1398,6 +1823,76 @@ const docsGuidePages: DocsGuideDefinition[] = [
         },
       ],
     },
+    controlAtlas: {
+      title: "Project Settings control anatomy explains how governance, access and continuity controls shape safe project ownership.",
+      description:
+        "These controls matter because settings are where teams decide who can see what, what environments the project depends on and how governance stays legible over time.",
+      sections: [
+        {
+          title: "Access and team controls",
+          description: "Project settings should explain team governance through explicit visibility and action boundaries.",
+          items: [
+            {
+              label: "Role and seat assignments",
+              meta: "Access control",
+              summary: "These controls define who belongs to the project and which broad lane of responsibility they occupy before finer grants are applied.",
+            },
+            {
+              label: "Owner-managed grant panels",
+              meta: "Permission control",
+              summary: "The docs should explain when settings expose fine-grained grants for trust, payouts, on-chain or other bounded project consoles.",
+            },
+            {
+              label: "Visibility-boundary cues",
+              meta: "Safety cue",
+              summary: "Settings should make it obvious when a teammate can view only summaries versus deeper member, case or wallet detail.",
+            },
+          ],
+        },
+        {
+          title: "Project continuity controls",
+          description: "Settings also communicate which infrastructure and connected product posture the project is relying on.",
+          items: [
+            {
+              label: "Environment and connection summaries",
+              meta: "Continuity control",
+              summary: "These cues show whether the project's linked providers, communities and operational rails are healthy enough to support ongoing work.",
+            },
+            {
+              label: "Lifecycle and archive actions",
+              meta: "Governance control",
+              summary: "Settings should explain when a project can be paused, archived or duplicated and what those states do to related surfaces.",
+            },
+            {
+              label: "Ownership handoff prompts",
+              meta: "Risk control",
+              summary: "The docs should clarify when a sensitive change may require an owner decision instead of a general operator edit.",
+            },
+          ],
+        },
+        {
+          title: "Policy and audit controls",
+          description: "Projects should understand which settings changes leave history and which ones affect downstream system behavior.",
+          items: [
+            {
+              label: "Audit-linked actions",
+              meta: "History control",
+              summary: "Sensitive settings changes should leave visible history so the team can understand why project posture changed later.",
+            },
+            {
+              label: "Policy cues",
+              meta: "Decision support",
+              summary: "Settings should explain when a change affects launch readiness, command scope, reward posture or safety-console visibility.",
+            },
+            {
+              label: "Owner-only lock icons",
+              meta: "Boundary cue",
+              summary: "The docs should call out which controls are intentionally locked to owner authority because they affect the whole project's governance.",
+            },
+          ],
+        },
+      ],
+    },
     deepDive: {
       title: "Why Project Settings should be documented as governance infrastructure instead of a leftover admin corner.",
       description:
@@ -1592,6 +2087,76 @@ const docsGuidePages: DocsGuideDefinition[] = [
         },
       ],
     },
+    controlAtlas: {
+      title: "Claims and Resolution control anatomy explains how blocked states, grants and recovery actions behave inside the payout layer.",
+      description:
+        "These controls matter because claims quickly become operational work. The docs should explain which controls simply reveal claim posture and which ones actually move the case forward.",
+      sections: [
+        {
+          title: "Claim visibility controls",
+          description: "Projects and operators should understand why some claim detail is visible and other detail stays bounded.",
+          items: [
+            {
+              label: "Claim list filters",
+              meta: "View control",
+              summary: "These controls sort claims by status, severity or waiting state so teams can find the issues that need attention first.",
+            },
+            {
+              label: "Member and delivery detail cues",
+              meta: "Permission cue",
+              summary: "The docs should explain that full member claim detail depends on project grants and may remain partially hidden in bounded project views.",
+            },
+            {
+              label: "History visibility badges",
+              meta: "Audit cue",
+              summary: "These cues help readers tell whether they are looking at current claim posture, prior resolution history or a mix of both.",
+            },
+          ],
+        },
+        {
+          title: "Blocked and waiting-state controls",
+          description: "Claims need explicit states that tell the team why a payout path is not moving yet.",
+          items: [
+            {
+              label: "Blocked status badges",
+              meta: "State control",
+              summary: "These badges explain whether a claim is blocked by supply, review, delivery failure or missing project input.",
+            },
+            {
+              label: "Needs-input prompts",
+              meta: "Coordination control",
+              summary: "When project input is required, the page should make it obvious what action the project can actually take versus when it must wait on internal ops.",
+            },
+            {
+              label: "Dispute labels",
+              meta: "Escalation cue",
+              summary: "The docs should clarify how a disputed or unclear claim moves into a deeper resolution track instead of staying a simple queue item.",
+            },
+          ],
+        },
+        {
+          title: "Recovery and resolution controls",
+          description: "The claims layer should also teach the bounded actions that can change payout posture safely.",
+          items: [
+            {
+              label: "Annotate and escalate actions",
+              meta: "Project-safe control",
+              summary: "These actions allow teams to add context or request internal help without stepping into operator-only payout authority.",
+            },
+            {
+              label: "Retry and resolve actions",
+              meta: "Outcome control",
+              summary: "The docs should explain when a retry is safe, when a project can resolve a blocker and when only internal payout ops can close the loop.",
+            },
+            {
+              label: "Dismiss and closure cues",
+              meta: "History control",
+              summary: "Closure states should help readers distinguish between a resolved payout problem, a dismissed issue and a claim still waiting on another surface.",
+            },
+          ],
+        },
+      ],
+    },
     deepDive: {
       title: "Why claims and payout resolution are documented as a case-driven safety layer instead of a simple claims queue.",
       description:
@@ -1781,6 +2346,76 @@ const docsGuidePages: DocsGuideDefinition[] = [
           label: "Cross-console consistency matters",
           meta: "Platform rule",
           summary: "Escalation posture should read the same way across trust, payout, on-chain and support surfaces.",
+        },
+      ],
+    },
+    controlAtlas: {
+      title: "Escalations control anatomy explains how ownership, waiting states and next-action rails coordinate cross-surface work.",
+      description:
+        "These controls matter because escalation is mostly a coordination problem. The docs should show how the system keeps ownership and responsibility explicit when several teams or consoles are involved.",
+      sections: [
+        {
+          title: "Ownership and assignee controls",
+          description: "Escalation pages need clear signals for who currently owns the next move.",
+          items: [
+            {
+              label: "Named owner badges",
+              meta: "Coordination control",
+              summary: "These badges identify which operator, project lead or team currently owns the next action inside the escalation.",
+            },
+            {
+              label: "Awaiting-internal versus awaiting-project labels",
+              meta: "State control",
+              summary: "The docs should explain that these labels are different because they change who is expected to respond next.",
+            },
+            {
+              label: "Assignment change history",
+              meta: "Audit cue",
+              summary: "Ownership should leave a visible trail so a team can reconstruct why an escalation moved across people or surfaces.",
+            },
+          ],
+        },
+        {
+          title: "Waiting-state and pressure controls",
+          description: "Escalation posture becomes actionable when the system communicates whether the issue is actively moving or stalled.",
+          items: [
+            {
+              label: "Stalled-state warnings",
+              meta: "Warning cue",
+              summary: "Warnings should appear when an escalation has stopped moving despite still blocking resolution or launch quality.",
+            },
+            {
+              label: "Next action summaries",
+              meta: "Priority control",
+              summary: "These summaries tell the reader what must happen next instead of forcing them to read the full timeline before acting.",
+            },
+            {
+              label: "Severity carry-over cues",
+              meta: "Risk cue",
+              summary: "The docs should explain how the seriousness of an underlying trust, payout or on-chain issue remains visible after it enters an escalation lane.",
+            },
+          ],
+        },
+        {
+          title: "Cross-surface handoff controls",
+          description: "Escalations are strongest when they preserve context instead of turning into disconnected conversation threads.",
+          items: [
+            {
+              label: "Linked console actions",
+              meta: "Navigation control",
+              summary: "These controls route the operator back into the exact trust, payout, on-chain or community context that created the escalation.",
+            },
+            {
+              label: "Timeline context blocks",
+              meta: "History control",
+              summary: "The docs should show how the escalation timeline preserves both the originating issue and the later coordination decisions.",
+            },
+            {
+              label: "Closure confirmation cues",
+              meta: "Outcome control",
+              summary: "Readers should learn how to tell whether the escalation truly resolved the underlying issue or merely moved the work elsewhere.",
+            },
+          ],
         },
       ],
     },
@@ -1977,6 +2612,76 @@ const docsGuidePages: DocsGuideDefinition[] = [
         },
       ],
     },
+    controlAtlas: {
+      title: "Overview and Analytics control anatomy explains how summary filters, health cues and escalation routing should be read.",
+      description:
+        "These controls matter because summary pages are only useful when readers understand what each signal aggregates, how far it can be trusted and where it should send them next.",
+      sections: [
+        {
+          title: "Summary and filter controls",
+          description: "These controls decide what slice of platform posture the reader is currently seeing.",
+          items: [
+            {
+              label: "Date and scope filters",
+              meta: "View control",
+              summary: "These filters shape which projects, time windows or operating lanes are included in the summary and therefore how broad the story really is.",
+            },
+            {
+              label: "Metric grouping cues",
+              meta: "Interpretation control",
+              summary: "The docs should explain whether a chart or stat block is grouping by outcome type, system, severity or project scope.",
+            },
+            {
+              label: "Trend comparison states",
+              meta: "Signal cue",
+              summary: "A trend is only useful if readers know whether they are comparing against a prior snapshot, a recent window or a broader baseline.",
+            },
+          ],
+        },
+        {
+          title: "Health and escalation cues",
+          description: "Summary pages become operational when they preserve enough severity and waiting-state context to route action well.",
+          items: [
+            {
+              label: "Health posture badges",
+              meta: "State control",
+              summary: "These badges translate many underlying cases and runs into one summary statement about whether the platform is healthy, degraded or under active pressure.",
+            },
+            {
+              label: "Escalation counts and labels",
+              meta: "Risk cue",
+              summary: "The docs should explain that these counts are not generic volume metrics; they represent unresolved pressure that still needs coordination.",
+            },
+            {
+              label: "Named ownership summaries",
+              meta: "Coordination cue",
+              summary: "Where present, summary surfaces should show who currently owns the critical open issues so a reader knows whether action is already underway.",
+            },
+          ],
+        },
+        {
+          title: "Routing and drill-down controls",
+          description: "Every useful summary page should know how to send the reader into the right live console or project surface.",
+          items: [
+            {
+              label: "Drill-down links",
+              meta: "Navigation control",
+              summary: "These links take the reader from a trend or health block into the exact console or project lane that explains the underlying pressure.",
+            },
+            {
+              label: "Suggested next move prompts",
+              meta: "Priority control",
+              summary: "The docs should show when Overview or Analytics is confident enough to suggest the next console or runbook instead of just presenting metrics.",
+            },
+            {
+              label: "Context-preserving return cues",
+              meta: "Continuity control",
+              summary: "Readers should be able to move from summary into detail and back again without losing which slice of platform posture they were investigating.",
+            },
+          ],
+        },
+      ],
+    },
     deepDive: {
       title: "Why Overview and Analytics are documented as an intervention layer instead of a dashboard gallery.",
       description:
@@ -2169,6 +2874,76 @@ const docsGuidePages: DocsGuideDefinition[] = [
         },
       ],
     },
+    controlAtlas: {
+      title: "Runbooks control anatomy explains how trigger cues, bounded response paths and outcome states are communicated to operators.",
+      description:
+        "These controls matter because runbooks should help someone act under pressure. The docs should show how an operator recognizes the right playbook and how the page narrows their response instead of broadening it.",
+      sections: [
+        {
+          title: "Runbook trigger controls",
+          description: "Runbooks become useful only when the system makes it obvious which kind of problem has been detected.",
+          items: [
+            {
+              label: "Trigger labels",
+              meta: "Entry control",
+              summary: "These labels identify what kind of degradation or incident posture should send the operator into this playbook.",
+            },
+            {
+              label: "Detection cues",
+              meta: "Signal control",
+              summary: "The docs should explain which overview, console or escalation signals usually precede a given runbook becoming relevant.",
+            },
+            {
+              label: "Priority flags",
+              meta: "Urgency cue",
+              summary: "Some playbooks should be clearly marked as higher urgency when delay increases risk to launches, rewards or community operations.",
+            },
+          ],
+        },
+        {
+          title: "Bounded response controls",
+          description: "Runbooks exist to narrow the next few actions rather than leaving the operator to improvise.",
+          items: [
+            {
+              label: "First-action checklists",
+              meta: "Response control",
+              summary: "These controls frame the safest immediate actions before someone starts firing retries or changing project posture blindly.",
+            },
+            {
+              label: "Decision-path branches",
+              meta: "Flow control",
+              summary: "The docs should explain when a playbook branches into escalation, console work, monitoring or a no-op wait state.",
+            },
+            {
+              label: "Surface jump links",
+              meta: "Execution control",
+              summary: "A runbook should point directly to the live surface that lets the operator carry out the next bounded action.",
+            },
+          ],
+        },
+        {
+          title: "Outcome and closure controls",
+          description: "Runbooks should also teach how operators know the playbook has worked or needs deeper follow-through.",
+          items: [
+            {
+              label: "Resolution markers",
+              meta: "Outcome control",
+              summary: "These markers distinguish a clean recovery from a temporary stabilization or a still-open monitored state.",
+            },
+            {
+              label: "Escalation handoff cues",
+              meta: "Coordination control",
+              summary: "The docs should make it obvious when a runbook ends with internal escalation rather than full local resolution.",
+            },
+            {
+              label: "History and learning notes",
+              meta: "Improvement control",
+              summary: "Runbook pages should help operators understand what gets captured so future incidents are easier to recognize and resolve.",
+            },
+          ],
+        },
+      ],
+    },
     deepDive: {
       title: "Why runbooks are treated as living operator tools rather than static incident notes.",
       description:
@@ -2358,6 +3133,76 @@ const docsGuidePages: DocsGuideDefinition[] = [
           label: "History improves future response",
           meta: "Learning rule",
           summary: "Incident handling should leave behind enough context that future operators can respond faster and more consistently.",
+        },
+      ],
+    },
+    controlAtlas: {
+      title: "Incident Handling control anatomy explains how detection cues, coordination rails and closure states behave during cross-system recovery.",
+      description:
+        "These controls matter because incidents sit above any single console. The docs should explain how the platform promotes pressure into an incident and how that incident stays coordinated until recovery is credible again.",
+      sections: [
+        {
+          title: "Detection and promotion controls",
+          description: "These controls help a team understand when a problem has grown beyond a local console issue.",
+          items: [
+            {
+              label: "Promotion cues",
+              meta: "Incident control",
+              summary: "The docs should explain which combinations of repeated failures, health drift or cross-system impact justify treating an issue as a true incident.",
+            },
+            {
+              label: "Severity carry-over badges",
+              meta: "Risk cue",
+              summary: "These badges preserve how serious the underlying issue was so an incident does not lose its original risk context during coordination.",
+            },
+            {
+              label: "Cross-system pressure summaries",
+              meta: "Signal control",
+              summary: "These summaries show why an operator is looking at a platform problem rather than a single trust, payout or on-chain case.",
+            },
+          ],
+        },
+        {
+          title: "Coordination and ownership controls",
+          description: "Once promoted, incidents need visible ownership and a bounded decision path.",
+          items: [
+            {
+              label: "Named incident owners",
+              meta: "Coordination control",
+              summary: "These controls identify who is coordinating the response even if execution still happens inside several underlying consoles.",
+            },
+            {
+              label: "Runbook and escalation links",
+              meta: "Response control",
+              summary: "The docs should show how an incident immediately connects to the playbook and escalation rails that narrow the next set of actions.",
+            },
+            {
+              label: "Waiting-state labels",
+              meta: "Flow cue",
+              summary: "Incident pages should explain whether the situation is awaiting internal work, project response, monitoring or verification before the team can proceed.",
+            },
+          ],
+        },
+        {
+          title: "Recovery and closure controls",
+          description: "An incident is not done just because a single console turned green again.",
+          items: [
+            {
+              label: "Recovery posture badges",
+              meta: "Outcome control",
+              summary: "These badges show whether the platform is fully healthy, partially stabilized or still at risk of reopening the incident.",
+            },
+            {
+              label: "Cross-console confirmation cues",
+              meta: "Verification control",
+              summary: "The docs should explain how teams verify that the underlying trust, payout, on-chain or community issues are all actually cleared.",
+            },
+            {
+              label: "Closure history notes",
+              meta: "Learning control",
+              summary: "Readers should understand what remains visible after an incident closes so the next operator can reconstruct what happened later.",
+            },
+          ],
         },
       ],
     },

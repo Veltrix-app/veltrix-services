@@ -128,6 +128,21 @@ export function DocsGuidePage({
         items={page.keyRules.items}
       />
 
+      {page.controlAtlas ? (
+        <DocsSection eyebrow="Control anatomy" title={page.controlAtlas.title} description={page.controlAtlas.description}>
+          <div className={`grid gap-4 ${page.controlAtlas.sections.length >= 3 ? "xl:grid-cols-3" : "xl:grid-cols-2"}`}>
+            {page.controlAtlas.sections.map((section: DocsReferenceSection) => (
+              <DocsReferenceBlock
+                key={section.title}
+                title={section.title}
+                description={section.description}
+                items={section.items}
+              />
+            ))}
+          </div>
+        </DocsSection>
+      ) : null}
+
       {page.deepDive ? (
         <DocsSection eyebrow="System model" title={page.deepDive.title} description={page.deepDive.description}>
           <div className={`grid gap-4 ${page.deepDive.sections.length >= 3 ? "xl:grid-cols-3" : "xl:grid-cols-2"}`}>
