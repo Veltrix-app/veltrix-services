@@ -24,7 +24,7 @@ export function DocsGuidePage({
     .filter((relatedPage) => relatedPage.href !== `/${track}/${slug}`)
     .map((relatedPage) => ({
       label: relatedPage.label,
-      meta: `${relatedPage.kind} · ${relatedPage.status}`,
+      meta: `${relatedPage.kind} / ${relatedPage.status}`,
       summary: relatedPage.summary,
     }));
 
@@ -68,7 +68,7 @@ export function DocsGuidePage({
         <DocsSnapshotFrame
           title={`${page.surfaceTitle} snapshot`}
           description={`A docs-safe visual model of how ${page.surfaceTitle} is structured in the current Veltrix product system.`}
-          caption={`Read-only docs model · ${track === "project-docs" ? "Project track" : "Operator track"}`}
+          caption={`Read-only docs model / ${track === "project-docs" ? "Project track" : "Operator track"}`}
           stats={[
             {
               label: "Track",

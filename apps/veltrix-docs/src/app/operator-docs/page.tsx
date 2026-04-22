@@ -111,6 +111,22 @@ export default function OperatorDocsPage() {
             </div>
 
             <div className="rounded-[24px] border border-white/8 bg-black/20 p-5">
+              <p className="docs-kicker text-white/70">Response workflows</p>
+              <div className="mt-4 grid gap-3 md:grid-cols-3">
+                {track.sections[2]?.items.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="block rounded-[18px] border border-white/8 bg-white/[0.03] p-4 transition hover:border-white/14 hover:bg-white/[0.05]"
+                  >
+                    <p className="text-sm font-black text-white">{item.label}</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-400">{item.summary}</p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-[24px] border border-white/8 bg-black/20 p-5">
               <p className="docs-kicker text-lime-300">Follow-through layer</p>
               <div className="mt-4 grid gap-3 md:grid-cols-2">
                 {track.sections[1]?.items.map((item) => (

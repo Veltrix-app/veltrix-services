@@ -89,7 +89,7 @@ export function DocsFlagshipPage({
         <DocsSnapshotFrame
           title={snapshot.title}
           description={snapshot.summary}
-          caption={`${snapshot.posture} · ${snapshot.refreshedFrom}`}
+          caption={`${snapshot.posture} / ${snapshot.refreshedFrom}`}
           stats={snapshot.stats}
         >
           <div className="grid gap-4 lg:grid-cols-3">

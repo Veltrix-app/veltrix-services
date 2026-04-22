@@ -17,7 +17,7 @@ export function DocsReleaseNotePage({
 
   const relatedPages = getDocsRelatedPages(note.relatedHrefs).map((page) => ({
     label: page.label,
-    meta: `${page.kind} · ${page.status}`,
+    meta: `${page.kind} / ${page.status}`,
     summary: page.summary,
   }));
 
