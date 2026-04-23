@@ -2,19 +2,22 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
 import {
+  buildPublicAuthPathWithNext,
   buildVerificationRedirectUrl,
   publicAuthRoutes,
 } from "@/lib/account/public-auth";
 
 export function SignUpScreen() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { signUp, loading, error, clearError, authConfigured } = useAuth();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const nextHref = searchParams.get("next");
 
   async function handleSubmit(event?: React.FormEvent<HTMLFormElement>) {
     event?.preventDefault();
@@ -24,11 +27,15 @@ export function SignUpScreen() {
       email,
       password,
       username.trim() || email.split("@")[0] || "member",
-      buildVerificationRedirectUrl()
+      buildVerificationRedirectUrl(nextHref)
     );
 
     if (result.ok) {
-      router.replace(`${publicAuthRoutes.verify}?email=${encodeURIComponent(email)}`);
+      router.replace(
+        `${buildPublicAuthPathWithNext(publicAuthRoutes.verify, nextHref)}${
+          nextHref ? "&" : "?"
+        }email=${encodeURIComponent(email)}`
+      );
     }
   }
 
@@ -95,7 +102,10 @@ export function SignUpScreen() {
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-5 text-sm text-slate-300">
         <p>
           Already have access?{" "}
-          <Link href={publicAuthRoutes.signIn} className="font-semibold text-cyan-200 transition hover:text-cyan-100">
+          <Link
+            href={buildPublicAuthPathWithNext(publicAuthRoutes.signIn, nextHref)}
+            className="font-semibold text-cyan-200 transition hover:text-cyan-100"
+          >
             Sign in
           </Link>
         </p>

@@ -21,8 +21,17 @@ export function buildPublicAuthRedirect(pathname: string) {
   return new URL(pathname, resolveWebappOrigin()).toString();
 }
 
-export function buildVerificationRedirectUrl() {
-  return buildPublicAuthRedirect(publicAuthRoutes.verify);
+export function buildPublicAuthPathWithNext(pathname: string, next?: string | null) {
+  const target = new URL(pathname, resolveWebappOrigin());
+  if (next?.trim()) {
+    target.searchParams.set("next", next.trim());
+  }
+
+  return `${target.pathname}${target.search}`;
+}
+
+export function buildVerificationRedirectUrl(next?: string | null) {
+  return buildPublicAuthRedirect(buildPublicAuthPathWithNext(publicAuthRoutes.verify, next));
 }
 
 export function buildRecoveryRedirectUrl() {

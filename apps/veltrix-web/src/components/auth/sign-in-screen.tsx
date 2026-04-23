@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
-import { publicAuthRoutes } from "@/lib/account/public-auth";
+import { buildPublicAuthPathWithNext, publicAuthRoutes } from "@/lib/account/public-auth";
 
 export function SignInScreen() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { signIn, loading, error, clearError, authConfigured } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const nextHref = searchParams.get("next");
 
   async function handleSubmit(event?: React.FormEvent<HTMLFormElement>) {
     event?.preventDefault();
@@ -19,7 +21,7 @@ export function SignInScreen() {
     const result = await signIn(email, password);
 
     if (result.ok) {
-      router.replace(publicAuthRoutes.postAuth);
+      router.replace(nextHref || publicAuthRoutes.postAuth);
     }
   }
 
@@ -79,7 +81,10 @@ export function SignInScreen() {
         </Link>
         <p>
           New to Veltrix?{" "}
-          <Link href={publicAuthRoutes.signUp} className="font-semibold text-lime-300 transition hover:text-lime-200">
+          <Link
+            href={buildPublicAuthPathWithNext(publicAuthRoutes.signUp, nextHref)}
+            className="font-semibold text-lime-300 transition hover:text-lime-200"
+          >
             Create account
           </Link>
         </p>

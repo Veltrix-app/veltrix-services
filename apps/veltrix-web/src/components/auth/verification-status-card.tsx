@@ -4,13 +4,17 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
-import { publicAuthRoutes } from "@/lib/account/public-auth";
+import {
+  buildPublicAuthPathWithNext,
+  publicAuthRoutes,
+} from "@/lib/account/public-auth";
 
 export function VerificationStatusCard() {
   const searchParams = useSearchParams();
   const { session } = useAuth();
   const email = searchParams.get("email");
   const error = searchParams.get("error_description") ?? searchParams.get("error");
+  const nextHref = searchParams.get("next");
 
   const mode = useMemo(() => {
     if (error) {
@@ -43,13 +47,13 @@ export function VerificationStatusCard() {
           </div>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
-              href={publicAuthRoutes.postAuth}
+              href={nextHref || publicAuthRoutes.postAuth}
               className="rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-lime-200"
             >
               Continue
             </Link>
             <Link
-              href={publicAuthRoutes.signIn}
+              href={buildPublicAuthPathWithNext(publicAuthRoutes.signIn, nextHref)}
               className="rounded-full border border-white/12 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.06]"
             >
               Open sign in
@@ -72,13 +76,13 @@ export function VerificationStatusCard() {
           </div>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
-              href={publicAuthRoutes.signIn}
+              href={buildPublicAuthPathWithNext(publicAuthRoutes.signIn, nextHref)}
               className="rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-lime-200"
             >
               Already verified? Sign in
             </Link>
             <Link
-              href={publicAuthRoutes.signUp}
+              href={buildPublicAuthPathWithNext(publicAuthRoutes.signUp, nextHref)}
               className="rounded-full border border-white/12 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.06]"
             >
               Use another email
@@ -100,13 +104,13 @@ export function VerificationStatusCard() {
           </div>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
-              href={publicAuthRoutes.signUp}
+              href={buildPublicAuthPathWithNext(publicAuthRoutes.signUp, nextHref)}
               className="rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-lime-200"
             >
               Create account again
             </Link>
             <Link
-              href={publicAuthRoutes.signIn}
+              href={buildPublicAuthPathWithNext(publicAuthRoutes.signIn, nextHref)}
               className="rounded-full border border-white/12 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.06]"
             >
               Try sign in
