@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { publicAuthRoutes } from "@/lib/account/public-auth";
 
@@ -19,6 +22,27 @@ export function BillingSuccessCard({
   planId?: string | null;
   intent?: string | null;
 }) {
+  const [secondsLeft, setSecondsLeft] = useState(3);
+
+  useEffect(() => {
+    if (!continueTo) {
+      return;
+    }
+
+    const tickTimer = window.setInterval(() => {
+      setSecondsLeft((current) => (current > 1 ? current - 1 : current));
+    }, 1000);
+
+    const redirectTimer = window.setTimeout(() => {
+      window.location.assign(continueTo);
+    }, 3000);
+
+    return () => {
+      window.clearInterval(tickTimer);
+      window.clearTimeout(redirectTimer);
+    };
+  }, [continueTo]);
+
   return (
     <div className="border border-lime-300/30 bg-lime-300/[0.08] p-8">
       <p className="text-xs font-bold uppercase tracking-[0.26em] text-lime-200">Billing updated</p>
@@ -30,6 +54,14 @@ export function BillingSuccessCard({
       {planId ? (
         <div className="mt-5 rounded-[22px] border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-300">
           Active checkout selection: <span className="font-semibold text-white">{planId}</span>
+        </div>
+      ) : null}
+
+      {continueTo ? (
+        <div className="mt-5 rounded-[22px] border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-300">
+          Redirecting back into the product flow in{" "}
+          <span className="font-semibold text-white">{secondsLeft}</span>{" "}
+          second{secondsLeft === 1 ? "" : "s"}.
         </div>
       ) : null}
 
