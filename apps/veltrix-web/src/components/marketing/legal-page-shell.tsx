@@ -25,6 +25,12 @@ export function LegalPageShell({
 
           <div className="flex flex-wrap gap-3">
             <Link
+              href="/trust"
+              className="inline-flex rounded-full border border-white/12 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/[0.06]"
+            >
+              Trust Center
+            </Link>
+            <Link
               href="/"
               className="inline-flex rounded-full border border-white/12 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/[0.06]"
             >
@@ -49,6 +55,12 @@ export function LegalPageShell({
             </Link>
             <Link href="/terms" className="transition hover:text-white">
               Terms
+            </Link>
+            <Link href="/subprocessors" className="transition hover:text-white">
+              Subprocessors
+            </Link>
+            <Link href="/trust" className="transition hover:text-white">
+              Trust
             </Link>
             <Link href="/support" className="transition hover:text-white">
               Support

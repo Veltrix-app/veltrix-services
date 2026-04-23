@@ -314,6 +314,12 @@ export function PublicLaunchSite() {
             <Link href="/terms" className="transition hover:text-white">
               Terms
             </Link>
+            <Link href="/trust" className="transition hover:text-white">
+              Trust
+            </Link>
+            <Link href="/subprocessors" className="transition hover:text-white">
+              Subprocessors
+            </Link>
             <Link href="/support" className="transition hover:text-white">
               Support
             </Link>

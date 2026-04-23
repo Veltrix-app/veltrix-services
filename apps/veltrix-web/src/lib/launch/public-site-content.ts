@@ -1,5 +1,6 @@
 export const launchSiteNav = [
   { href: "/pricing", label: "Pricing" },
+  { href: "/trust", label: "Trust" },
   { href: "/support", label: "Support" },
   { href: "/status", label: "Status" },
   { href: "#platform", label: "Platform" },

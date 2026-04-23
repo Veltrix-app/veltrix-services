@@ -3,7 +3,8 @@ import { LegalPageShell, LegalSection } from "@/components/marketing/legal-page-
 
 export const metadata: Metadata = {
   title: "Veltrix Terms",
-  description: "Public launch terms for access, project usage, rewards, safety workflows and support.",
+  description:
+    "Public terms for access, project usage, security controls, rewards, safety workflows, support and buyer trust review.",
 };
 
 export default function TermsPage() {
@@ -11,7 +12,7 @@ export default function TermsPage() {
     <LegalPageShell
       eyebrow="Terms"
       title="Public launch terms for using Veltrix."
-      intro="These terms describe the basic operating rules for accessing Veltrix, configuring projects, participating in member journeys and using the product during its public launch."
+      intro="These terms describe the operating rules for accessing Veltrix, configuring projects, participating in member journeys, using enterprise security controls and operating the product during its public launch."
     >
       <LegalSection title="Using the product">
         <p>
@@ -24,7 +25,7 @@ export default function TermsPage() {
         </p>
       </LegalSection>
 
-      <LegalSection title="Accounts and linked identities">
+      <LegalSection title="Accounts, linked identities and workspace access">
         <p>
           You are responsible for the accuracy of your account details and for controlling access to any linked
           identities or wallets you connect through Veltrix.
@@ -32,6 +33,9 @@ export default function TermsPage() {
         <p>
           Do not impersonate others, manipulate identity signals or attempt to bypass readiness, verification or safety
           checks.
+        </p>
+        <p>
+          Enterprise accounts may require SSO, SAML or two-factor authentication for certain roles. If your workspace policy requires those controls, continued portal access may depend on using them.
         </p>
       </LegalSection>
 
@@ -46,7 +50,7 @@ export default function TermsPage() {
         </p>
       </LegalSection>
 
-      <LegalSection title="Safety, abuse and enforcement">
+      <LegalSection title="Safety, abuse, security and enforcement">
         <p>
           Veltrix may review, pause, reject, limit or remove access to actions, rewards, cases or project capabilities
           where abuse, fraud, policy violations, unsafe behavior or delivery risks are detected.
@@ -54,6 +58,9 @@ export default function TermsPage() {
         <p>
           Internal operator actions, bounded project permissions and audit trails are part of how the product protects
           launches, members and platform integrity.
+        </p>
+        <p>
+          Veltrix may also require reauthentication, revoke sessions, investigate suspicious access or limit enterprise access where the security posture of an account or user no longer meets policy.
         </p>
       </LegalSection>
 
@@ -68,10 +75,21 @@ export default function TermsPage() {
         </p>
       </LegalSection>
 
-      <LegalSection title="Support and changes">
+      <LegalSection title="Privacy, data requests and subprocessors">
         <p>
-          If you need rollout, access or product help, use the Veltrix support route. We may revise these public-launch
-          terms over time as the product and operating model mature.
+          Use of Veltrix is also subject to the public privacy posture and subprocessor disclosures published on the site. Export, deletion, DPA and trust-review requests should be routed through support instead of informal side channels.
+        </p>
+        <p>
+          Veltrix may use third-party infrastructure or payment providers to operate the platform, and those dependencies are documented through the trust and subprocessor surfaces.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="Support, incidents and changes">
+        <p>
+          If you need rollout, access, product help or security review follow-up, use the Veltrix support route. Public status updates remain the source of truth for platform-wide incidents.
+        </p>
+        <p>
+          We may revise these terms over time as the product, commercial model and compliance posture mature.
         </p>
       </LegalSection>
     </LegalPageShell>
