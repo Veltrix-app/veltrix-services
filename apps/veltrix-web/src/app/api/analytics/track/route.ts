@@ -27,6 +27,22 @@ const allowedEventTypes = new Set([
   "reward_claimed",
 ]);
 
+const funnelStageByEventType: Partial<Record<string, string>> = {
+  anonymous_visit: "anonymous_visit",
+  pricing_view: "pricing_view",
+  signup_started: "signup_started",
+  signup_completed: "signup_completed",
+  workspace_created: "workspace_created",
+  first_project_created: "first_project_created",
+  provider_connected: "first_provider_connected",
+  first_campaign_live: "first_campaign_live",
+  checkout_started: "checkout_started",
+  paid_converted: "paid_converted",
+  expanded: "expanded",
+  downgraded: "downgraded",
+  churned: "churned",
+};
+
 function sanitizeNullableString(value: unknown) {
   if (typeof value !== "string") {
     return null;
@@ -51,6 +67,68 @@ function normalizeTouch(touch: GrowthAnalyticsContext["firstTouch"]) {
     landingPath: sanitizeNullableString(touch.landingPath),
     capturedAt: sanitizeNullableString(touch.capturedAt),
   };
+}
+
+async function refreshGrowthFunnelStageMetric(params: {
+  supabase: ReturnType<typeof createSupabaseServiceClient>;
+  eventType: string;
+}) {
+  const funnelStage = funnelStageByEventType[params.eventType];
+  if (!funnelStage) {
+    return;
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  const usesDistinctAccounts = new Set([
+    "workspace_created",
+    "first_project_created",
+    "provider_connected",
+    "first_campaign_live",
+    "paid_converted",
+    "expanded",
+    "downgraded",
+    "churned",
+  ]).has(params.eventType);
+
+  const { data, error } = await params.supabase
+    .from("growth_analytics_events")
+    .select(usesDistinctAccounts ? "customer_account_id" : "id")
+    .gte("occurred_at", `${today}T00:00:00.000Z`)
+    .lt("occurred_at", `${today}T23:59:59.999Z`)
+    .eq("event_type", params.eventType);
+
+  if (error) {
+    throw new Error(error.message || "Failed to refresh growth funnel stage metric.");
+  }
+
+  const metricValue = usesDistinctAccounts
+    ? new Set(
+        ((data ?? []) as Array<{ customer_account_id?: string | null }>)
+          .map((row) => row.customer_account_id)
+          .filter((value): value is string => typeof value === "string" && value.length > 0)
+      ).size
+    : (data ?? []).length;
+
+  const upsertResult = await params.supabase.from("growth_funnel_snapshots").upsert(
+    {
+      snapshot_date: today,
+      funnel_stage: funnelStage,
+      metric_value: metricValue,
+      conversion_rate: null,
+      metadata: {
+        source: "event_sync",
+        eventType: params.eventType,
+      },
+      updated_at: new Date().toISOString(),
+    },
+    {
+      onConflict: "snapshot_date,funnel_stage",
+    }
+  );
+
+  if (upsertResult.error) {
+    throw new Error(upsertResult.error.message || "Failed to upsert growth funnel metric.");
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -117,6 +195,11 @@ export async function POST(request: NextRequest) {
     if (insertResult.error) {
       throw new Error(insertResult.error.message || "Failed to write growth analytics event.");
     }
+
+    await refreshGrowthFunnelStageMetric({
+      supabase,
+      eventType,
+    });
 
     return NextResponse.json(
       { ok: true },

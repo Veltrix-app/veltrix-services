@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { ProjectBenchmarkCard } from "@/components/analytics/project-benchmark-card";
 import { ArtworkImage } from "@/components/ui/artwork-image";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
@@ -69,6 +70,8 @@ export function ProjectDetailScreen() {
           </div>
         </div>
       </section>
+
+      <ProjectBenchmarkCard projectId={project.id} />
 
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <Surface

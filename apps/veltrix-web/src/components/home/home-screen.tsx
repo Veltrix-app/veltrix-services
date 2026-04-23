@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, Radar, Shield, Sparkles, Swords, Trophy } from "lucide-react";
+import { CustomerGrowthCard } from "@/components/analytics/customer-growth-card";
 import { CommunityStatusPanel } from "@/components/community/community-status-panel";
 import { AccountActivationCard } from "@/components/success/account-activation-card";
 import { MemberActivationCard } from "@/components/success/member-activation-card";
@@ -147,6 +148,7 @@ export function HomeScreen() {
 
         <div className="space-y-6">
           <AccountActivationCard />
+          <CustomerGrowthCard />
 
           <Surface
             eyebrow="Account status"
