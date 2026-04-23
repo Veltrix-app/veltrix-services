@@ -9,6 +9,7 @@ import { StatusChip } from "@/components/ui/status-chip";
 import { CommunityStatusPanel } from "@/components/community/community-status-panel";
 import { CommunityMissionLane } from "@/components/community/community-mission-lane";
 import { CommunityRecognitionStrip } from "@/components/community/community-recognition-strip";
+import { MemberComebackCard } from "@/components/success/member-comeback-card";
 
 export function CommunityComebackScreen() {
   const searchParams = useSearchParams();
@@ -18,6 +19,8 @@ export function CommunityComebackScreen() {
 
   return (
     <div className="space-y-6">
+      <MemberComebackCard />
+
       {!isPrimaryLane ? (
         <div className="rounded-[28px] border border-cyan-300/20 bg-cyan-300/10 px-5 py-4 text-sm text-cyan-100">
           Your primary path is currently <span className="font-semibold">{snapshot.lane}</span>. This comeback surface stays ready whenever re-entry needs a dedicated path.

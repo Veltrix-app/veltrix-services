@@ -9,6 +9,7 @@ import { StatusChip } from "@/components/ui/status-chip";
 import { CommunityStatusPanel } from "@/components/community/community-status-panel";
 import { CommunityMissionLane } from "@/components/community/community-mission-lane";
 import { CommunityRecognitionStrip } from "@/components/community/community-recognition-strip";
+import { MemberActivationCard } from "@/components/success/member-activation-card";
 
 export function CommunityOnboardingScreen() {
   const searchParams = useSearchParams();
@@ -18,6 +19,8 @@ export function CommunityOnboardingScreen() {
 
   return (
     <div className="space-y-6">
+      <MemberActivationCard />
+
       {!isPrimaryLane ? (
         <div className="rounded-[28px] border border-amber-300/20 bg-amber-400/10 px-5 py-4 text-sm text-amber-100">
           Your primary community path is currently <span className="font-semibold">{snapshot.lane}</span>. This onboarding surface stays available as a readiness checklist.

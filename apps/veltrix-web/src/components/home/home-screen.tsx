@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { ArrowRight, Radar, Shield, Sparkles, Swords, Trophy } from "lucide-react";
 import { CommunityStatusPanel } from "@/components/community/community-status-panel";
+import { AccountActivationCard } from "@/components/success/account-activation-card";
+import { MemberActivationCard } from "@/components/success/member-activation-card";
 import { ArtworkImage } from "@/components/ui/artwork-image";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
@@ -144,6 +146,8 @@ export function HomeScreen() {
         </div>
 
         <div className="space-y-6">
+          <AccountActivationCard />
+
           <Surface
             eyebrow="Account status"
             title={profile?.username ?? "Guest member"}
@@ -197,6 +201,8 @@ export function HomeScreen() {
               actionLimit={2}
             />
           </Surface>
+
+          <MemberActivationCard />
         </div>
       </section>
 
