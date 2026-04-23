@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { publicEnv } from "@/lib/env";
+import { readGrowthAnalyticsContextFromRequest } from "@/lib/analytics/attribution";
 
 export async function POST(request: NextRequest) {
   const authorization = request.headers.get("authorization");
@@ -7,16 +8,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "Missing bearer token." }, { status: 401 });
   }
 
-  const body = await request.text();
+  const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
 
   try {
     const response = await fetch(`${publicEnv.portalUrl}/api/accounts/bootstrap`, {
       method: "POST",
       headers: {
-        "Content-Type": request.headers.get("content-type") ?? "application/json",
+        "Content-Type": "application/json",
         Authorization: authorization,
       },
-      body,
+      body: JSON.stringify({
+        ...body,
+        analyticsContext: readGrowthAnalyticsContextFromRequest(request),
+      }),
       cache: "no-store",
     });
 

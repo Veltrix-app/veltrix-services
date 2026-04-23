@@ -36,7 +36,7 @@ type AuthContextValue = {
     password: string,
     username: string,
     redirectTo?: string
-  ) => Promise<{ ok: boolean; error?: string }>;
+  ) => Promise<{ ok: boolean; error?: string; authUserId?: string }>;
   requestPasswordReset: (
     email: string,
     redirectTo?: string
@@ -571,7 +571,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     setLoading(false);
 
-    return { ok: true };
+    return { ok: true, authUserId: nextAuthUserId };
   }
 
   async function requestPasswordReset(email: string, redirectTo?: string) {

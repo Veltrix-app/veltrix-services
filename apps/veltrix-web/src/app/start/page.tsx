@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { ArrowRight, BookOpen, LifeBuoy, ShieldCheck, Sparkles } from "lucide-react";
 import { publicAuthRoutes } from "@/lib/account/public-auth";
+import { GrowthAttributionBeacon } from "@/components/analytics/growth-attribution-beacon";
 
 export default function StartPage() {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(201,255,85,0.14),transparent_24%),radial-gradient(circle_at_82%_16%,rgba(74,217,255,0.14),transparent_24%),linear-gradient(180deg,#081117_0%,#071014_36%,#05090c_100%)] px-6 py-10 text-white sm:px-10 lg:px-16">
+      <GrowthAttributionBeacon eventType="anonymous_visit" eventPayload={{ surface: "start" }} />
       <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-10">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/8 pb-6">
           <div>

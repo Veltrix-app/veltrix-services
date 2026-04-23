@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, LifeBuoy } from "lucide-react";
+import { GrowthAttributionBeacon } from "@/components/analytics/growth-attribution-beacon";
 import { CheckoutSummaryCard } from "@/components/billing/checkout-summary-card";
 import { PricingPlanGrid } from "@/components/billing/pricing-plan-grid";
 import { getPublicBillingPlan, getPublicBillingPlans } from "@/lib/billing/plan-catalog";
@@ -40,6 +41,18 @@ export default async function PricingPage({
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(201,255,85,0.12),transparent_28%),radial-gradient(circle_at_86%_10%,rgba(74,217,255,0.14),transparent_22%),linear-gradient(180deg,#071116_0%,#060d12_38%,#04080b_100%)] text-white">
+      <GrowthAttributionBeacon
+        eventType="pricing_view"
+        eventPayload={{
+          highlightedPlanId: highlightedPlanId ?? null,
+          accountId: accountId ?? null,
+          intent: intent ?? null,
+          metric: metric ?? null,
+          action: action ?? null,
+          returnTo: returnTo ?? null,
+          from: from ?? null,
+        }}
+      />
       <section className="border-b border-white/8">
         <div className="mx-auto w-full max-w-[1480px] px-6 py-8 sm:px-10 lg:px-16">
           <div className="flex flex-wrap items-center justify-between gap-4">

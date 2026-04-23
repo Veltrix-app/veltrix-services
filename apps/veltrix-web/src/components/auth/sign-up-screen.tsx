@@ -9,6 +9,7 @@ import {
   buildVerificationRedirectUrl,
   publicAuthRoutes,
 } from "@/lib/account/public-auth";
+import { trackGrowthEvent } from "@/lib/analytics/growth-events";
 
 export function SignUpScreen() {
   const router = useRouter();
@@ -23,6 +24,15 @@ export function SignUpScreen() {
     event?.preventDefault();
     clearError();
 
+    await trackGrowthEvent({
+      eventType: "signup_started",
+      eventPayload: {
+        hasUsername: username.trim().length > 0,
+        hasEmail: email.trim().length > 0,
+        nextHref,
+      },
+    });
+
     const result = await signUp(
       email,
       password,
@@ -31,6 +41,13 @@ export function SignUpScreen() {
     );
 
     if (result.ok) {
+      await trackGrowthEvent({
+        eventType: "signup_completed",
+        eventPayload: {
+          authUserId: result.authUserId ?? null,
+          nextHref,
+        },
+      });
       router.replace(
         `${buildPublicAuthPathWithNext(publicAuthRoutes.verify, nextHref)}${
           nextHref ? "&" : "?"
