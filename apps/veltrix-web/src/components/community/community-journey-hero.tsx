@@ -23,7 +23,8 @@ function getReadinessTone(snapshot: LiveCommunityJourneySnapshot) {
 
 export function CommunityJourneyHero({ snapshot }: CommunityJourneyHeroProps) {
   return (
-    <div className="overflow-hidden rounded-[34px] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(0,204,255,0.22),transparent_30%),radial-gradient(circle_at_88%_14%,rgba(192,255,0,0.12),transparent_20%),linear-gradient(145deg,rgba(8,20,28,0.96),rgba(4,9,13,0.94))] p-6 shadow-[0_28px_90px_rgba(0,0,0,0.38)]">
+    <div className="relative overflow-hidden rounded-[34px] border border-white/8 bg-[radial-gradient(circle_at_top_left,rgba(0,204,255,0.14),transparent_26%),radial-gradient(circle_at_88%_14%,rgba(192,255,0,0.08),transparent_18%),linear-gradient(180deg,rgba(10,13,19,0.99),rgba(6,8,13,0.98))] p-6 shadow-[0_28px_90px_rgba(0,0,0,0.42)]">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/16 to-transparent" />
       <div className="flex flex-wrap items-center gap-3 text-[11px] font-bold uppercase tracking-[0.34em] text-cyan-300">
         <span>Community Home</span>
         <StatusChip label={snapshot.projectName || "No community"} tone="info" />
@@ -32,7 +33,7 @@ export function CommunityJourneyHero({ snapshot }: CommunityJourneyHeroProps) {
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_320px]">
         <div className="space-y-5">
-          <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-black/20 p-6">
+          <div className="relative overflow-hidden rounded-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))] p-6">
             <div className="absolute right-4 top-4 flex h-20 w-20 items-center justify-center rounded-full border border-cyan-300/16 bg-cyan-300/10 text-cyan-200">
               <Orbit className="h-8 w-8" />
             </div>
@@ -88,15 +89,25 @@ export function CommunityJourneyHero({ snapshot }: CommunityJourneyHeroProps) {
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-white/10 bg-black/24 p-4">
-          <p className="font-display text-[11px] font-bold uppercase tracking-[0.28em] text-cyan-200">
-            Journey read
-          </p>
-          <div className="mt-4 space-y-3">
-            <MetricReadTile label="Recognition" value={snapshot.recognition.label} accent="text-lime-200" />
-            <MetricReadTile label="Lane posture" value={snapshot.readinessLabel} accent="text-cyan-200" />
-            <MetricReadTile label="Trust" value={String(snapshot.trustScore)} accent="text-white" />
-            <MetricReadTile label="Level" value={String(snapshot.level)} accent="text-amber-200" />
+        <div className="space-y-4">
+          <div className="rounded-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.012))] p-4">
+            <p className="font-display text-[11px] font-bold uppercase tracking-[0.28em] text-cyan-200">
+              Ongoing
+            </p>
+            <div className="mt-4 space-y-3">
+              <MetricReadTile label="Recognition" value={snapshot.recognition.label} accent="text-lime-200" />
+              <MetricReadTile label="Lane posture" value={snapshot.readinessLabel} accent="text-cyan-200" />
+              <MetricReadTile label="Trust" value={String(snapshot.trustScore)} accent="text-white" />
+              <MetricReadTile label="Level" value={String(snapshot.level)} accent="text-amber-200" />
+            </div>
+          </div>
+
+          <div className="rounded-[24px] border border-white/6 bg-black/20 p-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-500">Next unlock</p>
+            <p className="mt-3 text-sm font-semibold text-white">{snapshot.recognition.nextUnlockLabel}</p>
+            <p className="mt-2 text-sm leading-6 text-slate-400">
+              Stay on the preferred route and let the next community move compound instead of splitting your attention.
+            </p>
           </div>
         </div>
       </div>

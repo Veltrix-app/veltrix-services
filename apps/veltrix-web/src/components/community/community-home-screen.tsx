@@ -49,9 +49,9 @@ export function CommunityHomeScreen() {
           </Surface>
 
           <Surface
-            eyebrow="Fast Jumps"
-            title="Where to move next"
-            description="The community experience should always route you into the next meaningful surface."
+            eyebrow="Fast jumps"
+            title="Open a live lane"
+            description="These routes should feel like discoverable lanes around the hero, not like buried utility navigation."
           >
             <div className="flex flex-wrap gap-3">
               <QuickLink href="/notifications" label="Signals" />
@@ -68,16 +68,21 @@ export function CommunityHomeScreen() {
 
       <CommunityRecognitionStrip snapshot={snapshot} />
 
-      <Surface
-        eyebrow="Mission Path"
+      <SectionHeading
+        eyebrow="Daily path"
         title="What matters right now"
-        description="The path below should feel like your real route forward, not a flat backlog."
+        description="The path below should feel like a featured lane with clear motion, not a flat backlog."
+      />
+      <Surface
+        eyebrow="Mission path"
+        title="Journey lane"
+        description="Your current lane, live missions and next unlocks all stay concentrated here."
       >
         <CommunityMissionLane snapshot={snapshot} />
       </Surface>
 
       <Surface
-        eyebrow="Journey Status"
+        eyebrow="Journey status"
         title="Your community status"
         description="Status, next unlock, guided actions and manual progress logging all stay together here."
       >
@@ -210,6 +215,24 @@ function ValueCard({
         <p className="text-sm font-semibold text-white">{title}</p>
       </div>
       <p className="mt-3 text-sm leading-6 text-slate-300">{copy}</p>
+    </div>
+  );
+}
+
+function SectionHeading({
+  eyebrow,
+  title,
+  description,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="max-w-2xl">
+      <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-cyan-300/90">{eyebrow}</p>
+      <h3 className="mt-3 text-[1.7rem] font-black tracking-[-0.04em] text-white">{title}</h3>
+      <p className="mt-2 text-sm leading-6 text-slate-400">{description}</p>
     </div>
   );
 }

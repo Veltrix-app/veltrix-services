@@ -243,9 +243,9 @@ export function ProjectsScreen() {
           </Surface>
 
           <Surface
-            eyebrow="Project Pulse"
-            title="Live read"
-            description="A tighter scouting read on the projects that matter right now."
+            eyebrow="Hot spaces"
+            title="A tighter scouting read"
+            description="Use this side lane to see which spaces are actually hot before you commit to the full roster."
           >
             <div className="grid gap-4 sm:grid-cols-3 2xl:grid-cols-1">
               <MetricTile label="Projects live" value={String(snapshot.total)} />
@@ -300,6 +300,11 @@ export function ProjectsScreen() {
         </div>
       </section>
 
+      <SectionHeading
+        eyebrow="Explore"
+        title="Choose your next project"
+        description="The board below should feel like a curated space catalog: dark media-first cards, a clear live state, and just enough context to choose fast."
+      />
       <Surface
         eyebrow="Project Catalog"
         title="Choose your next project"
@@ -511,6 +516,24 @@ function ErrorNotice({ text }: { text: string }) {
   return (
     <div className="rounded-[24px] border border-rose-400/20 bg-rose-500/10 px-4 py-6 text-sm text-rose-200">
       {text}
+    </div>
+  );
+}
+
+function SectionHeading({
+  eyebrow,
+  title,
+  description,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="max-w-2xl">
+      <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-cyan-300/90">{eyebrow}</p>
+      <h3 className="mt-3 text-[1.7rem] font-black tracking-[-0.04em] text-white">{title}</h3>
+      <p className="mt-2 text-sm leading-6 text-slate-400">{description}</p>
     </div>
   );
 }

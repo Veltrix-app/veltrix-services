@@ -183,13 +183,33 @@ export function HomeScreen() {
             </div>
           </Surface>
 
-          <AccountActivationCard />
-          <CustomerGrowthCard />
+          <Surface
+            eyebrow="Hot lanes"
+            title="Open what is moving"
+            description="The fastest routes back into the grid should read like a live lane list, not a stack of utility panels."
+          >
+            <div className="space-y-3">
+              {projectsPreview.length > 0 ? (
+                projectsPreview.map((project, index) => (
+                  <CompactLaneCard
+                    key={project.id}
+                    href={`/projects/${project.id}`}
+                    label={`Space ${index + 1}`}
+                    title={project.name}
+                    meta={`${project.category ?? "Project"}${project.chain ? ` / ${project.chain}` : ""}`}
+                    accent="cyan"
+                  />
+                ))
+              ) : (
+                <Notice text="No active project lanes are visible yet." tone="default" compact />
+              )}
+            </div>
+          </Surface>
 
           <Surface
-            eyebrow="Account status"
+            eyebrow="Member pulse"
             title={profile?.username ?? "Guest member"}
-            description="Identity, current standing and readiness across your active launches."
+            description="Keep the personal state compact: one pulse read, one signal strip, one next route into the product."
           >
             <div className="grid gap-4 sm:grid-cols-2">
               <MetricTile label="Tier" value={profile?.contributionTier ?? "Explorer"} />
@@ -206,28 +226,9 @@ export function HomeScreen() {
           </Surface>
 
           <Surface
-            eyebrow="Recent updates"
-            title="What changed"
-            description="Recent approvals, waits and unlocks across your current activity."
-          >
-            <div className="space-y-3">
-              {activityFeed.length > 0 ? (
-                activityFeed.map((item) => (
-                  <div key={item.id} className="rounded-[22px] border border-white/8 bg-black/20 px-4 py-3">
-                    <p className="text-sm font-semibold text-white">{item.title}</p>
-                    <p className="mt-1 text-sm text-slate-300">{item.body}</p>
-                  </div>
-                ))
-              ) : (
-                <Notice text="No new notifications yet." tone="default" compact />
-              )}
-            </div>
-          </Surface>
-
-          <Surface
             eyebrow="Community journey"
-            title="Your member journey"
-            description="The next community move now lives directly on Home instead of hiding behind side flows."
+            title="Journey lane"
+            description="Keep one guided route visible here so Home still feels directional after the discovery pass gets denser."
           >
             <CommunityStatusPanel
               snapshot={communitySnapshot}
@@ -239,16 +240,19 @@ export function HomeScreen() {
               actionLimit={2}
             />
           </Surface>
-
-          <MemberActivationCard />
         </div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+      <section className="space-y-4">
+        <SectionHeading
+          eyebrow="Daily quests"
+          title="Open quests"
+          description="The next move should read like a hot mission lane, not like admin records."
+        />
         <Surface
           eyebrow="Quest board"
-          title="Open quests"
-          description="The next move should be obvious, rewarding and fast to open."
+          title="Mission lane"
+          description="Open the quests that are actually moving right now."
         >
           {loading ? (
             <Notice text="Loading quests..." tone="default" />
@@ -287,10 +291,17 @@ export function HomeScreen() {
             <Notice text="No open quests yet." tone="default" />
           )}
         </Surface>
+      </section>
 
+      <section className="space-y-4">
+        <SectionHeading
+          eyebrow="Hot spaces"
+          title="Featured projects"
+          description="Keep the strongest ecosystems visible as a discoverable lane with just enough context to choose fast."
+        />
         <Surface
           eyebrow="Projects"
-          title="Featured projects"
+          title="Project lane"
           description="The quickest route into the ecosystems that are active for you right now."
         >
           <div className="space-y-4">
@@ -333,7 +344,7 @@ export function HomeScreen() {
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
         <Surface
-          eyebrow="Live Raids"
+          eyebrow="Live raids"
           title="Team actions"
           description="High-urgency coordinated pushes happening right now."
         >
@@ -367,7 +378,7 @@ export function HomeScreen() {
         </Surface>
 
         <Surface
-          eyebrow="Rewards"
+          eyebrow="Reward drops"
           title="Ready to claim"
           description="Claimable and high-interest rewards currently on your radar."
         >
@@ -405,18 +416,11 @@ export function HomeScreen() {
         </Surface>
       </section>
 
-      <Surface
-        eyebrow="Snapshot"
-        title="Live account state"
-        description="A clean readout of the same launches, quests and rewards that power the rest of your experience."
-      >
-        <div className="grid gap-4 sm:grid-cols-4">
-          <FeatureStat label="Approved" value={String(approvedQuestCount)} />
-          <FeatureStat label="Projects" value={String(projects.length)} />
-          <FeatureStat label="Campaigns" value={String(campaigns.length)} />
-          <FeatureStat label="Rewards ready" value={String(claimableRewardCount)} />
-        </div>
-      </Surface>
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
+        <AccountActivationCard />
+        <CustomerGrowthCard />
+        <MemberActivationCard />
+      </section>
     </div>
   );
 }
@@ -490,6 +494,57 @@ function MetricTile({ label, value }: { label: string; value: string }) {
       <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">{label}</p>
       <p className="mt-3 text-3xl font-black text-white">{value}</p>
     </div>
+  );
+}
+
+function SectionHeading({
+  eyebrow,
+  title,
+  description,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="max-w-2xl">
+        <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-cyan-300/90">{eyebrow}</p>
+        <h3 className="mt-3 text-[1.7rem] font-black tracking-[-0.04em] text-white">{title}</h3>
+        <p className="mt-2 text-sm leading-6 text-slate-400">{description}</p>
+      </div>
+    </div>
+  );
+}
+
+function CompactLaneCard({
+  href,
+  label,
+  title,
+  meta,
+  accent,
+}: {
+  href: string;
+  label: string;
+  title: string;
+  meta: string;
+  accent: "cyan" | "lime";
+}) {
+  return (
+    <Link
+      href={href}
+      prefetch={false}
+      className="group flex items-center justify-between gap-4 rounded-[22px] border border-white/6 bg-black/20 px-4 py-4 transition hover:border-white/10 hover:bg-white/[0.03]"
+    >
+      <div className="min-w-0">
+        <p className={`text-[10px] font-bold uppercase tracking-[0.22em] ${accent === "lime" ? "text-lime-300/85" : "text-cyan-300/85"}`}>
+          {label}
+        </p>
+        <p className="mt-2 truncate text-sm font-semibold text-white">{title}</p>
+        <p className="mt-1 truncate text-xs uppercase tracking-[0.2em] text-slate-500">{meta}</p>
+      </div>
+      <ArrowRight className="h-4 w-4 shrink-0 text-white/40 transition group-hover:text-cyan-200" />
+    </Link>
   );
 }
 
