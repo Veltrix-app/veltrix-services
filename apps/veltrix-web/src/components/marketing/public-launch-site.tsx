@@ -167,13 +167,13 @@ export function PublicLaunchSite() {
             </div>
           </div>
 
-          <div className="relative overflow-hidden rounded-[38px] border border-white/10 bg-[linear-gradient(160deg,rgba(13,18,27,0.96),rgba(7,11,18,0.96)_58%,rgba(10,18,28,0.98))] p-5 shadow-[0_40px_120px_rgba(0,0,0,0.34)] sm:p-6">
+          <div className="relative overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(160deg,rgba(13,18,27,0.96),rgba(7,11,18,0.96)_58%,rgba(10,18,28,0.98))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.28)] sm:p-5">
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(186,255,59,0.14),transparent_28%),radial-gradient(circle_at_86%_18%,rgba(74,217,255,0.12),transparent_26%),linear-gradient(135deg,rgba(255,255,255,0.04),transparent_34%)]" />
             <div className="relative z-10">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-lime-300">Launch preview</p>
-                  <h2 className="mt-3 text-2xl font-black tracking-[-0.03em] text-white sm:text-[2rem]">
+            <h2 className="mt-2 text-[1.2rem] font-black tracking-[-0.03em] text-white sm:text-[1.45rem]">
                     One board for the launch lane and the pressure around it.
                   </h2>
                 </div>
@@ -202,7 +202,7 @@ export function PublicLaunchSite() {
                 {storySections.map((section, index) => (
                   <div
                     key={section.eyebrow}
-                    className={`grid gap-4 rounded-[28px] border p-5 sm:grid-cols-[110px_minmax(0,1fr)_auto] sm:items-start ${
+              className={`grid gap-4 rounded-[22px] border p-4 sm:grid-cols-[110px_minmax(0,1fr)_auto] sm:items-start ${
                       index === 0
                         ? "border-lime-300/20 bg-[linear-gradient(180deg,rgba(186,255,59,0.12),rgba(19,26,38,0.94))]"
                         : "border-white/8 bg-[linear-gradient(180deg,rgba(18,24,36,0.86),rgba(11,15,24,0.88))]"
@@ -241,14 +241,14 @@ export function PublicLaunchSite() {
             {launchWorkflows.map((workflow, index) => (
               <article
                 key={workflow.role}
-                className="rounded-[32px] border border-white/8 bg-[linear-gradient(180deg,rgba(17,23,35,0.88),rgba(10,15,24,0.9))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.18)]"
+                className="rounded-[22px] border border-white/8 bg-[linear-gradient(180deg,rgba(17,23,35,0.88),rgba(10,15,24,0.9))] p-5 shadow-[0_18px_52px_rgba(0,0,0,0.16)]"
               >
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
                     <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-lime-300">
                       0{index + 1} · {workflow.role}
                     </p>
-                    <h3 className="mt-3 text-2xl font-black tracking-[-0.03em] text-white">{workflow.title}</h3>
+                  <h3 className="mt-2 text-[1.1rem] font-black tracking-[-0.03em] text-white">{workflow.title}</h3>
                   </div>
                   <Activity className="mt-1 h-5 w-5 text-cyan-200" />
                 </div>
@@ -281,7 +281,7 @@ export function PublicLaunchSite() {
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">0{index + 1}</p>
-                    <h3 className="mt-3 text-xl font-black tracking-[-0.02em] text-white">{pillar.name}</h3>
+                <h3 className="mt-2 text-[15px] font-black tracking-[-0.02em] text-white">{pillar.name}</h3>
                   </div>
                   {pillarIcon(index)}
                 </div>
@@ -294,7 +294,7 @@ export function PublicLaunchSite() {
 
       <section id="safety" className="relative z-10 border-y border-white/8 bg-white/[0.02]">
         <div className="mx-auto grid w-full max-w-[1480px] gap-8 px-6 py-18 sm:px-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:px-16">
-          <div className="rounded-[34px] border border-white/8 bg-[linear-gradient(180deg,rgba(18,24,36,0.92),rgba(10,14,22,0.96))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.16)] sm:p-7">
+              <div className="rounded-[24px] border border-white/8 bg-[linear-gradient(180deg,rgba(18,24,36,0.92),rgba(10,14,22,0.96))] p-5 shadow-[0_18px_52px_rgba(0,0,0,0.16)] sm:p-6">
             <p className="font-display text-[11px] font-bold uppercase tracking-[0.34em] text-cyan-200">
               Operating model
             </p>
@@ -306,7 +306,7 @@ export function PublicLaunchSite() {
                 >
                   <p className="font-display text-sm font-bold uppercase tracking-[0.24em] text-lime-300">{item.step}</p>
                   <div>
-                    <h3 className="text-xl font-black tracking-[-0.02em] text-white">{item.title}</h3>
+                    <h3 className="text-[15px] font-black tracking-[-0.02em] text-white">{item.title}</h3>
                     <p className="mt-3 text-sm leading-7 text-slate-300">{item.summary}</p>
                   </div>
                 </div>
@@ -315,7 +315,7 @@ export function PublicLaunchSite() {
           </div>
 
           <div className="grid gap-4">
-            <div className="rounded-[34px] border border-white/8 bg-[linear-gradient(180deg,rgba(18,24,36,0.92),rgba(10,14,22,0.96))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.16)] sm:p-7">
+              <div className="rounded-[24px] border border-white/8 bg-[linear-gradient(180deg,rgba(18,24,36,0.92),rgba(10,14,22,0.96))] p-5 shadow-[0_18px_52px_rgba(0,0,0,0.16)] sm:p-6">
               <p className="font-display text-[11px] font-bold uppercase tracking-[0.34em] text-lime-300">Access posture</p>
               <div className="mt-5 grid gap-4">
                 {launchAccessModes.map((mode) => (
@@ -327,9 +327,9 @@ export function PublicLaunchSite() {
               </div>
             </div>
 
-            <div className="rounded-[34px] border border-white/8 bg-[linear-gradient(180deg,rgba(18,24,36,0.92),rgba(10,14,22,0.96))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.16)] sm:p-7">
+              <div className="rounded-[24px] border border-white/8 bg-[linear-gradient(180deg,rgba(18,24,36,0.92),rgba(10,14,22,0.96))] p-5 shadow-[0_18px_52px_rgba(0,0,0,0.16)] sm:p-6">
               <p className="font-display text-[11px] font-bold uppercase tracking-[0.34em] text-cyan-200">Safety rails</p>
-              <h3 className="mt-4 text-2xl font-black tracking-[-0.03em] text-white">
+                <h3 className="mt-3 text-[1.15rem] font-black tracking-[-0.03em] text-white">
                 Trust, payouts, on-chain and incidents stay explainable.
               </h3>
               <p className="mt-4 text-sm leading-7 text-slate-300">
@@ -402,7 +402,7 @@ export function PublicLaunchSite() {
           </div>
         </div>
 
-        <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-white/8 py-8 text-sm text-slate-400">
+      <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-white/8 py-6 text-sm text-slate-400">
           <p>Veltrix is the operating system for launch execution, community operations and member journeys.</p>
           <div className="flex flex-wrap items-center gap-5">
             <Link href="/privacy" className="transition hover:text-white">

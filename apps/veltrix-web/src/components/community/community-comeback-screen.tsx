@@ -22,13 +22,13 @@ export function CommunityComebackScreen() {
       <MemberComebackCard />
 
       {!isPrimaryLane ? (
-        <div className="rounded-[28px] border border-cyan-300/20 bg-cyan-300/10 px-5 py-4 text-sm text-cyan-100">
+      <div className="rounded-[22px] border border-cyan-300/20 bg-cyan-300/10 px-4 py-4 text-sm text-cyan-100">
           Your primary path is currently <span className="font-semibold">{snapshot.lane}</span>. This comeback surface stays ready whenever re-entry needs a dedicated path.
         </div>
       ) : null}
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.18fr)_360px]">
-        <div className="overflow-hidden rounded-[38px] border border-amber-300/12 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.18),transparent_26%),radial-gradient(circle_at_84%_18%,rgba(0,204,255,0.1),transparent_18%),linear-gradient(145deg,rgba(7,18,24,0.98),rgba(4,9,13,0.95))] p-6 shadow-[0_34px_120px_rgba(0,0,0,0.42)] sm:p-8">
+      <div className="overflow-hidden rounded-[22px] border border-amber-300/12 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.18),transparent_26%),radial-gradient(circle_at_84%_18%,rgba(0,204,255,0.1),transparent_18%),linear-gradient(145deg,rgba(7,18,24,0.98),rgba(4,9,13,0.95))] p-4 shadow-[0_22px_64px_rgba(0,0,0,0.26)] sm:p-5">
           <div className="flex flex-wrap items-center gap-3 text-[11px] font-bold uppercase tracking-[0.34em] text-amber-200">
             <span>Comeback Path</span>
             <StatusChip label={snapshot.projectName || "No project"} tone="warning" />
@@ -154,7 +154,7 @@ function RecoveryTile({
         <Icon className="h-3.5 w-3.5" />
         <span>{label}</span>
       </div>
-      <p className={`mt-3 text-2xl font-black ${accent}`}>{value}</p>
+        <p className={`mt-2 text-[15px] font-black ${accent}`}>{value}</p>
     </div>
   );
 }

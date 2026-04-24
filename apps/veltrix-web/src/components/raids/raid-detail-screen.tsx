@@ -92,57 +92,69 @@ export function RaidDetailScreen() {
   }
 
   return (
-    <div className="space-y-6">
-      <section className="overflow-hidden rounded-[38px] border border-white/10 bg-[linear-gradient(135deg,rgba(255,80,80,0.14),rgba(0,0,0,0)_32%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
-        <div className="h-64 bg-[linear-gradient(135deg,rgba(255,90,90,0.16),rgba(0,0,0,0.18))]">
-          {currentRaid.banner ? (
-            <ArtworkImage
-              src={currentRaid.banner}
-              alt={currentRaid.title}
-              tone="rose"
-              fallbackLabel="Raid art offline"
-              imgClassName="h-full w-full object-cover opacity-80"
-            />
-          ) : null}
-        </div>
-        <div className="p-6 sm:p-8">
-          <p className="text-[11px] font-bold uppercase tracking-[0.34em] text-rose-300">Raid Detail</p>
-          <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
-            <div className="max-w-[14ch]">
-              <p className="text-sm font-semibold text-rose-200">{currentRaid.community}</p>
-              <h2 className="font-display mt-2 text-balance text-[clamp(2.2rem,4vw,4.5rem)] font-black leading-[0.92] tracking-[0.04em] text-white">
-                {currentRaid.title}
-              </h2>
-              <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">{currentRaid.target}</p>
+    <div className="space-y-5">
+      <section className="rounded-[22px] border border-white/8 bg-[radial-gradient(circle_at_top_left,rgba(251,113,133,0.14),transparent_26%),radial-gradient(circle_at_78%_18%,rgba(255,196,0,0.08),transparent_22%),linear-gradient(180deg,rgba(12,14,18,0.99),rgba(7,9,11,0.99))] p-4 shadow-[0_20px_54px_rgba(0,0,0,0.24)]">
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.16fr)_300px]">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusChip label={currentRaid.community} tone="info" />
+              <StatusChip label={`+${currentRaid.reward} XP`} tone="info" />
             </div>
-            <StatusChip label={`+${currentRaid.reward} XP`} tone="info" />
+            <p className="mt-3.5 text-[10px] font-bold uppercase tracking-[0.24em] text-rose-300">Raid</p>
+            <h2 className="mt-2.5 max-w-[18ch] text-[1.06rem] font-semibold tracking-[-0.03em] text-white sm:text-[1.22rem]">
+              {currentRaid.title}
+            </h2>
+            <p className="mt-2.5 max-w-3xl text-[13px] leading-5 text-slate-300">{currentRaid.target}</p>
+
+            <div className="mt-4 flex flex-wrap gap-1.5">
+              <MetricPill label="Timer" value={currentRaid.timer} />
+              <MetricPill label="People" value={String(currentRaid.participants)} />
+              <MetricPill label="Progress" value={`${currentRaid.progress}%`} />
+              <MetricPill label="Steps" value={String(currentRaid.instructions.length)} />
+            </div>
           </div>
 
-          <div className="mt-8 grid gap-4 sm:grid-cols-4">
-            <MetricTile label="Timer" value={currentRaid.timer} />
-            <MetricTile label="Participants" value={String(currentRaid.participants)} />
-            <MetricTile label="Progress" value={`${currentRaid.progress}%`} />
-            <MetricTile label="Steps" value={String(currentRaid.instructions.length)} />
+          <div className="space-y-3 rounded-[20px] border border-white/8 bg-white/[0.03] p-3.5">
+            {currentRaid.banner ? (
+              <div className="relative overflow-hidden rounded-[20px] border border-white/8 bg-black/30">
+                <ArtworkImage
+                  src={currentRaid.banner}
+                  alt={currentRaid.title}
+                  tone="rose"
+                  fallbackLabel="Raid art offline"
+                  className="aspect-[1.15/1] w-full"
+                  imgClassName="h-full w-full object-cover opacity-78"
+                />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,8,11,0.12),rgba(6,8,11,0.82))]" />
+              </div>
+            ) : null}
+
+            <div className="grid gap-2 sm:grid-cols-2">
+              <MetricTile label="Timer" value={currentRaid.timer} />
+              <MetricTile label="Reward" value={`+${currentRaid.reward}`} />
+              <MetricTile label="Progress" value={`${currentRaid.progress}%`} />
+              <MetricTile label="Participants" value={String(currentRaid.participants)} />
+            </div>
           </div>
         </div>
       </section>
 
       {message ? <Notice tone={message.tone} text={message.text} /> : null}
 
-      <div className="grid gap-6 xl:grid-cols-[1fr_0.9fr]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.08fr)_300px]">
         <Surface
-          eyebrow="Instructions"
+          eyebrow="Raid read"
           title="Complete these steps"
           description="Follow the push, complete the live operation, then write it back into your progress layer."
         >
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {currentRaid.instructions.length > 0 ? (
               currentRaid.instructions.map((step, index) => (
-                <div key={`${currentRaid.id}-${index}`} className="metric-card flex items-start gap-4 rounded-[24px] px-4 py-4">
+                <div key={`${currentRaid.id}-${index}`} className="metric-card flex items-start gap-4 rounded-[16px] px-3 py-2.5">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full border border-rose-300/30 bg-rose-300/10 text-sm font-black text-rose-200">
                     {index + 1}
                   </div>
-                  <p className="text-sm leading-7 text-slate-300">{step}</p>
+                  <p className="text-[11px] leading-5 text-slate-300">{step}</p>
                 </div>
               ))
             ) : (
@@ -152,25 +164,25 @@ export function RaidDetailScreen() {
         </Surface>
 
         <Surface
-          eyebrow="Command read"
+          eyebrow="Signal rail"
           title="Read the live push before you confirm it"
           description="Start with the current pressure, the next action, and the one timer cue that matters before you write the raid back."
           className="bg-[radial-gradient(circle_at_top_left,rgba(255,120,120,0.16),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))]"
         >
-          <div className="space-y-4">
+          <div className="space-y-3.5">
             <ReadTile
               label="Now"
               value={`${currentRaid.title} is sitting at ${currentRaid.progress}% progress with ${currentRaid.participants} participants already in the push.`}
             />
             <ReadTile label="Next" value={nextRaidMove} />
             <ReadTile label="Watch" value={watchRaidCue} />
-            <div className="metric-card rounded-[24px] p-4 text-sm leading-7 text-slate-300">
+            <div className="metric-card rounded-[16px] p-3 text-[11px] leading-5 text-slate-300">
               Confirming a raid writes the completion into the same live progress layer used by the mobile app and web board.
             </div>
             <button
               onClick={() => void handleConfirm()}
               disabled={busy}
-              className="rounded-full bg-rose-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-full bg-rose-300 px-3.5 py-2 text-[12px] font-black text-black transition hover:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {busy ? "Confirming..." : "Confirm raid"}
             </button>
@@ -183,18 +195,18 @@ export function RaidDetailScreen() {
 
 function MetricTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="metric-card rounded-[24px] p-4">
-      <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">{label}</p>
-      <p className="mt-3 text-3xl font-black text-white">{value}</p>
+    <div className="metric-card rounded-[14px] p-2.5">
+      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">{label}</p>
+      <p className="mt-1 text-[0.8rem] font-semibold text-white">{value}</p>
     </div>
   );
 }
 
 function ReadTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[24px] border border-white/8 bg-black/20 px-4 py-4">
-      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-rose-200/85">{label}</p>
-      <p className="mt-3 text-sm leading-7 text-slate-200">{value}</p>
+    <div className="rounded-[14px] border border-white/8 bg-black/20 px-3 py-2.5">
+      <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-rose-200/85">{label}</p>
+      <p className="mt-1 text-[10px] leading-5 text-slate-200">{value}</p>
     </div>
   );
 }
@@ -202,7 +214,7 @@ function ReadTile({ label, value }: { label: string; value: string }) {
 function Notice({ text, tone }: { text: string; tone: "default" | "error" | "success" }) {
   return (
     <div
-      className={`rounded-[24px] px-4 py-6 text-sm ${
+      className={`rounded-[18px] px-3.5 py-4 text-[12px] ${
         tone === "error"
           ? "border border-rose-400/20 bg-rose-500/10 text-rose-200"
           : tone === "success"
@@ -212,5 +224,14 @@ function Notice({ text, tone }: { text: string; tone: "default" | "error" | "suc
     >
       {text}
     </div>
+  );
+}
+
+function MetricPill({ label, value }: { label: string; value: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-black/20 px-2 py-1 text-[8px] font-bold uppercase tracking-[0.12em] text-slate-400">
+      <span>{label}</span>
+      <span className="text-white">{value}</span>
+    </span>
   );
 }

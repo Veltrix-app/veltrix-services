@@ -209,11 +209,11 @@ export function AccountEntryRouter() {
 
         {state === "ready" && payload?.overview.needsWorkspaceBootstrap ? (
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-            <div className="rounded-[28px] border border-lime-300/16 bg-[linear-gradient(135deg,rgba(192,255,0,0.14),rgba(0,204,255,0.08),rgba(255,255,255,0.02))] p-5">
+              <div className="rounded-[22px] border border-lime-300/16 bg-[linear-gradient(135deg,rgba(192,255,0,0.14),rgba(0,204,255,0.08),rgba(255,255,255,0.02))] p-4">
               <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-lime-300">
                 No workspace yet
               </p>
-              <h3 className="mt-3 text-2xl font-black tracking-tight text-white">
+                <h3 className="mt-2 text-[1.15rem] font-black tracking-tight text-white">
                 Bootstrap the first account workspace
               </h3>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-200">
@@ -273,13 +273,13 @@ export function AccountEntryRouter() {
 
         {state === "ready" && !payload?.overview.needsWorkspaceBootstrap ? (
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-            <div className="rounded-[28px] border border-white/10 bg-black/20 p-5">
+            <div className="rounded-[22px] border border-white/10 bg-black/20 p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-cyan-200">
                     Active workspace
                   </p>
-                  <h3 className="mt-3 text-2xl font-black tracking-tight text-white">
+                <h3 className="mt-2 text-[1.15rem] font-black tracking-tight text-white">
                     {primaryAccount?.name ?? "Workspace ready"}
                   </h3>
                   <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">

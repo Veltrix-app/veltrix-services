@@ -66,7 +66,7 @@ export function StatusIncidentTimeline({
                   <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
                     {incident.incidentRef} • {incident.componentLabel}
                   </p>
-                  <h3 className="mt-2 text-xl font-black text-white">{incident.title}</h3>
+        <h3 className="mt-1.5 text-[15px] font-black text-white">{incident.title}</h3>
                   <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300">{incident.publicSummary}</p>
                 </div>
 

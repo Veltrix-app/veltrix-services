@@ -49,22 +49,22 @@ export default async function SupportPage() {
         </header>
 
         <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(320px,360px)]">
-          <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-6 shadow-[0_18px_70px_rgba(0,0,0,0.22)]">
+        <div className="rounded-[22px] border border-white/10 bg-white/[0.03] p-5 shadow-[0_18px_54px_rgba(0,0,0,0.18)]">
             <p className="font-display text-[11px] font-bold uppercase tracking-[0.28em] text-cyan-200">
               Before you submit
             </p>
-            <h2 className="mt-3 text-2xl font-black text-white">Choose the cleanest route first</h2>
+          <h2 className="mt-3 text-[1.45rem] font-black text-white">Choose the cleanest route first</h2>
             <p className="mt-3 text-sm leading-7 text-slate-300">
               Support intake is for specific help requests. Status is for platform-wide posture. Keeping those separate
               makes the queue faster and the public communication calmer.
             </p>
           </div>
 
-          <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-6 shadow-[0_18px_70px_rgba(0,0,0,0.22)]">
+        <div className="rounded-[22px] border border-white/10 bg-white/[0.03] p-5 shadow-[0_18px_54px_rgba(0,0,0,0.18)]">
             <p className="font-display text-[11px] font-bold uppercase tracking-[0.28em] text-lime-300">
               Current status
             </p>
-            <h2 className="mt-3 text-2xl font-black text-white">
+          <h2 className="mt-3 text-[1.45rem] font-black text-white">
               {overview ? overview.overallStatus.replaceAll("_", " ") : "Status unavailable"}
             </h2>
             <p className="mt-3 text-sm leading-7 text-slate-300">

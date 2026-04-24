@@ -46,7 +46,7 @@ export function StatusHero({ overview }: { overview: PublicStatusOverview }) {
   const Icon = config.icon;
 
   return (
-    <section className="rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(17,24,39,0.98),rgba(11,15,22,0.96))] p-6 shadow-[0_28px_90px_rgba(0,0,0,0.28)]">
+  <section className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(17,24,39,0.98),rgba(11,15,22,0.96))] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.22)]">
       <div className="flex flex-wrap items-start justify-between gap-6">
         <div className="max-w-3xl">
           <p className="font-display text-[11px] font-bold uppercase tracking-[0.34em] text-cyan-200">Service status</p>

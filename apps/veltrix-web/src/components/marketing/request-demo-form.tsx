@@ -49,9 +49,9 @@ function FormSection({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-[28px] border border-white/10 bg-black/15 p-5 sm:p-6">
+    <section className="rounded-[22px] border border-white/10 bg-black/15 p-4 sm:p-5">
       <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-cyan-200">{eyebrow}</p>
-      <h3 className="mt-3 text-xl font-black tracking-[-0.03em] text-white">{title}</h3>
+      <h3 className="mt-2 text-[15px] font-black tracking-[-0.03em] text-white">{title}</h3>
       <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300">{description}</p>
       <div className="mt-5 space-y-4">{children}</div>
     </section>
@@ -144,7 +144,7 @@ export function RequestDemoForm({
 
   if (state === "success") {
     return (
-      <div className="rounded-[34px] border border-emerald-400/20 bg-[linear-gradient(180deg,rgba(16,80,49,0.26),rgba(6,35,24,0.74))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.2)]">
+      <div className="rounded-[24px] border border-emerald-400/20 bg-[linear-gradient(180deg,rgba(16,80,49,0.26),rgba(6,35,24,0.74))] p-5 shadow-[0_18px_52px_rgba(0,0,0,0.18)]">
         <div className="flex items-start gap-3">
           <CheckCircle2 className="mt-1 h-5 w-5 text-emerald-300" />
           <div>
@@ -162,7 +162,7 @@ export function RequestDemoForm({
   }
 
   return (
-    <div className="rounded-[36px] border border-white/10 bg-[linear-gradient(180deg,rgba(18,24,36,0.94),rgba(10,14,22,0.96))] p-6 shadow-[0_30px_100px_rgba(0,0,0,0.28)] sm:p-8">
+    <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(18,24,36,0.94),rgba(10,14,22,0.96))] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.24)] sm:p-6">
       <div className="flex flex-wrap gap-3">
         {([
           { id: "demo", label: "Request demo" },

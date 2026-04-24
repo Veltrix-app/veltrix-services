@@ -128,7 +128,7 @@ export function PricingPlanGrid({
         return (
           <article
             key={plan.id}
-            className={`group relative flex h-full flex-col overflow-hidden rounded-[34px] border p-6 shadow-[0_26px_90px_rgba(0,0,0,0.2)] transition-transform duration-200 hover:-translate-y-0.5 ${layoutClass} ${
+          className={`group relative flex h-full flex-col overflow-hidden rounded-[24px] border p-5 shadow-[0_20px_60px_rgba(0,0,0,0.18)] transition-transform duration-200 hover:-translate-y-0.5 ${layoutClass} ${
               plan.id === "enterprise"
                 ? "border-cyan-300/20 bg-[linear-gradient(135deg,rgba(74,217,255,0.14),rgba(12,16,24,0.98)_34%,rgba(11,15,23,0.98)_68%,rgba(186,255,59,0.1))]"
                 : isEmphasized
@@ -197,7 +197,7 @@ export function PricingPlanGrid({
                   ))}
                 </div>
 
-                <div className="grid gap-3 rounded-[28px] border border-white/10 bg-black/20 p-4 sm:grid-cols-2">
+        <div className="grid gap-3 rounded-[22px] border border-white/10 bg-black/20 p-4 sm:grid-cols-2">
                   <CapacityRow label="Projects" value={plan.projectsLimit} />
                   <CapacityRow label="Campaigns" value={plan.campaignsLimit} />
                   <CapacityRow label="Quests" value={plan.questsLimit} />

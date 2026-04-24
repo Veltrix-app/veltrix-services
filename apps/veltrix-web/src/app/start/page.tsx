@@ -68,9 +68,9 @@ export default function StartPage() {
           <div className="rounded-[36px] border border-white/10 bg-[linear-gradient(160deg,rgba(13,18,27,0.96),rgba(8,12,19,0.98)_62%,rgba(12,20,30,0.98))] p-6 shadow-[0_36px_120px_rgba(0,0,0,0.3)]">
             <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-lime-300">Fast routing</p>
             <div className="mt-4 grid gap-4">
-              <div className="rounded-[28px] border border-lime-300/20 bg-lime-300/[0.08] p-5">
+          <div className="rounded-[22px] border border-lime-300/20 bg-lime-300/[0.08] p-4">
                 <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-lime-200">New customer</p>
-                <h2 className="mt-3 text-2xl font-black tracking-[-0.03em] text-white">
+            <h2 className="mt-3 text-[1.45rem] font-black tracking-[-0.03em] text-white">
                   Create a fresh account and move straight into workspace setup.
                 </h2>
                 <p className="mt-3 text-sm leading-7 text-slate-200">
@@ -95,9 +95,9 @@ export default function StartPage() {
                 </div>
               </div>
 
-              <div className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(18,24,36,0.88),rgba(11,15,24,0.9))] p-5">
+          <div className="rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(18,24,36,0.88),rgba(11,15,24,0.9))] p-4">
                 <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-cyan-200">Existing customer</p>
-                <h2 className="mt-3 text-2xl font-black tracking-[-0.03em] text-white">Sign in and continue.</h2>
+            <h2 className="mt-3 text-[1.45rem] font-black tracking-[-0.03em] text-white">Sign in and continue.</h2>
                 <p className="mt-3 text-sm leading-7 text-slate-300">
                   Use this route if your workspace already exists and you want to open the product, recover access or
                   pick back up where the launch left off.

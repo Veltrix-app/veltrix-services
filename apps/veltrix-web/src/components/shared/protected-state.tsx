@@ -20,7 +20,7 @@ export function ProtectedState({
 
   if (!initialized) {
     return (
-      <div className="rounded-[28px] border border-white/10 bg-white/[0.04] px-6 py-10 text-sm text-slate-300">
+    <div className="rounded-[22px] border border-white/10 bg-white/[0.04] px-5 py-6 text-sm text-slate-300">
         Loading account...
       </div>
     );
@@ -30,7 +30,7 @@ export function ProtectedState({
     if (allowPreview) {
       return (
         <div className="space-y-5">
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-[28px] border border-lime-300/16 bg-[linear-gradient(135deg,rgba(192,255,0,0.12),rgba(0,204,255,0.08),rgba(255,255,255,0.02))] px-5 py-4">
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-[22px] border border-lime-300/16 bg-[linear-gradient(135deg,rgba(192,255,0,0.12),rgba(0,204,255,0.08),rgba(255,255,255,0.02))] px-4 py-4">
             <div className="max-w-3xl">
               <p className="font-display text-[11px] font-bold uppercase tracking-[0.28em] text-lime-300">
                 {previewLabel}

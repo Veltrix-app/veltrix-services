@@ -2,13 +2,19 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowRight, Compass, Radio, Sparkles } from "lucide-react";
-import { ArtworkImage } from "@/components/ui/artwork-image";
-import { Surface } from "@/components/ui/surface";
+import type { ReactNode } from "react";
+import { ArrowRight } from "lucide-react";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 
 type ProjectFilter = "all" | "featured" | "ecosystem";
+
+function formatCompactNumber(value: number) {
+  return new Intl.NumberFormat("en", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
+}
 
 export function ProjectsScreen() {
   const { loading, error, projects, campaigns } = useLiveUserData({
@@ -35,13 +41,14 @@ export function ProjectsScreen() {
           featured: linkedCampaigns.some((campaign) => campaign.featured),
           liveXp: linkedCampaigns.reduce((sum, campaign) => sum + campaign.xpBudget, 0),
           completionRate,
+          activityScore: linkedCampaigns.length * 1000 + project.members,
         };
       })
       .sort(
         (left, right) =>
           Number(right.featured) - Number(left.featured) ||
-          right.campaignCount - left.campaignCount ||
-          right.members - left.members
+          right.activityScore - left.activityScore ||
+          right.liveXp - left.liveXp
       );
   }, [projects, campaigns]);
 
@@ -68,9 +75,10 @@ export function ProjectsScreen() {
     return items;
   }, [enrichedProjects, filter, query]);
 
-  const [featuredProject, ...queueProjects] = filteredProjects;
-  const scoutProjects = enrichedProjects.slice(0, 3);
-  const scoutLead = filteredProjects[0] ?? null;
+  const spotlightProjects = filteredProjects.slice(0, 4);
+  const hotProjects = filteredProjects.filter((project) => project.campaignCount > 0).slice(0, 8);
+  const projectColumns = [hotProjects.slice(0, 4), hotProjects.slice(4, 8)];
+  const totalMembers = enrichedProjects.reduce((sum, project) => sum + project.members, 0);
   const snapshot = {
     total: enrichedProjects.length,
     featured: enrichedProjects.filter((project) => project.featured).length,
@@ -78,405 +86,293 @@ export function ProjectsScreen() {
   };
 
   return (
-    <div className="space-y-6">
-      <section className="grid gap-6 2xl:grid-cols-[minmax(0,1.25fr)_380px]">
-        <div className="overflow-hidden rounded-[38px] border border-cyan-300/12 bg-[radial-gradient(circle_at_top_left,rgba(0,204,255,0.18),transparent_28%),radial-gradient(circle_at_86%_10%,rgba(192,255,0,0.12),transparent_20%),linear-gradient(145deg,rgba(7,18,24,0.98),rgba(4,9,13,0.95))] p-6 shadow-[0_34px_120px_rgba(0,0,0,0.42)] sm:p-8">
-          <div className="flex flex-wrap items-center gap-3 text-[11px] font-bold uppercase tracking-[0.34em] text-cyan-300">
-            <span>Project Browser</span>
-            <span className="rounded-full border border-cyan-300/16 bg-cyan-300/10 px-3 py-1 tracking-[0.24em] text-cyan-100">
-              Live Projects
-            </span>
+    <div className="space-y-5">
+      <section className="grid gap-3.5 xl:grid-cols-[minmax(0,1.48fr)_280px]">
+        <div className="rounded-[22px] border border-white/6 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.12),transparent_26%),linear-gradient(180deg,rgba(13,14,18,0.98),rgba(8,9,12,0.98))] p-4 shadow-[0_16px_40px_rgba(0,0,0,0.2)]">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="max-w-2xl">
+            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-cyan-300">Spaces</p>
+            <h2 className="mt-2.5 text-[0.96rem] font-semibold tracking-[-0.03em] text-white sm:text-[1.08rem]">
+              Spotlight spaces first, then scan the grid
+            </h2>
+            <p className="mt-1.5 text-[11px] leading-5 text-slate-400">
+              Fast filters, compact slabs and enough density to compare more ecosystems at once.
+            </p>
           </div>
 
-          {featuredProject ? (
-            <div className="mt-6 space-y-6">
-              <div className="grid gap-6 xl:grid-cols-[minmax(0,1.12fr)_320px]">
-                <div className="space-y-5">
-                  <ArtworkPanel
-                    src={featuredProject.bannerUrl}
-                    alt={featuredProject.name}
-                    badge={featuredProject.chain ?? featuredProject.category ?? "Live project"}
-                    className="h-64"
-                  />
-
-                  <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div className="max-w-[14ch]">
-                      <div className="flex flex-wrap gap-2">
-                        {featuredProject.chain ? (
-                          <span className="rounded-full border border-cyan-300/16 bg-cyan-300/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.24em] text-cyan-100">
-                            {featuredProject.chain}
-                          </span>
-                        ) : null}
-                        {featuredProject.category ? (
-                          <span className="rounded-full border border-white/10 bg-white/6 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.24em] text-slate-300">
-                            {featuredProject.category}
-                          </span>
-                        ) : null}
-                      </div>
-                      <h3 className="font-display mt-4 text-balance text-[clamp(2.2rem,4vw,4.5rem)] font-black leading-[0.92] tracking-[0.04em] text-white">
-                        {featuredProject.name}
-                      </h3>
-                      <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-                        {featuredProject.description ||
-                          "This project is active with live campaigns, real reward pressure and strong community pull."}
-                      </p>
-                    </div>
-
-                    <StatusChip
-                      label={featuredProject.featured ? "Featured" : "Live"}
-                      tone={featuredProject.featured ? "positive" : "info"}
-                    />
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-4">
-                    <FeatureStat label="Campaigns" value={String(featuredProject.campaignCount)} />
-                    <FeatureStat label="Live XP" value={String(featuredProject.liveXp)} />
-                    <FeatureStat label="Members" value={featuredProject.members.toLocaleString()} />
-                    <FeatureStat label="Clear rate" value={`${featuredProject.completionRate}%`} />
-                  </div>
-
-                  <div className="flex flex-wrap gap-3">
-                    <Link
-                      href={`/projects/${featuredProject.id}`}
-                      prefetch={false}
-                      className="inline-flex items-center gap-2 rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
-                    >
-                      Open project
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                    <Link
-                      href={`/communities/${featuredProject.id}`}
-                      prefetch={false}
-                      className="glass-button inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:border-cyan-300/30"
-                    >
-                      Open community
-                    </Link>
-                  </div>
-                </div>
-
-                <div className="rounded-[28px] border border-white/10 bg-black/24 p-4">
-                  <p className="font-display text-[11px] font-bold uppercase tracking-[0.28em] text-cyan-200">
-                    Up next
-                  </p>
-                  <div className="mt-4 space-y-3">
-                    {queueProjects.slice(0, 3).map((project, index) => (
-                      <Link
-                        key={project.id}
-                        href={`/projects/${project.id}`}
-                        prefetch={false}
-                        className="panel-card flex items-center gap-4 rounded-[24px] p-4 transition hover:border-cyan-300/24 hover:bg-black/24"
-                      >
-                        <QueueThumb src={project.bannerUrl} alt={project.name} />
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
-                            Project {index + 1}
-                          </p>
-                          <p className="mt-1 truncate text-sm font-semibold text-white">{project.name}</p>
-                          <p className="mt-1 text-xs uppercase tracking-[0.22em] text-slate-500">
-                            {project.campaignCount} campaigns live
-                          </p>
-                        </div>
-                        <span className="text-sm font-semibold text-cyan-200">{project.liveXp} XP</span>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-3">
-                {scoutProjects.map((project, index) => (
-                  <Link
-                    key={project.id}
-                    href={`/projects/${project.id}`}
-                    prefetch={false}
-                    className="rounded-[26px] border border-white/8 bg-white/[0.04] p-4 transition hover:border-cyan-300/20"
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
-                        Spotlight {index + 1}
-                      </p>
-                      <Compass className="h-4 w-4 text-cyan-300" />
-                    </div>
-                    <p className="mt-3 truncate text-lg font-black text-white">{project.name}</p>
-                    <div className="mt-4 grid grid-cols-2 gap-3">
-                      <MiniMetric label="Campaigns" value={String(project.campaignCount)} />
-                      <MiniMetric label="Members" value={project.members.toLocaleString()} />
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <EmptyNotice text="No live projects are visible yet." />
-          )}
+          <div className="flex flex-wrap gap-2">
+            <BoardStat label="Spaces" value={String(snapshot.total)} />
+            <BoardStat label="Featured" value={String(snapshot.featured)} />
+            <BoardStat label="Live" value={String(snapshot.live)} />
+          </div>
         </div>
 
-        <div className="space-y-6">
-          <Surface
-            eyebrow="Command read"
-            title="How to scan this board"
-            description="Projects should read like a curated launch roster: one lead ecosystem, one next-best route, and one watch list for the projects that matter most."
-            className="bg-[radial-gradient(circle_at_top_left,rgba(74,217,255,0.08),transparent_28%),linear-gradient(180deg,rgba(16,22,34,0.96),rgba(9,13,22,0.96))]"
-          >
-            <div className="grid gap-3">
-              <ReadTile
-                label="Now"
-                value={
-                  scoutLead
-                    ? `${scoutLead.name} is currently the strongest project lead in the visible roster.`
-                    : "No projects are visible in the roster yet."
-                }
-              />
-              <ReadTile
-                label="Next"
-                value={
-                  featuredProject
-                    ? `Open ${featuredProject.name} first if you want the clearest route into live campaigns and rewards.`
-                    : "Use the filters to find the first project worth opening."
-                }
-              />
-              <ReadTile
-                label="Watch"
-                value={`${snapshot.featured} featured projects and ${snapshot.live} live ecosystems are currently shaping the board.`}
-              />
-            </div>
-          </Surface>
+        <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+          <label className="flex items-center gap-3 rounded-full border border-white/8 bg-white/[0.03] px-3.5 py-2">
+            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">Find</span>
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Project, chain or category..."
+              className="w-full bg-transparent text-[12px] text-white outline-none placeholder:text-slate-500"
+            />
+          </label>
 
-          <Surface
-            eyebrow="Hot spaces"
-            title="A tighter scouting read"
-            description="Use this side lane to see which spaces are actually hot before you commit to the full roster."
-          >
-            <div className="grid gap-4 sm:grid-cols-3 2xl:grid-cols-1">
-              <MetricTile label="Projects live" value={String(snapshot.total)} />
-              <MetricTile label="Featured" value={String(snapshot.featured)} />
-              <MetricTile label="Live ecosystems" value={String(snapshot.live)} />
-            </div>
+          <div className="flex flex-wrap gap-2">
+            <FilterButton active={filter === "all"} onClick={() => setFilter("all")} label="All" />
+            <FilterButton active={filter === "featured"} onClick={() => setFilter("featured")} label="Featured" />
+            <FilterButton active={filter === "ecosystem"} onClick={() => setFilter("ecosystem")} label="Live" />
+          </div>
+        </div>
+        </div>
 
-            <div className="mt-5 space-y-3">
-              {scoutProjects.map((project, index) => (
-                <div
-                  key={project.id}
-                  className="rounded-[22px] border border-white/8 bg-black/20 px-4 py-3"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
-                        Signal {index + 1}
-                      </p>
-                      <p className="mt-2 truncate text-sm font-semibold text-white">{project.name}</p>
-                    </div>
-                    <span className="text-sm font-bold text-cyan-200">{project.liveXp} XP</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Surface>
+        <div className="rounded-[22px] border border-white/6 bg-[radial-gradient(circle_at_bottom_right,rgba(34,211,238,0.12),transparent_28%),linear-gradient(180deg,rgba(13,14,18,0.98),rgba(8,9,12,0.98))] p-3.5">
+          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-400">Space signal</p>
+          <p className="mt-2 text-[0.96rem] font-semibold tracking-[-0.02em] text-white">
+            Directory density
+          </p>
 
-          <Surface
-            eyebrow="Scout Filters"
-            title="Refine project list"
-            description="Trim the catalog down fast, then dive straight into the best projects."
-          >
-            <div className="space-y-4">
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search projects, chains, categories..."
-                className="glass-button w-full rounded-[22px] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/40"
-              />
-              <div className="flex flex-wrap gap-2">
-                <FilterButton active={filter === "all"} onClick={() => setFilter("all")} label="All projects" />
-                <FilterButton active={filter === "featured"} onClick={() => setFilter("featured")} label="Featured" />
-                <FilterButton active={filter === "ecosystem"} onClick={() => setFilter("ecosystem")} label="Live ecosystems" />
-              </div>
-              <div className="grid gap-3 sm:grid-cols-3">
-                <InlineSignal icon={Sparkles} label="Prime" value={String(snapshot.featured)} accent="text-cyan-200" />
-                <InlineSignal icon={Radio} label="Live" value={String(snapshot.live)} accent="text-lime-200" />
-                <InlineSignal label="Shown" value={String(filteredProjects.length)} accent="text-white" />
-              </div>
-            </div>
-          </Surface>
+          <div className="mt-4 space-y-2.5">
+            <SignalCard label="Live spaces" value={String(snapshot.live)} meta="active ecosystems" />
+            <SignalCard label="Featured" value={String(snapshot.featured)} meta="priority rows" />
+            <SignalCard label="Members" value={formatCompactNumber(totalMembers)} meta="network reach" />
+          </div>
         </div>
       </section>
 
-      <SectionHeading
-        eyebrow="Explore"
-        title="Choose your next project"
-        description="The board below should feel like a curated space catalog: dark media-first cards, a clear live state, and just enough context to choose fast."
-      />
-      <Surface
-        eyebrow="Project Catalog"
-        title="Choose your next project"
-        description="Project discovery should feel intentional, not like scanning records."
-      >
-        <div className="mt-1">
-          {loading ? (
-            <EmptyNotice text="Loading live projects..." />
-          ) : error ? (
-            <ErrorNotice text={error} />
-          ) : filteredProjects.length > 0 ? (
-            <div className="grid gap-4 xl:grid-cols-3">
-              {filteredProjects.map((project) => (
-                <Link
-                  key={project.id}
-                  href={`/projects/${project.id}`}
-                  prefetch={false}
-                  className="panel-card rounded-[32px] p-5 transition hover:-translate-y-0.5 hover:border-cyan-300/28 hover:bg-black/24"
-                >
-                  <ArtworkPanel
-                    src={project.bannerUrl}
-                    alt={project.name}
-                    badge={project.category ?? project.chain ?? "Project"}
-                    className="mb-5 h-44"
-                  />
+      <section className="space-y-4">
+        <SectionHeading
+          eyebrow="New spaces"
+          title="Spaces worth opening first"
+          description="A short top lane keeps the strongest ecosystems visible before the denser directory."
+        />
 
+        {loading ? (
+          <EmptyNotice text="Loading project spotlights..." />
+        ) : error ? (
+          <EmptyNotice text={error} tone="error" />
+        ) : spotlightProjects.length > 0 ? (
+          <div className="grid gap-3 xl:grid-cols-[minmax(0,1.44fr)_repeat(3,minmax(0,1fr))]">
+            {spotlightProjects.map((project, index) => (
+              <Link
+                key={project.id}
+                href={`/projects/${project.id}`}
+                prefetch={false}
+                className={`group relative overflow-hidden rounded-[24px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(8,10,13,0.98))] transition hover:border-cyan-300/16 hover:bg-[linear-gradient(180deg,rgba(16,19,22,0.98),rgba(9,11,14,0.98))] ${
+                  index === 0 ? "min-h-[208px] p-4 sm:p-4.5" : "min-h-[168px] p-3"
+                }`}
+              >
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.12),transparent_35%),linear-gradient(180deg,rgba(10,12,15,0.05),rgba(10,12,15,0.88))]" />
+                <div className="relative flex h-full flex-col">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-2xl font-black text-white">{project.name}</p>
-                      <p className="mt-2 text-sm text-cyan-200">{project.chain ?? project.category ?? "Open project"}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {project.chain ? <CardPill>{project.chain}</CardPill> : null}
+                      {project.category ? <CardPill>{project.category}</CardPill> : null}
                     </div>
                     <StatusChip
-                      label={project.featured ? "Prime" : project.campaignCount > 0 ? "Live" : "Idle"}
+                      label={project.featured ? "Featured" : project.campaignCount > 0 ? "Live" : "Idle"}
                       tone={project.featured ? "positive" : project.campaignCount > 0 ? "info" : "default"}
                     />
                   </div>
 
-                  <p className="mt-4 line-clamp-3 text-sm leading-7 text-slate-300">
-                    {project.description || "This project is live, but still needs a stronger public briefing."}
+                  <p className={`font-semibold leading-5 text-white ${index === 0 ? "mt-5 text-[0.98rem]" : "mt-4 text-[0.86rem]"}`}>
+                    {project.name}
+                  </p>
+                  <p className="mt-2 line-clamp-2 text-[11px] leading-5 text-slate-400">
+                    {project.description || "Project lane with active campaign pressure and community motion."}
                   </p>
 
-                  <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                    <MiniMetric label="Campaigns" value={String(project.campaignCount)} />
-                    <MiniMetric label="XP" value={String(project.liveXp)} />
-                    <MiniMetric label="Members" value={project.members.toLocaleString()} />
+                  <div className="mt-3.5 flex flex-wrap gap-1.5">
+                    <MetricPill label="Campaigns" value={String(project.campaignCount)} />
+                    <MetricPill label="Members" value={formatCompactNumber(project.members)} />
                   </div>
 
-                  <div className="mt-5 flex items-center justify-between border-t border-white/8 pt-4">
-                    <div>
-                      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
-                        Completion pulse
-                      </p>
-                      <p className="mt-2 text-sm font-semibold text-white">{project.completionRate}% avg clear</p>
-                    </div>
-                    <span className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-200">
-                      Open project
+                  <div className="mt-auto flex items-center justify-between border-t border-white/6 pt-3">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">
+                      {project.completionRate}% clear
+                    </span>
+                    <span className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-200 transition group-hover:translate-x-0.5">
+                      View
                       <ArrowRight className="h-4 w-4" />
                     </span>
                   </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <EmptyNotice text="No projects match this filter yet." />
-          )}
-        </div>
-      </Surface>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <EmptyNotice text="No project spotlights are visible yet." />
+        )}
+      </section>
+
+      <section className="space-y-4">
+        <SectionHeading
+          eyebrow="Hot spaces"
+          title="Activity read"
+          description="A ranked read helps you scan where the most community and campaign motion sits."
+        />
+
+        {loading ? (
+          <EmptyNotice text="Loading activity lanes..." />
+        ) : error ? (
+          <EmptyNotice text={error} tone="error" />
+        ) : hotProjects.length > 0 ? (
+          <div className="grid gap-3 xl:grid-cols-2">
+            {projectColumns.map((column, columnIndex) => (
+              <div
+                key={columnIndex}
+                className="rounded-[24px] border border-white/6 bg-[linear-gradient(180deg,rgba(13,14,18,0.98),rgba(8,9,12,0.98))] p-3.5"
+              >
+                <div className="flex items-center justify-between gap-3 border-b border-white/6 pb-3">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Space</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Participation</p>
+                </div>
+
+                <div className="divide-y divide-white/6">
+                  {column.map((project, index) => (
+                    <Link
+                      key={project.id}
+                      href={`/projects/${project.id}`}
+                      prefetch={false}
+                      className="grid grid-cols-[30px_minmax(0,1fr)_auto] items-center gap-3 py-3.5 transition first:pt-3.5 hover:text-cyan-100"
+                    >
+                      <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">
+                        {String(columnIndex * 4 + index + 1).padStart(2, "0")}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate text-[13px] font-semibold text-white">{project.name}</p>
+                        <p className="mt-1 truncate text-[10px] uppercase tracking-[0.18em] text-slate-500">
+                          {project.chain ?? project.category ?? "Project"}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[13px] font-semibold text-white">{formatCompactNumber(project.members)}</p>
+                        <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-slate-500">
+                          {project.campaignCount} lanes
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <EmptyNotice text="No live project activity is visible yet." />
+        )}
+      </section>
+
+      <section className="space-y-4">
+        <SectionHeading
+          eyebrow="All spaces"
+          title="Directory"
+          description="The main directory stays grid-first and compact so you can compare more ecosystems fast."
+        />
+
+        {loading ? (
+          <EmptyNotice text="Loading projects..." />
+        ) : error ? (
+          <EmptyNotice text={error} tone="error" />
+        ) : filteredProjects.length > 0 ? (
+          <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-5 2xl:grid-cols-6">
+            {filteredProjects.map((project) => (
+              <Link
+                key={project.id}
+                href={`/projects/${project.id}`}
+                prefetch={false}
+                className="group rounded-[20px] border border-white/6 bg-[linear-gradient(180deg,rgba(13,15,18,0.98),rgba(8,10,13,0.98))] p-3 transition hover:border-cyan-300/16 hover:bg-[linear-gradient(180deg,rgba(15,18,20,0.98),rgba(9,11,14,0.98))]"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-[0.86rem] font-semibold text-white">{project.name}</p>
+                    <p className="mt-1.5 truncate text-[10px] uppercase tracking-[0.16em] text-slate-500">
+                      {project.chain ?? project.category ?? "Project"}
+                    </p>
+                  </div>
+                  <StatusChip
+                    label={project.featured ? "Featured" : project.campaignCount > 0 ? "Live" : "Idle"}
+                    tone={project.featured ? "positive" : project.campaignCount > 0 ? "info" : "default"}
+                  />
+                </div>
+
+                <div className="mt-2.5 flex items-center justify-between gap-3 text-[10px] text-slate-500">
+                  <span>{project.campaignCount} lanes</span>
+                  <span>{formatCompactNumber(project.members)} members</span>
+                </div>
+
+                <div className="mt-3.5 flex flex-wrap gap-1.5">
+                  <MetricPill label="XP" value={formatCompactNumber(project.liveXp)} />
+                  <MetricPill label="Members" value={formatCompactNumber(project.members)} />
+                </div>
+
+                <div className="mt-3.5 flex items-center justify-between border-t border-white/6 pt-3">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
+                    Open space
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-sm font-semibold text-cyan-200">
+                    View
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <EmptyNotice text="No projects match this board filter yet." />
+        )}
+      </section>
     </div>
   );
 }
 
-function ArtworkPanel({
-  src,
-  alt,
-  badge,
-  className,
+function SectionHeading({
+  eyebrow,
+  title,
+  description,
 }: {
-  src: string | null;
-  alt: string;
-  badge: string;
-  className?: string;
+  eyebrow: string;
+  title: string;
+  description: string;
 }) {
   return (
-    <div className={`relative overflow-hidden rounded-[30px] border border-white/10 bg-slate-950/70 ${className ?? "h-44"}`}>
-      <ArtworkImage
-        src={src}
-        alt={alt}
-        tone="cyan"
-        fallbackLabel="Project art offline"
-        className="absolute inset-0"
-        imgClassName="h-full w-full object-cover opacity-82"
-      />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,7,12,0.06),rgba(3,7,12,0.8)_58%,rgba(3,7,12,0.97))]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,204,255,0.22),transparent_38%)]" />
-      <div className="absolute left-4 top-4 rounded-full border border-cyan-300/20 bg-black/45 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.24em] text-cyan-100">
-        {badge}
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-500">{eyebrow}</p>
+        <h2 className="mt-1.5 text-[0.94rem] font-semibold tracking-[-0.02em] text-white sm:text-[1.02rem]">
+          {title}
+        </h2>
+        <p className="mt-1 max-w-3xl text-[11px] leading-5 text-slate-400">{description}</p>
       </div>
+      <span className="mt-1 inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/8 bg-white/[0.03] text-slate-400">
+        <ArrowRight className="h-3 w-3" />
+      </span>
     </div>
   );
 }
 
-function QueueThumb({ src, alt }: { src: string | null; alt: string }) {
+function BoardStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-[18px] border border-white/10 bg-slate-950/80">
-      <ArtworkImage
-        src={src}
-        alt={alt}
-        tone="cyan"
-        fallbackLabel="Scout art offline"
-        className="absolute inset-0"
-        imgClassName="h-full w-full object-cover opacity-82"
-      />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,7,12,0.04),rgba(3,7,12,0.82))]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,204,255,0.24),transparent_40%)]" />
+    <div className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5">
+      <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">{label}</p>
+      <p className="mt-1 text-[11px] font-semibold text-white">{value}</p>
     </div>
   );
 }
 
-function FeatureStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="metric-card rounded-[24px] px-4 py-4">
-      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">{label}</p>
-      <p className="mt-2 text-2xl font-black text-white">{value}</p>
-    </div>
-  );
-}
-
-function MetricTile({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="metric-card rounded-[24px] p-4">
-      <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">{label}</p>
-      <p className="mt-3 text-3xl font-black text-white">{value}</p>
-    </div>
-  );
-}
-
-function ReadTile({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-[22px] border border-white/8 bg-black/20 px-4 py-4">
-      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
-      <p className="mt-2 text-sm leading-7 text-slate-200">{value}</p>
-    </div>
-  );
-}
-
-function MiniMetric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-[18px] border border-white/8 bg-white/[0.04] px-3 py-3">
-      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
-      <p className="mt-2 truncate text-sm font-semibold text-white">{value}</p>
-    </div>
-  );
-}
-
-function InlineSignal({
-  icon: Icon,
+function SignalCard({
   label,
   value,
-  accent,
+  meta,
 }: {
-  icon?: typeof Sparkles;
   label: string;
   value: string;
-  accent: string;
+  meta: string;
 }) {
   return (
-    <div className="metric-card rounded-[22px] px-4 py-3">
-      <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
-        {Icon ? <Icon className="h-3.5 w-3.5" /> : null}
-        <span>{label}</span>
-      </div>
-      <p className={`mt-3 text-xl font-black ${accent}`}>{value}</p>
+    <div className="rounded-[18px] border border-white/6 bg-white/[0.03] px-3 py-2.5">
+      <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-500">{label}</p>
+      <p className="mt-1.5 text-[12px] font-semibold text-white">{value}</p>
+      <p className="mt-1 text-[9px] uppercase tracking-[0.16em] text-slate-500">{meta}</p>
     </div>
   );
 }
@@ -493,10 +389,10 @@ function FilterButton({
   return (
     <button
       onClick={onClick}
-      className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+      className={`rounded-full px-3.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.14em] transition ${
         active
-          ? "bg-cyan-300/14 text-cyan-200 ring-1 ring-cyan-300/20"
-          : "bg-white/[0.05] text-slate-300 hover:bg-white/[0.08]"
+          ? "border border-cyan-300/16 bg-cyan-300/10 text-cyan-100"
+          : "border border-white/8 bg-white/[0.03] text-slate-400 hover:border-white/12 hover:text-white"
       }`}
     >
       {label}
@@ -504,36 +400,39 @@ function FilterButton({
   );
 }
 
-function EmptyNotice({ text }: { text: string }) {
+function CardPill({ children }: { children: ReactNode }) {
   return (
-    <div className="rounded-[24px] border border-white/8 bg-black/20 px-4 py-6 text-sm text-slate-300">
-      {text}
-    </div>
+    <span className="rounded-full border border-white/8 bg-white/[0.03] px-2 py-1 text-[7px] font-bold uppercase tracking-[0.14em] text-slate-300">
+      {children}
+    </span>
   );
 }
 
-function ErrorNotice({ text }: { text: string }) {
+function MetricPill({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[24px] border border-rose-400/20 bg-rose-500/10 px-4 py-6 text-sm text-rose-200">
-      {text}
-    </div>
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-black/20 px-2 py-[3px] text-[7px] font-bold uppercase tracking-[0.12em] text-slate-400">
+      <span>{label}</span>
+      <span className="text-white">{value}</span>
+    </span>
   );
 }
 
-function SectionHeading({
-  eyebrow,
-  title,
-  description,
+function EmptyNotice({
+  text,
+  tone = "default",
 }: {
-  eyebrow: string;
-  title: string;
-  description: string;
+  text: string;
+  tone?: "default" | "error";
 }) {
   return (
-    <div className="max-w-2xl">
-      <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-cyan-300/90">{eyebrow}</p>
-      <h3 className="mt-3 text-[1.7rem] font-black tracking-[-0.04em] text-white">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-slate-400">{description}</p>
+    <div
+      className={`rounded-[18px] border px-3.5 py-4 text-[12px] ${
+        tone === "error"
+          ? "border-rose-400/20 bg-rose-500/10 text-rose-200"
+          : "border-white/8 bg-black/20 text-slate-300"
+      }`}
+    >
+      {text}
     </div>
   );
 }

@@ -18,7 +18,7 @@ export function EnterpriseCtaBand({
   secondaryLabel?: string;
 }) {
   return (
-    <section className="relative overflow-hidden rounded-[36px] border border-white/10 bg-[linear-gradient(135deg,rgba(186,255,59,0.18),rgba(10,14,22,0.98)_30%,rgba(8,12,20,0.98)_68%,rgba(74,217,255,0.14))] p-6 shadow-[0_30px_120px_rgba(0,0,0,0.34)] sm:p-8 lg:p-9">
+    <section className="relative overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(135deg,rgba(186,255,59,0.18),rgba(10,14,22,0.98)_30%,rgba(8,12,20,0.98)_68%,rgba(74,217,255,0.14))] p-5 shadow-[0_22px_70px_rgba(0,0,0,0.28)] sm:p-6 lg:p-7">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.1),transparent_28%),radial-gradient(circle_at_82%_18%,rgba(74,217,255,0.15),transparent_26%),linear-gradient(120deg,rgba(255,255,255,0.02),transparent_38%)]" />
       <div className="pointer-events-none absolute inset-x-10 bottom-0 h-px bg-gradient-to-r from-transparent via-white/12 to-transparent" />
 

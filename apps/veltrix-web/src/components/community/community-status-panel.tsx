@@ -120,7 +120,7 @@ export function CommunityStatusPanel({
 
   if (loading) {
     return (
-      <div className={`rounded-[28px] border border-white/8 bg-black/20 px-4 py-6 text-sm text-slate-300 ${className}`}>
+      <div className={`rounded-[22px] border border-white/8 bg-black/20 px-4 py-5 text-sm text-slate-300 ${className}`}>
         Loading your community journey...
       </div>
     );
@@ -129,7 +129,7 @@ export function CommunityStatusPanel({
   if (error) {
     return (
       <div
-        className={`rounded-[28px] border border-rose-400/20 bg-rose-500/10 px-4 py-6 text-sm text-rose-200 ${className}`}
+      className={`rounded-[22px] border border-rose-400/20 bg-rose-500/10 px-4 py-5 text-sm text-rose-200 ${className}`}
       >
         {error}
       </div>
@@ -138,7 +138,7 @@ export function CommunityStatusPanel({
 
   return (
     <div className={`space-y-4 ${className}`}>
-      <div className="rounded-[28px] border border-white/10 bg-black/20 p-5">
+      <div className="rounded-[22px] border border-white/10 bg-black/20 p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="max-w-3xl">
             <div className="flex flex-wrap items-center gap-2">
@@ -147,7 +147,7 @@ export function CommunityStatusPanel({
               {snapshot.projectChain ? <StatusChip label={snapshot.projectChain} tone="info" /> : null}
               {refreshing ? <StatusChip label="Refreshing" tone="info" /> : null}
             </div>
-            <h3 className={`mt-4 text-2xl font-black text-white ${mode === "compact" ? "max-w-[20ch]" : "max-w-[18ch]"}`}>
+      <h3 className={`mt-3 text-[1.1rem] font-black text-white ${mode === "compact" ? "max-w-[20ch]" : "max-w-[18ch]"}`}>
               {snapshot.headline}
             </h3>
             <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300">{snapshot.supportingCopy}</p>
@@ -312,7 +312,7 @@ function MetricTile({
         <Icon className="h-3.5 w-3.5" />
         <span>{label}</span>
       </div>
-      <p className={`mt-3 text-xl font-black ${accent}`}>{value}</p>
+      <p className={`mt-2 text-[15px] font-black ${accent}`}>{value}</p>
     </div>
   );
 }

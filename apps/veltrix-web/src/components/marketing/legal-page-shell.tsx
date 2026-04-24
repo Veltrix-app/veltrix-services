@@ -81,7 +81,7 @@ export function LegalSection({
 }) {
   return (
     <section className="border border-white/8 bg-white/[0.02] p-6 sm:p-7">
-      <h2 className="text-2xl font-black text-white">{title}</h2>
+          <h2 className="text-[1.15rem] font-black text-white">{title}</h2>
       <div className="mt-4 space-y-4 text-sm leading-7 text-slate-300 sm:text-base">{children}</div>
     </section>
   );

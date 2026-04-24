@@ -90,62 +90,73 @@ export function RewardDetailScreen() {
   }
 
   return (
-    <div className="space-y-6">
-      <section className="overflow-hidden rounded-[38px] border border-white/10 bg-[linear-gradient(135deg,rgba(255,196,0,0.14),rgba(0,0,0,0)_30%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
-        {currentReward.imageUrl ? (
-          <div className="relative h-64 bg-[linear-gradient(135deg,rgba(255,196,0,0.16),rgba(0,0,0,0.18))]">
-            <ArtworkImage
-              src={currentReward.imageUrl}
-              alt={currentReward.title}
-              tone="amber"
-              fallbackLabel="Reward art offline"
-              imgClassName="h-full w-full object-cover opacity-82"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-          </div>
-        ) : null}
-
-        <div className="p-6 sm:p-8">
-          <p className="text-[11px] font-bold uppercase tracking-[0.34em] text-amber-300">Reward</p>
-          <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
-            <div className="max-w-[14ch]">
-              <h2 className="font-display text-balance text-[clamp(2.2rem,4vw,4.5rem)] font-black leading-[0.92] tracking-[0.04em] text-white">
-                {currentReward.title}
-              </h2>
-              <p className="mt-3 text-sm text-amber-200">
-                {project?.name ?? "Project"}
-                {campaign ? ` - ${campaign.title}` : ""}
-              </p>
+    <div className="space-y-5">
+      <section className="rounded-[22px] border border-white/8 bg-[radial-gradient(circle_at_top_left,rgba(255,196,0,0.14),transparent_26%),radial-gradient(circle_at_78%_18%,rgba(251,191,36,0.08),transparent_22%),linear-gradient(180deg,rgba(12,14,18,0.99),rgba(7,9,11,0.99))] p-4 shadow-[0_20px_54px_rgba(0,0,0,0.24)]">
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.16fr)_300px]">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusChip label={project?.name ?? "Project"} tone="info" />
+              {campaign ? <StatusChip label={campaign.title} tone="info" /> : null}
+              <StatusChip
+                label={rewardAlreadyClaimed ? "Claimed" : currentReward.claimable ? "Claimable" : "Locked"}
+                tone={rewardAlreadyClaimed || currentReward.claimable ? "positive" : "default"}
+              />
             </div>
-            <StatusChip
-              label={rewardAlreadyClaimed ? "Claimed" : currentReward.claimable ? "Claimable" : "Locked"}
-              tone={rewardAlreadyClaimed || currentReward.claimable ? "positive" : "default"}
-            />
-          </div>
-          <p className="mt-5 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">{currentReward.description}</p>
+            <p className="mt-3.5 text-[10px] font-bold uppercase tracking-[0.24em] text-amber-300">Reward</p>
+            <h2 className="mt-2.5 max-w-[18ch] text-[1.06rem] font-semibold tracking-[-0.03em] text-white sm:text-[1.22rem]">
+              {currentReward.title}
+            </h2>
+            <p className="mt-2.5 max-w-3xl text-[13px] leading-5 text-slate-300">{currentReward.description}</p>
 
-          <div className="mt-8 grid gap-4 sm:grid-cols-4">
-            <MetricTile label="Cost" value={`${currentReward.cost} XP`} />
-            <MetricTile label="Rarity" value={currentReward.rarity} />
-            <MetricTile label="Type" value={currentReward.rewardType} />
-            <MetricTile
-              label="State"
-              value={rewardAlreadyClaimed ? "Claimed" : currentReward.claimable ? "Ready" : "Locked"}
-            />
+            <div className="mt-4 flex flex-wrap gap-1.5">
+              <MetricPill label="Cost" value={`${currentReward.cost} XP`} />
+              <MetricPill label="Rarity" value={currentReward.rarity} />
+              <MetricPill label="Type" value={currentReward.rewardType} />
+              <MetricPill
+                label="State"
+                value={rewardAlreadyClaimed ? "Claimed" : currentReward.claimable ? "Ready" : "Locked"}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-3 rounded-[20px] border border-white/8 bg-white/[0.03] p-3.5">
+            {currentReward.imageUrl ? (
+              <div className="relative overflow-hidden rounded-[20px] border border-white/8 bg-black/30">
+                <ArtworkImage
+                  src={currentReward.imageUrl}
+                  alt={currentReward.title}
+                  tone="amber"
+                  fallbackLabel="Reward art offline"
+                  className="aspect-[1.15/1] w-full"
+                  imgClassName="h-full w-full object-cover opacity-82"
+                />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,8,11,0.12),rgba(6,8,11,0.82))]" />
+              </div>
+            ) : null}
+
+            <div className="grid gap-2 sm:grid-cols-2">
+              <MetricTile label="Cost" value={`${currentReward.cost} XP`} />
+              <MetricTile label="Rarity" value={currentReward.rarity} />
+              <MetricTile label="Type" value={currentReward.rewardType} />
+              <MetricTile
+                label="State"
+                value={rewardAlreadyClaimed ? "Claimed" : currentReward.claimable ? "Ready" : "Locked"}
+              />
+            </div>
           </div>
         </div>
       </section>
 
       {message ? <Notice tone={message.tone} text={message.text} /> : null}
 
-      <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.08fr)_300px]">
         <Surface
-          eyebrow="Command read"
+          eyebrow="Reward read"
           title="Read the payoff before you route the claim"
           description="Start with the live state, the next move, and the one unlock cue that matters before you press claim."
           className="bg-[radial-gradient(circle_at_top_left,rgba(255,196,0,0.16),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))]"
         >
-          <div className="grid gap-3">
+          <div className="grid gap-2.5">
             <ReadTile
               label="Now"
               value={`${currentReward.title} is currently ${rewardAlreadyClaimed ? "already claimed" : currentReward.claimable ? "claimable and ready to route" : "still locked behind progression"}.`}
@@ -154,7 +165,7 @@ export function RewardDetailScreen() {
             <ReadTile label="Watch" value={watchRewardCue} />
           </div>
 
-          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <MetricTile
               label="State"
               value={rewardAlreadyClaimed ? "Claimed" : currentReward.claimable ? "Claimable" : "Locked"}
@@ -166,28 +177,28 @@ export function RewardDetailScreen() {
         </Surface>
 
         <Surface
-          eyebrow="Next Move"
+          eyebrow="Signal rail"
           title="What to do next"
           description="Rewards should tell you where to go next, not just repeat metadata."
         >
-          <div className="space-y-4">
-            <div className="metric-card rounded-[24px] p-4 text-sm leading-7 text-slate-300">
+          <div className="space-y-3.5">
+            <div className="metric-card rounded-[16px] p-3 text-[11px] leading-5 text-slate-300">
               {rewardAlreadyClaimed
                 ? "This reward is already in your claimed inventory. Use the linked campaign or project if you want to trace where it came from."
                 : currentReward.claimable
                   ? "This reward is now in reach. Claim it now or inspect the linked campaign and project context first."
                   : "This reward is still locked. Keep clearing the linked campaign and quests to push it into claimable territory."}
             </div>
-            <div className="rounded-[24px] border border-white/8 bg-black/20 p-4 text-sm leading-7 text-slate-300">
+            <div className="rounded-[16px] border border-white/8 bg-black/20 p-3 text-[11px] leading-5 text-slate-300">
               <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
                 Member journey context
               </p>
-              <p className="mt-3 font-semibold text-white">{communitySnapshot.readinessLabel}</p>
+              <p className="mt-2.5 font-semibold text-white">{communitySnapshot.readinessLabel}</p>
               <p className="mt-2">
                 Reward claims should reinforce the same member journey, so your best next path still points toward {communitySnapshot.projectName || "your active community"}.
               </p>
             </div>
-            <div className="rounded-[24px] border border-white/8 bg-black/20 p-4 text-sm leading-7 text-slate-300">
+            <div className="rounded-[20px] border border-white/8 bg-black/20 p-3.5 text-[13px] leading-6 text-slate-300">
               Reward availability, claim handling and delivery timing can vary by project.{" "}
               <Link
                 href="/rewards/disclaimer"
@@ -197,11 +208,11 @@ export function RewardDetailScreen() {
               </Link>
               .
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2.5">
               <button
                 onClick={() => void handleClaimReward()}
                 disabled={busy || !canClaimReward}
-                className="rounded-full bg-amber-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99] disabled:cursor-not-allowed disabled:bg-amber-300/35"
+                className="rounded-full bg-amber-300 px-3.5 py-2 text-[12px] font-black text-black transition hover:scale-[0.99] disabled:cursor-not-allowed disabled:bg-amber-300/35"
               >
                 {busy
                   ? "Routing claim..."
@@ -214,7 +225,7 @@ export function RewardDetailScreen() {
               {campaign ? (
                 <Link
                   href={`/campaigns/${campaign.id}`}
-                  className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+                  className="glass-button rounded-full px-3.5 py-2 text-[12px] font-semibold text-white transition hover:bg-white/[0.08]"
                 >
                   Open linked campaign
                 </Link>
@@ -222,14 +233,14 @@ export function RewardDetailScreen() {
               {project ? (
                 <Link
                   href={`/projects/${project.id}`}
-                  className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+                  className="glass-button rounded-full px-3.5 py-2 text-[12px] font-semibold text-white transition hover:bg-white/[0.08]"
                 >
                   Open project
                 </Link>
               ) : null}
               <Link
                 href={communitySnapshot.preferredRoute}
-                className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+                className="glass-button rounded-full px-3.5 py-2 text-[12px] font-semibold text-white transition hover:bg-white/[0.08]"
               >
                 Back to your journey
               </Link>
@@ -246,19 +257,19 @@ export function RewardDetailScreen() {
         >
           <Link
             href={`/campaigns/${campaign.id}`}
-            className="panel-card block rounded-[30px] p-5 transition hover:border-amber-300/30 hover:bg-black/25"
+            className="panel-card block rounded-[20px] p-3.5 transition hover:border-amber-300/30 hover:bg-black/25"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-lg font-black text-white">{campaign.title}</p>
-                <p className="mt-2 text-sm text-slate-300">{campaign.description}</p>
+                <p className="text-[13px] font-semibold text-white">{campaign.title}</p>
+                <p className="mt-1.5 text-[12px] text-slate-300">{campaign.description}</p>
               </div>
               <StatusChip
                 label={campaign.featured ? "Prime" : `${campaign.completionRate}% live`}
                 tone={campaign.featured ? "positive" : "info"}
               />
             </div>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <div className="mt-3.5 grid gap-2 sm:grid-cols-2">
               <MiniStat label="XP budget" value={String(campaign.xpBudget)} />
               <MiniStat
                 label="Ends"
@@ -274,27 +285,27 @@ export function RewardDetailScreen() {
 
 function MetricTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="metric-card rounded-[24px] p-4">
-      <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">{label}</p>
-      <p className="mt-3 text-3xl font-black text-white">{value}</p>
+    <div className="metric-card rounded-[14px] p-2.5">
+      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">{label}</p>
+      <p className="mt-1 text-[0.8rem] font-semibold text-white">{value}</p>
     </div>
   );
 }
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="metric-card rounded-[20px] px-4 py-3">
-      <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
-      <p className="mt-2 text-sm font-semibold text-white">{value}</p>
+    <div className="metric-card rounded-[14px] px-3 py-2.5">
+      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">{label}</p>
+      <p className="mt-1 text-[10px] font-semibold text-white">{value}</p>
     </div>
   );
 }
 
 function ReadTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[24px] border border-white/8 bg-black/20 px-4 py-4">
-      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-amber-200/85">{label}</p>
-      <p className="mt-3 text-sm leading-7 text-slate-200">{value}</p>
+    <div className="rounded-[14px] border border-white/8 bg-black/20 px-3 py-2.5">
+      <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-amber-200/85">{label}</p>
+      <p className="mt-1 text-[10px] leading-5 text-slate-200">{value}</p>
     </div>
   );
 }
@@ -308,7 +319,7 @@ function Notice({
 }) {
   return (
     <div
-      className={`rounded-[24px] px-4 py-6 text-sm ${
+      className={`rounded-[18px] px-3.5 py-4 text-[12px] ${
         tone === "error"
           ? "border border-rose-400/20 bg-rose-500/10 text-rose-200"
           : tone === "success"
@@ -318,5 +329,14 @@ function Notice({
     >
       {text}
     </div>
+  );
+}
+
+function MetricPill({ label, value }: { label: string; value: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-black/20 px-2 py-1 text-[8px] font-bold uppercase tracking-[0.12em] text-slate-400">
+      <span>{label}</span>
+      <span className="text-white">{value}</span>
+    </span>
   );
 }

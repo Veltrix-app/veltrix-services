@@ -2,24 +2,14 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowRight, Gem, LockKeyhole, Sparkles } from "lucide-react";
-import { ArtworkImage } from "@/components/ui/artwork-image";
-import { Surface } from "@/components/ui/surface";
+import type { ReactNode } from "react";
+import { ArrowRight } from "lucide-react";
 import { StatusChip } from "@/components/ui/status-chip";
-import { CommunityStatusPanel } from "@/components/community/community-status-panel";
-import { useCommunityJourney } from "@/hooks/use-community-journey";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 
 type RewardFilter = "all" | "claimable" | "high-value";
 
 export function RewardsScreen() {
-  const {
-    snapshot: communitySnapshot,
-    loading: communityLoading,
-    refreshing: communityRefreshing,
-    error: communityError,
-    advance: advanceCommunityJourney,
-  } = useCommunityJourney();
   const {
     loading,
     error,
@@ -58,8 +48,9 @@ export function RewardsScreen() {
     if (query.trim()) {
       const normalized = query.toLowerCase();
       items = items.filter((reward) =>
-        [reward.title, reward.description, reward.rewardType, reward.linkedCampaignTitle]
-          .some((value) => value.toLowerCase().includes(normalized))
+        [reward.title, reward.description, reward.rewardType, reward.linkedCampaignTitle].some((value) =>
+          value.toLowerCase().includes(normalized)
+        )
       );
     }
 
@@ -74,8 +65,7 @@ export function RewardsScreen() {
     return items;
   }, [enrichedRewards, filter, query]);
 
-  const [featuredReward, ...queueRewards] = filteredRewards;
-  const vaultPressure = enrichedRewards.slice(0, 3);
+  const spotlightRewards = filteredRewards.slice(0, 3);
   const highValueCount = enrichedRewards.filter((reward) => reward.cost >= 500).length;
   const lockedCount = enrichedRewards.filter((reward) => !reward.claimable).length;
   const payoutRows = useMemo(() => {
@@ -111,20 +101,13 @@ export function RewardsScreen() {
   const pendingDistributionCount = rewardDistributions.filter(
     (distribution) => distribution.status === "queued" || distribution.status === "processing"
   ).length;
-  const paidDistributionCount = rewardDistributions.filter(
-    (distribution) => distribution.status === "paid"
-  ).length;
-  const totalClaimablePool = claimableDistributionRows.reduce(
-    (sum, distribution) => sum + distribution.rewardAmount,
-    0
-  );
 
   async function handleClaimDistribution(distributionId: string) {
     try {
       setActiveDistributionId(distributionId);
       setDistributionMessage({
         tone: "default",
-        text: "Routing this campaign payout into the payout queue now.",
+        text: "Routing this payout lane into the operator queue now.",
       });
 
       const result = await claimRewardDistribution(distributionId);
@@ -135,14 +118,14 @@ export function RewardsScreen() {
       setDistributionMessage({
         tone: "success",
         text: result.alreadyQueued
-          ? "This campaign payout was already in the queue and has been re-synced into your rewards state."
-          : "Campaign payout claim queued. Operators can now move it through processing and payout.",
+          ? "This payout lane was already queued and has been refreshed."
+          : "Campaign payout queued. Operators can now push it through processing and payout.",
       });
-    } catch (error) {
+    } catch (nextError) {
       setDistributionMessage({
         tone: "error",
         text:
-          error instanceof Error ? error.message : "Campaign payout claim failed.",
+          nextError instanceof Error ? nextError.message : "Campaign payout claim failed.",
       });
     } finally {
       setActiveDistributionId(null);
@@ -150,526 +133,330 @@ export function RewardsScreen() {
   }
 
   return (
-    <div className="space-y-6">
-      <section className="grid gap-6 2xl:grid-cols-[minmax(0,1.25fr)_380px]">
-        <div className="overflow-hidden rounded-[38px] border border-amber-300/12 bg-[radial-gradient(circle_at_top_left,rgba(255,196,0,0.18),transparent_26%),radial-gradient(circle_at_86%_10%,rgba(255,255,255,0.08),transparent_18%),linear-gradient(145deg,rgba(7,18,24,0.98),rgba(4,9,13,0.95))] p-6 shadow-[0_34px_120px_rgba(0,0,0,0.42)] sm:p-8">
-          <div className="flex flex-wrap items-center gap-3 text-[11px] font-bold uppercase tracking-[0.34em] text-amber-300">
-            <span>Rewards</span>
-            <span className="rounded-full border border-amber-300/16 bg-amber-300/10 px-3 py-1 tracking-[0.24em] text-amber-100">
-              Unlocks
-            </span>
+    <div className="space-y-7">
+      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.42fr)_300px]">
+        <div className="rounded-[22px] border border-white/6 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.12),transparent_26%),linear-gradient(180deg,rgba(13,15,18,0.99),rgba(6,8,11,0.99))] p-4 shadow-[0_20px_54px_rgba(0,0,0,0.24)]">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-amber-300">Reward lanes</p>
+            <h2 className="mt-2.5 text-[1rem] font-semibold tracking-[-0.03em] text-white sm:text-[1.12rem]">
+              Keep the payoff layer compact and obvious
+            </h2>
+            <p className="mt-1.5 max-w-3xl text-[12px] leading-5 text-slate-400">
+              Reward lanes should open fast: title first, unlock state next, payout context after that.
+            </p>
           </div>
 
-          {featuredReward ? (
-            <div className="mt-6 space-y-6">
-              <div className="grid gap-6 xl:grid-cols-[minmax(0,1.12fr)_320px]">
-                <div className="space-y-5">
-                  <ArtworkPanel
-                    src={featuredReward.imageUrl}
-                    alt={featuredReward.title}
-                    badge={featuredReward.rarity}
-                    className="h-64"
-                  />
-
-                  <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div className="max-w-[14ch]">
-                      <div className="flex flex-wrap gap-2">
-                        <span className="rounded-full border border-amber-300/16 bg-amber-300/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.24em] text-amber-100">
-                          {featuredReward.linkedCampaignTitle}
-                        </span>
-                        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.24em] text-slate-300">
-                          {featuredReward.rewardType}
-                        </span>
-                      </div>
-                      <h3 className="font-display mt-4 text-balance text-[clamp(2.2rem,4vw,4.5rem)] font-black leading-[0.92] tracking-[0.04em] text-white">
-                        {featuredReward.title}
-                      </h3>
-                      <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-                        {featuredReward.description ||
-                          "This reward is live with real rarity, real cost pressure and real unlock appeal."}
-                      </p>
-                    </div>
-
-                    <StatusChip
-                      label={featuredReward.claimable ? "Ready to claim" : "Locked"}
-                      tone={featuredReward.claimable ? "positive" : "default"}
-                    />
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-4">
-                    <FeatureStat label="XP cost" value={String(featuredReward.cost)} />
-                    <FeatureStat label="Rarity" value={featuredReward.rarity} />
-                    <FeatureStat label="Type" value={featuredReward.rewardType} />
-                    <FeatureStat label="State" value={featuredReward.claimable ? "Ready" : "Locked"} />
-                  </div>
-
-                  <div className="flex flex-wrap gap-3">
-                    <Link
-                      href={`/rewards/${featuredReward.id}`}
-                      prefetch={false}
-                      className="inline-flex items-center gap-2 rounded-full bg-amber-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-amber-200"
-                    >
-                      Open reward
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                    <Link
-                      href={`/campaigns/${featuredReward.campaignId}`}
-                      prefetch={false}
-                      className="glass-button inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:border-amber-300/30"
-                    >
-                      View linked campaign
-                    </Link>
-                  </div>
-                </div>
-
-                <div className="rounded-[28px] border border-white/10 bg-black/24 p-4">
-                  <p className="font-display text-[11px] font-bold uppercase tracking-[0.28em] text-amber-200">
-                    Up next
-                  </p>
-                  <div className="mt-4 space-y-3">
-                    {queueRewards.slice(0, 4).map((reward, index) => (
-                      <Link
-                        key={reward.id}
-                        href={`/rewards/${reward.id}`}
-                        prefetch={false}
-                        className="panel-card flex items-center gap-4 rounded-[24px] p-4 transition hover:border-amber-300/24 hover:bg-black/24"
-                      >
-                        <QueueThumb src={reward.imageUrl} alt={reward.title} />
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
-                            Slot {index + 1}
-                          </p>
-                          <p className="mt-1 truncate text-sm font-semibold text-white">{reward.title}</p>
-                          <p className="mt-1 text-xs uppercase tracking-[0.22em] text-slate-500">
-                            {reward.linkedCampaignTitle}
-                          </p>
-                        </div>
-                        <span className="text-sm font-semibold text-amber-200">{reward.cost} XP</span>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-3">
-                {vaultPressure.map((reward, index) => (
-                  <Link
-                    key={reward.id}
-                    href={`/rewards/${reward.id}`}
-                    prefetch={false}
-                    className="rounded-[26px] border border-white/8 bg-white/[0.04] p-4 transition hover:border-amber-300/20"
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
-                        Reward pick {index + 1}
-                      </p>
-                      <Gem className="h-4 w-4 text-amber-300" />
-                    </div>
-                    <p className="mt-3 truncate text-lg font-black text-white">{reward.title}</p>
-                    <div className="mt-4 grid grid-cols-2 gap-3">
-                      <MiniMetric label="Cost" value={`${reward.cost}`} />
-                      <MiniMetric label="State" value={reward.claimable ? "Ready" : "Locked"} />
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <EmptyNotice text="No live rewards are visible yet." />
-          )}
+          <div className="flex flex-wrap gap-2">
+            <BoardStat label="Rewards" value={String(enrichedRewards.length)} />
+            <BoardStat label="Claimable" value={String(claimableRewardCount)} />
+            <BoardStat label="Locked" value={String(lockedCount)} />
+          </div>
         </div>
 
-        <div className="space-y-6">
-          <Surface
-            eyebrow="Command read"
-            title="Read the reward vault before you browse"
-            description="Rewards should tell you what is ready now, what deserves the next click and where the strongest payoff pressure is sitting."
-            className="bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.08),transparent_28%),linear-gradient(180deg,rgba(16,22,34,0.96),rgba(9,13,22,0.96))]"
-          >
-            <div className="space-y-4">
-              <div className="grid gap-3">
-                <ReadTile
-                  label="Now"
-                  value={
-                    featuredReward
-                      ? `${featuredReward.title} is the lead reward in the vault right now, and it is ${featuredReward.claimable ? "ready to claim" : "still locked"}.`
-                      : "No reward is currently leading the vault."
-                  }
-                />
-                <ReadTile
-                  label="Next"
-                  value={
-                    queueRewards[0]
-                      ? `${queueRewards[0].title} is the next reward worth opening once the lead vault card is clear.`
-                      : "There is no secondary reward queue pushing behind the lead slot."
-                  }
-                />
-                <ReadTile
-                  label="Watch"
-                  value={`${claimableRewardCount} direct rewards are claimable, while ${claimableDistributionRows.length} campaign pool lanes are also waiting in the payout layer.`}
-                />
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-3 2xl:grid-cols-1">
-                <MetricTile label="Rewards" value={String(enrichedRewards.length)} />
-                <MetricTile label="Claimable" value={String(claimableRewardCount)} />
-                <MetricTile label="Locked" value={String(lockedCount)} />
-              </div>
-            </div>
-          </Surface>
-
-          <Surface
-            eyebrow="Reward Filters"
-            title="Refine rewards"
-            description="Trim the rewards list down to what is claimable, premium or worth chasing next."
-          >
-            <div className="space-y-4">
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search rewards, rarity, linked campaigns..."
-                className="glass-button w-full rounded-[22px] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-amber-300/40"
-              />
-              <div className="flex flex-wrap gap-2">
-                <FilterButton active={filter === "all"} onClick={() => setFilter("all")} label="All rewards" />
-                <FilterButton active={filter === "claimable"} onClick={() => setFilter("claimable")} label="Claimable" />
-                <FilterButton active={filter === "high-value"} onClick={() => setFilter("high-value")} label="High value" />
-              </div>
-              <div className="grid gap-3 sm:grid-cols-3">
-                <SignalTile label="Rewards" value={String(filteredRewards.length)} accent="text-white" compact />
-                <SignalTile label="Ready" value={String(claimableRewardCount)} accent="text-lime-200" compact />
-                <SignalTile label="Premium" value={String(highValueCount)} accent="text-amber-200" compact />
-              </div>
-            </div>
-          </Surface>
-
-          <Surface
-            eyebrow="Journey Follow-through"
-            title="Reward pressure inside your member lane"
-            description="Rewards should reinforce the active journey instead of feeling like a detached catalog."
-          >
-            <div className="mb-4 rounded-[22px] border border-white/8 bg-black/20 px-4 py-4 text-sm text-slate-300">
-              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
-                Reward posture
-              </p>
-              <p className="mt-3 font-semibold text-white">{communitySnapshot.readinessLabel}</p>
-              <p className="mt-2 leading-6 text-slate-300">
-                {communitySnapshot.claimableRewards > 0
-                  ? "Your current journey already has claimable reward pressure, so the reward hub should feel like the payoff layer of the same journey."
-                  : "Rewards are still part of the same member journey, but the next unlock likely still lives in missions or signals before it lands here."}
-              </p>
-            </div>
-            <CommunityStatusPanel
-              snapshot={communitySnapshot}
-              loading={communityLoading}
-              refreshing={communityRefreshing}
-              error={communityError}
-              onAdvance={advanceCommunityJourney}
-              mode="compact"
-              actionLimit={2}
+        <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+          <label className="flex items-center gap-3 rounded-full border border-white/8 bg-white/[0.03] px-4 py-2">
+            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">Find</span>
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Reward, rarity or linked campaign..."
+              className="w-full bg-transparent text-[13px] text-white outline-none placeholder:text-slate-500"
             />
-            <div className="mt-4 text-sm leading-6 text-slate-400">
-              Reward availability, payout timing and eligibility can vary by project.{" "}
-              <Link href="/rewards/disclaimer" className="font-semibold text-amber-200 underline underline-offset-4">
-                Read the reward disclaimer
-              </Link>
-              .
-            </div>
-          </Surface>
+          </label>
 
-          <Surface
-            eyebrow="Campaign Pools"
-            title="Claimable AESP distributions"
-            description="Direct rewards now sit beside campaign pool payouts that become claimable when reward finalization lands."
-          >
-            <div className="grid gap-4 sm:grid-cols-3 2xl:grid-cols-1">
-              <MetricTile label="Claimable lanes" value={String(claimableDistributionRows.length)} />
-              <MetricTile
-                label="Claimable total"
-                value={Number(totalClaimablePool.toFixed(2)).toString()}
-              />
-              <MetricTile label="In queue" value={String(pendingDistributionCount)} />
-            </div>
+          <div className="flex flex-wrap gap-2">
+            <FilterButton active={filter === "all"} onClick={() => setFilter("all")} label="All" />
+            <FilterButton active={filter === "claimable"} onClick={() => setFilter("claimable")} label="Claimable" />
+            <FilterButton active={filter === "high-value"} onClick={() => setFilter("high-value")} label="High value" />
+          </div>
+        </div>
+        </div>
 
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-1">
-              <SignalTile
-                label="Paid out"
-                value={String(paidDistributionCount)}
-                accent="text-cyan-200"
-                compact
-              />
-              <SignalTile
-                label="Pool lanes"
-                value={String(rewardDistributions.length)}
-                accent="text-white"
-                compact
-              />
-            </div>
+        <div className="rounded-[22px] border border-white/6 bg-[radial-gradient(circle_at_bottom_right,rgba(251,191,36,0.12),transparent_28%),linear-gradient(180deg,rgba(13,14,18,0.98),rgba(8,9,12,0.98))] p-4">
+          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-400">Payoff signal</p>
+          <p className="mt-2.5 text-[1rem] font-semibold tracking-[-0.02em] text-white">
+            Reward pressure
+          </p>
 
-            {distributionMessage ? (
-              <div
-                className={`mt-5 rounded-[22px] px-4 py-3 text-sm ${
-                  distributionMessage.tone === "error"
-                    ? "border border-rose-400/20 bg-rose-500/10 text-rose-200"
-                    : distributionMessage.tone === "success"
-                      ? "border border-lime-300/20 bg-lime-400/10 text-lime-100"
-                      : "border border-white/8 bg-black/20 text-slate-300"
-                }`}
-              >
-                {distributionMessage.text}
-              </div>
-            ) : null}
-
-            <div className="mt-5 space-y-3">
-              {payoutRows.length > 0 ? (
-                payoutRows.slice(0, 6).map((distribution) => (
-                  <div
-                    key={distribution.id}
-                    className="panel-card rounded-[24px] p-4"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-4">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-white">
-                          {distribution.campaignTitle}
-                        </p>
-                        <p className="mt-1 text-[11px] uppercase tracking-[0.22em] text-slate-500">
-                          {distribution.rewardAsset}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <StatusChip
-                          label={distribution.stateLabel}
-                          tone={
-                            distribution.status === "claimable"
-                              ? "positive"
-                              : distribution.status === "queued" || distribution.status === "processing"
-                                ? "warning"
-                                : distribution.status === "paid"
-                                  ? "info"
-                                  : distribution.status === "rejected"
-                                    ? "danger"
-                                    : "default"
-                          }
-                        />
-                        <p className="text-sm font-black text-lime-200">
-                          {distribution.rewardAmountLabel}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 flex flex-wrap gap-3">
-                      {distribution.status === "claimable" ? (
-                        <button
-                          onClick={() => void handleClaimDistribution(distribution.id)}
-                          disabled={activeDistributionId === distribution.id}
-                          className="rounded-full bg-lime-300 px-4 py-2 text-xs font-black text-slate-950 transition hover:bg-lime-200 disabled:cursor-not-allowed disabled:bg-lime-300/40"
-                        >
-                          {activeDistributionId === distribution.id ? "Queueing..." : "Queue payout"}
-                        </button>
-                      ) : (
-                        <span className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-slate-300">
-                          {distribution.status === "paid"
-                            ? "Already paid"
-                            : distribution.status === "rejected"
-                              ? "Needs operator follow-up"
-                              : "In operator queue"}
-                        </span>
-                      )}
-                      <Link
-                        href={`/campaigns/${distribution.campaignId}`}
-                        prefetch={false}
-                        className="glass-button rounded-full px-4 py-2 text-xs font-semibold text-white transition hover:border-lime-300/30"
-                      >
-                        Open campaign
-                      </Link>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <EmptyNotice text="No campaign pool distributions have landed in rewards yet." />
-              )}
-            </div>
-          </Surface>
+          <div className="mt-4 space-y-2.5">
+            <SignalCard label="Claimable" value={String(claimableRewardCount)} meta="ready now" />
+            <SignalCard label="Locked" value={String(lockedCount)} meta="not unlocked" />
+            <SignalCard label="Pending payout" value={String(pendingDistributionCount)} meta="distribution queue" />
+          </div>
         </div>
       </section>
 
-      <Surface
-        eyebrow="Reward Catalog"
-        title="Choose your payoff"
-        description="Rewards should feel like desirable unlocks, not just reward rows."
-      >
-        <div className="mt-1">
-          {loading ? (
-            <EmptyNotice text="Loading live rewards..." />
-          ) : error ? (
-            <ErrorNotice text={error} />
-          ) : filteredRewards.length > 0 ? (
-            <div className="grid gap-4 xl:grid-cols-2">
-              {filteredRewards.map((reward) => (
-                <Link
-                  key={reward.id}
-                  href={`/rewards/${reward.id}`}
-                  prefetch={false}
-                  className="panel-card rounded-[32px] p-5 transition hover:-translate-y-0.5 hover:border-amber-300/28 hover:bg-black/24"
-                >
-                  <ArtworkPanel
-                    src={reward.imageUrl}
-                    alt={reward.title}
-                    badge={reward.rewardType}
-                    className="mb-5 h-44"
-                  />
+      <section className="space-y-4">
+        <SectionHeading
+          eyebrow="Spotlights"
+          title="Rewards worth opening first"
+          description="A short top row for the unlocks and pools currently carrying the most payoff pressure."
+        />
 
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-2xl font-black text-white">{reward.title}</p>
-                      <p className="mt-2 text-sm text-amber-200">{reward.rarity}</p>
+        {loading ? (
+          <EmptyNotice text="Loading reward spotlights..." />
+        ) : error ? (
+          <EmptyNotice text={error} tone="error" />
+        ) : spotlightRewards.length > 0 ? (
+          <div className="grid gap-3.5 xl:grid-cols-[minmax(0,1.5fr)_repeat(2,minmax(0,1fr))]">
+            {spotlightRewards.map((reward, index) => (
+              <Link
+                key={reward.id}
+                href={`/rewards/${reward.id}`}
+                prefetch={false}
+                className={`group relative overflow-hidden rounded-[25px] border border-white/6 bg-[linear-gradient(180deg,rgba(18,20,24,0.98),rgba(9,11,15,0.98))] shadow-[0_18px_52px_rgba(0,0,0,0.26)] transition hover:border-amber-300/18 hover:bg-[linear-gradient(180deg,rgba(24,22,18,0.98),rgba(10,11,14,0.98))] ${
+                  index === 0 ? "min-h-[238px] p-4.5 sm:p-5" : "min-h-[200px] p-3.5 sm:p-4"
+                }`}
+              >
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.14),transparent_35%),linear-gradient(180deg,rgba(10,12,15,0.08),rgba(10,12,15,0.88))]" />
+                <div className="relative flex h-full flex-col">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="flex flex-wrap gap-2">
+                      <CardPill>{reward.linkedCampaignTitle}</CardPill>
+                      <CardPill>{reward.rewardType}</CardPill>
                     </div>
-                    <StatusChip
-                      label={reward.claimable ? "Ready" : "Locked"}
-                      tone={reward.claimable ? "positive" : "default"}
-                    />
+                    <StatusChip label={reward.claimable ? "Ready" : "Locked"} tone={reward.claimable ? "positive" : "default"} />
                   </div>
 
-                  <p className="mt-4 line-clamp-3 text-sm leading-7 text-slate-300">
-                    {reward.description || "Reward entry is live, but still needs a stronger prize briefing."}
+                  <h3
+                    className={`font-semibold leading-6 text-white ${
+                      index === 0 ? "mt-6 text-[1.06rem]" : "mt-5 text-[0.94rem]"
+                    }`}
+                  >
+                    {reward.title}
+                  </h3>
+                  <p className="mt-2.5 line-clamp-2 text-[12px] leading-5 text-slate-300">
+                    {reward.description || "Reward lane with clear cost pressure and a live claim state."}
                   </p>
 
-                  <div className="mt-5 grid gap-3 sm:grid-cols-4">
-                    <MiniMetric label="Cost" value={`${reward.cost} XP`} />
-                    <MiniMetric label="Type" value={reward.rewardType} />
-                    <MiniMetric label="Campaign" value={reward.linkedCampaignTitle} />
-                    <MiniMetric label="State" value={reward.claimable ? "Ready" : "Locked"} />
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    <MetricPill label="Cost" value={`${reward.cost} XP`} />
+                    <MetricPill label="Rarity" value={reward.rarity} />
+                    <MetricPill label="Type" value={reward.rewardType} />
                   </div>
 
-                  <div className="mt-5 flex items-center justify-between border-t border-white/8 pt-4">
-                    <div>
-                      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
-                        Claim read
-                      </p>
-                      <p className="mt-2 text-sm font-semibold text-white">
-                        {reward.claimable ? "Ready to redeem now" : "Still locked behind progression"}
-                      </p>
-                    </div>
-                    <span className="inline-flex items-center gap-2 text-sm font-semibold text-amber-200">
-                      Inspect
+                  <div className="mt-auto flex items-center justify-between border-t border-white/6 pt-3">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">
+                      Reward lane
+                    </span>
+                    <span className="inline-flex items-center gap-2 text-sm font-semibold text-amber-200 transition group-hover:translate-x-0.5">
+                      View
                       <ArrowRight className="h-4 w-4" />
                     </span>
                   </div>
-                </Link>
-              ))}
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <EmptyNotice text="No reward spotlights are visible yet." />
+        )}
+      </section>
+
+      <section className="space-y-4">
+        <SectionHeading
+          eyebrow="Grid"
+          title="All rewards"
+          description="Dense text-first slabs keep the reward board easy to browse without drowning the payoff story in big media."
+        />
+
+        {loading ? (
+          <EmptyNotice text="Loading rewards..." />
+        ) : error ? (
+          <EmptyNotice text={error} tone="error" />
+        ) : filteredRewards.length > 0 ? (
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-6">
+            {filteredRewards.map((reward) => (
+              <Link
+                key={reward.id}
+                href={`/rewards/${reward.id}`}
+                prefetch={false}
+                className="group rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(7,9,12,0.98))] p-3.5 transition hover:border-amber-300/16 hover:bg-[linear-gradient(180deg,rgba(21,19,16,0.98),rgba(8,10,13,0.98))]"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-[0.94rem] font-semibold text-white">{reward.title}</p>
+                    <p className="mt-2 truncate text-[10px] uppercase tracking-[0.16em] text-slate-500">
+                      {reward.linkedCampaignTitle}
+                    </p>
+                  </div>
+                  <StatusChip label={reward.claimable ? "Ready" : "Locked"} tone={reward.claimable ? "positive" : "default"} />
+                </div>
+
+                <div className="mt-3 flex items-center justify-between gap-3 text-[11px] text-slate-500">
+                  <span>{reward.rarity}</span>
+                  <span>{reward.cost} XP</span>
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  <MetricPill label="Type" value={reward.rewardType} />
+                  <MetricPill label="State" value={reward.claimable ? "ready" : "locked"} />
+                </div>
+
+                <div className="mt-4 flex items-center justify-between border-t border-white/6 pt-3">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
+                    Open reward
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-sm font-semibold text-amber-200">
+                    View
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <EmptyNotice text="No rewards match this board filter yet." />
+        )}
+      </section>
+
+      <section className="space-y-4">
+        <SectionHeading
+          eyebrow="Payout lanes"
+          title="Campaign pool claims"
+          description="Campaign distributions stay compact here so payout actions remain available without taking over the whole reward board."
+        />
+
+        <div className="grid gap-3.5 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="space-y-3">
+            {distributionMessage ? (
+              <EmptyNotice
+                text={distributionMessage.text}
+                tone={distributionMessage.tone === "error" ? "error" : "default"}
+              />
+            ) : null}
+
+            {payoutRows.length > 0 ? (
+              payoutRows.slice(0, 6).map((distribution) => (
+                <div
+                  key={distribution.id}
+                  className="rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(16,18,21,0.98),rgba(8,10,13,0.98))] p-3.5"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-[13px] font-semibold text-white">{distribution.campaignTitle}</p>
+                      <p className="mt-1.5 text-[11px] uppercase tracking-[0.16em] text-slate-500">
+                        {distribution.rewardAsset}
+                      </p>
+                    </div>
+                    <StatusChip
+                      label={distribution.stateLabel}
+                      tone={
+                        distribution.status === "claimable"
+                          ? "positive"
+                          : distribution.status === "queued" || distribution.status === "processing"
+                            ? "warning"
+                            : distribution.status === "paid"
+                              ? "info"
+                              : distribution.status === "rejected"
+                                ? "danger"
+                                : "default"
+                      }
+                    />
+                  </div>
+
+                  <div className="mt-3.5 flex flex-wrap gap-1.5">
+                    <MetricPill label="Pool" value={distribution.rewardAmountLabel} />
+                    <MetricPill label="State" value={distribution.stateLabel} />
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-white/6 pt-3">
+                    {distribution.status === "claimable" ? (
+                      <button
+                        onClick={() => void handleClaimDistribution(distribution.id)}
+                        disabled={activeDistributionId === distribution.id}
+                        className="rounded-full bg-lime-300 px-3.5 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-950 transition hover:bg-lime-200 disabled:cursor-not-allowed disabled:bg-lime-300/40"
+                      >
+                        {activeDistributionId === distribution.id ? "Queueing..." : "Queue payout"}
+                      </button>
+                    ) : (
+                      <span className="rounded-full border border-white/8 bg-white/[0.03] px-3.5 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+                        {distribution.status === "paid"
+                          ? "Already paid"
+                          : distribution.status === "rejected"
+                            ? "Needs review"
+                            : "In queue"}
+                      </span>
+                    )}
+
+                    <Link
+                      href={`/campaigns/${distribution.campaignId}`}
+                      prefetch={false}
+                      className="rounded-full border border-white/8 bg-white/[0.03] px-3.5 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-300 transition hover:border-white/12 hover:text-white"
+                    >
+                      Open campaign
+                    </Link>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <EmptyNotice text="No campaign pool payout lanes have landed yet." />
+            )}
+          </div>
+
+          <div className="rounded-[24px] border border-white/6 bg-[linear-gradient(180deg,rgba(16,18,21,0.98),rgba(8,10,13,0.98))] p-3.5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-500">Payout read</p>
+            <div className="mt-3.5 grid gap-2.5">
+              <BoardStat label="Claimable pools" value={String(claimableDistributionRows.length)} />
+              <BoardStat label="Queued / processing" value={String(pendingDistributionCount)} />
+              <BoardStat label="High value rewards" value={String(highValueCount)} />
             </div>
-          ) : (
-            <EmptyNotice text="No rewards match this filter yet." />
-          )}
+          </div>
         </div>
-      </Surface>
+      </section>
     </div>
   );
 }
 
-function ArtworkPanel({
-  src,
-  alt,
-  badge,
-  className,
+function SectionHeading({
+  eyebrow,
+  title,
+  description,
 }: {
-  src: string | null;
-  alt: string;
-  badge: string;
-  className?: string;
+  eyebrow: string;
+  title: string;
+  description: string;
 }) {
   return (
-    <div className={`relative overflow-hidden rounded-[30px] border border-white/10 bg-slate-950/70 ${className ?? "h-44"}`}>
-      <ArtworkImage
-        src={src}
-        alt={alt}
-        tone="amber"
-        fallbackLabel="Reward art offline"
-        className="absolute inset-0"
-        imgClassName="h-full w-full object-cover opacity-84"
-      />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,7,12,0.06),rgba(3,7,12,0.82)_58%,rgba(3,7,12,0.98))]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,196,0,0.24),transparent_38%)]" />
-      <div className="absolute left-4 top-4 rounded-full border border-amber-300/20 bg-black/45 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.24em] text-amber-100">
-        {badge}
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-500">{eyebrow}</p>
+        <h2 className="mt-2 text-[0.98rem] font-semibold tracking-[-0.02em] text-white sm:text-[1.08rem]">
+          {title}
+        </h2>
+        <p className="mt-1 max-w-3xl text-[12px] leading-5 text-slate-400">{description}</p>
       </div>
+      <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/8 bg-white/[0.03] text-slate-400">
+        <ArrowRight className="h-3.5 w-3.5" />
+      </span>
     </div>
   );
 }
 
-function QueueThumb({ src, alt }: { src: string | null; alt: string }) {
+function BoardStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-[18px] border border-white/10 bg-slate-950/80">
-      <ArtworkImage
-        src={src}
-        alt={alt}
-        tone="amber"
-        fallbackLabel="Reward art offline"
-        className="absolute inset-0"
-        imgClassName="h-full w-full object-cover opacity-85"
-      />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,7,12,0.04),rgba(3,7,12,0.82))]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,196,0,0.26),transparent_40%)]" />
+    <div className="rounded-full border border-white/8 bg-white/[0.03] px-3.5 py-1.5">
+      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">{label}</p>
+      <p className="mt-1 text-[13px] font-semibold text-white">{value}</p>
     </div>
   );
 }
 
-function FeatureStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="metric-card rounded-[24px] px-4 py-4">
-      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">{label}</p>
-      <p className="mt-2 text-2xl font-black text-white">{value}</p>
-    </div>
-  );
-}
-
-function MetricTile({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="metric-card rounded-[24px] p-4">
-      <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">{label}</p>
-      <p className="mt-3 text-3xl font-black text-white">{value}</p>
-    </div>
-  );
-}
-
-function ReadTile({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-[22px] border border-white/8 bg-black/20 px-4 py-4">
-      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
-      <p className="mt-2 text-sm leading-7 text-slate-200">{value}</p>
-    </div>
-  );
-}
-
-function MiniMetric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-[18px] border border-white/8 bg-white/[0.04] px-3 py-3">
-      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
-      <p className="mt-2 truncate text-sm font-semibold text-white">{value}</p>
-    </div>
-  );
-}
-
-function SignalTile({
-  icon: Icon,
+function SignalCard({
   label,
   value,
-  accent,
-  compact = false,
+  meta,
 }: {
-  icon?: typeof Gem;
   label: string;
   value: string;
-  accent: string;
-  compact?: boolean;
+  meta: string;
 }) {
   return (
-    <div className="metric-card rounded-[22px] px-4 py-3">
-      <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
-        {Icon ? <Icon className="h-3.5 w-3.5" /> : null}
-        <span>{label}</span>
-      </div>
-      <p className={`mt-3 ${compact ? "text-xl" : "text-2xl"} font-black ${accent}`}>{value}</p>
+    <div className="rounded-[18px] border border-white/6 bg-white/[0.03] px-3.5 py-3">
+      <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-500">{label}</p>
+      <p className="mt-2 text-[13px] font-semibold text-white">{value}</p>
+      <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-slate-500">{meta}</p>
     </div>
   );
 }
@@ -686,10 +473,10 @@ function FilterButton({
   return (
     <button
       onClick={onClick}
-      className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+      className={`rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-[0.16em] transition ${
         active
-          ? "bg-amber-300/14 text-amber-200 ring-1 ring-amber-300/20"
-          : "bg-white/[0.05] text-slate-300 hover:bg-white/[0.08]"
+          ? "border border-amber-300/16 bg-amber-300/10 text-amber-100"
+          : "border border-white/8 bg-white/[0.03] text-slate-400 hover:border-white/12 hover:text-white"
       }`}
     >
       {label}
@@ -697,17 +484,38 @@ function FilterButton({
   );
 }
 
-function EmptyNotice({ text }: { text: string }) {
+function CardPill({ children }: { children: ReactNode }) {
   return (
-    <div className="rounded-[24px] border border-white/8 bg-black/20 px-4 py-6 text-sm text-slate-300">
-      {text}
-    </div>
+    <span className="rounded-full border border-white/8 bg-white/[0.03] px-2.5 py-1 text-[8px] font-bold uppercase tracking-[0.16em] text-slate-300">
+      {children}
+    </span>
   );
 }
 
-function ErrorNotice({ text }: { text: string }) {
+function MetricPill({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[24px] border border-rose-400/20 bg-rose-500/10 px-4 py-6 text-sm text-rose-200">
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-black/20 px-2 py-1 text-[8px] font-bold uppercase tracking-[0.14em] text-slate-400">
+      <span>{label}</span>
+      <span className="text-white">{value}</span>
+    </span>
+  );
+}
+
+function EmptyNotice({
+  text,
+  tone = "default",
+}: {
+  text: string;
+  tone?: "default" | "error";
+}) {
+  return (
+    <div
+      className={`rounded-[24px] border px-4 py-5 text-sm ${
+        tone === "error"
+          ? "border-rose-400/20 bg-rose-500/10 text-rose-200"
+          : "border-white/8 bg-black/20 text-slate-300"
+      }`}
+    >
       {text}
     </div>
   );

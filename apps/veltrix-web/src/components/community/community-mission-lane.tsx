@@ -39,7 +39,7 @@ export function CommunityMissionLane({ snapshot }: CommunityMissionLaneProps) {
   return (
     <div className="grid gap-4 xl:grid-cols-2">
       {snapshot.missionLane.map((item, index) => (
-        <article key={item.key} className="rounded-[28px] border border-white/8 bg-black/20 p-5">
+        <article key={item.key} className="rounded-[22px] border border-white/8 bg-black/20 p-4">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
@@ -52,7 +52,7 @@ export function CommunityMissionLane({ snapshot }: CommunityMissionLaneProps) {
                   tone={item.completed ? "positive" : item.locked ? "warning" : "default"}
                 />
               </div>
-              <p className="mt-3 text-xl font-black text-white">{item.label}</p>
+      <p className="mt-2 text-[15px] font-black text-white">{item.label}</p>
               <p className="mt-3 text-sm leading-6 text-slate-300">{item.description}</p>
             </div>
           </div>

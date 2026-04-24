@@ -5,7 +5,7 @@ export default function Loading() {
         <p className="text-[11px] font-bold uppercase tracking-[0.34em] text-lime-300">
           Veltrix Web
         </p>
-        <p className="text-2xl font-black text-white">Loading mission control…</p>
+      <p className="text-[1.45rem] font-black text-white">Loading mission control…</p>
       </div>
     </div>
   );

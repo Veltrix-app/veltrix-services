@@ -80,7 +80,7 @@ export function CommunityDetailScreen() {
 
   return (
     <div className="space-y-6">
-      <section className="overflow-hidden rounded-[34px] border border-white/10 bg-[linear-gradient(135deg,rgba(192,255,0,0.12),rgba(0,0,0,0)_26%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:p-8">
+      <section className="overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(135deg,rgba(192,255,0,0.12),rgba(0,0,0,0)_26%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-5 shadow-[0_18px_52px_rgba(0,0,0,0.24)] sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.34em] text-lime-300">
@@ -212,7 +212,7 @@ export function CommunityDetailScreen() {
                 <p className="text-sm font-semibold text-cyan-200">
                   {campaign.featured ? "Momentum" : "Start here"}
                 </p>
-                <p className="mt-2 text-xl font-black text-white">{campaign.title}</p>
+                        <p className="mt-1.5 text-[15px] font-black text-white">{campaign.title}</p>
                 <p className="mt-3 text-sm leading-6 text-slate-300">{campaign.description}</p>
               </Link>
             ))}

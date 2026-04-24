@@ -153,7 +153,7 @@ export function SupportIntakeForm() {
             <p className="font-display text-[11px] font-bold uppercase tracking-[0.28em] text-lime-300">
               Support intake
             </p>
-            <h2 className="mt-3 text-2xl font-black text-white">Send one clear request into the queue</h2>
+          <h2 className="mt-2 text-[1.15rem] font-black text-white">Send one clear request into the queue</h2>
             <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300">
               Pick the lane that best matches the issue, describe what is blocked, and we will route it into the right
               workspace.
@@ -314,7 +314,7 @@ export function SupportIntakeForm() {
       </form>
 
       <aside className="space-y-4">
-        <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-5 shadow-[0_18px_60px_rgba(0,0,0,0.18)]">
+      <div className="rounded-[22px] border border-white/10 bg-white/[0.03] p-4 shadow-[0_18px_48px_rgba(0,0,0,0.16)]">
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-cyan-200">Routing posture</p>
           {accessToken ? (
             <>
@@ -340,7 +340,7 @@ export function SupportIntakeForm() {
           )}
         </div>
 
-        <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-5 shadow-[0_18px_60px_rgba(0,0,0,0.18)]">
+      <div className="rounded-[22px] border border-white/10 bg-white/[0.03] p-4 shadow-[0_18px_48px_rgba(0,0,0,0.16)]">
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-lime-300">What helps fastest</p>
           <ul className="mt-4 space-y-3 text-sm leading-7 text-slate-300">
             <li>Use the most specific lane you can.</li>

@@ -241,60 +241,71 @@ export function CampaignDetailScreen() {
   }
 
   return (
-    <div className="space-y-6">
-      <section className="overflow-hidden rounded-[38px] border border-white/10 bg-[linear-gradient(135deg,rgba(192,255,0,0.12),rgba(0,0,0,0)_28%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
-        {activeCampaign.bannerUrl || activeCampaign.thumbnailUrl ? (
-          <div className="relative h-64 bg-[linear-gradient(135deg,rgba(192,255,0,0.14),rgba(0,0,0,0.18))]">
-            <ArtworkImage
-              src={activeCampaign.bannerUrl ?? activeCampaign.thumbnailUrl}
-              alt={activeCampaign.title}
-              tone="lime"
-              fallbackLabel="Campaign art offline"
-              imgClassName="h-full w-full object-cover opacity-80"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-          </div>
-        ) : null}
-
-        <div className="p-6 sm:p-8">
-          <p className="text-[11px] font-bold uppercase tracking-[0.34em] text-lime-300">Campaign</p>
-          <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
-            <div className="max-w-[14ch]">
-              <h2 className="font-display text-balance text-[clamp(2.2rem,4vw,4.5rem)] font-black leading-[0.92] tracking-[0.04em] text-white">
-                {activeCampaign.title}
-              </h2>
-              <p className="mt-3 text-sm text-lime-200">{project?.name ?? "Project"}</p>
+    <div className="space-y-5">
+      <section className="rounded-[22px] border border-white/8 bg-[radial-gradient(circle_at_top_left,rgba(186,255,59,0.12),transparent_26%),radial-gradient(circle_at_78%_18%,rgba(0,204,255,0.12),transparent_24%),linear-gradient(180deg,rgba(12,14,18,0.99),rgba(7,9,11,0.99))] p-4 shadow-[0_20px_54px_rgba(0,0,0,0.24)]">
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.16fr)_300px]">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusChip label={project?.name ?? "Project"} tone="info" />
+              <StatusChip
+                label={campaign.featured ? "Featured" : `${campaign.completionRate}% live`}
+                tone={campaign.featured ? "positive" : "info"}
+              />
             </div>
-            <StatusChip label={campaign.featured ? "Featured" : `${campaign.completionRate}% live`} tone={campaign.featured ? "positive" : "info"} />
-          </div>
-          <p className="mt-5 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
-            {activeCampaign.description}
-          </p>
+            <p className="mt-3.5 text-[10px] font-bold uppercase tracking-[0.24em] text-lime-300">Campaign</p>
+            <h2 className="mt-2.5 max-w-[18ch] text-[1.06rem] font-semibold tracking-[-0.03em] text-white sm:text-[1.22rem]">
+              {activeCampaign.title}
+            </h2>
+            <p className="mt-2.5 max-w-3xl text-[13px] leading-5 text-slate-300">{activeCampaign.description}</p>
 
-          <div className="mt-8 grid gap-4 sm:grid-cols-4">
-            <MetricTile label="XP budget" value={String(activeCampaign.xpBudget)} />
-            <MetricTile label="Quests" value={String(campaignQuests.length)} />
-            <MetricTile label="Rewards" value={String(campaignRewards.length)} />
-            <MetricTile
-              label="Ends"
-              value={
-                activeCampaign.endsAt
-                  ? new Date(activeCampaign.endsAt).toLocaleDateString("nl-NL")
-                  : "Open"
-              }
-            />
+            <div className="mt-4 flex flex-wrap gap-1.5">
+              <MetricPill label="XP budget" value={String(activeCampaign.xpBudget)} />
+              <MetricPill label="Quests" value={String(campaignQuests.length)} />
+              <MetricPill label="Rewards" value={String(campaignRewards.length)} />
+              <MetricPill
+                label="Ends"
+                value={
+                  activeCampaign.endsAt
+                    ? new Date(activeCampaign.endsAt).toLocaleDateString("nl-NL", { day: "2-digit", month: "short" })
+                    : "Open"
+                }
+              />
+            </div>
+          </div>
+
+          <div className="space-y-3 rounded-[20px] border border-white/8 bg-white/[0.03] p-3.5">
+            {(activeCampaign.bannerUrl || activeCampaign.thumbnailUrl) ? (
+                <div className="relative overflow-hidden rounded-[20px] border border-white/8 bg-black/30">
+                <ArtworkImage
+                  src={activeCampaign.bannerUrl ?? activeCampaign.thumbnailUrl}
+                  alt={activeCampaign.title}
+                  tone="lime"
+                  fallbackLabel="Campaign art offline"
+                  className="aspect-[1.15/1] w-full"
+                  imgClassName="h-full w-full object-cover opacity-78"
+                />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,8,11,0.12),rgba(6,8,11,0.82))]" />
+              </div>
+            ) : null}
+
+            <div className="grid gap-2 sm:grid-cols-2">
+              <MetricTile label="Completion" value={`${campaign.completionRate}%`} />
+              <MetricTile label="Mode" value={activeCampaign.campaignMode ?? "offchain"} />
+              <MetricTile label="Pool" value={`${activeCampaign.rewardPoolAmount ?? 0}`} />
+              <MetricTile label="Trust gate" value={trustReady ? "Open" : "Blocked"} />
+            </div>
           </div>
         </div>
       </section>
 
-      <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.12fr)_300px]">
         <Surface
-          eyebrow="Command read"
+          eyebrow="Campaign read"
           title="Read the live campaign before you act"
           description="Campaign detail should tell you what is happening now, what the fastest next move is and what eligibility or pool pressure still needs attention."
           className="bg-[radial-gradient(circle_at_top_left,rgba(186,255,59,0.08),transparent_28%),linear-gradient(180deg,rgba(16,22,34,0.96),rgba(9,13,22,0.96))]"
         >
-          <div className="space-y-4">
+          <div className="space-y-3.5">
             <div className="grid gap-3 md:grid-cols-3">
               <ReadTile
                 label="Now"
@@ -314,7 +325,7 @@ export function CampaignDetailScreen() {
               />
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               <MetricTile label="Project" value={project?.name ?? "Unlinked"} />
               <MetricTile label="Completion" value={`${activeCampaign.completionRate}%`} />
               <MetricTile label="Featured" value={activeCampaign.featured ? "Yes" : "No"} />
@@ -324,11 +335,11 @@ export function CampaignDetailScreen() {
         </Surface>
 
         <Surface
-          eyebrow="AESP Staking"
+          eyebrow="Signal rail"
           title="Campaign stake posture"
           description="Stake active XP into this campaign, keep the pulse fresh, and watch claimable distribution weight build against the live pool."
         >
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             <MetricTile label="Active XP" value={String(activeXp)} />
             <MetricTile label="Minimum" value={String(requiredActiveXp)} />
             <MetricTile label="Trust" value={`${trustScore}`} />
@@ -338,7 +349,7 @@ export function CampaignDetailScreen() {
             />
           </div>
 
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <GateCard
               icon={<Wallet2 className="h-4 w-4" />}
               label="Verified wallet"
@@ -365,24 +376,24 @@ export function CampaignDetailScreen() {
             />
           </div>
 
-          <div className="mt-5 rounded-[24px] border border-white/8 bg-black/20 p-4">
+            <div className="mt-4 rounded-[22px] border border-white/8 bg-black/20 p-3.5">
             <div className="flex flex-wrap items-end gap-3">
               <div className="min-w-[180px] flex-1">
-                <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
+                <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-500">
                   Stake XP
                 </p>
                 <input
                   value={stakeAmount}
                   onChange={(event) => setStakeAmount(event.target.value)}
                   inputMode="numeric"
-                  className="mt-3 w-full rounded-full border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-white outline-none transition focus:border-lime-300/35 focus:bg-white/[0.07]"
+                  className="mt-2.5 w-full rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-2 text-[12px] font-semibold text-white outline-none transition focus:border-lime-300/35 focus:bg-white/[0.07]"
                   placeholder={stakeRecommendation || "100"}
                 />
               </div>
               <button
                 onClick={() => void handleStake()}
                 disabled={!canStake || stakeBusy}
-                className={`rounded-full px-5 py-3 text-sm font-black transition ${
+                className={`rounded-full px-3.5 py-2 text-[12px] font-black transition ${
                   canStake && !stakeBusy
                     ? "bg-lime-300 text-black hover:scale-[0.99]"
                     : "cursor-not-allowed border border-white/10 bg-white/[0.05] text-slate-400"
@@ -394,7 +405,7 @@ export function CampaignDetailScreen() {
                 <button
                   onClick={() => void handleRefreshStake()}
                   disabled={stakeBusy}
-                  className="glass-button inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+                  className="glass-button inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[12px] font-semibold text-white transition hover:bg-white/[0.08]"
                 >
                   <RefreshCcw className="h-4 w-4" />
                   Refresh pulse
@@ -402,7 +413,7 @@ export function CampaignDetailScreen() {
               ) : null}
             </div>
 
-            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <div className="mt-3.5 grid gap-2.5 sm:grid-cols-3">
               <MiniStat label="Stake state" value={campaignStake?.state ?? "Not staked"} />
               <MiniStat
                 label="Weighted XP"
@@ -432,7 +443,7 @@ export function CampaignDetailScreen() {
 
             {stakeMessage ? (
               <div
-                className={`mt-4 rounded-[18px] px-4 py-3 text-sm ${
+                className={`mt-3.5 rounded-[16px] px-3.5 py-2.5 text-[12px] ${
                   stakeMessage.tone === "error"
                     ? "border border-rose-400/20 bg-rose-500/10 text-rose-200"
                     : stakeMessage.tone === "success"
@@ -447,7 +458,7 @@ export function CampaignDetailScreen() {
         </Surface>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.08fr)_300px]">
         <Surface
           eyebrow="Pool Leaderboard"
           title="Stake pressure"
@@ -456,26 +467,26 @@ export function CampaignDetailScreen() {
           {leaderboardLoading ? (
             <Notice tone="default" text="Loading campaign pool..." />
           ) : stakeLeaderboard.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {stakeLeaderboard.map((entry) => (
                 <div
                   key={entry.stakeId}
-                  className="flex items-center justify-between gap-4 rounded-[24px] border border-white/8 bg-black/20 px-4 py-4"
+                  className="flex items-center justify-between gap-4 rounded-[16px] border border-white/8 bg-black/20 px-3 py-2.5"
                 >
                   <div className="flex items-center gap-4">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full border border-lime-300/18 bg-lime-300/10 text-sm font-black text-lime-100">
                       #{entry.rank}
                     </div>
                     <div>
-                      <p className="text-sm font-black text-white">{entry.username}</p>
-                      <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
+                      <p className="text-[13px] font-semibold text-white">{entry.username}</p>
+                      <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-slate-500">
                         {entry.state} stake
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-semibold text-white">{entry.weightedXp} weighted XP</p>
-                    <p className="mt-1 text-xs text-slate-400">
+                    <p className="text-[13px] font-semibold text-white">{entry.weightedXp} weighted XP</p>
+                    <p className="mt-1 text-[11px] text-slate-400">
                       {entry.rewardAmount > 0 && entry.rewardAsset
                         ? `${Number(entry.rewardAmount.toFixed(4))} ${entry.rewardAsset}`
                         : "No distribution yet"}
@@ -494,15 +505,15 @@ export function CampaignDetailScreen() {
           title="Move through the campaign"
           description="Jump directly into the project or community context around this campaign while the AESP layer handles the stake and distribution pressure."
         >
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2.5">
             {project ? (
-              <Link href={`/projects/${project.id}`} prefetch={false} className="rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99]">
-              Open project
+              <Link href={`/projects/${project.id}`} prefetch={false} className="rounded-full bg-lime-300 px-4 py-2.5 text-[13px] font-black text-black transition hover:scale-[0.99]">
+                Open project
               </Link>
             ) : null}
             {project ? (
-              <Link href={`/communities/${project.id}`} prefetch={false} className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]">
-              Open community
+              <Link href={`/communities/${project.id}`} prefetch={false} className="glass-button rounded-full px-3.5 py-2 text-[12px] font-semibold text-white transition hover:bg-white/[0.08]">
+                Open community
               </Link>
             ) : null}
           </div>
@@ -519,13 +530,13 @@ export function CampaignDetailScreen() {
           description="Verification-aware mission steps tied to this campaign."
       >
         {campaignQuests.length > 0 ? (
-          <div className="grid gap-4 xl:grid-cols-2">
+          <div className="grid gap-3 xl:grid-cols-2">
             {campaignQuests.map((quest) => (
-              <Link key={quest.id} href={`/quests/${quest.id}`} prefetch={false} className="panel-card rounded-[30px] p-5">
+              <Link key={quest.id} href={`/quests/${quest.id}`} prefetch={false} className="panel-card rounded-[20px] p-3.5">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-lg font-black text-white">{quest.title}</p>
-                    <p className="mt-2 text-sm text-slate-300">
+                    <p className="text-[13px] font-semibold text-white">{quest.title}</p>
+                    <p className="mt-1.5 text-[12px] text-slate-300">
                       {quest.verificationProvider ? `${quest.verificationProvider} verification` : "Custom verification"}
                     </p>
                   </div>
@@ -542,7 +553,7 @@ export function CampaignDetailScreen() {
                     }
                   />
                 </div>
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <div className="mt-3.5 grid gap-2 sm:grid-cols-2">
                   <MiniStat label="XP" value={`+${quest.xp}`} />
                   <MiniStat label="Mode" value={quest.completionMode ?? "manual"} />
                 </div>
@@ -560,17 +571,17 @@ export function CampaignDetailScreen() {
           description="Reward outcomes unlocked or progressed by this campaign."
       >
         {campaignRewards.length > 0 ? (
-          <div className="grid gap-4 xl:grid-cols-2">
+          <div className="grid gap-3 xl:grid-cols-2">
             {campaignRewards.map((reward) => (
-              <Link key={reward.id} href={`/rewards/${reward.id}`} prefetch={false} className="panel-card rounded-[30px] p-5 transition hover:border-lime-300/30 hover:bg-black/25">
+              <Link key={reward.id} href={`/rewards/${reward.id}`} prefetch={false} className="panel-card rounded-[20px] p-3.5 transition hover:border-lime-300/30 hover:bg-black/25">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-lg font-black text-white">{reward.title}</p>
-                    <p className="mt-2 text-sm text-slate-300">{reward.description}</p>
+                    <p className="text-[13px] font-semibold text-white">{reward.title}</p>
+                    <p className="mt-1.5 text-[12px] text-slate-300">{reward.description}</p>
                   </div>
                   <StatusChip label={reward.claimable ? "Claimable" : "Locked"} tone={reward.claimable ? "positive" : "default"} />
                 </div>
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <div className="mt-3.5 grid gap-2 sm:grid-cols-2">
                   <MiniStat label="Cost" value={`${reward.cost} XP`} />
                   <MiniStat label="Rarity" value={reward.rarity} />
                 </div>
@@ -587,18 +598,18 @@ export function CampaignDetailScreen() {
 
 function MetricTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="metric-card rounded-[24px] p-4">
-      <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">{label}</p>
-      <p className="mt-3 text-3xl font-black text-white">{value}</p>
+    <div className="metric-card rounded-[14px] p-2.5">
+      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">{label}</p>
+      <p className="mt-1 text-[0.8rem] font-semibold text-white">{value}</p>
     </div>
   );
 }
 
 function ReadTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[22px] border border-white/8 bg-black/20 px-4 py-4">
-      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
-      <p className="mt-2 text-sm leading-7 text-slate-200">{value}</p>
+    <div className="rounded-[14px] border border-white/8 bg-black/20 px-3 py-2.5">
+      <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-slate-500">{label}</p>
+      <p className="mt-1 text-[10px] leading-5 text-slate-200">{value}</p>
     </div>
   );
 }
@@ -615,32 +626,41 @@ function GateCard({
   ready: boolean;
 }) {
   return (
-    <div className="metric-card rounded-[20px] px-4 py-3">
+    <div className="metric-card rounded-[14px] px-3 py-2.5">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-slate-400">
           {icon}
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em]">{label}</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em]">{label}</p>
         </div>
         <StatusChip label={ready ? "Ready" : "Blocked"} tone={ready ? "positive" : "warning"} />
       </div>
-      <p className="mt-3 text-sm font-semibold text-white">{value}</p>
+      <p className="mt-1 text-[11px] font-semibold text-white">{value}</p>
     </div>
   );
 }
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="metric-card rounded-[20px] px-4 py-3">
-      <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
-      <p className="mt-2 text-sm font-semibold text-white">{value}</p>
+    <div className="metric-card rounded-[16px] px-3.5 py-2.5">
+      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">{label}</p>
+      <p className="mt-1.5 text-[11px] font-semibold text-white">{value}</p>
     </div>
+  );
+}
+
+function MetricPill({ label, value }: { label: string; value: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-black/20 px-2 py-1 text-[8px] font-bold uppercase tracking-[0.12em] text-slate-400">
+      <span>{label}</span>
+      <span className="text-white">{value}</span>
+    </span>
   );
 }
 
 function Notice({ text, tone }: { text: string; tone: "default" | "error" }) {
   return (
     <div
-      className={`rounded-[24px] px-4 py-6 text-sm ${
+      className={`rounded-[18px] px-3.5 py-4 text-[12px] ${
         tone === "error"
           ? "border border-rose-400/20 bg-rose-500/10 text-rose-200"
           : "border border-white/8 bg-black/20 text-slate-300"

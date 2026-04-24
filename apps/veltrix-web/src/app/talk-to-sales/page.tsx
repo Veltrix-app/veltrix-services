@@ -64,7 +64,7 @@ export default async function TalkToSalesPage({
         }}
       />
 
-      <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-10 px-6 py-8 sm:px-10 lg:px-16 lg:py-10">
+      <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-8 px-6 py-6 sm:px-10 lg:px-16 lg:py-7">
         <header className="grid gap-8 border-b border-white/8 pb-8 lg:grid-cols-[minmax(0,1.02fr)_minmax(320px,0.98fr)] lg:items-end">
           <div className="max-w-4xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.28em] text-lime-300">
@@ -142,7 +142,7 @@ export default async function TalkToSalesPage({
           <div className="space-y-6">
             <div className="rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(18,24,36,0.9),rgba(11,15,24,0.92))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.16)] sm:p-8">
               <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-cyan-200">Path guidance</p>
-              <h2 className="mt-4 text-2xl font-black tracking-[-0.03em] text-white">
+              <h2 className="mt-4 text-[1.45rem] font-black tracking-[-0.03em] text-white">
                 When to self-serve vs when to talk to us.
               </h2>
               <div className="mt-6 space-y-4">

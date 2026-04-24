@@ -28,7 +28,7 @@ export function ProjectDetailScreen() {
 
   return (
     <div className="space-y-6">
-      <section className="overflow-hidden rounded-[38px] border border-white/10 bg-[linear-gradient(135deg,rgba(0,204,255,0.12),rgba(0,0,0,0)_28%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
+      <section className="overflow-hidden rounded-[22px] border border-white/10 bg-[linear-gradient(135deg,rgba(0,204,255,0.12),rgba(0,0,0,0)_28%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] shadow-[0_18px_44px_rgba(0,0,0,0.18)]">
         {project.bannerUrl ? (
           <div className="relative h-64 bg-[linear-gradient(135deg,rgba(0,204,255,0.14),rgba(0,0,0,0.18))]">
             <ArtworkImage

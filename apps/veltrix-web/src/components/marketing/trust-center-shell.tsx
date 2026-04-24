@@ -19,7 +19,7 @@ export function TrustCenterShell({
 }) {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(201,255,85,0.16),transparent_22%),radial-gradient(circle_at_88%_10%,rgba(74,217,255,0.16),transparent_24%),linear-gradient(180deg,#071015_0%,#060b10_38%,#030507_100%)] text-white">
-      <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-12 px-6 py-8 sm:px-10 lg:px-16 lg:py-10">
+    <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-10 px-6 py-6 sm:px-10 lg:px-16 lg:py-7">
         <header className="grid gap-8 border-b border-white/8 pb-8 lg:grid-cols-[minmax(0,1.04fr)_minmax(320px,0.96fr)] lg:items-end">
           <div className="max-w-4xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.28em] text-lime-300">
@@ -35,7 +35,7 @@ export function TrustCenterShell({
             </p>
           </div>
 
-          <div className="rounded-[34px] border border-white/10 bg-[linear-gradient(160deg,rgba(13,18,27,0.96),rgba(8,12,19,0.98)_62%,rgba(12,20,30,0.98))] p-6 shadow-[0_36px_120px_rgba(0,0,0,0.3)]">
+      <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(160deg,rgba(13,18,27,0.96),rgba(8,12,19,0.98)_62%,rgba(12,20,30,0.98))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.24)]">
             <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-cyan-200">Review routes</p>
             <div className="mt-4 grid gap-4">
               <div className="rounded-[26px] border border-cyan-300/16 bg-cyan-300/[0.08] p-4">
@@ -108,14 +108,14 @@ export function TrustCenterShell({
           {controls.map((control, index) => (
             <article
               key={control.title}
-              className={`rounded-[32px] border p-6 shadow-[0_24px_80px_rgba(0,0,0,0.16)] ${
+              className={`rounded-[22px] border p-5 shadow-[0_18px_52px_rgba(0,0,0,0.16)] ${
                 index === 0
                   ? "border-lime-300/18 bg-[linear-gradient(180deg,rgba(186,255,59,0.08),rgba(18,24,35,0.9))]"
                   : "border-white/10 bg-[linear-gradient(180deg,rgba(18,24,36,0.9),rgba(11,15,24,0.92))]"
               }`}
             >
               <p className="font-display text-[11px] font-bold uppercase tracking-[0.28em] text-cyan-200">Control</p>
-              <h2 className="mt-3 text-2xl font-black tracking-[-0.03em] text-white">{control.title}</h2>
+              <h2 className="mt-2 text-[1.15rem] font-black tracking-[-0.03em] text-white">{control.title}</h2>
               <p className="mt-4 text-sm leading-7 text-slate-300">{control.summary}</p>
               <ul className="mt-5 space-y-3 text-sm leading-7 text-slate-200">
                 {control.bullets.map((bullet) => (
@@ -129,11 +129,11 @@ export function TrustCenterShell({
           ))}
         </section>
 
-        <section className="rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(18,24,36,0.9),rgba(11,15,24,0.92))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.16)] sm:p-7">
+      <section className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(18,24,36,0.9),rgba(11,15,24,0.92))] p-5 shadow-[0_18px_52px_rgba(0,0,0,0.16)] sm:p-6">
           <div className="grid gap-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
             <div className="max-w-2xl">
               <p className="font-display text-[11px] font-bold uppercase tracking-[0.28em] text-lime-300">Documents</p>
-              <h2 className="mt-3 text-2xl font-black tracking-[-0.03em] text-white">Public materials for security review.</h2>
+        <h2 className="mt-2 text-[1.15rem] font-black tracking-[-0.03em] text-white">Public materials for security review.</h2>
               <p className="mt-4 text-sm leading-7 text-slate-300">
                 A trust center should let buyers move quickly between privacy, terms, subprocessors and status without
                 feeling like they dropped into a separate documentation site.
@@ -158,7 +158,7 @@ export function TrustCenterShell({
         <section className="space-y-5">
           <div className="max-w-3xl">
             <p className="font-display text-[11px] font-bold uppercase tracking-[0.28em] text-cyan-200">Subprocessors</p>
-            <h2 className="mt-3 text-2xl font-black tracking-[-0.03em] text-white">Current vendor registry.</h2>
+        <h2 className="mt-2 text-[1.15rem] font-black tracking-[-0.03em] text-white">Current vendor registry.</h2>
             <p className="mt-4 text-sm leading-7 text-slate-300">
               This list covers the main vendors Veltrix uses to operate infrastructure, payments and product delivery.
               It stays public so buyers do not need to start from zero in review calls.
@@ -167,10 +167,10 @@ export function TrustCenterShell({
           <SubprocessorTable items={subprocessors} />
         </section>
 
-        <section className="rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(18,24,36,0.9),rgba(11,15,24,0.92))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.16)] sm:p-7">
+      <section className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(18,24,36,0.9),rgba(11,15,24,0.92))] p-5 shadow-[0_18px_52px_rgba(0,0,0,0.16)] sm:p-6">
           <div className="max-w-3xl">
             <p className="font-display text-[11px] font-bold uppercase tracking-[0.28em] text-lime-300">FAQ</p>
-            <h2 className="mt-3 text-2xl font-black tracking-[-0.03em] text-white">Fast answers for common review questions.</h2>
+        <h2 className="mt-2 text-[1.15rem] font-black tracking-[-0.03em] text-white">Fast answers for common review questions.</h2>
           </div>
           <div className="mt-6 grid gap-4">
             {faqs.map((faq) => (
@@ -185,11 +185,11 @@ export function TrustCenterShell({
           </div>
         </section>
 
-        <section className="rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(18,24,36,0.9),rgba(11,15,24,0.92))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.16)] sm:p-7">
+      <section className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(18,24,36,0.9),rgba(11,15,24,0.92))] p-5 shadow-[0_18px_52px_rgba(0,0,0,0.16)] sm:p-6">
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
             <div className="max-w-3xl">
               <p className="font-display text-[11px] font-bold uppercase tracking-[0.28em] text-cyan-200">Next step</p>
-              <h2 className="mt-3 text-2xl font-black tracking-[-0.03em] text-white">When the review gets specific, keep the route simple.</h2>
+        <h2 className="mt-2 text-[1.15rem] font-black tracking-[-0.03em] text-white">When the review gets specific, keep the route simple.</h2>
               <p className="mt-4 text-sm leading-7 text-slate-300">
                 Veltrix keeps trust materials public, but real buyer review should still land in one clear commercial path so security, rollout and commercial questions stay connected.
               </p>

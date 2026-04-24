@@ -678,66 +678,74 @@ export function QuestDetailScreen() {
   }
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-[34px] border border-white/10 bg-[linear-gradient(135deg,rgba(192,255,0,0.12),rgba(0,204,255,0.1),rgba(0,0,0,0)_34%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:p-8">
-        {heroVisual ? (
-          <>
-            <ArtworkImage
-              src={heroVisual}
-              alt={currentQuest.title}
-              tone="lime"
-              fallbackLabel="Mission art offline"
-              className="pointer-events-none absolute right-6 top-6 hidden h-[15rem] w-[min(24rem,38%)] rounded-[30px] xl:block"
-              imgClassName="h-full w-full rounded-[30px] object-cover opacity-75 shadow-[0_28px_80px_rgba(0,0,0,0.42)]"
-            />
-            <div className="pointer-events-none absolute right-4 top-4 hidden h-[16rem] w-[42%] rounded-[32px] bg-[radial-gradient(circle_at_top_left,rgba(0,204,255,0.14),transparent_40%)] xl:block" />
-          </>
-        ) : null}
+    <div className="space-y-5">
+      <section className="rounded-[22px] border border-white/8 bg-[radial-gradient(circle_at_top_left,rgba(186,255,59,0.12),transparent_26%),radial-gradient(circle_at_78%_18%,rgba(0,204,255,0.12),transparent_24%),linear-gradient(180deg,rgba(12,14,18,0.99),rgba(7,9,11,0.99))] p-4 shadow-[0_20px_54px_rgba(0,0,0,0.24)]">
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.16fr)_300px]">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusChip label={linkedProject?.name ?? "Project"} tone="info" />
+              {linkedCampaign ? <StatusChip label={linkedCampaign.title} tone="info" /> : null}
+              <StatusChip label={currentQuest.status} tone={getStatusTone(currentQuest.status)} />
+            </div>
 
-        <p className="relative z-10 text-[11px] font-bold uppercase tracking-[0.34em] text-lime-300">
-          Mission Action
-        </p>
-        <div className="relative z-10 mt-4 flex flex-wrap items-start justify-between gap-4">
-          <div className="max-w-[15ch]">
-            <h2 className="font-display text-balance text-3xl font-black tracking-[0.04em] text-white sm:text-5xl">
+            <p className="mt-3.5 text-[10px] font-bold uppercase tracking-[0.24em] text-lime-300">Mission</p>
+            <h2 className="mt-2.5 max-w-[18ch] text-[1.06rem] font-semibold tracking-[-0.03em] text-white sm:text-[1.22rem]">
               {currentQuest.title}
             </h2>
-            <p className="mt-3 text-sm text-lime-200">
-              {linkedProject?.name ?? "Project"}
-              {linkedCampaign ? ` // ${linkedCampaign.title}` : ""}
+            <p className="mt-2.5 max-w-3xl text-[13px] leading-5 text-slate-300">
+              {currentQuest.description || "No description yet for this mission."}
             </p>
-          </div>
-          <StatusChip label={currentQuest.status} tone={getStatusTone(currentQuest.status)} />
-        </div>
-        <p className="relative z-10 mt-5 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
-          {currentQuest.description || "No description yet for this mission."}
-        </p>
 
-        <div className="relative z-10 mt-8 grid gap-4 sm:grid-cols-4">
-          <MetricTile label="Type" value={currentQuest.type} />
-          <MetricTile label="XP" value={`+${currentQuest.xp}`} />
-          <MetricTile label="Mode" value={currentQuest.completionMode ?? "manual"} />
-          <MetricTile label="Provider" value={currentQuest.verificationProvider ?? "custom"} />
+            <div className="mt-4 flex flex-wrap gap-1.5">
+              <MetricPill label="Type" value={currentQuest.type} />
+              <MetricPill label="XP" value={`+${currentQuest.xp}`} />
+              <MetricPill label="Mode" value={currentQuest.completionMode ?? "manual"} />
+              <MetricPill label="Provider" value={currentQuest.verificationProvider ?? "custom"} />
+            </div>
+          </div>
+
+          <div className="space-y-3 rounded-[20px] border border-white/8 bg-white/[0.03] p-3.5">
+            {heroVisual ? (
+              <div className="relative overflow-hidden rounded-[20px] border border-white/8 bg-black/30">
+                <ArtworkImage
+                  src={heroVisual}
+                  alt={currentQuest.title}
+                  tone="lime"
+                  fallbackLabel="Mission art offline"
+                  className="aspect-[1.15/1] w-full"
+                  imgClassName="h-full w-full object-cover opacity-76"
+                />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,8,11,0.12),rgba(6,8,11,0.82))]" />
+              </div>
+            ) : null}
+
+            <div className="grid gap-2 sm:grid-cols-2">
+              <MetricTile label="Status" value={currentQuest.status} />
+              <MetricTile label="Account" value={accountReadyState} />
+              <MetricTile label="Proof" value={currentQuest.proofType} />
+              <MetricTile label="Route" value={currentQuest.verificationType} />
+            </div>
+          </div>
         </div>
       </section>
 
       {message ? <Notice tone={message.tone} text={message.text} /> : null}
 
-      <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.08fr)_300px]">
         <Surface
-          eyebrow="Launch Protocol"
+          eyebrow="Mission read"
           title="Mission flow"
           description="Open the target, execute the move and let the provider route decide whether this clears instantly or waits in the queue."
         >
-          <div className="space-y-4">
-            <div className="metric-card rounded-[24px] p-4">
+          <div className="space-y-3.5">
+            <div className="metric-card rounded-[20px] p-3.5">
               <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">
                 Mission brief
               </p>
-              <p className="mt-3 text-sm leading-7 text-slate-300">{proofGuidance}</p>
+              <p className="mt-2.5 text-[13px] leading-6 text-slate-300">{proofGuidance}</p>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               <MiniStat label="Status" value={currentQuest.status} />
               <MiniStat label="Account ready" value={accountReadyState} />
             </div>
@@ -745,7 +753,7 @@ export function QuestDetailScreen() {
             {requiredAccount &&
             !providerAccountConnected &&
             (requiredAccount === "wallet" ? walletSnapshotSettled : accountSnapshotSettled) ? (
-              <div className="rounded-[24px] border border-amber-400/20 bg-amber-500/10 p-4 text-sm text-amber-100">
+              <div className="rounded-[20px] border border-amber-400/20 bg-amber-500/10 p-3.5 text-[13px] text-amber-100">
                 This mission needs a connected {requiredAccount.toUpperCase()} account before the
                 verification route can start. Link it from{" "}
                 <Link
@@ -762,7 +770,7 @@ export function QuestDetailScreen() {
             !providerAccountConnected &&
             ((requiredAccount === "wallet" && !walletSnapshotSettled) ||
               (requiredAccount !== "wallet" && !accountSnapshotSettled)) ? (
-              <div className="rounded-[24px] border border-cyan-300/20 bg-cyan-400/10 p-4 text-sm text-cyan-100">
+              <div className="rounded-[20px] border border-cyan-300/20 bg-cyan-400/10 p-3.5 text-[13px] text-cyan-100">
                 Veltrix is syncing your{" "}
                 {requiredAccount === "wallet"
                   ? "wallet"
@@ -772,11 +780,11 @@ export function QuestDetailScreen() {
               </div>
             ) : null}
 
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2.5">
               <button
                 onClick={() => void handleOpenTask()}
                 disabled={!derivedActionUrl || busy || missionClosed}
-                className="rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-full bg-lime-300 px-4 py-2.5 text-[12px] font-black text-black transition hover:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {missionClosed
                   ? "Mission closed"
@@ -792,7 +800,7 @@ export function QuestDetailScreen() {
               {requiredAccount && !missionClosed ? (
                 <Link
                   href={requiredAccount === "wallet" ? "/profile/edit" : `/profile#${requiredAccount}`}
-                  className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+                  className="glass-button rounded-full px-4 py-2.5 text-[12px] font-semibold text-white transition hover:bg-white/[0.08]"
                 >
                   {requiredAccount === "wallet" ? "Manage wallet" : "Review connected accounts"}
                 </Link>
@@ -803,8 +811,8 @@ export function QuestDetailScreen() {
             !usesDiscordVerification &&
             !usesTelegramVerification &&
             !usesXVerification ? (
-              <div className="space-y-4">
-                <div className="metric-card rounded-[24px] p-4">
+              <div className="space-y-3.5">
+                <div className="metric-card rounded-[20px] p-3.5">
                   <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">
                     Proof / transmission
                   </p>
@@ -812,19 +820,19 @@ export function QuestDetailScreen() {
                     value={proof}
                     onChange={(event) => setProof(event.target.value)}
                     placeholder="Paste proof here..."
-                    className="mt-4 min-h-36 w-full rounded-[22px] border border-white/10 bg-white/[0.03] px-4 py-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-lime-300/50 focus:bg-white/[0.05]"
+                    className="mt-3 min-h-32 w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-3.5 py-3 text-[13px] text-white outline-none transition placeholder:text-slate-500 focus:border-lime-300/50 focus:bg-white/[0.05]"
                   />
                 </div>
                 <button
                   onClick={() => void handleSubmit()}
                   disabled={busy || currentQuest.status === "approved"}
-                  className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="glass-button rounded-full px-4 py-2.5 text-[12px] font-semibold text-white transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {currentQuest.status === "approved" ? "Mission approved" : "Submit mission"}
                 </button>
               </div>
             ) : (
-              <div className="metric-card rounded-[24px] p-4 text-sm leading-7 text-slate-300">
+              <div className="metric-card rounded-[16px] p-3 text-[11px] leading-5 text-slate-300">
                 {missionClosed
                   ? "This mission is closed. Verification landed successfully, the completion state is locked in, and no further action is required."
                   : usesWebsiteVerification
@@ -839,14 +847,14 @@ export function QuestDetailScreen() {
           </div>
         </Surface>
 
-        <div className="space-y-6">
+        <div className="space-y-5">
           <Surface
-            eyebrow="Command read"
+            eyebrow="Signal rail"
             title="Read the mission pressure before you open it"
             description="Start with the live state, the next routing move, and the one unlock cue worth watching."
             className="bg-[radial-gradient(circle_at_top_left,rgba(192,255,0,0.16),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))]"
           >
-            <div className="grid gap-3">
+            <div className="grid gap-2.5">
               <ReadTile
                 label="Now"
                 value={`${currentQuest.title} is currently ${currentQuest.status} with ${accountReadyState.toLowerCase()} account readiness and ${currentQuest.verificationType} verification.`}
@@ -855,7 +863,7 @@ export function QuestDetailScreen() {
               <ReadTile label="Watch" value={watchMissionCue} />
             </div>
 
-            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <MiniStat label="Status" value={currentQuest.status} />
               <MiniStat label="Verification" value={currentQuest.verificationType} />
               <MiniStat label="Proof" value={currentQuest.proofType} />
@@ -871,12 +879,12 @@ export function QuestDetailScreen() {
             >
               <Link
                 href={`/campaigns/${linkedCampaign.id}`}
-                className="panel-card block rounded-[26px] p-5 transition hover:border-lime-300/30 hover:bg-black/25"
+            className="panel-card block rounded-[18px] p-3.5 transition hover:border-lime-300/30 hover:bg-black/25"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-lg font-black text-white">{linkedCampaign.title}</p>
-                    <p className="mt-2 text-sm text-slate-300">{linkedCampaign.description}</p>
+                    <p className="text-[13px] font-semibold text-white">{linkedCampaign.title}</p>
+                    <p className="mt-1.5 text-[12px] text-slate-300">{linkedCampaign.description}</p>
                   </div>
                   <StatusChip
                     label={linkedCampaign.featured ? "Featured" : `${linkedCampaign.completionRate}% live`}
@@ -893,16 +901,16 @@ export function QuestDetailScreen() {
             description="Rewards connected to the same campaign loop and mission cadence."
           >
             {linkedRewards.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {linkedRewards.map((reward) => (
                   <Link
                     key={reward.id}
                     href={`/rewards/${reward.id}`}
-                    className="metric-card flex items-start justify-between gap-4 rounded-[24px] px-4 py-4 transition hover:border-lime-300/30 hover:bg-black/25"
+                    className="metric-card flex items-start justify-between gap-4 rounded-[16px] px-3 py-2.5 transition hover:border-lime-300/30 hover:bg-black/25"
                   >
                     <div>
-                      <p className="font-bold text-white">{reward.title}</p>
-                      <p className="mt-1 text-sm text-slate-300">{reward.description}</p>
+                      <p className="text-[12px] font-semibold text-white">{reward.title}</p>
+                      <p className="mt-1 text-[11px] text-slate-300">{reward.description}</p>
                     </div>
                     <StatusChip
                       label={reward.claimable ? "Claimable" : "Locked"}
@@ -943,27 +951,27 @@ function useQuestAuth() {
 
 function MetricTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="metric-card rounded-[24px] p-4">
-      <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">{label}</p>
-      <p className="mt-3 text-3xl font-black capitalize text-white">{value}</p>
+    <div className="metric-card rounded-[14px] p-2.5">
+      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">{label}</p>
+      <p className="mt-1 text-[0.8rem] font-semibold capitalize text-white">{value}</p>
     </div>
   );
 }
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="metric-card rounded-[20px] px-4 py-3">
-      <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
-      <p className="mt-2 text-sm font-semibold capitalize text-white">{value}</p>
+    <div className="metric-card rounded-[14px] px-3 py-2.5">
+      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">{label}</p>
+      <p className="mt-1 text-[10px] font-semibold capitalize text-white">{value}</p>
     </div>
   );
 }
 
 function ReadTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[24px] border border-white/8 bg-black/20 px-4 py-4">
-      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-lime-200/85">{label}</p>
-      <p className="mt-3 text-sm leading-7 text-slate-200">{value}</p>
+    <div className="rounded-[14px] border border-white/8 bg-black/20 px-3 py-2.5">
+      <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-lime-200/85">{label}</p>
+      <p className="mt-1 text-[10px] leading-5 text-slate-200">{value}</p>
     </div>
   );
 }
@@ -977,7 +985,7 @@ function Notice({
 }) {
   return (
     <div
-      className={`rounded-[24px] px-4 py-6 text-sm ${
+      className={`rounded-[18px] px-3.5 py-4 text-[12px] ${
         tone === "error"
           ? "border border-rose-400/20 bg-rose-500/10 text-rose-200"
           : tone === "success"
@@ -987,5 +995,14 @@ function Notice({
     >
       {text}
     </div>
+  );
+}
+
+function MetricPill({ label, value }: { label: string; value: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-black/20 px-2 py-1 text-[8px] font-bold uppercase tracking-[0.12em] text-slate-400">
+      <span>{label}</span>
+      <span className="text-white">{value}</span>
+    </span>
   );
 }

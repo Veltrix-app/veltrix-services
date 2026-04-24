@@ -123,7 +123,7 @@ export function CheckoutSummaryCard({
   }
 
   return (
-    <aside className="sticky top-6 overflow-hidden rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(18,24,36,0.96),rgba(10,14,22,0.98))] p-6 shadow-[0_28px_100px_rgba(0,0,0,0.3)]">
+    <aside className="sticky top-6 overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(18,24,36,0.96),rgba(10,14,22,0.98))] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.24)]">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(186,255,59,0.12),transparent_24%),radial-gradient(circle_at_82%_18%,rgba(74,217,255,0.1),transparent_26%),linear-gradient(125deg,rgba(255,255,255,0.04),transparent_34%)]" />
       <div className="relative z-10">
         <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.22em] text-cyan-200">
@@ -134,7 +134,7 @@ export function CheckoutSummaryCard({
         <p className="mt-3 text-sm leading-7 text-slate-300">{plan.description}</p>
 
         {intent === "pay_and_continue" ? (
-          <div className="mt-5 rounded-[28px] border border-amber-300/25 bg-[linear-gradient(180deg,rgba(245,158,11,0.14),rgba(20,15,12,0.82))] px-4 py-4">
+      <div className="mt-5 rounded-[22px] border border-amber-300/25 bg-[linear-gradient(180deg,rgba(245,158,11,0.14),rgba(20,15,12,0.82))] px-4 py-4">
             <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-200">
               Pay and continue
             </p>
@@ -150,7 +150,7 @@ export function CheckoutSummaryCard({
           </div>
         ) : null}
 
-        <div className="mt-6 rounded-[28px] border border-white/10 bg-white/[0.03] p-5">
+      <div className="mt-6 rounded-[22px] border border-white/10 bg-white/[0.03] p-4">
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">Commercial posture</p>
           <p className="mt-3 text-[2.25rem] font-black tracking-[-0.05em] text-white">
             {plan.isEnterprise ? "Custom" : `EUR ${plan.priceMonthly}`}
@@ -177,7 +177,7 @@ export function CheckoutSummaryCard({
           </div>
         </div>
 
-        <div className="mt-6 grid gap-3 rounded-[28px] border border-white/10 bg-black/20 p-4 sm:grid-cols-2">
+      <div className="mt-6 grid gap-3 rounded-[22px] border border-white/10 bg-black/20 p-4 sm:grid-cols-2">
           <CapacityCell label="Projects" value={plan.projectsLimit} />
           <CapacityCell label="Campaigns" value={plan.campaignsLimit} />
           <CapacityCell label="Quests" value={plan.questsLimit} />

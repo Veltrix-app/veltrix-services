@@ -55,7 +55,7 @@ export function AccountRecoveryScreen() {
       : null;
 
   return (
-    <div className="mx-auto w-full max-w-[620px] rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:p-8">
+      <div className="mx-auto w-full max-w-[620px] rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))] p-5 shadow-[0_18px_52px_rgba(0,0,0,0.24)] sm:p-6">
       <p className="text-[11px] font-bold uppercase tracking-[0.34em] text-cyan-200">
         Account recovery
       </p>
