@@ -8,10 +8,11 @@ import { docsTopRoutes, getDocsTrackById } from "@/lib/docs/docs-nav";
 
 export default function DocsOverviewPage() {
   const projectTrack = getDocsTrackById("project-docs");
+  const buyerTrack = getDocsTrackById("buyer-guides");
   const operatorTrack = getDocsTrackById("operator-docs");
   const referenceTrack = getDocsTrackById("reference");
 
-  if (!projectTrack || !operatorTrack || !referenceTrack) {
+  if (!projectTrack || !buyerTrack || !operatorTrack || !referenceTrack) {
     return null;
   }
 
@@ -22,10 +23,11 @@ export default function DocsOverviewPage() {
       description="Veltrix Docs explains the product as one connected system: launch setup, community execution, member journeys, bot activation, safety workflows and the exact states behind them."
       actions={[
         { href: "/project-docs", label: "Open Project Docs" },
+        { href: "/buyer-guides", label: "Open Buyer Guides" },
         { href: "/operator-docs", label: "Open Operator Docs" },
       ]}
-      chips={["Project Docs", "Operator Docs", "Reference", "Release Notes"]}
-      relatedHrefs={["/project-docs", "/operator-docs", "/reference", "/release-notes"]}
+      chips={["Project Docs", "Buyer Guides", "Operator Docs", "Reference", "Release Notes"]}
+      relatedHrefs={["/project-docs", "/buyer-guides", "/operator-docs", "/reference", "/release-notes"]}
       rail={
         <div className="space-y-4">
           <div>
@@ -37,8 +39,8 @@ export default function DocsOverviewPage() {
           </p>
           <div className="grid gap-3">
             <div className="rounded-[20px] border border-white/8 bg-black/20 p-4">
-              <p className="text-sm font-black text-white">Two public tracks</p>
-              <p className="mt-2 text-sm leading-6 text-slate-400">Project Docs and Operator Docs stay separate, but both stay open.</p>
+              <p className="text-sm font-black text-white">Three public tracks</p>
+              <p className="mt-2 text-sm leading-6 text-slate-400">Project Docs, Buyer Guides and Operator Docs stay separate, but all stay open.</p>
             </div>
             <div className="rounded-[20px] border border-white/8 bg-black/20 p-4">
               <p className="text-sm font-black text-white">One system language</p>
@@ -80,13 +82,19 @@ export default function DocsOverviewPage() {
         title="Start from the question you are actually trying to answer."
         description="Most people do not begin with a route name in mind. These entrypoints are the strongest first jumps if you want the docs to help with real work immediately."
       >
-        <div className="grid gap-4 xl:grid-cols-3">
+        <div className="grid gap-4 xl:grid-cols-4">
           {[
             {
               href: "/project-docs/workflows/launch-a-project",
               eyebrow: "Founder path",
               title: "Launch a project",
               summary: "The strongest first read if you need to understand the clean order of operations from project readiness into the right builders.",
+            },
+            {
+              href: "/buyer-guides/pricing-and-plans",
+              eyebrow: "Buyer path",
+              title: "Compare pricing and plans",
+              summary: "The best entrypoint if the real question is how Free, Starter, Growth and Enterprise differ and when a human commercial path makes sense.",
             },
             {
               href: "/project-docs/workflows/build-a-campaign",
@@ -117,11 +125,11 @@ export default function DocsOverviewPage() {
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
         <DocsSnapshotFrame
           title="How the docs system is structured"
-          description="The public site is shaped like the product itself: a project lane, an operator lane, an exact reference layer and a visible release timeline."
+          description="The public site is shaped like the product itself: project docs, buyer guides, operator docs, an exact reference layer and a visible release timeline."
           caption="Read-only architecture preview"
           stats={[
-            { label: "Public tracks", value: "2" },
-            { label: "Core hubs", value: "4" },
+            { label: "Public tracks", value: "3" },
+            { label: "Core hubs", value: "5" },
             { label: "Reference posture", value: "Exact" },
           ]}
         >
@@ -131,6 +139,18 @@ export default function DocsOverviewPage() {
                 <p className="docs-kicker text-lime-300">Project Docs</p>
                 <div className="mt-4 grid gap-3 md:grid-cols-2">
                   {projectTrack.sections.map((section) => (
+                    <div key={section.id} className="rounded-[18px] border border-white/8 bg-white/[0.03] p-4">
+                      <p className="text-sm font-black text-white">{section.label}</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-400">{section.summary}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-[24px] border border-white/8 bg-black/20 p-5">
+                <p className="docs-kicker text-white/70">Buyer Guides</p>
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  {buyerTrack.sections.map((section) => (
                     <div key={section.id} className="rounded-[18px] border border-white/8 bg-white/[0.03] p-4">
                       <p className="text-sm font-black text-white">{section.label}</p>
                       <p className="mt-2 text-sm leading-6 text-slate-400">{section.summary}</p>

@@ -45,6 +45,30 @@ function buildPricingSelectionHref(params: {
   return `${target.pathname}${target.search}`;
 }
 
+function buildSalesHref(params: {
+  planId: string;
+  accountId?: string | null;
+  intent?: string | null;
+  returnTo?: string | null;
+  from?: string | null;
+}) {
+  const target = new URL("/talk-to-sales", "https://veltrix-web.vercel.app");
+  target.searchParams.set("plan", params.planId);
+  target.searchParams.set("intent", params.intent === "enterprise_review" ? "enterprise_review" : "demo");
+
+  if (params.accountId) {
+    target.searchParams.set("accountId", params.accountId);
+  }
+
+  if (params.returnTo) {
+    target.searchParams.set("returnTo", params.returnTo);
+  }
+
+  target.searchParams.set("from", params.from ?? "pricing");
+
+  return `${target.pathname}${target.search}`;
+}
+
 export function PricingPlanGrid({
   plans,
   highlightPlanId,
@@ -83,18 +107,13 @@ export function PricingPlanGrid({
           publicAuthRoutes.signUp,
           selectionHref
         );
-        const enterpriseHref =
-          accountId || returnTo || intent
-            ? buildPricingSelectionHref({
-                planId: plan.id,
-                accountId,
-                intent,
-                metric,
-                action,
-                returnTo,
-                from,
-              })
-            : "/support?intent=enterprise";
+        const enterpriseHref = buildSalesHref({
+          planId: plan.id,
+          accountId,
+          intent: "enterprise_review",
+          returnTo,
+          from: from ?? "pricing",
+        });
 
         return (
           <article
@@ -151,7 +170,7 @@ export function PricingPlanGrid({
                   href={enterpriseHref}
                   className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/12 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.06]"
                 >
-                  {accountId ? "Review enterprise path" : "Talk to us"}
+                  {accountId ? "Review enterprise path" : "Talk to sales"}
                 </Link>
               ) : (
                 <Link

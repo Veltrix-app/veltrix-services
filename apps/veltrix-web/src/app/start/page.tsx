@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, BookOpen, LifeBuoy, ShieldCheck, Sparkles } from "lucide-react";
 import { publicAuthRoutes } from "@/lib/account/public-auth";
 import { GrowthAttributionBeacon } from "@/components/analytics/growth-attribution-beacon";
+import { EnterpriseCtaBand } from "@/components/marketing/enterprise-cta-band";
 
 export default function StartPage() {
   return (
@@ -41,7 +42,7 @@ export default function StartPage() {
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/support"
+                href="/talk-to-sales?from=start"
                 className="inline-flex items-center gap-2 rounded-full border border-white/12 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-white/[0.06]"
               >
                 <LifeBuoy className="h-4 w-4" />
@@ -65,10 +66,10 @@ export default function StartPage() {
                 Sign in
               </Link>
               <Link
-                href={publicAuthRoutes.recover}
+                href="/pricing"
                 className="inline-flex items-center gap-2 rounded-full border border-white/12 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-white/[0.06]"
               >
-                Recover account
+                Review pricing
               </Link>
             </div>
           </section>
@@ -97,6 +98,16 @@ export default function StartPage() {
             </p>
           </div>
         </section>
+
+        <EnterpriseCtaBand
+          eyebrow="Guided help"
+          title="Need rollout help before the workspace exists?"
+          body="If the next step is not obvious yet, open the buyer path instead of forcing yourself through a blind self-serve start."
+          primaryHref="/talk-to-sales?from=start&intent=enterprise_review"
+          primaryLabel="Open buyer intake"
+          secondaryHref="/trust"
+          secondaryLabel="Review trust"
+        />
       </div>
     </main>
   );

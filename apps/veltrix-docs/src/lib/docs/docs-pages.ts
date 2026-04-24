@@ -2,6 +2,7 @@ export type DocsTrackId =
   | "overview"
   | "project-docs"
   | "operator-docs"
+  | "buyer-guides"
   | "reference"
   | "release-notes";
 
@@ -194,6 +195,65 @@ export const docsTracks: DocsTrackDefinition[] = [
             href: "/project-docs/workflows/run-community-operations",
             label: "Run Community Operations",
             summary: "How owners, captains, commands and member outcomes stay connected once a launch is already live.",
+            status: "live",
+            kind: "workflow",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "buyer-guides",
+    href: "/buyer-guides",
+    label: "Buyer Guides",
+    summary: "Commercial, pricing and enterprise-readiness docs for evaluation paths.",
+    description:
+      "This track helps buyers understand how Veltrix packages the platform, when to choose self-serve versus enterprise and how launch operations map back to the product.",
+    sections: [
+      {
+        id: "commercial-entry",
+        label: "Commercial entry",
+        summary: "The clearest starting points for pricing, package posture and self-serve readiness.",
+        items: [
+          {
+            href: "/buyer-guides/pricing-and-plans",
+            label: "Pricing and Plans",
+            summary: "How Free, Starter, Growth and Enterprise differ, what limits mean and when teams should upgrade.",
+            status: "live",
+            kind: "workflow",
+          },
+          {
+            href: "/buyer-guides/launch-operations",
+            label: "Launch Operations",
+            summary: "How Veltrix turns launch planning, community execution and recovery work into one connected operating model.",
+            status: "live",
+            kind: "surface",
+          },
+        ],
+      },
+      {
+        id: "enterprise-review",
+        label: "Enterprise review",
+        summary: "The buyer-facing pages that support security, operator and onboarding evaluation.",
+        items: [
+          {
+            href: "/buyer-guides/enterprise-readiness",
+            label: "Enterprise Readiness",
+            summary: "What enterprise buyers should expect around security, onboarding, workspace controls and commercial handoff.",
+            status: "live",
+            kind: "reference",
+          },
+          {
+            href: "/operator-docs/incident-handling",
+            label: "Incident Handling",
+            summary: "How Veltrix communicates incident posture, response flow and recovery ownership once security or launch issues are already live.",
+            status: "live",
+            kind: "workflow",
+          },
+          {
+            href: "/project-docs/workflows/launch-a-project",
+            label: "Launch a Project",
+            summary: "The strongest internal docs handoff for buyers who want to see how launch readiness becomes real execution inside the platform.",
             status: "live",
             kind: "workflow",
           },

@@ -33,16 +33,16 @@ export function TrustCenterShell({
 
           <div className="flex flex-wrap items-center gap-3">
             <Link
-              href="/support"
+              href="/talk-to-sales?from=trust&intent=enterprise_review"
               className="inline-flex rounded-full border border-white/12 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/[0.06]"
             >
-              Security or DPA request
+              Talk to sales
             </Link>
             <Link
-              href="/"
+              href="/pricing"
               className="inline-flex rounded-full bg-lime-300 px-4 py-2.5 text-sm font-black text-slate-950 transition hover:bg-lime-200"
             >
-              Back to site
+              View pricing
             </Link>
           </div>
         </header>
@@ -72,6 +72,7 @@ export function TrustCenterShell({
             <h2 className="mt-3 text-2xl font-black text-white">Fast paths for buyers and operators.</h2>
             <div className="mt-5 space-y-4 text-sm leading-7 text-slate-300">
               <p>Use support for security questions, privacy requests, DPA follow-up and buyer reviews.</p>
+              <p>Use the buyer path when trust review is part of an active commercial evaluation.</p>
               <p>Use status for platform-wide incidents or degraded service posture.</p>
               <p>Use the subprocessor registry when legal or procurement teams need vendor context quickly.</p>
             </div>

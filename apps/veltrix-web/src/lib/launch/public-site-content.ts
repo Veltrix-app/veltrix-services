@@ -1,7 +1,7 @@
 export const launchSiteNav = [
   { href: "/pricing", label: "Pricing" },
   { href: "/trust", label: "Trust" },
-  { href: "/support", label: "Support" },
+  { href: "/talk-to-sales?from=homepage", label: "Talk to sales" },
   { href: "/status", label: "Status" },
   { href: "#platform", label: "Platform" },
   { href: "#workflow", label: "Workflow" },
@@ -57,6 +57,7 @@ export const launchProofPoints = [
   "Campaigns, quests, raids and rewards stay connected instead of living in separate surfaces.",
   "Projects get owner-grade control while members get a cleaner, motivating journey.",
   "Bots, portal and webapp work as one operating system instead of disconnected rails.",
+  "Self-serve and enterprise buyers both get a clear path instead of falling into the same generic intake.",
 ];
 
 export const launchFaqs = [
@@ -68,7 +69,12 @@ export const launchFaqs = [
   {
     question: "Is Veltrix self-serve or founder-led?",
     answer:
-      "Both. Teams can start directly in the product, and projects that want a tighter rollout can still book a walkthrough and launch with hands-on support.",
+      "Both. Teams can start directly in the product, and projects that want a tighter rollout, security review or enterprise path can open a higher-touch commercial conversation without losing the self-serve option.",
+  },
+  {
+    question: "How should I think about Free, Starter, Growth and Enterprise?",
+    answer:
+      "Free is for proving fit in a small live lane. Starter is the first serious paid operating tier. Growth is for repeat launch volume and larger execution pressure. Enterprise is for custom commercial posture, security review and higher-touch rollout help.",
   },
   {
     question: "Does Veltrix replace separate quest and bot tools?",

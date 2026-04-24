@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { ArrowRight, Bot, Compass, LifeBuoy, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, Bot, Compass, ShieldCheck, Sparkles } from "lucide-react";
 import { publicAuthRoutes } from "@/lib/account/public-auth";
+import { GrowthAttributionBeacon } from "@/components/analytics/growth-attribution-beacon";
+import { EnterpriseCtaBand } from "@/components/marketing/enterprise-cta-band";
 import {
   launchAccessModes,
   launchFaqs,
@@ -14,6 +16,7 @@ import {
 export function PublicLaunchSite() {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(201,255,85,0.14),transparent_26%),radial-gradient(circle_at_88%_12%,rgba(74,217,255,0.16),transparent_24%),linear-gradient(180deg,#081117_0%,#071014_35%,#05090c_100%)] text-white">
+      <GrowthAttributionBeacon eventType="anonymous_visit" eventPayload={{ surface: "homepage" }} />
       <section className="relative overflow-hidden border-b border-white/8">
         <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.02),transparent_38%),radial-gradient(circle_at_center,rgba(255,255,255,0.04),transparent_54%)]" />
         <div className="absolute inset-y-0 left-[58%] hidden w-px bg-white/8 lg:block" />
@@ -38,10 +41,10 @@ export function PublicLaunchSite() {
 
           <div className="flex items-center gap-3">
             <Link
-              href="/support"
+              href="/talk-to-sales?from=homepage"
               className="hidden rounded-full border border-white/12 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/[0.06] sm:inline-flex"
             >
-              Book demo
+              Talk to sales
             </Link>
             <Link
               href={publicAuthRoutes.start}
@@ -74,10 +77,16 @@ export function PublicLaunchSite() {
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/support"
+                href="/talk-to-sales?from=homepage"
                 className="inline-flex items-center gap-2 rounded-full border border-white/12 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-white/[0.06]"
               >
-                Book a walkthrough
+                Talk to sales
+              </Link>
+              <Link
+                href="/pricing"
+                className="inline-flex items-center gap-2 rounded-full border border-white/12 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-white/[0.06]"
+              >
+                Review pricing
               </Link>
             </div>
 
@@ -277,6 +286,18 @@ export function PublicLaunchSite() {
       </section>
 
       <section className="mx-auto w-full max-w-[1480px] px-6 py-18 sm:px-10 lg:px-16">
+        <EnterpriseCtaBand
+          eyebrow="Buyer path"
+          title="Need a tighter rollout, security review or enterprise posture?"
+          body="Veltrix stays self-serve first, but serious buyers should have a clean handoff into demo, trust review and commercial guidance without losing speed."
+          primaryHref="/talk-to-sales?from=homepage&intent=enterprise_review"
+          primaryLabel="Open buyer intake"
+          secondaryHref="/trust"
+          secondaryLabel="Review trust center"
+        />
+      </section>
+
+      <section className="mx-auto w-full max-w-[1480px] px-6 py-18 sm:px-10 lg:px-16">
         <div className="grid gap-8 border-y border-white/8 py-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
           <div className="max-w-2xl">
             <p className="font-display text-[11px] font-bold uppercase tracking-[0.34em] text-cyan-200">
@@ -296,11 +317,10 @@ export function PublicLaunchSite() {
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
-              href="/support"
+              href="/talk-to-sales?from=homepage"
               className="inline-flex items-center gap-2 rounded-full border border-white/12 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-white/[0.06]"
             >
-              <LifeBuoy className="h-4 w-4" />
-              Talk to us
+              Talk to sales
             </Link>
           </div>
         </div>
@@ -322,6 +342,9 @@ export function PublicLaunchSite() {
             </Link>
             <Link href="/support" className="transition hover:text-white">
               Support
+            </Link>
+            <Link href="/talk-to-sales?from=homepage" className="transition hover:text-white">
+              Talk to sales
             </Link>
             <Link href="/rewards/disclaimer" className="transition hover:text-white">
               Reward disclaimer

@@ -4,6 +4,8 @@ import { ArrowRight, LifeBuoy } from "lucide-react";
 import { GrowthAttributionBeacon } from "@/components/analytics/growth-attribution-beacon";
 import { CheckoutSummaryCard } from "@/components/billing/checkout-summary-card";
 import { PricingPlanGrid } from "@/components/billing/pricing-plan-grid";
+import { EnterpriseCtaBand } from "@/components/marketing/enterprise-cta-band";
+import { commercialPlanPresentation } from "@/lib/commercial/commercial-contract";
 import { getPublicBillingPlan, getPublicBillingPlans } from "@/lib/billing/plan-catalog";
 
 export const metadata: Metadata = {
@@ -64,11 +66,11 @@ export default async function PricingPage({
             </div>
             <div className="flex flex-wrap gap-3">
               <Link
-                href="/support"
+                href="/talk-to-sales?from=pricing"
                 className="inline-flex items-center gap-2 rounded-full border border-white/12 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.06]"
               >
                 <LifeBuoy className="h-4 w-4" />
-                Talk to us
+                Talk to sales
               </Link>
               <Link
                 href="/start"
@@ -134,6 +136,30 @@ export default async function PricingPage({
             </p>
           </div>
         </div>
+      </section>
+
+      <section className="mx-auto w-full max-w-[1480px] px-6 py-16 sm:px-10 lg:px-16">
+        <div className="grid gap-4 xl:grid-cols-4">
+          {commercialPlanPresentation.map((entry) => (
+            <article key={entry.id} className="rounded-[28px] border border-white/10 bg-white/[0.03] p-5">
+              <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-cyan-200">{entry.id}</p>
+              <p className="mt-4 text-lg font-black text-white">{entry.bestFor}</p>
+              <p className="mt-3 text-sm leading-7 text-slate-300">{entry.guidance}</p>
+              <p className="mt-3 text-sm leading-7 text-slate-400">{entry.upgradeSignal}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="mx-auto w-full max-w-[1480px] px-6 pb-18 sm:px-10 lg:px-16">
+        <EnterpriseCtaBand
+          title="Need custom limits, buyer review or rollout help before you buy?"
+          body="Use the buyer path when security review, rollout shape, billing structure or enterprise posture matters more than clicking checkout right away."
+          primaryHref="/talk-to-sales?from=pricing&intent=enterprise_review"
+          primaryLabel="Open buyer intake"
+          secondaryHref="/trust"
+          secondaryLabel="Review trust center"
+        />
       </section>
     </main>
   );
