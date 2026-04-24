@@ -6,8 +6,8 @@ export default function RewardsPage() {
   return (
     <AppShell
       eyebrow="Rewards"
-      title="Reward Hub"
-      description="Track live rewards, claimable payouts, rarity pressure and campaign linkage as part of the same member journey."
+      title="Reward vault"
+      description="Track live rewards, claimable payouts and rarity pressure as the payoff layer of the same member journey."
     >
       <ProtectedState allowPreview previewLabel="Rewards preview">
         <RewardsScreen />

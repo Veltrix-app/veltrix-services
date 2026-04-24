@@ -6,8 +6,8 @@ export default function ProjectDetailPage() {
   return (
     <AppShell
       eyebrow="Project"
-      title="Project detail"
-      description="Branded project surfaces, linked campaigns and reward context for the web app."
+      title="Project ecosystem detail"
+      description="Read the project story, your standing and the live campaign or reward pressure from one calmer member-facing surface."
     >
       <ProtectedState allowPreview previewLabel="Project preview">
         <ProjectDetailScreen />

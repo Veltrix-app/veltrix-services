@@ -137,28 +137,43 @@ export function RaidsScreen() {
 
         <div className="space-y-6">
           <Surface
-            eyebrow="Operations Read"
-            title="Raid pressure"
-            description="See how many coordinated pushes are hot, urgent and ready for the squad."
+            eyebrow="Command read"
+            title="Read the live raid board first"
+            description="Raids should tell you what is hot now, which push deserves your next click and how much squad pressure is still missing."
+            className="bg-[radial-gradient(circle_at_top_left,rgba(251,113,133,0.08),transparent_28%),linear-gradient(180deg,rgba(16,22,34,0.96),rgba(9,13,22,0.96))]"
           >
-            <div className="grid gap-4 sm:grid-cols-3 2xl:grid-cols-1">
-              <MetricTile label="Open raids" value={String(sortedRaids.length)} />
-              <MetricTile label="Urgent pushes" value={String(urgentCount)} />
-              <MetricTile
-                label="Live squads"
-                value={String(sortedRaids.reduce((sum, raid) => sum + raid.participants, 0))}
-              />
-            </div>
+            <div className="space-y-4">
+              <div className="grid gap-3">
+                <ReadTile
+                  label="Now"
+                  value={
+                    featuredRaid
+                      ? `${featuredRaid.title} is the lead live push, currently sitting at ${featuredRaid.progress}% progress with ${featuredRaid.participants} members on it.`
+                      : "No raid is currently carrying the live board."
+                  }
+                />
+                <ReadTile
+                  label="Next"
+                  value={
+                    queueRaids[0]
+                      ? `${queueRaids[0].title} is the next raid to open once the lead push is clear.`
+                      : "There is no second raid queue pressuring the board right now."
+                  }
+                />
+                <ReadTile
+                  label="Watch"
+                  value={`${urgentCount} urgent pushes are already hot, while ${sortedRaids.filter((raid) => raid.progress < 50).length} still need fresh squad pressure.`}
+                />
+              </div>
 
-            <div className="mt-5 space-y-3">
-              <SignalTile icon={Flame} label="Hot now" value={String(urgentCount)} accent="text-rose-200" />
-              <SignalTile
-                icon={AlertTriangle}
-                label="Need action"
-                value={String(sortedRaids.filter((raid) => raid.progress < 50).length)}
-                accent="text-amber-200"
-              />
-              <SignalTile icon={Radar} label="Board" value={String(sortedRaids.length)} accent="text-cyan-200" />
+              <div className="grid gap-4 sm:grid-cols-3 2xl:grid-cols-1">
+                <MetricTile label="Open raids" value={String(sortedRaids.length)} />
+                <MetricTile label="Urgent pushes" value={String(urgentCount)} />
+                <MetricTile
+                  label="Live squads"
+                  value={String(sortedRaids.reduce((sum, raid) => sum + raid.participants, 0))}
+                />
+              </div>
             </div>
           </Surface>
 
@@ -302,6 +317,15 @@ function MetricTile({ label, value }: { label: string; value: string }) {
     <div className="metric-card rounded-[24px] p-4">
       <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">{label}</p>
       <p className="mt-3 text-3xl font-black text-white">{value}</p>
+    </div>
+  );
+}
+
+function ReadTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[22px] border border-white/8 bg-black/20 px-4 py-4">
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
+      <p className="mt-2 text-sm leading-7 text-slate-200">{value}</p>
     </div>
   );
 }

@@ -7,7 +7,7 @@ export default function NotificationsPage() {
     <AppShell
       eyebrow="Notifications"
       title="Signal Center"
-      description="Quest, reward and community signals that should always route back into the right member lane."
+      description="Read what just changed, where it routes next, and which live lane needs your attention first."
     >
       <ProtectedState>
         <NotificationsScreen />

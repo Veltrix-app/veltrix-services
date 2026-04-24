@@ -33,20 +33,18 @@ export function CommunityHomeScreen() {
 
         <div className="space-y-6">
           <Surface
-            eyebrow="Next Best Action"
+            eyebrow="Command read"
             title={snapshot.nextBestAction?.label ?? "Community journey ready"}
             description={
               snapshot.nextBestAction?.description ??
               "Finish setup, pick a mission or jump into the next meaningful project surface."
             }
+            className="bg-[radial-gradient(circle_at_top_left,rgba(74,217,255,0.08),transparent_28%),linear-gradient(180deg,rgba(16,22,34,0.96),rgba(9,13,22,0.96))]"
           >
-            <div className="space-y-3">
-              <InfoTile title="Lane posture" copy={snapshot.readinessLabel} />
-              <InfoTile
-                title="Contribution status"
-                copy={snapshot.recognition.contributionLabel}
-              />
-              <InfoTile title="Next unlock" copy={snapshot.recognition.nextUnlockLabel} />
+            <div className="grid gap-3">
+              <InfoTile title="Now" copy={snapshot.readinessLabel} />
+              <InfoTile title="Next" copy={snapshot.nextBestAction?.description ?? "Open the preferred route to keep moving."} />
+              <InfoTile title="Watch" copy={snapshot.recognition.nextUnlockLabel} />
             </div>
           </Surface>
 

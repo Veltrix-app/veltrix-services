@@ -70,14 +70,15 @@ export function CommunityComebackScreen() {
 
         <div className="space-y-6">
           <Surface
-            eyebrow="Re-entry logic"
+            eyebrow="Command read"
             title="Comeback without confusion"
             description="The goal is to offer one clear way back into value instead of dumping members into everything at once."
+            className="bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.08),transparent_28%),linear-gradient(180deg,rgba(16,22,34,0.96),rgba(9,13,22,0.96))]"
           >
             <div className="space-y-3">
-              <InfoTile title="Re-entry posture" copy={snapshot.readinessLabel} />
-              <InfoTile title="Best next move" copy="A comeback mission becomes the fastest route back into visible momentum." />
-              <InfoTile title="Rewards still count" copy="Claimables and campaign unlocks can also work as re-entry magnets." />
+              <InfoTile title="Now" copy={snapshot.readinessLabel} />
+              <InfoTile title="Next" copy={snapshot.nextBestAction?.description ?? "A comeback mission is the fastest route back into visible momentum."} />
+              <InfoTile title="Watch" copy="Claimables and campaign unlocks can also work as re-entry magnets." />
             </div>
           </Surface>
         </div>

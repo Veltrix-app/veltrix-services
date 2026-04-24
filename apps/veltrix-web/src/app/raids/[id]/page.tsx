@@ -7,7 +7,7 @@ export default function RaidDetailPage() {
     <AppShell
       eyebrow="Raid"
       title="Raid detail"
-      description="Instructions, progress and confirmation flow for a single live raid."
+      description="See the push, the pressure and the write-back path before you confirm a live raid."
     >
       <ProtectedState allowPreview previewLabel="Raid preview">
         <RaidDetailScreen />

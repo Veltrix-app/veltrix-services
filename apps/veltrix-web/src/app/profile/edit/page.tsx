@@ -7,7 +7,7 @@ export default function ProfileEditPage() {
     <AppShell
       eyebrow="Profile"
       title="Edit profile"
-      description="Tune the live identity loadout that onboarding, missions and reward readiness all depend on."
+      description="Tune the live identity layer that onboarding, missions and payout readiness all depend on."
     >
       <ProtectedState>
         <ProfileEditScreen />

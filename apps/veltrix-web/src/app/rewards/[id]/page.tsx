@@ -7,7 +7,7 @@ export default function RewardDetailPage() {
     <AppShell
       eyebrow="Reward"
       title="Reward detail"
-      description="Payoff, claimability and linked member-lane context for a single reward."
+      description="Read payoff, eligibility and the follow-through lane before you route a claim."
     >
       <ProtectedState allowPreview previewLabel="Vault preview">
         <RewardDetailScreen />

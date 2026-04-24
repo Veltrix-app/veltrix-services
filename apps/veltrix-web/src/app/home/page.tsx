@@ -6,8 +6,8 @@ export default function ProductHomePage() {
   return (
     <AppShell
       eyebrow="Home"
-      title="Your launches, quests and rewards"
-      description="Track what is live, what is claimable and what your next move should be across the Veltrix product."
+      title="Your live launch world"
+      description="See what is live now, where your next momentum comes from and which projects, quests or rewards deserve attention first."
     >
       <ProtectedState allowPreview previewLabel="Product preview">
         <HomeScreen />

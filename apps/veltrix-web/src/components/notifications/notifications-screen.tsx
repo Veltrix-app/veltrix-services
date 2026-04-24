@@ -46,6 +46,7 @@ export function NotificationsScreen() {
   const raidUpdates = notifications.filter((item) => item.type === "raid").length;
   const communityUpdates = notifications.filter((item) => item.type === "community").length;
   const [featuredSignal, ...signalQueue] = notifications;
+  const nextSignal = signalQueue[0] ?? null;
   const featuredSignalHref = featuredSignal
     ? getSignalHref(featuredSignal.type, communitySnapshot.preferredRoute)
     : null;
@@ -155,10 +156,36 @@ export function NotificationsScreen() {
 
         <div className="space-y-6">
           <Surface
-            eyebrow="Feed Pressure"
-            title="Signal read"
-            description="A fast tactical read on what kind of updates are currently hitting your account."
+            eyebrow="Command read"
+            title="Read the signal feed before you open it"
+            description="Start with the live cue, the next route back into the product, and the one feed pressure worth watching."
+            className="bg-[radial-gradient(circle_at_top_left,rgba(0,204,255,0.16),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))]"
           >
+            <div className="grid gap-3">
+              <ReadTile
+                label="Now"
+                value={
+                  featuredSignal
+                    ? `${featuredSignal.title} is the lead signal in the feed right now.`
+                    : "The signal feed is currently quiet."
+                }
+              />
+              <ReadTile
+                label="Next"
+                value={
+                  featuredSignalHref
+                    ? `The fastest follow-through is ${featuredSignal?.type === "community" ? "your community lane" : featuredSignal?.type === "reward" ? "the rewards surface" : featuredSignal?.type === "quest" ? "the mission lane" : featuredSignal?.type === "raid" ? "the raid board" : "the next live surface"}.`
+                    : nextSignal
+                      ? `${nextSignal.title} is the next signal waiting in the queue.`
+                      : "The next move is to jump back into your active community path."
+                }
+              />
+              <ReadTile
+                label="Watch"
+                value={`${unreadItems} unread items are still live, with ${communityUpdates} community nudges and ${rewardUpdates} reward cues competing for attention.`}
+              />
+            </div>
+
             <div className="grid gap-4 sm:grid-cols-3 2xl:grid-cols-1">
               <MetricTile label="Unread on open" value={String(unreadItems)} />
               <MetricTile label="Quest updates" value={String(questUpdates)} />
@@ -313,6 +340,15 @@ function SignalTile({
         <span>{label}</span>
       </div>
       <p className={`mt-3 text-2xl font-black ${accent}`}>{value}</p>
+    </div>
+  );
+}
+
+function ReadTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[24px] border border-white/8 bg-black/20 px-4 py-4">
+      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-cyan-200/85">{label}</p>
+      <p className="mt-3 text-sm leading-7 text-slate-200">{value}</p>
     </div>
   );
 }

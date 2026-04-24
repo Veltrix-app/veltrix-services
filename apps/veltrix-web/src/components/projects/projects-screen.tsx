@@ -70,6 +70,7 @@ export function ProjectsScreen() {
 
   const [featuredProject, ...queueProjects] = filteredProjects;
   const scoutProjects = enrichedProjects.slice(0, 3);
+  const scoutLead = filteredProjects[0] ?? null;
   const snapshot = {
     total: enrichedProjects.length,
     featured: enrichedProjects.filter((project) => project.featured).length,
@@ -211,6 +212,36 @@ export function ProjectsScreen() {
         </div>
 
         <div className="space-y-6">
+          <Surface
+            eyebrow="Command read"
+            title="How to scan this board"
+            description="Projects should read like a curated launch roster: one lead ecosystem, one next-best route, and one watch list for the projects that matter most."
+            className="bg-[radial-gradient(circle_at_top_left,rgba(74,217,255,0.08),transparent_28%),linear-gradient(180deg,rgba(16,22,34,0.96),rgba(9,13,22,0.96))]"
+          >
+            <div className="grid gap-3">
+              <ReadTile
+                label="Now"
+                value={
+                  scoutLead
+                    ? `${scoutLead.name} is currently the strongest project lead in the visible roster.`
+                    : "No projects are visible in the roster yet."
+                }
+              />
+              <ReadTile
+                label="Next"
+                value={
+                  featuredProject
+                    ? `Open ${featuredProject.name} first if you want the clearest route into live campaigns and rewards.`
+                    : "Use the filters to find the first project worth opening."
+                }
+              />
+              <ReadTile
+                label="Watch"
+                value={`${snapshot.featured} featured projects and ${snapshot.live} live ecosystems are currently shaping the board.`}
+              />
+            </div>
+          </Surface>
+
           <Surface
             eyebrow="Project Pulse"
             title="Live read"
@@ -401,6 +432,15 @@ function MetricTile({ label, value }: { label: string; value: string }) {
     <div className="metric-card rounded-[24px] p-4">
       <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">{label}</p>
       <p className="mt-3 text-3xl font-black text-white">{value}</p>
+    </div>
+  );
+}
+
+function ReadTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[22px] border border-white/8 bg-black/20 px-4 py-4">
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
+      <p className="mt-2 text-sm leading-7 text-slate-200">{value}</p>
     </div>
   );
 }

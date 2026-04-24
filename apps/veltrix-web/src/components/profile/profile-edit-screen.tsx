@@ -190,6 +190,17 @@ export function ProfileEditScreen() {
   }
 
   const previewInitial = (username || "R").slice(0, 1).toUpperCase();
+  const nextEditMove = !avatarUrl && !bannerUrl
+    ? "Upload at least one visual so the rest of the app stops falling back to a generic identity shell."
+    : !wallet
+      ? "Connect and verify a wallet next so rewards and mission readiness can resolve against a live address."
+      : "Save this profile loadout so the live member surfaces start reading from it."
+  const watchEditCue = communitySnapshot.lane === "onboarding"
+    ? communitySnapshot.nextBestAction?.description ??
+      "Your onboarding lane will keep reading from this setup surface until the identity layer is complete."
+    : wallet
+      ? `Wallet ${shortenWallet(wallet)} is currently ${profile?.walletVerified ? "verified and armed" : "connected but still needs verification review"}.`
+      : "Without a wallet, reward and verification readiness stays softer across the app.";
 
   return (
     <div className="space-y-6">
@@ -216,6 +227,15 @@ export function ProfileEditScreen() {
           Avatar, banner, wallet and profile fields now live in one guided edit flow instead of
           manual URL plumbing, so the journey can treat identity as a real member profile instead of setup debt.
         </p>
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-3">
+        <ReadTile
+          label="Now"
+          value={`${username || "Raider"} is shaping a live identity loadout with ${avatarUrl || bannerUrl ? "custom visuals" : "fallback visuals"} and ${wallet ? "an armed wallet" : "no wallet yet"}.`}
+        />
+        <ReadTile label="Next" value={nextEditMove} />
+        <ReadTile label="Watch" value={watchEditCue} />
       </section>
 
       {error ? (
@@ -507,6 +527,15 @@ function MiniStat({ label, value }: { label: string; value: string }) {
     <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-4 py-3">
       <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
       <p className="mt-2 text-sm font-semibold text-white">{value}</p>
+    </div>
+  );
+}
+
+function ReadTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[26px] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] px-4 py-4">
+      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-cyan-200/85">{label}</p>
+      <p className="mt-3 text-sm leading-7 text-slate-200">{value}</p>
     </div>
   );
 }

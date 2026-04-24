@@ -6,8 +6,8 @@ export default function ProjectsPage() {
   return (
     <AppShell
       eyebrow="Projects"
-      title="Project Browser"
-      description="Scan the live projects behind campaigns, rewards and progression."
+      title="Scout the projects worth opening"
+      description="Use the project board like a curated launch roster: one lead ecosystem, one next route and a clear read on where the action is."
     >
       <ProtectedState allowPreview previewLabel="Project preview">
         <ProjectsScreen />

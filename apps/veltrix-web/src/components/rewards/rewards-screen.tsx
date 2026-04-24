@@ -281,20 +281,40 @@ export function RewardsScreen() {
 
         <div className="space-y-6">
           <Surface
-            eyebrow="Reward Read"
-            title="Payoff pressure"
-            description="See what is hot, what is ready and what still needs grind."
+            eyebrow="Command read"
+            title="Read the reward vault before you browse"
+            description="Rewards should tell you what is ready now, what deserves the next click and where the strongest payoff pressure is sitting."
+            className="bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.08),transparent_28%),linear-gradient(180deg,rgba(16,22,34,0.96),rgba(9,13,22,0.96))]"
           >
-            <div className="grid gap-4 sm:grid-cols-3 2xl:grid-cols-1">
-              <MetricTile label="Rewards" value={String(enrichedRewards.length)} />
-              <MetricTile label="Claimable" value={String(claimableRewardCount)} />
-              <MetricTile label="Locked" value={String(lockedCount)} />
-            </div>
+            <div className="space-y-4">
+              <div className="grid gap-3">
+                <ReadTile
+                  label="Now"
+                  value={
+                    featuredReward
+                      ? `${featuredReward.title} is the lead reward in the vault right now, and it is ${featuredReward.claimable ? "ready to claim" : "still locked"}.`
+                      : "No reward is currently leading the vault."
+                  }
+                />
+                <ReadTile
+                  label="Next"
+                  value={
+                    queueRewards[0]
+                      ? `${queueRewards[0].title} is the next reward worth opening once the lead vault card is clear.`
+                      : "There is no secondary reward queue pushing behind the lead slot."
+                  }
+                />
+                <ReadTile
+                  label="Watch"
+                  value={`${claimableRewardCount} direct rewards are claimable, while ${claimableDistributionRows.length} campaign pool lanes are also waiting in the payout layer.`}
+                />
+              </div>
 
-            <div className="mt-5 space-y-3">
-              <SignalTile icon={Gem} label="High value" value={String(highValueCount)} accent="text-amber-200" />
-              <SignalTile icon={LockKeyhole} label="Locked now" value={String(lockedCount)} accent="text-slate-200" />
-              <SignalTile icon={Sparkles} label="Ready now" value={String(claimableRewardCount)} accent="text-lime-200" />
+              <div className="grid gap-4 sm:grid-cols-3 2xl:grid-cols-1">
+                <MetricTile label="Rewards" value={String(enrichedRewards.length)} />
+                <MetricTile label="Claimable" value={String(claimableRewardCount)} />
+                <MetricTile label="Locked" value={String(lockedCount)} />
+              </div>
             </div>
           </Surface>
 
@@ -608,6 +628,15 @@ function MetricTile({ label, value }: { label: string; value: string }) {
     <div className="metric-card rounded-[24px] p-4">
       <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">{label}</p>
       <p className="mt-3 text-3xl font-black text-white">{value}</p>
+    </div>
+  );
+}
+
+function ReadTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[22px] border border-white/8 bg-black/20 px-4 py-4">
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
+      <p className="mt-2 text-sm leading-7 text-slate-200">{value}</p>
     </div>
   );
 }

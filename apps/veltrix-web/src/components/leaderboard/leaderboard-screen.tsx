@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Crown, Shield, Trophy, Zap } from "lucide-react";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
@@ -10,6 +11,8 @@ export function LeaderboardScreen() {
     datasets: ["leaderboard"],
   });
   const [featuredMember, ...rankingQueue] = leaderboard;
+  const currentUserEntry = leaderboard.find((user) => user.isCurrentUser) ?? null;
+  const nextChallenger = rankingQueue[0] ?? null;
 
   return (
     <div className="space-y-6">
@@ -91,15 +94,57 @@ export function LeaderboardScreen() {
 
         <div className="space-y-6">
           <Surface
-            eyebrow="Board Read"
-            title="Ranking pressure"
-            description="A faster read on how competitive the live board is right now."
+            eyebrow="Command read"
+            title="Read the board before you chase it"
+            description="Start with the pace-setter, the next threshold, and the one pressure cue that matters before you grind for more XP."
+            className="bg-[radial-gradient(circle_at_top_left,rgba(255,196,0,0.16),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))]"
           >
+            <div className="grid gap-3">
+              <ReadTile
+                label="Now"
+                value={
+                  featuredMember
+                    ? `${featuredMember.username} leads the board with ${featuredMember.xp} XP at level ${featuredMember.level}.`
+                    : "The live board has not filled with contributors yet."
+                }
+              />
+              <ReadTile
+                label="Next"
+                value={
+                  currentUserEntry
+                    ? `You are currently sitting at rank #${leaderboard.findIndex((user) => user.isCurrentUser) + 1}; ${nextChallenger ? `${nextChallenger.username} is the next visible pace line.` : "hold your momentum and keep climbing."}`
+                    : nextChallenger
+                      ? `${nextChallenger.username} is the next pace line after the current leader.`
+                      : "Jump into a mission lane to get yourself onto the board."
+                }
+              />
+              <ReadTile
+                label="Watch"
+                value={
+                  featuredMember
+                    ? `${leaderboard.length} members are on the board and the level ${featuredMember.level} ceiling is setting the pressure right now.`
+                    : "Watch for new contributors landing on the board once the next missions resolve."
+                }
+              />
+            </div>
+
             <div className="space-y-3">
               <SignalTile icon={Crown} label="Top rank" value={featuredMember ? "#1" : "-"} accent="text-amber-200" />
               <SignalTile icon={Shield} label="Members" value={String(leaderboard.length)} accent="text-cyan-200" />
               <SignalTile icon={Trophy} label="Current leader XP" value={featuredMember ? String(featuredMember.xp) : "0"} accent="text-lime-200" />
               <SignalTile icon={Zap} label="Board level" value={featuredMember ? String(featuredMember.level) : "0"} accent="text-white" />
+            </div>
+          </Surface>
+
+          <Surface
+            eyebrow="Fast routes"
+            title="Jump back into the climb"
+            description="Move straight from the board into the surfaces that can change your standing."
+          >
+            <div className="flex flex-wrap gap-3">
+              <RouteTile href="/campaigns" label="Open missions" />
+              <RouteTile href="/projects" label="Scout projects" />
+              <RouteTile href="/profile" label="Profile standing" />
             </div>
           </Surface>
         </div>
@@ -198,12 +243,32 @@ function SignalTile({
   );
 }
 
+function ReadTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[24px] border border-white/8 bg-black/20 px-4 py-4">
+      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-amber-200/85">{label}</p>
+      <p className="mt-3 text-sm leading-7 text-slate-200">{value}</p>
+    </div>
+  );
+}
+
 function QuickRead({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-[26px] border border-white/8 bg-white/[0.04] p-4">
       <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">{label}</p>
       <p className="mt-3 text-lg font-black text-white">{value}</p>
     </div>
+  );
+}
+
+function RouteTile({ href, label }: { href: string; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+    >
+      {label}
+    </Link>
   );
 }
 

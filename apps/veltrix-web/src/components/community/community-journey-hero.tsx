@@ -50,6 +50,27 @@ export function CommunityJourneyHero({ snapshot }: CommunityJourneyHeroProps) {
             </div>
           </div>
 
+          <div className="grid gap-3 md:grid-cols-3">
+            <ReadTile
+              label="Now"
+              value={
+                snapshot.nextBestAction?.label ??
+                "Your current lane is already primed for the next community move."
+              }
+            />
+            <ReadTile
+              label="Next"
+              value={
+                snapshot.nextBestAction?.description ??
+                "Use the preferred route to keep the member journey moving with less friction."
+              }
+            />
+            <ReadTile
+              label="Watch"
+              value={snapshot.recognition.nextUnlockLabel}
+            />
+          </div>
+
           <div className="flex flex-wrap gap-3">
             <Link
               href={snapshot.nextBestAction?.route ?? snapshot.preferredRoute}
@@ -72,10 +93,10 @@ export function CommunityJourneyHero({ snapshot }: CommunityJourneyHeroProps) {
             Journey read
           </p>
           <div className="mt-4 space-y-3">
-            <ReadTile label="Recognition" value={snapshot.recognition.label} accent="text-lime-200" />
-            <ReadTile label="Lane posture" value={snapshot.readinessLabel} accent="text-cyan-200" />
-            <ReadTile label="Trust" value={String(snapshot.trustScore)} accent="text-white" />
-            <ReadTile label="Level" value={String(snapshot.level)} accent="text-amber-200" />
+            <MetricReadTile label="Recognition" value={snapshot.recognition.label} accent="text-lime-200" />
+            <MetricReadTile label="Lane posture" value={snapshot.readinessLabel} accent="text-cyan-200" />
+            <MetricReadTile label="Trust" value={String(snapshot.trustScore)} accent="text-white" />
+            <MetricReadTile label="Level" value={String(snapshot.level)} accent="text-amber-200" />
           </div>
         </div>
       </div>
@@ -83,7 +104,16 @@ export function CommunityJourneyHero({ snapshot }: CommunityJourneyHeroProps) {
   );
 }
 
-function ReadTile({
+function ReadTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[22px] border border-white/8 bg-black/20 px-4 py-4">
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
+      <p className="mt-2 text-sm leading-7 text-slate-200">{value}</p>
+    </div>
+  );
+}
+
+function MetricReadTile({
   label,
   value,
   accent,

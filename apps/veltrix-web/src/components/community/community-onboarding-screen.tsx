@@ -70,14 +70,15 @@ export function CommunityOnboardingScreen() {
 
         <div className="space-y-6">
           <Surface
-            eyebrow="Why this path exists"
+            eyebrow="Command read"
             title="No hidden setup debt"
             description="Every missing readiness step is made explicit before the member gets thrown into deeper mission pressure."
+            className="bg-[radial-gradient(circle_at_top_left,rgba(74,217,255,0.08),transparent_28%),linear-gradient(180deg,rgba(16,22,34,0.96),rgba(9,13,22,0.96))]"
           >
             <div className="space-y-3">
-              <InfoTile title="Readiness posture" copy={snapshot.readinessLabel} />
-              <InfoTile title="Trust posture" copy={snapshot.recognition.trustLabel} />
-              <InfoTile title="First mission" copy="The first meaningful contribution closes the loop and moves the member into the active path." />
+              <InfoTile title="Now" copy={snapshot.readinessLabel} />
+              <InfoTile title="Next" copy={snapshot.nextBestAction?.description ?? "Clear the next setup step to move into active momentum."} />
+              <InfoTile title="Watch" copy="The first meaningful contribution closes the loop and moves the member into the active path." />
             </div>
           </Surface>
         </div>

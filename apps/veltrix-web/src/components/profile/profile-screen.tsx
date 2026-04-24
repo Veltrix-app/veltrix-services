@@ -184,6 +184,22 @@ export function ProfileScreen() {
       },
     ];
   }, [effectiveConnectedAccounts, providerMissionPressure]);
+  const providerWithPressure = providerCards.find(
+    (providerCard) =>
+      providerCard.missionCount > 0 && providerCard.account?.status !== "connected"
+  );
+  const nextIdentityMove = !profile?.wallet
+    ? "Connect and verify a wallet so rewards and identity trust can resolve against a live address."
+    : providerWithPressure
+      ? `Link ${providerWithPressure.label} next because ${providerWithPressure.missionCount} provider-gated missions are waiting on it.`
+      : communitySnapshot.nextBestAction?.description ??
+        "Refresh your linked systems and keep your profile ready for the next live wave.";
+  const watchIdentityCue =
+    claimableDistributionCount > 0
+      ? `${claimableDistributionCount} claimable payout lanes are waiting inside your reward vault.`
+      : activeStakeCount > 0
+        ? `${activeStakeCount} active AESP stake lanes are still live and worth monitoring.`
+        : `${unreadNotificationCount} unread signals are still competing for your attention.`;
 
   async function handleProviderLink(provider: "discord" | "x") {
     setProviderMessage(null);
@@ -501,19 +517,21 @@ export function ProfileScreen() {
 
         <div className="space-y-6">
           <Surface
-            eyebrow="Identity Setup"
-            title="Identity command"
-            description="Linking is now part of the mission system, not a buried settings afterthought."
+            eyebrow="Command read"
+            title="Read your identity pressure first"
+            description="Start with your live profile state, the next setup move, and the one cue that is most likely to change your standing."
+            className="bg-[radial-gradient(circle_at_top_left,rgba(0,204,255,0.16),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))]"
           >
             <div className="grid gap-3">
-              <InfoPanel
-                title="Auth foundation"
-                text={
-                  authConfigured
-                    ? "Your account auth is ready, so Discord and X can route through live identity linking instead of fake toggles."
-                    : "Publishable Supabase envs are still missing, so live account reads are not armed yet."
-                }
+              <ReadTile
+                label="Now"
+                value={`${profile?.username ?? "Guest member"} is running at level ${profile?.level ?? 1} with ${connectedCount} linked systems and ${unreadNotificationCount} unread live signals.`}
               />
+              <ReadTile label="Next" value={nextIdentityMove} />
+              <ReadTile label="Watch" value={watchIdentityCue} />
+            </div>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
               <InfoPanel
                 title="Current journey posture"
                 text={communitySnapshot.readinessLabel}
@@ -523,8 +541,16 @@ export function ProfileScreen() {
                 text={`${providerMissionPressure.discord + providerMissionPressure.telegram + providerMissionPressure.x} missions currently depend on linked provider state.`}
               />
               <InfoPanel
+                title="Auth foundation"
+                text={
+                  authConfigured
+                    ? "Your account auth is armed, so linked providers resolve from live identity data instead of fake toggles."
+                    : "Publishable Supabase auth envs are still missing, so live account reads are not fully armed yet."
+                }
+              />
+              <InfoPanel
                 title="Provider source"
-                text="Verification readiness resolves from live linked identities and user_connected_accounts, not demo switches."
+                text="Verification readiness resolves from linked identities and user_connected_accounts, not demo switches."
               />
             </div>
           </Surface>
@@ -900,6 +926,15 @@ function QuickRead({ label, value }: { label: string; value: string }) {
     <div className="rounded-[26px] border border-white/8 bg-white/[0.04] p-4">
       <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">{label}</p>
       <p className="mt-3 text-lg font-black text-white">{value}</p>
+    </div>
+  );
+}
+
+function ReadTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[24px] border border-white/8 bg-black/20 px-4 py-4">
+      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-cyan-200/85">{label}</p>
+      <p className="mt-3 text-sm leading-7 text-slate-200">{value}</p>
     </div>
   );
 }

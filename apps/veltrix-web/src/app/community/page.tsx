@@ -7,7 +7,7 @@ export default function CommunityPage() {
     <AppShell
       eyebrow="Community"
       title="Your next community move"
-      description="Your member hub for mission pressure, recognition, next unlocks and the best current path through the community system."
+      description="Use Community as the member command surface for momentum, recognition, next unlocks and the cleanest route through the journey."
     >
       <ProtectedState>
         <CommunityHomeScreen />

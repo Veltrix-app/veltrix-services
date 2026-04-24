@@ -6,8 +6,8 @@ export default function CampaignDetailPage() {
   return (
     <AppShell
       eyebrow="Campaign"
-      title="Campaign detail"
-      description="Quest flow, reward outcome and mission context for a single live campaign."
+      title="Live campaign detail"
+      description="See the mission lane, stake pressure and reward outcome for one live campaign without losing the broader project context."
     >
       <ProtectedState allowPreview previewLabel="Mission preview">
         <CampaignDetailScreen />

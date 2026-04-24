@@ -53,6 +53,8 @@ export function HomeScreen() {
   const activityFeed = notifications.slice(0, 4);
   const projectsPreview = projects.slice(0, 3);
   const activeMissions = quests.slice(0, 4);
+  const nextMission = activeMissions[0] ?? null;
+  const watchProject = projectsPreview[0] ?? null;
 
   return (
     <div className="space-y-6">
@@ -147,6 +149,40 @@ export function HomeScreen() {
         </div>
 
         <div className="space-y-6">
+          <Surface
+            eyebrow="Command read"
+            title="Now, next and watch"
+            description="Home should make one thing obvious: what is live right now, where your next momentum comes from, and which surface deserves attention next."
+            className="bg-[radial-gradient(circle_at_top_left,rgba(186,255,59,0.08),transparent_28%),linear-gradient(180deg,rgba(16,22,34,0.96),rgba(9,13,22,0.96))]"
+          >
+            <div className="grid gap-3">
+              <ReadTile
+                label="Now"
+                value={
+                  featuredCampaign
+                    ? `${featuredCampaign.title} is the live campaign currently leading your home surface.`
+                    : "No featured campaign is leading this account yet."
+                }
+              />
+              <ReadTile
+                label="Next"
+                value={
+                  nextMission
+                    ? `${nextMission.title} is the fastest next mission to keep your momentum moving.`
+                    : "No open quests are currently waiting in your next-action lane."
+                }
+              />
+              <ReadTile
+                label="Watch"
+                value={
+                  watchProject
+                    ? `${watchProject.name} is the project most likely to open more campaign and reward pressure for you.`
+                    : "No project pressure is visible yet, so the watch lane is currently calm."
+                }
+              />
+            </div>
+          </Surface>
+
           <AccountActivationCard />
           <CustomerGrowthCard />
 
@@ -473,6 +509,15 @@ function SignalPill({
         <span>{label}</span>
       </div>
       <p className="mt-2 text-lg font-black text-white">{value}</p>
+    </div>
+  );
+}
+
+function ReadTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[24px] border border-white/8 bg-black/20 px-4 py-4">
+      <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-500">{label}</p>
+      <p className="mt-2 text-sm leading-7 text-slate-200">{value}</p>
     </div>
   );
 }

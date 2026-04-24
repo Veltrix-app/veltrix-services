@@ -289,15 +289,37 @@ export function CampaignDetailScreen() {
 
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <Surface
-          eyebrow="Campaign Read"
-          title="Campaign posture"
-          description="This campaign should feel like an active operation with live pressure and real outcome."
+          eyebrow="Command read"
+          title="Read the live campaign before you act"
+          description="Campaign detail should tell you what is happening now, what the fastest next move is and what eligibility or pool pressure still needs attention."
+          className="bg-[radial-gradient(circle_at_top_left,rgba(186,255,59,0.08),transparent_28%),linear-gradient(180deg,rgba(16,22,34,0.96),rgba(9,13,22,0.96))]"
         >
-          <div className="grid gap-4 sm:grid-cols-2">
-            <MetricTile label="Project" value={project?.name ?? "Unlinked"} />
-            <MetricTile label="Completion" value={`${activeCampaign.completionRate}%`} />
-            <MetricTile label="Featured" value={activeCampaign.featured ? "Yes" : "No"} />
-            <MetricTile label="Window" value={activeCampaign.endsAt ? "Timed" : "Open"} />
+          <div className="space-y-4">
+            <div className="grid gap-3 md:grid-cols-3">
+              <ReadTile
+                label="Now"
+                value={`${activeCampaign.title} is live with ${campaignQuests.length} quests and ${campaignRewards.length} linked rewards shaping the lane.`}
+              />
+              <ReadTile
+                label="Next"
+                value={
+                  canStake
+                    ? "If you want direct weight in this campaign, staking or refreshing your pulse is the cleanest next move."
+                    : "Clear the remaining wallet, linked account, XP or trust gates first so the pool opens properly."
+                }
+              />
+              <ReadTile
+                label="Watch"
+                value={`${claimableDistribution ? "A claimable distribution is already visible." : "The distribution lane is still pending."} Trust is ${trustReady ? "clear" : "below threshold"} and active XP is ${activeXpReady ? "above" : "below"} the gate.`}
+              />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <MetricTile label="Project" value={project?.name ?? "Unlinked"} />
+              <MetricTile label="Completion" value={`${activeCampaign.completionRate}%`} />
+              <MetricTile label="Featured" value={activeCampaign.featured ? "Yes" : "No"} />
+              <MetricTile label="Window" value={activeCampaign.endsAt ? "Timed" : "Open"} />
+            </div>
           </div>
         </Surface>
 
@@ -568,6 +590,15 @@ function MetricTile({ label, value }: { label: string; value: string }) {
     <div className="metric-card rounded-[24px] p-4">
       <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">{label}</p>
       <p className="mt-3 text-3xl font-black text-white">{value}</p>
+    </div>
+  );
+}
+
+function ReadTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[22px] border border-white/8 bg-black/20 px-4 py-4">
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
+      <p className="mt-2 text-sm leading-7 text-slate-200">{value}</p>
     </div>
   );
 }

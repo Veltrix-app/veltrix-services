@@ -34,6 +34,14 @@ export function RewardDetailScreen() {
   const currentReward = reward;
   const rewardAlreadyClaimed = currentReward.claimed ?? false;
   const canClaimReward = currentReward.claimable && !rewardAlreadyClaimed;
+  const nextRewardMove = rewardAlreadyClaimed
+    ? "This reward is already in your claimed inventory, so the next move is to trace it back through the linked campaign or project."
+    : canClaimReward
+      ? "Route the claim now or open the linked campaign first if you want to read the surrounding lane before cashing in."
+      : "Keep pushing the linked campaign and quest lane until this reward flips from locked to claimable.";
+  const watchRewardCue = campaign
+    ? `${campaign.title} is the strongest unlock lane behind this reward, while ${communitySnapshot.readinessLabel.toLowerCase()} is still shaping where claims should route next.`
+    : `${communitySnapshot.readinessLabel} is still the main member-lane cue around this reward.`;
 
   async function handleClaimReward() {
     if (!session) {
@@ -132,11 +140,21 @@ export function RewardDetailScreen() {
 
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <Surface
-          eyebrow="Claim Readiness"
-          title="Reward status"
-          description="A clearer read on payoff, eligibility and linked mission context."
+          eyebrow="Command read"
+          title="Read the payoff before you route the claim"
+          description="Start with the live state, the next move, and the one unlock cue that matters before you press claim."
+          className="bg-[radial-gradient(circle_at_top_left,rgba(255,196,0,0.16),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))]"
         >
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-3">
+            <ReadTile
+              label="Now"
+              value={`${currentReward.title} is currently ${rewardAlreadyClaimed ? "already claimed" : currentReward.claimable ? "claimable and ready to route" : "still locked behind progression"}.`}
+            />
+            <ReadTile label="Next" value={nextRewardMove} />
+            <ReadTile label="Watch" value={watchRewardCue} />
+          </div>
+
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
             <MetricTile
               label="State"
               value={rewardAlreadyClaimed ? "Claimed" : currentReward.claimable ? "Claimable" : "Locked"}
@@ -268,6 +286,15 @@ function MiniStat({ label, value }: { label: string; value: string }) {
     <div className="metric-card rounded-[20px] px-4 py-3">
       <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
       <p className="mt-2 text-sm font-semibold text-white">{value}</p>
+    </div>
+  );
+}
+
+function ReadTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[24px] border border-white/8 bg-black/20 px-4 py-4">
+      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-amber-200/85">{label}</p>
+      <p className="mt-3 text-sm leading-7 text-slate-200">{value}</p>
     </div>
   );
 }

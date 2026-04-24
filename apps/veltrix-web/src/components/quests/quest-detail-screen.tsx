@@ -367,6 +367,19 @@ export function QuestDetailScreen() {
 
     return currentQuest.actionUrl || "";
   })();
+  const nextMissionMove = missionClosed
+    ? "This mission is already approved and closed, so there is no further action to route."
+    : !providerAccountConnected && requiredAccount
+      ? `Link ${requiredAccount === "wallet" ? "your wallet" : requiredAccount.toUpperCase()} first so this provider-aware route can actually verify.`
+      : derivedActionUrl
+        ? "Open the live destination first, then let Veltrix decide whether this clears instantly or waits in the queue."
+        : "This mission still needs a configured destination before the live route can start.";
+  const watchMissionCue =
+    linkedRewards.length > 0
+      ? `${linkedRewards.length} linked rewards are sitting behind this mission lane once it clears.`
+      : linkedCampaign
+        ? `${linkedCampaign.title} is the main campaign lane this mission rolls back into.`
+        : "Watch the provider and proof state, because this mission is not yet tied to a larger unlock lane.";
 
   async function handleOpenTask() {
     if (missionClosed) {
@@ -827,12 +840,22 @@ export function QuestDetailScreen() {
         </Surface>
 
         <div className="space-y-6">
-        <Surface
-          eyebrow="Routing State"
-          title="Verification read"
-          description="Provider state, proof mode and account readiness all resolve inside the same live grid routing layer."
-        >
-            <div className="grid gap-4 sm:grid-cols-2">
+          <Surface
+            eyebrow="Command read"
+            title="Read the mission pressure before you open it"
+            description="Start with the live state, the next routing move, and the one unlock cue worth watching."
+            className="bg-[radial-gradient(circle_at_top_left,rgba(192,255,0,0.16),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))]"
+          >
+            <div className="grid gap-3">
+              <ReadTile
+                label="Now"
+                value={`${currentQuest.title} is currently ${currentQuest.status} with ${accountReadyState.toLowerCase()} account readiness and ${currentQuest.verificationType} verification.`}
+              />
+              <ReadTile label="Next" value={nextMissionMove} />
+              <ReadTile label="Watch" value={watchMissionCue} />
+            </div>
+
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <MiniStat label="Status" value={currentQuest.status} />
               <MiniStat label="Verification" value={currentQuest.verificationType} />
               <MiniStat label="Proof" value={currentQuest.proofType} />
@@ -932,6 +955,15 @@ function MiniStat({ label, value }: { label: string; value: string }) {
     <div className="metric-card rounded-[20px] px-4 py-3">
       <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
       <p className="mt-2 text-sm font-semibold capitalize text-white">{value}</p>
+    </div>
+  );
+}
+
+function ReadTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[24px] border border-white/8 bg-black/20 px-4 py-4">
+      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-lime-200/85">{label}</p>
+      <p className="mt-3 text-sm leading-7 text-slate-200">{value}</p>
     </div>
   );
 }

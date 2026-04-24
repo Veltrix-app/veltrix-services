@@ -6,8 +6,8 @@ export default function QuestDetailPage() {
   return (
     <AppShell
       eyebrow="Quest"
-      title="Quest detail"
-      description="Action flow, proof state and provider-aware verification for a single live quest."
+      title="Live mission detail"
+      description="Read the action lane, verification pressure and proof state before you open the mission."
     >
       <ProtectedState allowPreview previewLabel="Mission preview">
         <QuestDetailScreen />

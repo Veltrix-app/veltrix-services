@@ -7,7 +7,7 @@ export default function ProfilePage() {
     <AppShell
       eyebrow="Profile"
       title="Member Profile"
-      description="Track your live identity, standing, connected accounts and readiness from one hub."
+      description="Keep identity, linked systems, standing and payout pressure in one live member command surface."
     >
       <ProtectedState>
         <ProfileScreen />

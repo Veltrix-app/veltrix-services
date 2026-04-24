@@ -71,6 +71,76 @@ export function ProjectDetailScreen() {
         </div>
       </section>
 
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.04fr)_minmax(0,0.96fr)]">
+        <Surface
+          eyebrow="Command read"
+          title="What this project means right now"
+          description="Project detail should open with ecosystem pressure first: what is active, what deserves attention and where your next move should go."
+          className="bg-[radial-gradient(circle_at_top_left,rgba(74,217,255,0.08),transparent_28%),linear-gradient(180deg,rgba(16,22,34,0.96),rgba(9,13,22,0.96))]"
+        >
+          <div className="grid gap-3 md:grid-cols-3">
+            <ReadTile
+              label="Now"
+              value={
+                projectCampaigns.length > 0
+                  ? `${projectCampaigns[0].title} is the lead live campaign inside ${project.name}.`
+                  : `${project.name} is visible, but no live campaigns are currently shaping it.`
+              }
+            />
+            <ReadTile
+              label="Next"
+              value={
+                projectCampaigns.length > 0
+                  ? "Open the campaign lane first if you want the fastest route into active quests and reward pressure."
+                  : "The project story is visible first because the campaign lane has not gone live yet."
+              }
+            />
+            <ReadTile
+              label="Watch"
+              value={
+                reputation
+                  ? `Your contribution tier is ${reputation.contributionTier}, with ${reputation.xp.toLocaleString()} project XP already attached to this ecosystem.`
+                  : "Your project-specific reputation has not started building here yet."
+              }
+            />
+          </div>
+        </Surface>
+
+        <Surface
+          eyebrow="Fast routes"
+          title="Move through the ecosystem"
+          description="The best project pages stay compact and route you into the community, website or live campaign lane without making you scan a dense side rail."
+        >
+          <div className="grid gap-3">
+            <RouteTile
+              href={`/communities/${project.id}`}
+              label="Open community"
+              body="Go to the community surface for missions, member pressure and the current journey lane."
+            />
+            {projectCampaigns[0] ? (
+              <RouteTile
+                href={`/campaigns/${projectCampaigns[0].id}`}
+                label="Open lead campaign"
+                body="Jump straight into the strongest active launch surface inside this project."
+              />
+            ) : null}
+            {project.website ? (
+              <a
+                href={project.website}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-[22px] border border-white/8 bg-black/20 px-4 py-4 transition hover:border-cyan-300/20"
+              >
+                <p className="text-sm font-semibold text-white">Visit website</p>
+                <p className="mt-2 text-sm leading-7 text-slate-300">
+                  Open the public project site without leaving the product context.
+                </p>
+              </a>
+            ) : null}
+          </div>
+        </Surface>
+      </section>
+
       <ProjectBenchmarkCard projectId={project.id} />
 
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
@@ -215,6 +285,35 @@ function MiniStat({ label, value }: { label: string; value: string }) {
       <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
       <p className="mt-2 text-sm font-semibold text-white">{value}</p>
     </div>
+  );
+}
+
+function ReadTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[22px] border border-white/8 bg-black/20 px-4 py-4">
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
+      <p className="mt-2 text-sm leading-7 text-slate-200">{value}</p>
+    </div>
+  );
+}
+
+function RouteTile({
+  href,
+  label,
+  body,
+}: {
+  href: string;
+  label: string;
+  body: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="rounded-[22px] border border-white/8 bg-black/20 px-4 py-4 transition hover:border-cyan-300/20"
+    >
+      <p className="text-sm font-semibold text-white">{label}</p>
+      <p className="mt-2 text-sm leading-7 text-slate-300">{body}</p>
+    </Link>
   );
 }
 

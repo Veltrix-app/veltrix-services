@@ -6,8 +6,8 @@ export default function LeaderboardPage() {
   return (
     <AppShell
       eyebrow="Leaderboard"
-      title="Top contributors"
-      description="Live ranking surface for contribution, streaks and XP momentum."
+      title="Live board"
+      description="See who is setting the pace, what the board is asking for, and where to jump back into the climb."
     >
       <ProtectedState allowPreview previewLabel="Leaderboard preview">
         <LeaderboardScreen />

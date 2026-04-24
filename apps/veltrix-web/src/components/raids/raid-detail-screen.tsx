@@ -62,6 +62,11 @@ export function RaidDetailScreen() {
   if (error) return <Notice tone="error" text={error} />;
   if (!raid) return <Notice tone="default" text="Raid not found." />;
   const currentRaid = raid;
+  const nextRaidMove =
+    currentRaid.instructions.length > 0
+      ? `Run the ${currentRaid.instructions.length}-step push first, then confirm the result back into your live progress layer.`
+      : "This raid still needs clearer execution steps before the push is fully readable.";
+  const watchRaidCue = `${currentRaid.timer} is the live timer cue, while ${currentRaid.progress}% progress and ${currentRaid.participants} participants show how crowded the push already is.`;
 
   async function handleConfirm() {
     if (!authUserId) {
@@ -147,11 +152,18 @@ export function RaidDetailScreen() {
         </Surface>
 
         <Surface
-          eyebrow="Confirm"
-          title="Raid completion"
-          description="Once the push is done, confirm it to write the live completion state."
+          eyebrow="Command read"
+          title="Read the live push before you confirm it"
+          description="Start with the current pressure, the next action, and the one timer cue that matters before you write the raid back."
+          className="bg-[radial-gradient(circle_at_top_left,rgba(255,120,120,0.16),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))]"
         >
           <div className="space-y-4">
+            <ReadTile
+              label="Now"
+              value={`${currentRaid.title} is sitting at ${currentRaid.progress}% progress with ${currentRaid.participants} participants already in the push.`}
+            />
+            <ReadTile label="Next" value={nextRaidMove} />
+            <ReadTile label="Watch" value={watchRaidCue} />
             <div className="metric-card rounded-[24px] p-4 text-sm leading-7 text-slate-300">
               Confirming a raid writes the completion into the same live progress layer used by the mobile app and web board.
             </div>
@@ -174,6 +186,15 @@ function MetricTile({ label, value }: { label: string; value: string }) {
     <div className="metric-card rounded-[24px] p-4">
       <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">{label}</p>
       <p className="mt-3 text-3xl font-black text-white">{value}</p>
+    </div>
+  );
+}
+
+function ReadTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[24px] border border-white/8 bg-black/20 px-4 py-4">
+      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-rose-200/85">{label}</p>
+      <p className="mt-3 text-sm leading-7 text-slate-200">{value}</p>
     </div>
   );
 }
