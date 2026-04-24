@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import {
@@ -26,18 +27,39 @@ function FieldLabel({
   children,
 }: {
   label: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
-    <label className="block text-xs font-bold uppercase tracking-[0.16em] text-slate-300">
+    <label className="block text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
       {label}
       <div className="mt-2">{children}</div>
     </label>
   );
 }
 
-function InputClasses() {
-  return "w-full rounded-[22px] border border-white/10 bg-black/25 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-lime-300/40";
+function FormSection({
+  eyebrow,
+  title,
+  description,
+  children,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="rounded-[28px] border border-white/10 bg-black/15 p-5 sm:p-6">
+      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-cyan-200">{eyebrow}</p>
+      <h3 className="mt-3 text-xl font-black tracking-[-0.03em] text-white">{title}</h3>
+      <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300">{description}</p>
+      <div className="mt-5 space-y-4">{children}</div>
+    </section>
+  );
+}
+
+function inputClasses() {
+  return "w-full rounded-[22px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-lime-300/40 focus:bg-white/[0.05]";
 }
 
 export function RequestDemoForm({
@@ -122,7 +144,7 @@ export function RequestDemoForm({
 
   if (state === "success") {
     return (
-      <div className="rounded-[30px] border border-emerald-400/20 bg-emerald-500/10 p-6">
+      <div className="rounded-[34px] border border-emerald-400/20 bg-[linear-gradient(180deg,rgba(16,80,49,0.26),rgba(6,35,24,0.74))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.2)]">
         <div className="flex items-start gap-3">
           <CheckCircle2 className="mt-1 h-5 w-5 text-emerald-300" />
           <div>
@@ -140,7 +162,7 @@ export function RequestDemoForm({
   }
 
   return (
-    <div className="rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.24)] sm:p-8">
+    <div className="rounded-[36px] border border-white/10 bg-[linear-gradient(180deg,rgba(18,24,36,0.94),rgba(10,14,22,0.96))] p-6 shadow-[0_30px_100px_rgba(0,0,0,0.28)] sm:p-8">
       <div className="flex flex-wrap gap-3">
         {([
           { id: "demo", label: "Request demo" },
@@ -153,7 +175,7 @@ export function RequestDemoForm({
             className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
               mode === option.id
                 ? "bg-lime-300 text-slate-950"
-                : "border border-white/12 text-white hover:bg-white/[0.06]"
+                : "border border-white/12 bg-white/[0.04] text-white hover:bg-white/[0.08]"
             }`}
           >
             {option.label}
@@ -165,7 +187,7 @@ export function RequestDemoForm({
         <p className="text-xs font-bold uppercase tracking-[0.26em] text-cyan-200">
           {mode === "enterprise" ? "Buyer review" : "Guided help"}
         </p>
-        <h2 className="mt-3 text-3xl font-black text-white">
+        <h2 className="mt-3 text-3xl font-black tracking-[-0.04em] text-white">
           {mode === "enterprise"
             ? "Tell us what enterprise posture you need."
             : "Request a walkthrough without slowing the launch down."}
@@ -177,87 +199,132 @@ export function RequestDemoForm({
         </p>
       </div>
 
+      <div className="mt-6 grid gap-4 md:grid-cols-3">
+        <div className="rounded-[24px] border border-lime-300/18 bg-lime-300/[0.08] p-4">
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-lime-200">Mode</p>
+          <p className="mt-3 text-sm font-black text-white">
+            {mode === "enterprise" ? "Enterprise review" : "Guided walkthrough"}
+          </p>
+          <p className="mt-2 text-sm leading-6 text-slate-200">
+            {mode === "enterprise"
+              ? "Use this for SSO, procurement, buyer review and custom rollout posture."
+              : "Use this for a fast commercial conversation without slowing self-serve down."}
+          </p>
+        </div>
+        <div className="rounded-[24px] border border-cyan-300/16 bg-cyan-300/[0.08] p-4">
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-cyan-200">Entry signal</p>
+          <p className="mt-3 text-sm font-black text-white">{defaultFrom ? `From ${defaultFrom}` : "Direct buyer path"}</p>
+          <p className="mt-2 text-sm leading-6 text-slate-200">
+            {defaultPlan ? `Plan context: ${defaultPlan}.` : "No plan bias is attached yet."}{" "}
+            {defaultIntent ? `Intent: ${defaultIntent}.` : "The request can still shape the right path."}
+          </p>
+        </div>
+        <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-4">
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-300">Routing promise</p>
+          <p className="mt-3 text-sm font-black text-white">Short intake, real follow-up.</p>
+          <p className="mt-2 text-sm leading-6 text-slate-300">
+            Veltrix uses this form to route well, not to force a long procurement questionnaire on day one.
+          </p>
+        </div>
+      </div>
+
       <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
-        <div className="grid gap-4 md:grid-cols-2">
-          <FieldLabel label="Your name">
-            <input
-              value={requesterName}
-              onChange={(event) => setRequesterName(event.target.value)}
-              className={InputClasses()}
-              placeholder="Name"
-              required
-            />
-          </FieldLabel>
-          <FieldLabel label="Work email">
-            <input
-              type="email"
-              value={requesterEmail}
-              onChange={(event) => setRequesterEmail(event.target.value)}
-              className={InputClasses()}
-              placeholder="name@company.com"
-              required
-            />
-          </FieldLabel>
-        </div>
+        <FormSection
+          eyebrow="Contact"
+          title="Who should Veltrix follow up with?"
+          description="Enough to route the request well and start the next conversation without asking you for unnecessary procurement detail."
+        >
+          <div className="grid gap-4 md:grid-cols-2">
+            <FieldLabel label="Your name">
+              <input
+                value={requesterName}
+                onChange={(event) => setRequesterName(event.target.value)}
+                className={inputClasses()}
+                placeholder="Name"
+                required
+              />
+            </FieldLabel>
+            <FieldLabel label="Work email">
+              <input
+                type="email"
+                value={requesterEmail}
+                onChange={(event) => setRequesterEmail(event.target.value)}
+                className={inputClasses()}
+                placeholder="name@company.com"
+                required
+              />
+            </FieldLabel>
+          </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <FieldLabel label="Company">
-            <input
-              value={companyName}
-              onChange={(event) => setCompanyName(event.target.value)}
-              className={InputClasses()}
-              placeholder="Company"
-              required
-            />
-          </FieldLabel>
-          <FieldLabel label="Team size">
-            <select
-              value={teamSize}
-              onChange={(event) => setTeamSize(event.target.value as CommercialTeamSize)}
-              className={InputClasses()}
-            >
-              {commercialTeamSizeOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </FieldLabel>
-        </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <FieldLabel label="Company">
+              <input
+                value={companyName}
+                onChange={(event) => setCompanyName(event.target.value)}
+                className={inputClasses()}
+                placeholder="Company"
+                required
+              />
+            </FieldLabel>
+            <FieldLabel label="Team size">
+              <select
+                value={teamSize}
+                onChange={(event) => setTeamSize(event.target.value as CommercialTeamSize)}
+                className={inputClasses()}
+              >
+                {commercialTeamSizeOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </FieldLabel>
+          </div>
+        </FormSection>
 
-        <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px]">
-          <FieldLabel label="Use case">
-            <textarea
-              value={useCase}
-              onChange={(event) => setUseCase(event.target.value)}
-              className={InputClasses()}
-              rows={4}
-              placeholder="What are you trying to launch or operate?"
-              required
-            />
-          </FieldLabel>
-          <FieldLabel label="Urgency">
-            <select
-              value={urgency}
-              onChange={(event) => setUrgency(event.target.value as CommercialUrgency)}
-              className={InputClasses()}
-            >
-              {commercialUrgencyOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </FieldLabel>
-        </div>
+        <FormSection
+          eyebrow="Launch context"
+          title="What are you trying to launch or decide?"
+          description="This is the core routing signal for the commercial queue: what the team is trying to do, how urgent it is and where the help is needed."
+        >
+          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px]">
+            <FieldLabel label="Use case">
+              <textarea
+                value={useCase}
+                onChange={(event) => setUseCase(event.target.value)}
+                className={inputClasses()}
+                rows={4}
+                placeholder="What are you trying to launch or operate?"
+                required
+              />
+            </FieldLabel>
+            <FieldLabel label="Urgency">
+              <select
+                value={urgency}
+                onChange={(event) => setUrgency(event.target.value as CommercialUrgency)}
+                className={inputClasses()}
+              >
+                {commercialUrgencyOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </FieldLabel>
+          </div>
+        </FormSection>
 
         {mode === "enterprise" ? (
-          <>
+          <FormSection
+            eyebrow="Enterprise posture"
+            title="What pushes this beyond pure self-serve?"
+            description="Use this section for the parts that usually matter in buyer review: security, billing structure and rollout support."
+          >
             <FieldLabel label="Requirement summary">
               <textarea
                 value={requirementSummary}
                 onChange={(event) => setRequirementSummary(event.target.value)}
-                className={InputClasses()}
+                className={inputClasses()}
                 rows={3}
                 placeholder="What makes this enterprise instead of self-serve?"
                 required={mode === "enterprise"}
@@ -268,7 +335,7 @@ export function RequestDemoForm({
                 <textarea
                   value={securityRequirements}
                   onChange={(event) => setSecurityRequirements(event.target.value)}
-                  className={InputClasses()}
+                  className={inputClasses()}
                   rows={4}
                   placeholder="SSO, review, DPA, procurement"
                 />
@@ -277,7 +344,7 @@ export function RequestDemoForm({
                 <textarea
                   value={billingRequirements}
                   onChange={(event) => setBillingRequirements(event.target.value)}
-                  className={InputClasses()}
+                  className={inputClasses()}
                   rows={4}
                   placeholder="Contract, invoicing, custom limits"
                 />
@@ -286,13 +353,13 @@ export function RequestDemoForm({
                 <textarea
                   value={onboardingRequirements}
                   onChange={(event) => setOnboardingRequirements(event.target.value)}
-                  className={InputClasses()}
+                  className={inputClasses()}
                   rows={4}
                   placeholder="Launch support, rollout help, enablement"
                 />
               </FieldLabel>
             </div>
-          </>
+          </FormSection>
         ) : null}
 
         {error ? (
