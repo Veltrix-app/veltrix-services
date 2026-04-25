@@ -53,7 +53,7 @@ const missionSteps: DefiMissionStep[] = [
   },
   {
     label: "Open position",
-    description: "Use the vault route once the wallet and network are ready.",
+    description: "Deposit directly from the connected wallet after the vault route is checked.",
     state: "locked",
   },
   {
@@ -151,7 +151,7 @@ export function buildDefiMissionOverview(): DefiMissionOverview {
     productName: "Veltrix DeFi Missions",
     heroTitle: "Earn XP for verified DeFi actions",
     heroDescription:
-      "A calm savings-style mission surface for users who want to discover vaults, understand the action and later earn XP for verified on-chain activity.",
+      "A calm savings-style mission surface where users can discover vaults, move funds with their own wallet and later earn XP for verified on-chain activity.",
     primaryCta: "Start with USDC",
     secondaryCta: "View risk notes",
     disclosure:
@@ -160,13 +160,13 @@ export function buildDefiMissionOverview(): DefiMissionOverview {
     productRails: [
       {
         label: "Phase 1",
-        value: "Read-only",
-        description: "Launch the product surface with vault cards, disclosures and mission intent.",
+        value: "Live read",
+        description: "Read vault shares, withdrawable value and wallet posture directly from Base.",
       },
       {
         label: "Phase 2",
-        value: "Verify",
-        description: "Detect vault shares and hold duration per connected wallet.",
+        value: "Move funds",
+        description: "Add non-custodial deposit and withdraw flows with wallet approval checks.",
       },
       {
         label: "Phase 3",

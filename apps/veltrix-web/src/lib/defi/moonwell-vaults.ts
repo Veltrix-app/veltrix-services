@@ -37,6 +37,41 @@ export type MoonwellVaultPositionRead = {
   error?: string;
 };
 
+export type MoonwellVaultTransactionKind = "deposit" | "withdraw";
+
+export type VaultActionAmountParseResult =
+  | {
+      ok: true;
+      raw: string;
+    }
+  | {
+      ok: false;
+      error: string;
+    };
+
+export type MoonwellVaultTransactionIntent =
+  | {
+      ok: true;
+      kind: MoonwellVaultTransactionKind;
+      vault: MoonwellVaultConfig;
+      amountRaw: string;
+      amountLabel: string;
+      needsApproval: boolean;
+      approvalLabel: string | null;
+      actionLabel: string;
+    }
+  | {
+      ok: false;
+      kind: MoonwellVaultTransactionKind;
+      vault: MoonwellVaultConfig;
+      amountRaw: string;
+      amountLabel: string;
+      needsApproval: false;
+      approvalLabel: null;
+      actionLabel: string;
+      error: string;
+    };
+
 export const MOONWELL_BASE_VAULTS: MoonwellVaultConfig[] = [
   {
     slug: "usdc-vault",
@@ -180,5 +215,126 @@ export function buildMoonwellVaultPositionRead(input: {
     totalAssetsRaw: String(input.totalAssetsRaw ?? "0"),
     totalAssetsLabel: formatVaultTokenAmount(input.totalAssetsRaw, input.assetDecimals, assetSymbol),
     error: input.error,
+  };
+}
+
+export function parseVaultActionAmount(
+  value: string,
+  decimals: number
+): VaultActionAmountParseResult {
+  const trimmed = value.trim();
+  const safeDecimals = Number.isInteger(decimals) && decimals >= 0 ? decimals : 0;
+
+  if (!trimmed) {
+    return { ok: false, error: "Enter an amount first." };
+  }
+
+  if (!/^\d+(\.\d+)?$/.test(trimmed)) {
+    return { ok: false, error: "Use a positive decimal amount." };
+  }
+
+  const [wholePart, fractionPart = ""] = trimmed.split(".");
+
+  if (fractionPart.length > safeDecimals) {
+    return {
+      ok: false,
+      error: `This token supports ${safeDecimals} decimal places.`,
+    };
+  }
+
+  const raw =
+    BigInt(wholePart || "0") * (BigInt(10) ** BigInt(safeDecimals)) +
+    BigInt((fractionPart || "").padEnd(safeDecimals, "0") || "0");
+
+  if (raw <= BigInt(0)) {
+    return { ok: false, error: "Amount must be greater than zero." };
+  }
+
+  return { ok: true, raw: raw.toString() };
+}
+
+export function buildMoonwellVaultTransactionIntent(input: {
+  kind: MoonwellVaultTransactionKind;
+  vault: MoonwellVaultConfig;
+  amountRaw: string;
+  assetSymbol: string;
+  assetDecimals: number;
+  allowanceRaw: string;
+  assetBalanceRaw?: string;
+  maxWithdrawRaw: string;
+}): MoonwellVaultTransactionIntent {
+  const amountLabel = formatVaultTokenAmount(
+    input.amountRaw,
+    input.assetDecimals,
+    input.assetSymbol
+  );
+  const actionVerb = input.kind === "deposit" ? "Deposit" : "Withdraw";
+  const baseIntent = {
+    kind: input.kind,
+    vault: input.vault,
+    amountRaw: input.amountRaw,
+    amountLabel,
+    needsApproval: false as const,
+    approvalLabel: null,
+    actionLabel: `${actionVerb} ${amountLabel}`,
+  };
+
+  let amount: bigint;
+
+  try {
+    amount = BigInt(input.amountRaw);
+  } catch {
+    return {
+      ...baseIntent,
+      ok: false,
+      error: "Invalid amount.",
+    };
+  }
+
+  if (amount <= BigInt(0)) {
+    return {
+      ...baseIntent,
+      ok: false,
+      error: "Amount must be greater than zero.",
+    };
+  }
+
+  if (input.kind === "deposit" && input.assetBalanceRaw !== undefined) {
+    const assetBalance = BigInt(input.assetBalanceRaw || "0");
+
+    if (amount > assetBalance) {
+      return {
+        ...baseIntent,
+        ok: false,
+        error: "Amount is higher than your token balance.",
+      };
+    }
+  }
+
+  if (input.kind === "withdraw") {
+    const maxWithdraw = BigInt(input.maxWithdrawRaw || "0");
+
+    if (amount > maxWithdraw) {
+      return {
+        ...baseIntent,
+        ok: false,
+        error: "Amount is higher than your withdrawable balance.",
+      };
+    }
+
+    return {
+      ...baseIntent,
+      ok: true,
+    };
+  }
+
+  const allowance = BigInt(input.allowanceRaw || "0");
+  const needsApproval = allowance < amount;
+
+  return {
+    ...baseIntent,
+    ok: true,
+    needsApproval,
+    approvalLabel: needsApproval ? `Approve ${amountLabel}` : null,
   };
 }

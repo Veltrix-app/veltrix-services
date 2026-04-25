@@ -16,6 +16,10 @@ type MoonwellVaultPositionsState = {
   error: string | null;
 };
 
+type MoonwellVaultPositionsResult = MoonwellVaultPositionsState & {
+  refresh: () => void;
+};
+
 type MoonwellVaultPositionsPayload = {
   ok: boolean;
   wallet?: string;
@@ -27,6 +31,7 @@ export function useMoonwellVaultPositions() {
   const { profile } = useAuth();
   const wallet = profile?.wallet ?? null;
   const readUrl = buildMoonwellVaultReadUrl(wallet);
+  const [refreshToken, setRefreshToken] = useState(0);
   const [remoteState, setRemoteState] = useState<MoonwellVaultPositionsState>({
     status: "wallet-missing",
     wallet: null,
@@ -81,7 +86,16 @@ export function useMoonwellVaultPositions() {
     return () => {
       controller.abort();
     };
-  }, [readUrl, wallet]);
+  }, [readUrl, refreshToken, wallet]);
+
+  function refresh() {
+    setRemoteState((current) => ({
+      ...current,
+      status: readUrl && wallet ? "loading" : "wallet-missing",
+      error: null,
+    }));
+    setRefreshToken((current) => current + 1);
+  }
 
   if (!readUrl) {
     return {
@@ -89,7 +103,8 @@ export function useMoonwellVaultPositions() {
       wallet: null,
       positions: [],
       error: null,
-    } satisfies MoonwellVaultPositionsState;
+      refresh,
+    } satisfies MoonwellVaultPositionsResult;
   }
 
   if (remoteState.wallet !== wallet) {
@@ -98,8 +113,12 @@ export function useMoonwellVaultPositions() {
       wallet,
       positions: [],
       error: null,
-    } satisfies MoonwellVaultPositionsState;
+      refresh,
+    } satisfies MoonwellVaultPositionsResult;
   }
 
-  return remoteState;
+  return {
+    ...remoteState,
+    refresh,
+  };
 }

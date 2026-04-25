@@ -15,10 +15,14 @@ import {
   getPrimaryVaultMission,
   type DefiVaultMission,
 } from "@/lib/defi/defi-missions-read-model";
-import { type MoonwellVaultPositionRead } from "@/lib/defi/moonwell-vaults";
+import {
+  type MoonwellVaultPositionRead,
+  type MoonwellVaultTransactionKind,
+} from "@/lib/defi/moonwell-vaults";
 import { useAuth } from "@/components/providers/auth-provider";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useMoonwellVaultPositions } from "@/hooks/use-moonwell-vault-positions";
+import { useMoonwellVaultTransactions } from "@/hooks/use-moonwell-vault-transactions";
 
 const overview = buildDefiMissionOverview();
 const primaryVault = getPrimaryVaultMission();
@@ -71,8 +75,14 @@ function shortenWallet(address?: string | null) {
 export function DefiMissionsScreen() {
   const { session, profile } = useAuth();
   const vaultPositions = useMoonwellVaultPositions();
+  const vaultTransactions = useMoonwellVaultTransactions({
+    wallet: profile?.wallet,
+    onConfirmed: vaultPositions.refresh,
+  });
   const [selectedSlug, setSelectedSlug] = useState(primaryVault.slug);
   const [flowPreviewOpen, setFlowPreviewOpen] = useState(false);
+  const [vaultAction, setVaultAction] = useState<MoonwellVaultTransactionKind>("deposit");
+  const [vaultAmount, setVaultAmount] = useState("");
 
   const selectedVault = useMemo(
     () => overview.vaults.find((vault) => vault.slug === selectedSlug) ?? primaryVault,
@@ -114,7 +124,7 @@ export function DefiMissionsScreen() {
 
             <div className="grid grid-cols-3 gap-2">
               <HeroMetric label="Vaults" value={String(overview.vaults.length)} />
-              <HeroMetric label="Mode" value="Preview" />
+              <HeroMetric label="Mode" value="Live tx" />
               <HeroMetric label="Custody" value="None" />
             </div>
           </div>
@@ -135,7 +145,11 @@ export function DefiMissionsScreen() {
                 <button
                   key={vault.slug}
                   type="button"
-                  onClick={() => setSelectedSlug(vault.slug)}
+                  onClick={() => {
+                    setSelectedSlug(vault.slug);
+                    setVaultAmount("");
+                    vaultTransactions.resetVaultTransaction();
+                  }}
                   className={`group rounded-[22px] border p-3.5 text-left transition ${
                     active
                       ? `${accent.border} ${accent.bg} shadow-[0_18px_48px_rgba(0,0,0,0.28)]`
@@ -264,6 +278,33 @@ export function DefiMissionsScreen() {
             <MissionMetric label="Yield" value={selectedVault.apyLabel} />
           </div>
 
+          <VaultMoveFundsPanel
+            action={vaultAction}
+            amount={vaultAmount}
+            busy={vaultTransactions.busy}
+            error={vaultTransactions.error}
+            message={vaultTransactions.message}
+            onActionChange={(nextAction) => {
+              setVaultAction(nextAction);
+              vaultTransactions.resetVaultTransaction();
+            }}
+            onAmountChange={(nextAmount) => {
+              setVaultAmount(nextAmount);
+              vaultTransactions.resetVaultTransaction();
+            }}
+            onSubmit={() =>
+              void vaultTransactions.executeVaultTransaction({
+                kind: vaultAction,
+                amount: vaultAmount,
+                position: selectedPosition,
+              })
+            }
+            position={selectedPosition}
+            status={vaultTransactions.status}
+            txHash={vaultTransactions.txHash}
+            walletReady={walletReady}
+          />
+
           <div className="relative z-10 mt-5 grid gap-3 md:grid-cols-4">
             {selectedVault.steps.map((step, index) => (
               <div
@@ -316,13 +357,13 @@ export function DefiMissionsScreen() {
             <div className="relative z-10 mt-3 grid gap-2 rounded-[20px] border border-white/8 bg-black/20 p-3.5 sm:grid-cols-3">
               <FlowPreviewStep
                 label="Now"
-                value="Read-only page"
-                description="Users can understand the vault route before any transaction UI exists."
+                value="Move funds"
+                description="Users can deposit or withdraw with their own wallet after the route is checked."
               />
               <FlowPreviewStep
                 label="Next"
-                value="On-chain check"
-                description="We verify vault shares and duration from the connected wallet."
+                value="On-chain verify"
+                description="We turn vault shares and duration into eligibility for DeFi missions."
               />
               <FlowPreviewStep
                 label="Then"
@@ -406,6 +447,14 @@ export function DefiMissionsScreen() {
 
 type VaultReadStatus = "wallet-missing" | "loading" | "ready" | "error";
 type StatusTone = "default" | "positive" | "warning" | "danger" | "info";
+type VaultTransactionStatus =
+  | "idle"
+  | "checking"
+  | "approving"
+  | "depositing"
+  | "withdrawing"
+  | "confirmed"
+  | "error";
 
 function getReadStatusLabel({
   status,
@@ -563,6 +612,204 @@ function getSelectedPositionSummary({
   }
 
   return "No current position detected for this vault.";
+}
+
+function getVaultActionDisabledReason({
+  action,
+  position,
+  walletReady,
+}: {
+  action: MoonwellVaultTransactionKind;
+  position: MoonwellVaultPositionRead | null;
+  walletReady: boolean;
+}) {
+  if (!walletReady) {
+    return "Connect wallet first";
+  }
+
+  if (!position?.assetAddress) {
+    return "Vault route loading";
+  }
+
+  if (action === "withdraw" && BigInt(position.maxWithdrawRaw || "0") <= BigInt(0)) {
+    return "Nothing withdrawable";
+  }
+
+  return null;
+}
+
+function getVaultActionButtonLabel({
+  action,
+  busy,
+  disabledReason,
+  status,
+}: {
+  action: MoonwellVaultTransactionKind;
+  busy: boolean;
+  disabledReason: string | null;
+  status: VaultTransactionStatus;
+}) {
+  if (busy) {
+    if (status === "checking") return "Checking wallet...";
+    if (status === "approving") return "Approving...";
+    if (status === "withdrawing") return "Withdrawing...";
+    return "Depositing...";
+  }
+
+  if (disabledReason) {
+    return disabledReason;
+  }
+
+  return action === "deposit" ? "Deposit into vault" : "Withdraw from vault";
+}
+
+function VaultMoveFundsPanel({
+  action,
+  amount,
+  busy,
+  error,
+  message,
+  onActionChange,
+  onAmountChange,
+  onSubmit,
+  position,
+  status,
+  txHash,
+  walletReady,
+}: {
+  action: MoonwellVaultTransactionKind;
+  amount: string;
+  busy: boolean;
+  error: string | null;
+  message: string | null;
+  onActionChange: (action: MoonwellVaultTransactionKind) => void;
+  onAmountChange: (amount: string) => void;
+  onSubmit: () => void;
+  position: MoonwellVaultPositionRead | null;
+  status: VaultTransactionStatus;
+  txHash: string | null;
+  walletReady: boolean;
+}) {
+  const assetSymbol = position?.assetSymbol ?? "asset";
+  const disabledReason = getVaultActionDisabledReason({
+    action,
+    position,
+    walletReady,
+  });
+  const buttonDisabled = busy || Boolean(disabledReason);
+  const buttonLabel = getVaultActionButtonLabel({
+    action,
+    busy,
+    disabledReason,
+    status,
+  });
+
+  return (
+    <div className="relative z-10 mt-5 rounded-[24px] border border-lime-300/10 bg-black/24 p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-lime-300">
+            Move funds
+          </p>
+          <p className="mt-2 text-[13px] leading-6 text-slate-400">
+            Deposit or withdraw directly with your wallet. Veltrix never takes custody.
+          </p>
+        </div>
+        <div className="inline-flex rounded-full border border-white/8 bg-white/[0.035] p-1">
+          {(["deposit", "withdraw"] as const).map((nextAction) => (
+            <button
+              key={nextAction}
+              type="button"
+              onClick={() => onActionChange(nextAction)}
+              className={`rounded-full px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] transition ${
+                action === nextAction
+                  ? "bg-lime-300 text-black"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              {nextAction}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+        <label className="rounded-[18px] border border-white/8 bg-white/[0.035] px-3.5 py-3">
+          <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-500">
+            Amount in {assetSymbol}
+          </span>
+          <input
+            value={amount}
+            onChange={(event) => onAmountChange(event.target.value)}
+            inputMode="decimal"
+            placeholder="0.00"
+            className="mt-2 w-full bg-transparent text-lg font-semibold tracking-[-0.02em] text-white outline-none placeholder:text-slate-600"
+          />
+        </label>
+        <button
+          type="button"
+          onClick={onSubmit}
+          disabled={buttonDisabled}
+          className="inline-flex min-w-[180px] items-center justify-center rounded-[18px] bg-lime-300 px-5 py-3 text-[11px] font-black uppercase tracking-[0.16em] text-black transition hover:bg-lime-200 disabled:cursor-not-allowed disabled:bg-white/8 disabled:text-slate-500"
+        >
+          {buttonLabel}
+        </button>
+      </div>
+
+      <div className="mt-3 grid gap-2 text-[11px] leading-5 text-slate-400 sm:grid-cols-3">
+        <div className="rounded-[15px] border border-white/6 bg-white/[0.025] px-3 py-2">
+          <span className="font-bold uppercase tracking-[0.14em] text-slate-500">Asset</span>
+          <p className="mt-1 font-semibold text-white">{assetSymbol}</p>
+        </div>
+        <div className="rounded-[15px] border border-white/6 bg-white/[0.025] px-3 py-2">
+          <span className="font-bold uppercase tracking-[0.14em] text-slate-500">Available</span>
+          <p className="mt-1 font-semibold text-white">
+            {action === "withdraw" ? position?.maxWithdrawLabel ?? "0" : "Wallet balance checked"}
+          </p>
+        </div>
+        <div className="rounded-[15px] border border-white/6 bg-white/[0.025] px-3 py-2">
+          <span className="font-bold uppercase tracking-[0.14em] text-slate-500">Network</span>
+          <p className="mt-1 font-semibold text-white">Base</p>
+        </div>
+      </div>
+
+      {position?.vault.slug === "eth-vault" ? (
+        <p className="mt-3 rounded-[16px] border border-amber-300/12 bg-amber-300/[0.06] px-3 py-2 text-[11px] leading-5 text-amber-100">
+          ETH vault deposits use the ERC-20 vault asset route in this first release. Native ETH
+          router support can be added as the next safety pass.
+        </p>
+      ) : null}
+
+      {message ? (
+        <p className="mt-3 rounded-[16px] border border-lime-300/12 bg-lime-300/[0.06] px-3 py-2 text-[11px] leading-5 text-lime-100">
+          {message}
+        </p>
+      ) : null}
+
+      {txHash ? (
+        <a
+          href={`https://basescan.org/tx/${txHash}`}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-3 inline-flex rounded-full border border-white/8 bg-white/[0.04] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-300 transition hover:text-white"
+        >
+          View transaction
+        </a>
+      ) : null}
+
+      {status === "confirmed" ? (
+        <p className="mt-3 rounded-[16px] border border-cyan-300/12 bg-cyan-300/[0.06] px-3 py-2 text-[11px] leading-5 text-cyan-100">
+          Confirmed. Your vault read is refreshing from Base.
+        </p>
+      ) : null}
+
+      {error ? (
+        <p className="mt-3 rounded-[16px] border border-rose-300/14 bg-rose-300/[0.06] px-3 py-2 text-[11px] leading-5 text-rose-100">
+          {error}
+        </p>
+      ) : null}
+    </div>
+  );
 }
 
 function HeroMetric({ label, value }: { label: string; value: string }) {
