@@ -15,8 +15,10 @@ import {
   getPrimaryVaultMission,
   type DefiVaultMission,
 } from "@/lib/defi/defi-missions-read-model";
+import { type MoonwellVaultPositionRead } from "@/lib/defi/moonwell-vaults";
 import { useAuth } from "@/components/providers/auth-provider";
 import { StatusChip } from "@/components/ui/status-chip";
+import { useMoonwellVaultPositions } from "@/hooks/use-moonwell-vault-positions";
 
 const overview = buildDefiMissionOverview();
 const primaryVault = getPrimaryVaultMission();
@@ -68,15 +70,28 @@ function shortenWallet(address?: string | null) {
 
 export function DefiMissionsScreen() {
   const { session, profile } = useAuth();
+  const vaultPositions = useMoonwellVaultPositions();
   const [selectedSlug, setSelectedSlug] = useState(primaryVault.slug);
   const [flowPreviewOpen, setFlowPreviewOpen] = useState(false);
 
   const selectedVault = useMemo(
     () => overview.vaults.find((vault) => vault.slug === selectedSlug) ?? primaryVault,
-    [primaryVault, selectedSlug]
+    [selectedSlug]
   );
   const walletReady = Boolean(profile?.wallet);
   const selectedAccent = accentStyles[selectedVault.accent];
+  const selectedPosition =
+    vaultPositions.positions.find((position) => position.vault.slug === selectedVault.slug) ??
+    null;
+  const detectedPositions = vaultPositions.positions.filter(
+    (position) => position.status === "position-detected"
+  ).length;
+  const readStatusLabel = getReadStatusLabel({
+    status: vaultPositions.status,
+    walletReady,
+    detectedPositions,
+    totalVaults: overview.vaults.length,
+  });
 
   return (
     <div className="space-y-5">
@@ -108,6 +123,13 @@ export function DefiMissionsScreen() {
             {overview.vaults.map((vault) => {
               const active = vault.slug === selectedVault.slug;
               const accent = accentStyles[vault.accent];
+              const position =
+                vaultPositions.positions.find((read) => read.vault.slug === vault.slug) ?? null;
+              const vaultStatus = getVaultStatusBadge({
+                position,
+                readStatus: vaultPositions.status,
+                walletReady,
+              });
 
               return (
                 <button
@@ -126,7 +148,7 @@ export function DefiMissionsScreen() {
                     >
                       <Gem className="h-4 w-4" />
                     </span>
-                    <StatusChip label={vault.chain} tone={active ? "positive" : "default"} />
+                    <StatusChip label={vaultStatus.label} tone={vaultStatus.tone} />
                   </div>
                   <p className="mt-4 text-[0.96rem] font-semibold tracking-[-0.02em] text-white">
                     {vault.title}
@@ -136,7 +158,9 @@ export function DefiMissionsScreen() {
                   </p>
                   <div className="mt-4 flex items-center justify-between border-t border-white/6 pt-3">
                     <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
-                      {vault.apyLabel}
+                      {position?.status === "position-detected"
+                        ? position.underlyingLabel
+                        : vault.chain}
                     </span>
                     <ArrowRight
                       className={`h-4 w-4 transition ${
@@ -171,17 +195,18 @@ export function DefiMissionsScreen() {
             Wallet posture
           </p>
           <p className="mt-3 text-[1rem] font-semibold text-white">
-            {walletReady ? "Ready to verify" : session ? "Wallet needed" : "Preview mode"}
+            {walletReady ? "Reading Base vaults" : session ? "Wallet needed" : "Preview mode"}
           </p>
           <p className="mt-2 text-[12px] leading-5 text-slate-400">
             {walletReady
-              ? `${shortenWallet(profile?.wallet)} can be checked when verification ships.`
+              ? `${shortenWallet(profile?.wallet)} is checked read-only against the Base vaults.`
               : "Connect a wallet before we can verify vault shares or hold duration."}
           </p>
 
           <div className="mt-4 space-y-2.5">
             <WalletRead label="Access" value={session ? "Signed in" : "Preview"} icon={Wallet} />
-            <WalletRead label="Network" value="Base first" icon={Layers3} />
+            <WalletRead label="Network" value="Base live" icon={Layers3} />
+            <WalletRead label="Vault read" value={readStatusLabel} icon={Gem} />
             <WalletRead label="Safety" value="Non-custodial" icon={ShieldCheck} />
           </div>
 
@@ -221,10 +246,22 @@ export function DefiMissionsScreen() {
           </div>
 
           <div className="relative z-10 mt-5 grid gap-3 md:grid-cols-4">
-            <MissionMetric label="Asset" value={selectedVault.asset} />
+            <MissionMetric label="Detected" value={getPositionValueLabel({
+              position: selectedPosition,
+              readStatus: vaultPositions.status,
+              walletReady,
+            })} />
+            <MissionMetric label="Shares" value={getShareValueLabel({
+              position: selectedPosition,
+              readStatus: vaultPositions.status,
+              walletReady,
+            })} />
+            <MissionMetric label="Withdrawable" value={getWithdrawableValueLabel({
+              position: selectedPosition,
+              readStatus: vaultPositions.status,
+              walletReady,
+            })} />
             <MissionMetric label="Yield" value={selectedVault.apyLabel} />
-            <MissionMetric label="Liquidity" value={selectedVault.liquidityLabel} />
-            <MissionMetric label="Withdrawal" value={selectedVault.withdrawalLabel} />
           </div>
 
           <div className="relative z-10 mt-5 grid gap-3 md:grid-cols-4">
@@ -307,7 +344,19 @@ export function DefiMissionsScreen() {
             <p className="mt-2 text-[12px] leading-5 text-slate-400">
               {selectedVault.rewardPreview.description}
             </p>
-            <div className="mt-4 rounded-[18px] border border-white/6 bg-white/[0.03] p-3">
+            <div className="mt-4 rounded-[18px] border border-lime-300/10 bg-lime-300/[0.045] p-3">
+              <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-lime-300">
+                Live vault read
+              </p>
+              <p className="mt-2 text-[13px] font-semibold text-white">
+                {getSelectedPositionSummary({
+                  position: selectedPosition,
+                  readStatus: vaultPositions.status,
+                  walletReady,
+                })}
+              </p>
+            </div>
+            <div className="mt-3 rounded-[18px] border border-white/6 bg-white/[0.03] p-3">
               <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">
                 Status
               </p>
@@ -353,6 +402,167 @@ export function DefiMissionsScreen() {
       </section>
     </div>
   );
+}
+
+type VaultReadStatus = "wallet-missing" | "loading" | "ready" | "error";
+type StatusTone = "default" | "positive" | "warning" | "danger" | "info";
+
+function getReadStatusLabel({
+  status,
+  walletReady,
+  detectedPositions,
+  totalVaults,
+}: {
+  status: VaultReadStatus;
+  walletReady: boolean;
+  detectedPositions: number;
+  totalVaults: number;
+}) {
+  if (!walletReady) {
+    return "Connect wallet";
+  }
+
+  if (status === "loading") {
+    return "Reading...";
+  }
+
+  if (status === "error") {
+    return "Read error";
+  }
+
+  return `${detectedPositions}/${totalVaults} detected`;
+}
+
+function getVaultStatusBadge({
+  position,
+  readStatus,
+  walletReady,
+}: {
+  position: MoonwellVaultPositionRead | null;
+  readStatus: VaultReadStatus;
+  walletReady: boolean;
+}): { label: string; tone: StatusTone } {
+  if (!walletReady) {
+    return { label: "Connect", tone: "default" };
+  }
+
+  if (readStatus === "loading") {
+    return { label: "Reading", tone: "info" };
+  }
+
+  if (readStatus === "error" || position?.status === "read-error") {
+    return { label: "Read error", tone: "warning" };
+  }
+
+  if (position?.status === "position-detected") {
+    return { label: "Position", tone: "positive" };
+  }
+
+  return { label: "No position", tone: "default" };
+}
+
+function getPositionValueLabel({
+  position,
+  readStatus,
+  walletReady,
+}: {
+  position: MoonwellVaultPositionRead | null;
+  readStatus: VaultReadStatus;
+  walletReady: boolean;
+}) {
+  if (!walletReady) {
+    return "Connect wallet";
+  }
+
+  if (readStatus === "loading") {
+    return "Reading...";
+  }
+
+  if (readStatus === "error" || position?.status === "read-error") {
+    return "Read error";
+  }
+
+  if (position?.status === "position-detected") {
+    return position.underlyingLabel;
+  }
+
+  return "No position";
+}
+
+function getShareValueLabel({
+  position,
+  readStatus,
+  walletReady,
+}: {
+  position: MoonwellVaultPositionRead | null;
+  readStatus: VaultReadStatus;
+  walletReady: boolean;
+}) {
+  if (!walletReady) {
+    return "Connect wallet";
+  }
+
+  if (readStatus === "loading") {
+    return "Reading...";
+  }
+
+  if (readStatus === "error" || position?.status === "read-error") {
+    return "Unavailable";
+  }
+
+  return position?.shareBalanceLabel ?? "0 shares";
+}
+
+function getWithdrawableValueLabel({
+  position,
+  readStatus,
+  walletReady,
+}: {
+  position: MoonwellVaultPositionRead | null;
+  readStatus: VaultReadStatus;
+  walletReady: boolean;
+}) {
+  if (!walletReady) {
+    return "Connect wallet";
+  }
+
+  if (readStatus === "loading") {
+    return "Reading...";
+  }
+
+  if (readStatus === "error" || position?.status === "read-error") {
+    return "Unavailable";
+  }
+
+  return position?.maxWithdrawLabel ?? "0";
+}
+
+function getSelectedPositionSummary({
+  position,
+  readStatus,
+  walletReady,
+}: {
+  position: MoonwellVaultPositionRead | null;
+  readStatus: VaultReadStatus;
+  walletReady: boolean;
+}) {
+  if (!walletReady) {
+    return "Connect wallet to read this vault.";
+  }
+
+  if (readStatus === "loading") {
+    return "Reading the connected wallet on Base.";
+  }
+
+  if (readStatus === "error" || position?.status === "read-error") {
+    return "The read route could not finish yet.";
+  }
+
+  if (position?.status === "position-detected") {
+    return `${position.underlyingLabel} detected, ${position.maxWithdrawLabel} withdrawable.`;
+  }
+
+  return "No current position detected for this vault.";
 }
 
 function HeroMetric({ label, value }: { label: string; value: string }) {
