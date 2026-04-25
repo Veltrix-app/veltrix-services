@@ -27,6 +27,7 @@ const primaryNavItems = [
   { href: "/projects", label: "Projects", icon: Compass },
   { href: "/campaigns", label: "Campaigns", icon: Layers3 },
   { href: "/quests", label: "Quests", icon: ShieldCheck },
+  { href: "/defi-missions", label: "DeFi", icon: Wallet },
   { href: "/raids", label: "Raids", icon: Swords },
   { href: "/rewards", label: "Rewards", icon: Gem },
 ] as const;
