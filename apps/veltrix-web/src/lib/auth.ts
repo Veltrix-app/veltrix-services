@@ -9,8 +9,18 @@ export function mapProfile(row: Record<string, unknown>): UserProfile {
     typeof row.primary_wallet_link === "object" && row.primary_wallet_link
       ? (row.primary_wallet_link as Record<string, unknown>)
       : {};
+  const primaryWalletMetadata =
+    typeof primaryWalletLink.metadata === "object" && primaryWalletLink.metadata
+      ? (primaryWalletLink.metadata as Record<string, unknown>)
+      : {};
+  const primaryWalletIsActive = primaryWalletMetadata.primary !== false;
   const walletAddress =
-    String(primaryWalletLink.wallet_address ?? row.wallet ?? "");
+    primaryWalletIsActive ? String(primaryWalletLink.wallet_address ?? row.wallet ?? "") : String(row.wallet ?? "");
+  const walletVerified =
+    Boolean(walletAddress) &&
+    (primaryWalletIsActive
+      ? Boolean(primaryWalletLink.verified ?? walletAddress)
+      : Boolean(row.wallet));
 
   return {
     id: String(row.id ?? ""),
@@ -23,7 +33,7 @@ export function mapProfile(row: Record<string, unknown>): UserProfile {
     bio: String(row.bio ?? "No bio set yet."),
     wallet: walletAddress,
     walletChain: String(primaryWalletLink.chain ?? "evm"),
-    walletVerified: Boolean(primaryWalletLink.verified ?? walletAddress),
+    walletVerified,
     xp: Number(row.xp ?? 0),
     activeXp: Number(reputation.active_xp ?? row.xp ?? 0),
     level: Number(row.level ?? 1),

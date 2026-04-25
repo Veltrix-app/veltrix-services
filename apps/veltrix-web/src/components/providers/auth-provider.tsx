@@ -154,6 +154,7 @@ async function fetchProfileWithReputation(
         .select("wallet_address, chain, verified, metadata, verified_at, updated_at")
         .eq("auth_user_id", authUserId)
         .eq("verified", true)
+        .contains("metadata", { primary: true })
         .order("verified_at", { ascending: false })
         .order("updated_at", { ascending: false })
         .limit(1)

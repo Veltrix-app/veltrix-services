@@ -6,14 +6,7 @@ import { useRouter } from "next/navigation";
 import { ImagePlus, Upload, Wallet } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useCommunityJourney } from "@/hooks/use-community-journey";
-
-declare global {
-  interface Window {
-    ethereum?: {
-      request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
-    };
-  }
-}
+import { useWalletIdentityActions } from "@/hooks/use-wallet-identity-actions";
 
 function shortenWallet(address: string) {
   if (!address) return "Not connected";
@@ -24,11 +17,8 @@ function shortenWallet(address: string) {
 export function ProfileEditScreen() {
   const router = useRouter();
   const {
-    session,
     profile,
     updateProfile,
-    verifyWallet,
-    unlinkWallet,
     uploadProfileAsset,
     loading,
     error,
@@ -43,11 +33,16 @@ export function ProfileEditScreen() {
   const [bio, setBio] = useState("");
   const [wallet, setWallet] = useState("");
   const [assetMessage, setAssetMessage] = useState<string | null>(null);
-  const [walletMessage, setWalletMessage] = useState<string | null>(null);
   const [uploadingKind, setUploadingKind] = useState<"avatar" | "banner" | null>(null);
-  const [connectingWallet, setConnectingWallet] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const bannerInputRef = useRef<HTMLInputElement | null>(null);
+  const {
+    message: walletMessage,
+    connectWallet,
+    disconnectWallet,
+    connecting: connectingWallet,
+    disconnecting: disconnectingWallet,
+  } = useWalletIdentityActions();
 
   useEffect(() => {
     if (profile) {
@@ -105,88 +100,15 @@ export function ProfileEditScreen() {
   }
 
   async function handleConnectWallet() {
-    setWalletMessage(null);
-
-    if (typeof window === "undefined" || !window.ethereum) {
-      setWalletMessage("No browser wallet was found. Install or unlock MetaMask first.");
-      return;
-    }
-
-    setConnectingWallet(true);
-
-    try {
-      const accounts = (await window.ethereum.request({
-        method: "eth_requestAccounts",
-      })) as string[];
-
-      const nextWallet = Array.isArray(accounts) && accounts[0] ? String(accounts[0]) : "";
-
-      if (!nextWallet) {
-        setWalletMessage("No wallet account was returned.");
-        setConnectingWallet(false);
-        return;
-      }
-
-      setWallet(nextWallet);
-      setWalletMessage("Requesting a signed wallet verification challenge...");
-
-      const nonceResponse = await fetch("/api/identity/wallet/nonce", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(session?.access_token
-            ? { Authorization: `Bearer ${session.access_token}` }
-            : {}),
-        },
-        body: JSON.stringify({
-          walletAddress: nextWallet,
-          chain: "evm",
-        }),
-      });
-
-      const noncePayload = await nonceResponse.json().catch(() => null);
-
-      if (!nonceResponse.ok || !noncePayload?.ok || typeof noncePayload?.message !== "string") {
-        throw new Error(noncePayload?.error || "Could not create a wallet verification challenge.");
-      }
-
-      const signature = (await window.ethereum.request({
-        method: "personal_sign",
-        params: [noncePayload.message, nextWallet],
-      })) as string;
-
-      const verification = await verifyWallet({
-        walletAddress: nextWallet,
-        chain: "evm",
-        signature,
-      });
-
-      if (!verification.ok) {
-        throw new Error(verification.error || "Wallet verification failed.");
-      }
-
-      setWallet(nextWallet);
-      setWalletMessage("Wallet verified and set as your primary identity wallet.");
-    } catch (nextError) {
-      setWalletMessage(
-        nextError instanceof Error ? nextError.message : "Could not connect your wallet."
-      );
-    } finally {
-      setConnectingWallet(false);
+    const result = await connectWallet();
+    if (result.ok && result.walletAddress) {
+      setWallet(result.walletAddress);
     }
   }
 
   async function handleDisconnectWallet() {
-    setWalletMessage(null);
-
-    const result = await unlinkWallet();
-    if (!result.ok) {
-      setWalletMessage(result.error || "Could not unlink your wallet.");
-      return;
-    }
-
-    setWallet("");
-    setWalletMessage("Wallet unlinked from your active identity profile.");
+    const result = await disconnectWallet();
+    if (result.ok) setWallet("");
   }
 
   const previewInitial = (username || "R").slice(0, 1).toUpperCase();
@@ -319,10 +241,10 @@ export function ProfileEditScreen() {
                 <button
                   type="button"
                   onClick={() => void handleDisconnectWallet()}
-                  disabled={!wallet}
+                  disabled={!wallet || disconnectingWallet}
                   className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2.5 text-[12px] font-semibold text-white transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Clear wallet
+                  {disconnectingWallet ? "Disconnecting..." : "Disconnect wallet"}
                 </button>
               </div>
 
