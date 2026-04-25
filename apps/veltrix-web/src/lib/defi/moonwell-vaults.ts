@@ -1,6 +1,7 @@
 export const MOONWELL_BASE_CHAIN_ID = 8453;
 export const MOONWELL_BASE_CHAIN_NAME = "Base";
 export const MOONWELL_BASE_RPC_FALLBACK_URL = "https://mainnet.base.org";
+export const MOONWELL_BASE_ETH_ROUTER_ADDRESS = "0xc095cb1A6B41A5Cd7dAaF993a904afDD74758D71";
 
 export type MoonwellVaultSlug = "usdc-vault" | "eth-vault" | "eurc-vault" | "cbbtc-vault";
 
@@ -11,6 +12,8 @@ export type MoonwellVaultConfig = {
   chainId: typeof MOONWELL_BASE_CHAIN_ID;
   chainName: typeof MOONWELL_BASE_CHAIN_NAME;
   address: `0x${string}`;
+  depositMode: "erc20" | "native-eth";
+  depositRouterAddress?: `0x${string}`;
 };
 
 export type MoonwellVaultPositionStatus =
@@ -38,6 +41,7 @@ export type MoonwellVaultPositionRead = {
 };
 
 export type MoonwellVaultTransactionKind = "deposit" | "withdraw";
+export type MoonwellVaultTransactionLifecycleStatus = "submitted" | "confirmed" | "failed";
 
 export type VaultActionAmountParseResult =
   | {
@@ -72,6 +76,27 @@ export type MoonwellVaultTransactionIntent =
       error: string;
     };
 
+export type MoonwellVaultTransactionLogResult =
+  | {
+      ok: true;
+      record: {
+        walletAddress: string;
+        vaultSlug: MoonwellVaultSlug;
+        vaultAddress: `0x${string}`;
+        chainId: typeof MOONWELL_BASE_CHAIN_ID;
+        kind: MoonwellVaultTransactionKind;
+        status: MoonwellVaultTransactionLifecycleStatus;
+        amountRaw: string;
+        assetSymbol: string;
+        txHash: `0x${string}`;
+        errorMessage: string | null;
+      };
+    }
+  | {
+      ok: false;
+      error: string;
+    };
+
 export const MOONWELL_BASE_VAULTS: MoonwellVaultConfig[] = [
   {
     slug: "usdc-vault",
@@ -80,6 +105,7 @@ export const MOONWELL_BASE_VAULTS: MoonwellVaultConfig[] = [
     chainId: MOONWELL_BASE_CHAIN_ID,
     chainName: MOONWELL_BASE_CHAIN_NAME,
     address: "0xc1256Ae5FF1cf2719D4937adb3bbCCab2E00A2Ca",
+    depositMode: "erc20",
   },
   {
     slug: "eth-vault",
@@ -88,6 +114,8 @@ export const MOONWELL_BASE_VAULTS: MoonwellVaultConfig[] = [
     chainId: MOONWELL_BASE_CHAIN_ID,
     chainName: MOONWELL_BASE_CHAIN_NAME,
     address: "0xa0E430870c4604CcfC7B38Ca7845B1FF653D0ff1",
+    depositMode: "native-eth",
+    depositRouterAddress: MOONWELL_BASE_ETH_ROUTER_ADDRESS,
   },
   {
     slug: "eurc-vault",
@@ -96,6 +124,7 @@ export const MOONWELL_BASE_VAULTS: MoonwellVaultConfig[] = [
     chainId: MOONWELL_BASE_CHAIN_ID,
     chainName: MOONWELL_BASE_CHAIN_NAME,
     address: "0xf24608E0CCb972b0b0f4A6446a0BBf58c701a026",
+    depositMode: "erc20",
   },
   {
     slug: "cbbtc-vault",
@@ -104,8 +133,18 @@ export const MOONWELL_BASE_VAULTS: MoonwellVaultConfig[] = [
     chainId: MOONWELL_BASE_CHAIN_ID,
     chainName: MOONWELL_BASE_CHAIN_NAME,
     address: "0x543257ef2161176d7c8cd90ba65c2d4caef5a796",
+    depositMode: "erc20",
   },
 ];
+
+export function getBaseRpcUrls(configuredValue?: string | null) {
+  const configuredUrls = (configuredValue ?? "")
+    .split(",")
+    .map((url) => url.trim())
+    .filter(Boolean);
+
+  return Array.from(new Set([...configuredUrls, MOONWELL_BASE_RPC_FALLBACK_URL]));
+}
 
 export function getMoonwellVaultBySlug(slug: string) {
   return MOONWELL_BASE_VAULTS.find((vault) => vault.slug === slug) ?? null;
@@ -306,7 +345,10 @@ export function buildMoonwellVaultTransactionIntent(input: {
       return {
         ...baseIntent,
         ok: false,
-        error: "Amount is higher than your token balance.",
+        error:
+          input.vault.depositMode === "native-eth"
+            ? "Amount is higher than your ETH balance."
+            : "Amount is higher than your token balance.",
       };
     }
   }
@@ -328,6 +370,13 @@ export function buildMoonwellVaultTransactionIntent(input: {
     };
   }
 
+  if (input.vault.depositMode === "native-eth") {
+    return {
+      ...baseIntent,
+      ok: true,
+    };
+  }
+
   const allowance = BigInt(input.allowanceRaw || "0");
   const needsApproval = allowance < amount;
 
@@ -336,5 +385,52 @@ export function buildMoonwellVaultTransactionIntent(input: {
     ok: true,
     needsApproval,
     approvalLabel: needsApproval ? `Approve ${amountLabel}` : null,
+  };
+}
+
+export function isTransactionHash(value: string | null | undefined): value is `0x${string}` {
+  return typeof value === "string" && /^0x[a-fA-F0-9]{64}$/.test(value.trim());
+}
+
+export function buildMoonwellVaultTransactionLog(input: {
+  wallet: string | null | undefined;
+  vault: MoonwellVaultConfig;
+  kind: MoonwellVaultTransactionKind;
+  status: MoonwellVaultTransactionLifecycleStatus;
+  amountRaw: string;
+  assetSymbol: string;
+  txHash: string | null | undefined;
+  errorMessage?: string | null;
+}): MoonwellVaultTransactionLogResult {
+  if (!isEvmAddress(input.wallet)) {
+    return { ok: false, error: "Valid wallet is required." };
+  }
+
+  if (!isTransactionHash(input.txHash)) {
+    return { ok: false, error: "Valid transaction hash is required." };
+  }
+
+  try {
+    if (BigInt(input.amountRaw) <= BigInt(0)) {
+      return { ok: false, error: "Amount must be greater than zero." };
+    }
+  } catch {
+    return { ok: false, error: "Valid amount is required." };
+  }
+
+  return {
+    ok: true,
+    record: {
+      walletAddress: input.wallet.trim(),
+      vaultSlug: input.vault.slug,
+      vaultAddress: input.vault.address,
+      chainId: input.vault.chainId,
+      kind: input.kind,
+      status: input.status,
+      amountRaw: input.amountRaw,
+      assetSymbol: input.assetSymbol,
+      txHash: input.txHash.trim() as `0x${string}`,
+      errorMessage: input.errorMessage?.trim() || null,
+    },
   };
 }

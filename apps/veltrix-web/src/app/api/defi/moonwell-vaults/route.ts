@@ -1,9 +1,9 @@
 import { Contract, JsonRpcProvider, isAddress } from "ethers";
 import { NextResponse } from "next/server";
 import {
-  MOONWELL_BASE_RPC_FALLBACK_URL,
   MOONWELL_BASE_VAULTS,
   buildMoonwellVaultPositionRead,
+  getBaseRpcUrls,
   isEvmAddress,
   type MoonwellVaultConfig,
   type MoonwellVaultPositionRead,
@@ -26,11 +26,12 @@ const ERC20_ABI = [
   "function symbol() view returns (string)",
 ] as const;
 
-function getBaseRpcUrl() {
-  return (
-    process.env.BASE_RPC_URL ??
-    process.env.NEXT_PUBLIC_BASE_RPC_URL ??
-    MOONWELL_BASE_RPC_FALLBACK_URL
+function getConfiguredBaseRpcUrls() {
+  return getBaseRpcUrls(
+    process.env.BASE_RPC_URLS ??
+      process.env.BASE_RPC_URL ??
+      process.env.NEXT_PUBLIC_BASE_RPC_URL ??
+      ""
   );
 }
 
@@ -101,7 +102,8 @@ async function readVaultPosition(params: {
       shareBalanceRaw,
       shareDecimals: toNumber(shareDecimalsRaw, 18),
       assetAddress,
-      assetSymbol: assetSymbolRaw,
+      assetSymbol:
+        params.vault.depositMode === "native-eth" ? params.vault.assetSymbol : assetSymbolRaw,
       assetDecimals: toNumber(assetDecimalsRaw, fallbackAssetDecimals(params.vault)),
       underlyingRaw,
       maxWithdrawRaw,
@@ -125,6 +127,47 @@ async function readVaultPosition(params: {
   }
 }
 
+async function readVaultPositionWithFallback(params: {
+  rpcUrls: string[];
+  wallet: string;
+  vault: MoonwellVaultConfig;
+}) {
+  let lastRead: MoonwellVaultPositionRead | null = null;
+
+  for (const rpcUrl of params.rpcUrls) {
+    const provider = new JsonRpcProvider(rpcUrl);
+    const read = await readVaultPosition({
+      provider,
+      wallet: params.wallet,
+      vault: params.vault,
+    });
+
+    if (read.status !== "read-error") {
+      return read;
+    }
+
+    lastRead = read;
+  }
+
+  return (
+    lastRead ??
+    buildMoonwellVaultPositionRead({
+      vault: params.vault,
+      wallet: params.wallet,
+      shareBalanceRaw: "0",
+      shareDecimals: 18,
+      assetAddress: null,
+      assetSymbol: params.vault.assetSymbol,
+      assetDecimals: fallbackAssetDecimals(params.vault),
+      underlyingRaw: "0",
+      maxWithdrawRaw: "0",
+      totalAssetsRaw: "0",
+      readFailed: true,
+      error: "All Base RPC reads failed.",
+    })
+  );
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const wallet = url.searchParams.get("wallet")?.trim() ?? "";
@@ -139,11 +182,11 @@ export async function GET(request: Request) {
     );
   }
 
-  const provider = new JsonRpcProvider(getBaseRpcUrl());
+  const rpcUrls = getConfiguredBaseRpcUrls();
   const vaults = await Promise.all(
     MOONWELL_BASE_VAULTS.map((vault) =>
-      readVaultPosition({
-        provider,
+      readVaultPositionWithFallback({
+        rpcUrls,
         wallet,
         vault,
       })

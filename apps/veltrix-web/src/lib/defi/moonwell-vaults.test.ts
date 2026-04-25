@@ -3,12 +3,15 @@ import assert from "node:assert/strict";
 
 import {
   MOONWELL_BASE_CHAIN_ID,
+  MOONWELL_BASE_ETH_ROUTER_ADDRESS,
   MOONWELL_BASE_VAULTS,
   buildMoonwellVaultPositionRead,
   buildMoonwellVaultReadUrl,
+  buildMoonwellVaultTransactionLog,
   buildMoonwellVaultTransactionIntent,
   classifyMoonwellVaultPosition,
   formatVaultTokenAmount,
+  getBaseRpcUrls,
   getMoonwellVaultBySlug,
   isEvmAddress,
   parseVaultActionAmount,
@@ -26,6 +29,23 @@ test("moonwell base vault config uses the official Base ERC-4626 vault addresses
     ]
   );
   assert.equal(getMoonwellVaultBySlug("usdc-vault")?.assetSymbol, "USDC");
+});
+
+test("ETH vault config uses the official Moonwell native ETH router", () => {
+  const ethVault = getMoonwellVaultBySlug("eth-vault");
+
+  assert.ok(ethVault);
+  assert.equal(MOONWELL_BASE_ETH_ROUTER_ADDRESS, "0xc095cb1A6B41A5Cd7dAaF993a904afDD74758D71");
+  assert.equal(ethVault.depositMode, "native-eth");
+  assert.equal(ethVault.depositRouterAddress, MOONWELL_BASE_ETH_ROUTER_ADDRESS);
+});
+
+test("base RPC URLs prefer configured endpoints and keep the public fallback last", () => {
+  assert.deepEqual(
+    getBaseRpcUrls(" https://rpc.one.example ,https://rpc.two.example, https://rpc.one.example "),
+    ["https://rpc.one.example", "https://rpc.two.example", "https://mainnet.base.org"]
+  );
+  assert.deepEqual(getBaseRpcUrls(""), ["https://mainnet.base.org"]);
 });
 
 test("vault read URLs are only built for valid EVM wallets", () => {
@@ -174,4 +194,74 @@ test("vault transaction intents separate deposit approvals from withdraws", () =
 
   assert.equal(oversizedDeposit.ok, false);
   assert.match(oversizedDeposit.error, /token balance/i);
+});
+
+test("native ETH vault deposits skip ERC20 approvals and validate wallet ETH balance", () => {
+  const vault = getMoonwellVaultBySlug("eth-vault");
+  assert.ok(vault);
+
+  const nativeDepositIntent = buildMoonwellVaultTransactionIntent({
+    kind: "deposit",
+    vault,
+    amountRaw: "1000000000000000000",
+    assetSymbol: "ETH",
+    assetDecimals: 18,
+    allowanceRaw: "0",
+    assetBalanceRaw: "1500000000000000000",
+    maxWithdrawRaw: "0",
+  });
+
+  assert.equal(nativeDepositIntent.ok, true);
+  assert.equal(nativeDepositIntent.needsApproval, false);
+  assert.equal(nativeDepositIntent.approvalLabel, null);
+  assert.equal(nativeDepositIntent.actionLabel, "Deposit 1 ETH");
+
+  const oversizedNativeDeposit = buildMoonwellVaultTransactionIntent({
+    kind: "deposit",
+    vault,
+    amountRaw: "2000000000000000000",
+    assetSymbol: "ETH",
+    assetDecimals: 18,
+    allowanceRaw: "0",
+    assetBalanceRaw: "1500000000000000000",
+    maxWithdrawRaw: "0",
+  });
+
+  assert.equal(oversizedNativeDeposit.ok, false);
+  assert.match(oversizedNativeDeposit.error, /ETH balance/i);
+});
+
+test("vault transaction logs normalize user submitted transaction state", () => {
+  const vault = getMoonwellVaultBySlug("usdc-vault");
+  assert.ok(vault);
+
+  const log = buildMoonwellVaultTransactionLog({
+    wallet: "0x1234567890abcdef1234567890abcdef12345678",
+    vault,
+    kind: "deposit",
+    status: "submitted",
+    amountRaw: "1250000",
+    assetSymbol: "USDC",
+    txHash: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  });
+
+  assert.equal(log.ok, true);
+  assert.equal(log.record.walletAddress, "0x1234567890abcdef1234567890abcdef12345678");
+  assert.equal(log.record.vaultSlug, "usdc-vault");
+  assert.equal(log.record.chainId, 8453);
+  assert.equal(log.record.status, "submitted");
+  assert.equal(log.record.txHash, "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+
+  const invalidLog = buildMoonwellVaultTransactionLog({
+    wallet: "not-a-wallet",
+    vault,
+    kind: "deposit",
+    status: "submitted",
+    amountRaw: "1250000",
+    assetSymbol: "USDC",
+    txHash: "0x123",
+  });
+
+  assert.equal(invalidLog.ok, false);
+  assert.match(invalidLog.error, /wallet/i);
 });

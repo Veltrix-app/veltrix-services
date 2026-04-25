@@ -4,12 +4,15 @@ import { useState } from "react";
 import { BrowserProvider, Contract } from "ethers";
 import type { Eip1193Provider } from "ethers";
 import {
+  MOONWELL_BASE_ETH_ROUTER_ADDRESS,
   MOONWELL_BASE_CHAIN_ID,
   MOONWELL_BASE_RPC_FALLBACK_URL,
+  buildMoonwellVaultTransactionLog,
   buildMoonwellVaultTransactionIntent,
   parseVaultActionAmount,
   type MoonwellVaultPositionRead,
   type MoonwellVaultTransactionKind,
+  type MoonwellVaultTransactionLifecycleStatus,
 } from "@/lib/defi/moonwell-vaults";
 
 const BASE_CHAIN_HEX = `0x${MOONWELL_BASE_CHAIN_ID.toString(16)}`;
@@ -23,6 +26,10 @@ const ERC20_TRANSACTION_ABI = [
 const ERC4626_TRANSACTION_ABI = [
   "function deposit(uint256 assets, address receiver) returns (uint256 shares)",
   "function withdraw(uint256 assets, address receiver, address owner) returns (uint256 shares)",
+] as const;
+
+const ETH_ROUTER_TRANSACTION_ABI = [
+  "function deposit(address vault, address to, uint256 amount, uint256 minSharesOut) payable returns (uint256 sharesOut)",
 ] as const;
 
 type VaultTransactionStatus =
@@ -105,9 +112,11 @@ async function ensureBaseNetwork(ethereum: Eip1193Provider) {
 }
 
 export function useMoonwellVaultTransactions({
+  accessToken,
   wallet,
   onConfirmed,
 }: {
+  accessToken?: string | null;
   wallet: string | null | undefined;
   onConfirmed?: () => void;
 }) {
@@ -118,11 +127,61 @@ export function useMoonwellVaultTransactions({
     txHash: null,
   });
 
+  async function syncVaultTransaction(params: {
+    kind: MoonwellVaultTransactionKind;
+    status: MoonwellVaultTransactionLifecycleStatus;
+    amountRaw: string;
+    position: MoonwellVaultPositionRead;
+    txHash: string;
+    errorMessage?: string | null;
+  }) {
+    if (!accessToken || !wallet) {
+      return;
+    }
+
+    const log = buildMoonwellVaultTransactionLog({
+      wallet,
+      vault: params.position.vault,
+      kind: params.kind,
+      status: params.status,
+      amountRaw: params.amountRaw,
+      assetSymbol: params.position.assetSymbol,
+      txHash: params.txHash,
+      errorMessage: params.errorMessage,
+    });
+
+    if (!log.ok) {
+      return;
+    }
+
+    await fetch("/api/defi/vault-transactions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        wallet,
+        vaultSlug: params.position.vault.slug,
+        kind: params.kind,
+        status: params.status,
+        amountRaw: params.amountRaw,
+        assetSymbol: params.position.assetSymbol,
+        txHash: params.txHash,
+        errorMessage: params.errorMessage ?? null,
+      }),
+    }).catch(() => null);
+  }
+
   async function executeVaultTransaction(input: {
     kind: MoonwellVaultTransactionKind;
     amount: string;
     position: MoonwellVaultPositionRead | null;
   }) {
+    let submittedTxHash: string | null = null;
+    let submittedAmountRaw: string | null = null;
+    let trackedPosition: MoonwellVaultPositionRead | null = null;
+
     setState({
       status: "checking",
       message: "Preparing wallet transaction...",
@@ -135,9 +194,14 @@ export function useMoonwellVaultTransactions({
         throw new Error("Connect a verified wallet first.");
       }
 
+      if (!accessToken) {
+        throw new Error("Sign in again before moving vault funds.");
+      }
+
       if (!input.position?.assetAddress) {
         throw new Error("Vault asset route is not available yet.");
       }
+      trackedPosition = input.position;
 
       if (typeof window === "undefined" || !window.ethereum) {
         throw new Error("No browser wallet was found. Install or unlock MetaMask first.");
@@ -148,6 +212,7 @@ export function useMoonwellVaultTransactions({
       if (!parsedAmount.ok) {
         throw new Error(parsedAmount.error);
       }
+      submittedAmountRaw = parsedAmount.raw;
 
       const ethereum = window.ethereum as Eip1193Provider;
       await ensureBaseNetwork(ethereum);
@@ -165,10 +230,13 @@ export function useMoonwellVaultTransactions({
       const amountRaw = BigInt(parsedAmount.raw);
 
       if (input.kind === "deposit") {
-        const [allowanceRaw, assetBalanceRaw] = await Promise.all([
-          token.allowance(signerAddress, input.position.vault.address) as Promise<bigint>,
-          token.balanceOf(signerAddress) as Promise<bigint>,
-        ]);
+        const nativeEthDeposit = input.position.vault.depositMode === "native-eth";
+        const [allowanceRaw, assetBalanceRaw] = nativeEthDeposit
+          ? [BigInt(0), await provider.getBalance(signerAddress)]
+          : await Promise.all([
+              token.allowance(signerAddress, input.position.vault.address) as Promise<bigint>,
+              token.balanceOf(signerAddress) as Promise<bigint>,
+            ]);
         const intent = buildMoonwellVaultTransactionIntent({
           kind: "deposit",
           vault: input.position.vault,
@@ -184,7 +252,7 @@ export function useMoonwellVaultTransactions({
           throw new Error(intent.error);
         }
 
-        if (intent.needsApproval) {
+        if (intent.needsApproval && !nativeEthDeposit) {
           setState({
             status: "approving",
             message: intent.approvalLabel ?? "Approving token spend...",
@@ -211,15 +279,30 @@ export function useMoonwellVaultTransactions({
           txHash: null,
         });
 
-        const depositTransaction = (await vault.deposit(
-          amountRaw,
-          signerAddress
-        )) as TransactionLike;
+        const depositTransaction = nativeEthDeposit
+          ? ((await new Contract(
+              input.position.vault.depositRouterAddress ?? MOONWELL_BASE_ETH_ROUTER_ADDRESS,
+              ETH_ROUTER_TRANSACTION_ABI,
+              signer
+            ).deposit(input.position.vault.address, signerAddress, amountRaw, BigInt(0), {
+              value: amountRaw,
+            })) as TransactionLike)
+          : ((await vault.deposit(amountRaw, signerAddress)) as TransactionLike);
 
+        submittedTxHash = depositTransaction.hash ?? null;
         setState((current) => ({
           ...current,
-          txHash: depositTransaction.hash ?? null,
+          txHash: submittedTxHash,
         }));
+        if (submittedTxHash) {
+          await syncVaultTransaction({
+            kind: input.kind,
+            status: "submitted",
+            amountRaw: parsedAmount.raw,
+            position: input.position,
+            txHash: submittedTxHash,
+          });
+        }
         await depositTransaction.wait();
       } else {
         const intent = buildMoonwellVaultTransactionIntent({
@@ -249,23 +332,53 @@ export function useMoonwellVaultTransactions({
           signerAddress
         )) as TransactionLike;
 
+        submittedTxHash = withdrawTransaction.hash ?? null;
         setState((current) => ({
           ...current,
-          txHash: withdrawTransaction.hash ?? null,
+          txHash: submittedTxHash,
         }));
+        if (submittedTxHash) {
+          await syncVaultTransaction({
+            kind: input.kind,
+            status: "submitted",
+            amountRaw: parsedAmount.raw,
+            position: input.position,
+            txHash: submittedTxHash,
+          });
+        }
         await withdrawTransaction.wait();
+      }
+
+      if (submittedTxHash) {
+        await syncVaultTransaction({
+          kind: input.kind,
+          status: "confirmed",
+          amountRaw: parsedAmount.raw,
+          position: input.position,
+          txHash: submittedTxHash,
+        });
       }
 
       setState({
         status: "confirmed",
         message: "Transaction confirmed. Refreshing your vault position...",
         error: null,
-        txHash: null,
+        txHash: submittedTxHash,
       });
       onConfirmed?.();
       return { ok: true };
     } catch (error) {
       const message = getErrorMessage(error);
+      if (submittedTxHash && submittedAmountRaw && trackedPosition) {
+        await syncVaultTransaction({
+          kind: input.kind,
+          status: "failed",
+          amountRaw: submittedAmountRaw,
+          position: trackedPosition,
+          txHash: submittedTxHash,
+          errorMessage: message,
+        });
+      }
       setState({
         status: "error",
         message: null,

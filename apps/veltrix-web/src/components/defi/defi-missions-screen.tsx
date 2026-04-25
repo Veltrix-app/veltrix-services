@@ -76,6 +76,7 @@ export function DefiMissionsScreen() {
   const { session, profile } = useAuth();
   const vaultPositions = useMoonwellVaultPositions();
   const vaultTransactions = useMoonwellVaultTransactions({
+    accessToken: session?.access_token,
     wallet: profile?.wallet,
     onConfirmed: vaultPositions.refresh,
   });
@@ -124,7 +125,7 @@ export function DefiMissionsScreen() {
 
             <div className="grid grid-cols-3 gap-2">
               <HeroMetric label="Vaults" value={String(overview.vaults.length)} />
-              <HeroMetric label="Mode" value="Live tx" />
+              <HeroMetric label="Mode" value="Tracked tx" />
               <HeroMetric label="Custody" value="None" />
             </div>
           </div>
@@ -358,7 +359,7 @@ export function DefiMissionsScreen() {
               <FlowPreviewStep
                 label="Now"
                 value="Move funds"
-                description="Users can deposit or withdraw with their own wallet after the route is checked."
+                description="Users can deposit or withdraw with their own wallet while VYNTRO records tx posture for future XP eligibility."
               />
               <FlowPreviewStep
                 label="Next"
@@ -712,7 +713,9 @@ function VaultMoveFundsPanel({
             Move funds
           </p>
           <p className="mt-2 text-[13px] leading-6 text-slate-400">
-            Deposit or withdraw directly with your wallet. VYNTRO never takes custody.
+            Deposit or withdraw directly with your wallet. VYNTRO never takes custody, never
+            guarantees yield, and records only the transaction posture needed for future XP
+            eligibility.
           </p>
         </div>
         <div className="inline-flex rounded-full border border-white/8 bg-white/[0.035] p-1">
@@ -773,10 +776,15 @@ function VaultMoveFundsPanel({
         </div>
       </div>
 
+      <p className="mt-3 rounded-[16px] border border-white/6 bg-white/[0.025] px-3 py-2 text-[11px] leading-5 text-slate-400">
+        Check the amount, network and vault before signing. ERC-20 deposits may ask for an
+        approval first; ETH deposits use the native router and do not need token approval.
+      </p>
+
       {position?.vault.slug === "eth-vault" ? (
         <p className="mt-3 rounded-[16px] border border-amber-300/12 bg-amber-300/[0.06] px-3 py-2 text-[11px] leading-5 text-amber-100">
-          ETH vault deposits use the ERC-20 vault asset route in this first release. Native ETH
-          router support can be added as the next safety pass.
+          ETH deposits use Moonwell&apos;s native ETH router. Withdrawals are sent through the
+          underlying vault contract from your own wallet.
         </p>
       ) : null}
 

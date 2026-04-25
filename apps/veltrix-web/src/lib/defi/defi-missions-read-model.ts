@@ -53,7 +53,7 @@ const missionSteps: DefiMissionStep[] = [
   },
   {
     label: "Open position",
-    description: "Deposit directly from the connected wallet after the vault route is checked.",
+    description: "Deposit or withdraw directly from the connected wallet after route checks pass.",
     state: "locked",
   },
   {
@@ -155,7 +155,7 @@ export function buildDefiMissionOverview(): DefiMissionOverview {
     primaryCta: "Start with USDC",
     secondaryCta: "View risk notes",
     disclosure:
-      "Underlying vault infrastructure: Moonwell ERC-4626 vaults. VYNTRO does not custody funds, promise yield, or manage deposits.",
+      "Underlying vault infrastructure: Moonwell ERC-4626 vaults. VYNTRO does not custody funds, promise yield, or manage deposits; users sign every transaction from their own wallet.",
     vaults,
     productRails: [
       {
@@ -165,8 +165,8 @@ export function buildDefiMissionOverview(): DefiMissionOverview {
       },
       {
         label: "Phase 2",
-        value: "Move funds",
-        description: "Add non-custodial deposit and withdraw flows with wallet approval checks.",
+        value: "Tracked tx",
+        description: "Non-custodial deposit and withdraw flows with approval checks and tx logging.",
       },
       {
         label: "Phase 3",
