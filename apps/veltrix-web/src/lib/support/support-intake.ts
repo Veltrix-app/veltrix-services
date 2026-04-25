@@ -74,7 +74,7 @@ export const supportTicketTypeOptions: Array<{
   {
     value: "general_request",
     label: "General request",
-    description: "Anything else that still needs a clear Veltrix owner.",
+    description: "Anything else that still needs a clear VYNTRO owner.",
   },
 ];
 

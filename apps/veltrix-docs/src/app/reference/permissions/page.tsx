@@ -13,7 +13,7 @@ export default function PermissionsPage() {
         <div className="space-y-4">
           <p className="docs-kicker text-lime-300">Core split</p>
           <p className="text-sm leading-7 text-slate-300">
-            Visibility and action are separate grants on purpose. That split is one of the most important system rules in Veltrix.
+            Visibility and action are separate grants on purpose. That split is one of the most important system rules in VYNTRO.
           </p>
         </div>
       }

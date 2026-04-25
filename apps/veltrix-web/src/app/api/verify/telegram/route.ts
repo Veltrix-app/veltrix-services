@@ -248,7 +248,7 @@ export async function POST(request: NextRequest) {
         {
           ok: false,
           status: "needs_account_link",
-          error: "Link a Telegram account before Veltrix can verify this quest automatically.",
+          error: "Link a Telegram account before VYNTRO can verify this quest automatically.",
         },
         { status: 400 }
       );

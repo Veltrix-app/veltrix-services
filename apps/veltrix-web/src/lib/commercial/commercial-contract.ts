@@ -26,7 +26,7 @@ export const commercialPlanPresentation: CommercialPlanPresentation[] = [
     id: "growth",
     bestFor: "Serious operators who need more launch volume, more capacity and richer execution headroom.",
     guidance:
-      "Growth is where Veltrix becomes the daily operating layer for repeat launches, larger teams and heavier execution.",
+      "Growth is where VYNTRO becomes the daily operating layer for repeat launches, larger teams and heavier execution.",
     upgradeSignal: "Move up when you need custom commercial posture, custom controls or a more guided rollout motion.",
   },
   {

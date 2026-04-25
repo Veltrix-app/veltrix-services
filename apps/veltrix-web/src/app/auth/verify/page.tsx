@@ -5,7 +5,7 @@ export default function VerifyPage() {
   return (
     <AppShell
       eyebrow="Account"
-      title="Verify your Veltrix account"
+      title="Verify your VYNTRO account"
       description="Use this step to confirm whether your account is still waiting on email verification, already active, or blocked by a stale verification link."
     >
       <VerificationStatusCard />

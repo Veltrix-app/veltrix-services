@@ -8,9 +8,9 @@ import { loadPublicStatusOverview } from "@/lib/status/public-status";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Veltrix Support",
+  title: "VYNTRO Support",
   description:
-    "Contact Veltrix support through a structured intake and check current platform service posture before or during a rollout.",
+    "Contact VYNTRO support through a structured intake and check current platform service posture before or during a rollout.",
 };
 
 export default async function SupportPage() {
@@ -99,7 +99,7 @@ export default async function SupportPage() {
         <SupportIntakeForm />
 
         <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-white/8 pt-6 text-sm text-slate-400">
-          <p>Veltrix support keeps customer requests, service status and incident language bounded and clear.</p>
+          <p>VYNTRO support keeps customer requests, service status and incident language bounded and clear.</p>
           <div className="flex flex-wrap items-center gap-5">
             <Link href="/status" className="transition hover:text-white">
               Status

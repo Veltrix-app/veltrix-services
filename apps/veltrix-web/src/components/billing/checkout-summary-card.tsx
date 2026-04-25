@@ -198,7 +198,7 @@ export function CheckoutSummaryCard({
               href={supportHref}
               className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-white/90"
             >
-              Talk to Veltrix
+              Talk to VYNTRO
               <ArrowRight className="h-4 w-4" />
             </Link>
           ) : accountId ? (

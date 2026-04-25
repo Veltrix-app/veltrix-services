@@ -10,7 +10,7 @@ export default function ReleaseNotesPage() {
     <DocsPageFrame
       eyebrow="Release Notes"
       title="Track the product as it grows."
-      description="Release notes will become the public evolution log for Veltrix. This first surface establishes the section and gives the docs product a living timeline from day one."
+      description="Release notes will become the public evolution log for VYNTRO. This first surface establishes the section and gives the docs product a living timeline from day one."
       actions={[
         { href: "/", label: "Back to Overview" },
         { href: "/reference", label: "Open Reference" },

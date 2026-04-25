@@ -13,7 +13,7 @@ export default function NotFound() {
           href="/"
           className="mt-6 inline-flex rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-black"
         >
-          Back to Veltrix
+          Back to VYNTRO
         </Link>
       </div>
     </div>

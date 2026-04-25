@@ -157,7 +157,7 @@ export function useMoonwellVaultTransactions({
       const signerAddress = await signer.getAddress();
 
       if (normalizeAddress(signerAddress) !== normalizeAddress(wallet)) {
-        throw new Error("Your browser wallet does not match the verified Veltrix wallet.");
+        throw new Error("Your browser wallet does not match the verified VYNTRO wallet.");
       }
 
       const token = new Contract(input.position.assetAddress, ERC20_TRANSACTION_ABI, signer);

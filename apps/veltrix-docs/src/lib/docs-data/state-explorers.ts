@@ -4,7 +4,7 @@ const docsStateExplorerDatasets: DocsStateExplorerDataset[] = [
   {
     slug: "docs-coverage",
     title: "Documentation coverage layers",
-    summary: "Veltrix Docs is strongest when a domain is covered from three angles: surface, workflow and exact reference language.",
+    summary: "VYNTRO Docs is strongest when a domain is covered from three angles: surface, workflow and exact reference language.",
     states: [
       {
         label: "Surface coverage",
@@ -38,7 +38,7 @@ const docsStateExplorerDatasets: DocsStateExplorerDataset[] = [
   {
     slug: "control-atlas",
     title: "Control atlas families",
-    summary: "Veltrix controls fall into a few repeatable families: state transitions, visibility grants, signaling layers, recovery actions and delivery rails.",
+    summary: "VYNTRO controls fall into a few repeatable families: state transitions, visibility grants, signaling layers, recovery actions and delivery rails.",
     states: [
       {
         label: "State and builder controls",
@@ -72,7 +72,7 @@ const docsStateExplorerDatasets: DocsStateExplorerDataset[] = [
   {
     slug: "empty-states",
     title: "Empty-state posture",
-    summary: "Empty states in Veltrix should explain what is missing, why it matters and what the safest next move is.",
+    summary: "Empty states in VYNTRO should explain what is missing, why it matters and what the safest next move is.",
     states: [
       {
         label: "Not configured yet",
@@ -106,7 +106,7 @@ const docsStateExplorerDatasets: DocsStateExplorerDataset[] = [
   {
     slug: "action-behavior",
     title: "Action behavior posture",
-    summary: "Veltrix action buttons should explain what they change, who can use them and what surface or state comes next.",
+    summary: "VYNTRO action buttons should explain what they change, who can use them and what surface or state comes next.",
     states: [
       {
         label: "Open or route",
@@ -268,7 +268,7 @@ const docsStateExplorerDatasets: DocsStateExplorerDataset[] = [
         bullets: [
           "Pause is for temporary safety or operational holds.",
           "Archive keeps history and context without cluttering active workflows.",
-          "Lifecycle-safe actions are a core Veltrix posture rather than a side feature.",
+          "Lifecycle-safe actions are a core VYNTRO posture rather than a side feature.",
         ],
       },
     ],
@@ -276,7 +276,7 @@ const docsStateExplorerDatasets: DocsStateExplorerDataset[] = [
   {
     slug: "permissions",
     title: "Permission posture",
-    summary: "Veltrix permissions are split across what someone can see and what someone can do.",
+    summary: "VYNTRO permissions are split across what someone can see and what someone can do.",
     states: [
       {
         label: "Summary access",
@@ -476,7 +476,7 @@ const docsStateExplorerDatasets: DocsStateExplorerDataset[] = [
   {
     slug: "warning-flow",
     title: "Warning and flag lifecycle",
-    summary: "Veltrix does not jump straight from raw activity to operator work; signals are progressively shaped into flags, cases and history.",
+    summary: "VYNTRO does not jump straight from raw activity to operator work; signals are progressively shaped into flags, cases and history.",
     states: [
       {
         label: "Raw event or failure",

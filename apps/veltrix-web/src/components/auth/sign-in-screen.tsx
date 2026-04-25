@@ -80,7 +80,7 @@ export function SignInScreen() {
           Forgot password?
         </Link>
         <p>
-          New to Veltrix?{" "}
+          New to VYNTRO?{" "}
           <Link
             href={buildPublicAuthPathWithNext(publicAuthRoutes.signUp, nextHref)}
             className="font-semibold text-lime-300 transition hover:text-lime-200"

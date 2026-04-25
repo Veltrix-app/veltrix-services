@@ -250,7 +250,7 @@ export async function POST(request: NextRequest) {
     await serviceSupabase.from("app_notifications").insert({
       auth_user_id: user.id,
       title: "Quest auto-approved",
-      body: `${quest.title} completed automatically after Veltrix confirmed the website visit.`,
+      body: `${quest.title} completed automatically after VYNTRO confirmed the website visit.`,
       type: "quest",
       read: false,
       source_table: "quest_submissions",

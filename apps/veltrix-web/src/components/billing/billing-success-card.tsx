@@ -48,7 +48,7 @@ export function BillingSuccessCard({
       <p className="text-xs font-bold uppercase tracking-[0.26em] text-lime-200">Billing updated</p>
       <h1 className="mt-4 text-4xl font-black text-white">Your checkout completed.</h1>
       <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-200">
-        Veltrix has the payment confirmation it needs. {formatIntent(intent)}
+        VYNTRO has the payment confirmation it needs. {formatIntent(intent)}
       </p>
 
       {planId ? (

@@ -4,7 +4,7 @@ export default function ControlAtlasPage() {
   return (
     <DocsReferencePage
       eyebrow="Reference"
-      title="Control Atlas explains what the main Veltrix control families do and where they live."
+      title="Control Atlas explains what the main VYNTRO control families do and where they live."
       description="This page groups controls by what they change: launch posture, lifecycle state, visibility, warnings, recovery and delivery. It is the fastest way to understand what a control rail is trying to influence before diving into a specific surface."
       referenceSlug="control-atlas"
       stateExplorerSlug="control-atlas"

@@ -270,7 +270,7 @@ export async function ingestOnchainEvents(input: {
           rawEvent.txHash,
           rawEvent.eventType,
         ]),
-        summary: "Wallet is not linked to a verified Veltrix account.",
+        summary: "Wallet is not linked to a verified VYNTRO account.",
         evidenceSummary: "Tracked on-chain activity arrived for a wallet that is not yet linked and verified.",
         rawPayload: {
           chain: rawEvent.chain,
@@ -293,7 +293,7 @@ export async function ingestOnchainEvents(input: {
         sourceTable: "onchain_ingress",
         sourceId: ingressSourceId,
         action: "onchain_ingress_rejected",
-        summary: "Wallet is not linked to a verified Veltrix account.",
+        summary: "Wallet is not linked to a verified VYNTRO account.",
         metadata: {
           chain: rawEvent.chain,
           txHash: rawEvent.txHash,
@@ -307,7 +307,7 @@ export async function ingestOnchainEvents(input: {
       results.push({
         ok: false,
         txHash: rawEvent.txHash,
-        reason: "Wallet is not linked to a verified Veltrix account.",
+        reason: "Wallet is not linked to a verified VYNTRO account.",
       });
       continue;
     }

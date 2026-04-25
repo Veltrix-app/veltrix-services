@@ -1,4 +1,4 @@
--- Veltrix QA, release engineering, and environment discipline v1
+-- VYNTRO QA, release engineering, and environment discipline v1
 -- Run this migration manually in the Supabase SQL editor before deploying the first Phase 15 tranche.
 
 begin;

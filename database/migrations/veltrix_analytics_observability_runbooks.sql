@@ -1,4 +1,4 @@
--- Veltrix Analytics, Observability, and Runbooks
+-- VYNTRO Analytics, Observability, and Runbooks
 -- Run this migration manually in the Supabase SQL editor before deploying the first Phase 7 tranche.
 
 begin;

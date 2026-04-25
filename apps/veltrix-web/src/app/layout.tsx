@@ -19,9 +19,9 @@ const orbitron = Orbitron({
 });
 
 export const metadata: Metadata = {
-  title: "Veltrix",
+  title: "VYNTRO",
   description:
-    "Veltrix is the operating system for project launches, community execution, member journeys and safety workflows.",
+    "VYNTRO is the operating system for project launches, community execution, member journeys and safety workflows.",
 };
 
 export default function RootLayout({

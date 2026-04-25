@@ -152,7 +152,7 @@ export function RequestDemoForm({
               {mode === "enterprise" ? "Enterprise request received" : "Demo request received"}
             </p>
             <p className="mt-3 text-sm leading-7 text-emerald-50/90">
-              Veltrix logged the request into the internal commercial queue. The next step is a
+              VYNTRO logged the request into the internal commercial queue. The next step is a
               short follow-up, not a long procurement maze.
             </p>
           </div>
@@ -223,7 +223,7 @@ export function RequestDemoForm({
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-300">Routing promise</p>
           <p className="mt-3 text-sm font-black text-white">Short intake, real follow-up.</p>
           <p className="mt-2 text-sm leading-6 text-slate-300">
-            Veltrix uses this form to route well, not to force a long procurement questionnaire on day one.
+            VYNTRO uses this form to route well, not to force a long procurement questionnaire on day one.
           </p>
         </div>
       </div>
@@ -231,7 +231,7 @@ export function RequestDemoForm({
       <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
         <FormSection
           eyebrow="Contact"
-          title="Who should Veltrix follow up with?"
+          title="Who should VYNTRO follow up with?"
           description="Enough to route the request well and start the next conversation without asking you for unnecessary procurement detail."
         >
           <div className="grid gap-4 md:grid-cols-2">
@@ -370,7 +370,7 @@ export function RequestDemoForm({
 
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
           <p className="text-sm leading-6 text-slate-400">
-            Veltrix only asks for the minimum needed to route the request well.
+            VYNTRO only asks for the minimum needed to route the request well.
           </p>
           <button
             type="submit"

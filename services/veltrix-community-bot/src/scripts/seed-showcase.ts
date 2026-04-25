@@ -19,7 +19,7 @@ const showcaseProjects: ProjectBlueprint[] = [
     mood: "signal-rich launch grid",
     accent: "9eff00",
     description: "A launch ecosystem focused on network visibility, squad coordination and partner activations.",
-    longDescription: "Atlas Frontier uses Veltrix as its public mission grid for launch awareness, partner activations and community growth loops across multiple campaigns.",
+    longDescription: "Atlas Frontier uses VYNTRO as its public mission grid for launch awareness, partner activations and community growth loops across multiple campaigns.",
   },
   {
     name: "Chainwars",
@@ -55,7 +55,7 @@ const showcaseProjects: ProjectBlueprint[] = [
     mood: "dark liquidity bazaar",
     accent: "ffb347",
     description: "A marketplace world where community momentum, listings and creator campaigns all compete for attention.",
-    longDescription: "Ghost Market uses its Veltrix surfaces to spotlight drops, growth sprints and marketplace events with clear reward ladders.",
+    longDescription: "Ghost Market uses its VYNTRO surfaces to spotlight drops, growth sprints and marketplace events with clear reward ladders.",
   },
   {
     name: "Quantum Guild",
@@ -314,7 +314,7 @@ function makeBanner({
       <g opacity="0.95">
         <rect x="92" y="706" width="300" height="88" rx="28" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)"/>
         <text x="124" y="744" fill="rgb(${r} ${g} ${b})" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700">LIVE WORLD</text>
-        <text x="124" y="782" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700">Veltrix showcase build</text>
+        <text x="124" y="782" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700">VYNTRO showcase build</text>
       </g>
       <g>
         <circle cx="1230" cy="332" r="178" fill="rgba(${r}, ${g}, ${b}, 0.11)" stroke="rgba(${r}, ${g}, ${b}, 0.42)" stroke-width="2"/>
@@ -360,7 +360,7 @@ function makeThumb({
         <path d="M706 0V900"/>
       </g>
       <rect x="60" y="60" width="220" height="40" rx="20" fill="rgba(${r}, ${g}, ${b}, 0.18)" stroke="rgba(${r}, ${g}, ${b}, 0.45)"/>
-      <text x="88" y="86" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" letter-spacing="4">VELTRIX</text>
+      <text x="88" y="86" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" letter-spacing="4">VYNTRO</text>
       <text x="68" y="612" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="64" font-weight="800">${title}</text>
       <text x="68" y="666" fill="rgba(255,255,255,0.82)" font-family="Arial, Helvetica, sans-serif" font-size="24">${subtitle}</text>
       <g>
@@ -434,11 +434,11 @@ async function seed() {
       members: 1800 + index * 137,
       logo: project.name.slice(0, 2).toUpperCase(),
       banner_url: banner,
-      website: `https://showcase.veltrix.world/${slug}`,
+      website: `https://showcase.vyntro.world/${slug}`,
       x_url: `https://x.com/${slug.replace(/-/g, "")}`,
       telegram_url: `https://t.me/${slug.replace(/-/g, "_")}`,
       discord_url: `https://discord.gg/${slug.slice(0, 10)}`,
-      contact_email: `${slug}@veltrix-showcase.local`,
+      contact_email: `${slug}@vyntro-showcase.local`,
       brand_accent: `#${project.accent}`,
       brand_mood: project.mood,
       is_public: true,
@@ -563,7 +563,7 @@ async function seed() {
       quest_type: template.quest_type,
       xp: 80 + templateIndex * 40 + (index % 5) * 5,
       action_label: template.action_label,
-      action_url: `https://showcase.veltrix.world/${slugify(campaign.title)}/${template.quest_type}`,
+      action_url: `https://showcase.vyntro.world/${slugify(campaign.title)}/${template.quest_type}`,
       proof_required: template.proof_required,
       proof_type: template.proof_type,
       auto_approve: false,

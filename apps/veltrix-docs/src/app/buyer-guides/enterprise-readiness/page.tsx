@@ -8,7 +8,7 @@ export default function BuyerGuideEnterpriseReadinessPage() {
     <DocsPageFrame
       eyebrow="Buyer Guides"
       title="Enterprise readiness is about controls, onboarding and review posture, not just a custom quote."
-      description="Veltrix Enterprise is the path for teams that need higher-trust rollout handling: security review, SSO/SAML, admin policy controls, onboarding structure and a bounded commercial handoff."
+      description="VYNTRO Enterprise is the path for teams that need higher-trust rollout handling: security review, SSO/SAML, admin policy controls, onboarding structure and a bounded commercial handoff."
       actions={[
         { href: "/buyer-guides/pricing-and-plans", label: "Open Pricing and Plans" },
         { href: "/operator-docs/incident-handling", label: "Open Incident Handling" },

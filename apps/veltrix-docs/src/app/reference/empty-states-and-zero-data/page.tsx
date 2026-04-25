@@ -4,7 +4,7 @@ export default function EmptyStatesAndZeroDataPage() {
   return (
     <DocsReferencePage
       eyebrow="Reference"
-      title="Empty States and Zero-Data explain how Veltrix should talk when a surface has nothing to show yet."
+      title="Empty States and Zero-Data explain how VYNTRO should talk when a surface has nothing to show yet."
       description="This page documents blank, quiet, blocked and bounded-empty postures so the product can explain missing or calm states without reading like a broken screen."
       referenceSlug="empty-states-and-zero-data"
       stateExplorerSlug="empty-states"

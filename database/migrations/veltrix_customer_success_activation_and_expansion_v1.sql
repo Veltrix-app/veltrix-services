@@ -1,4 +1,4 @@
--- Veltrix customer success, activation, and expansion operations v1 foundation
+-- VYNTRO customer success, activation, and expansion operations v1 foundation
 -- Run this migration manually in the Supabase SQL editor before deploying the first Phase 12 tranche.
 
 begin;

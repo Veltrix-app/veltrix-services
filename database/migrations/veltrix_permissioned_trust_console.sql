@@ -1,4 +1,4 @@
--- Veltrix Permissioned Trust Console
+-- VYNTRO Permissioned Trust Console
 -- Run this migration manually in the Supabase SQL editor before deploying the first Phase 6 trust console tranche.
 
 begin;

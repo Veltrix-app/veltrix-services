@@ -217,7 +217,7 @@ export function ProfileEditScreen() {
                     Wallet setup
                   </p>
                   <p className="mt-1.5 text-[12px] leading-5 text-slate-300">
-                    Connect a browser wallet, sign the Veltrix challenge, and set it as your
+                    Connect a browser wallet, sign the VYNTRO challenge, and set it as your
                     verified identity wallet for future verification and reward eligibility.
                   </p>
                 </div>

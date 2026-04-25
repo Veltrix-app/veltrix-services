@@ -95,7 +95,7 @@ export function AccountRecoveryScreen() {
 
           {!session ? (
             <div className="mt-4 rounded-[22px] border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-300">
-              Open this page from your recovery email so Veltrix can validate the reset session first.
+              Open this page from your recovery email so VYNTRO can validate the reset session first.
             </div>
           ) : null}
 

@@ -62,7 +62,7 @@ export function SignUpScreen() {
         New workspace entry
       </p>
       <h1 className="mt-4 text-3xl font-black tracking-tight text-white sm:text-5xl">
-        Create your Veltrix account
+        Create your VYNTRO account
       </h1>
       <p className="mt-4 text-sm leading-7 text-slate-300 sm:text-base">
         Start with a verified account, then move into workspace creation, team invites and your first project launch flow.

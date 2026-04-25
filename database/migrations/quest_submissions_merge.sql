@@ -1,4 +1,4 @@
--- Veltrix submission unification migration
+-- VYNTRO submission unification migration
 -- Goal:
 -- 1. Keep public.quest_submissions as the single source of truth
 -- 2. Backfill legacy rows from public.submissions

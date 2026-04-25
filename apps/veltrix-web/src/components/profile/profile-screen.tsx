@@ -315,7 +315,7 @@ export function ProfileScreen() {
             tone: "error",
             text:
               errorCode === "identity_already_exists"
-                ? `${resolvedProvider.toUpperCase()} is already linked to a different Veltrix account, not this one.`
+                ? `${resolvedProvider.toUpperCase()} is already linked to a different VYNTRO account, not this one.`
                 : `No ${resolvedProvider.toUpperCase()} identity was found on this account after the return flow.`,
           });
           setSyncingLoadout(false);

@@ -14,7 +14,7 @@ export default function ReferencePage() {
   return (
     <DocsPageFrame
       eyebrow="Reference"
-      title="Exact system definitions for the full Veltrix product."
+      title="Exact system definitions for the full VYNTRO product."
       description="Reference pages are the exact layer of the docs product. They should explain the states, commands, permissions and case models that other pages rely on."
       actions={[
         { href: "/project-docs", label: "Project Docs" },

@@ -4,7 +4,7 @@ export default function WarningBadgesAndStatusCuesPage() {
   return (
     <DocsReferencePage
       eyebrow="Reference"
-      title="Warning Badges and Status Cues explain what the most important labels in Veltrix are trying to tell you."
+      title="Warning Badges and Status Cues explain what the most important labels in VYNTRO are trying to tell you."
       description="This page documents readiness cues, warning chips, waiting states and outcome labels so readers can understand what those badges mean across launch, safety and recovery surfaces."
       referenceSlug="warning-badges-and-status-cues"
       stateExplorerSlug="warning-flow"

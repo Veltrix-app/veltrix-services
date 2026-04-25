@@ -299,7 +299,7 @@ export async function loadDiscordIntegrationContexts(filters?: {
     return {
       integrationId: integration.id,
       projectId: integration.project_id,
-      projectName: projectNameById.get(integration.project_id) ?? "Veltrix",
+      projectName: projectNameById.get(integration.project_id) ?? "VYNTRO",
       guildId,
       pushTargetChannelId,
       settings: settingsRow

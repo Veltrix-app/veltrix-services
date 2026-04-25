@@ -116,7 +116,7 @@ export async function loadTelegramIntegrationContextByChatId(chatId: string) {
   return {
     integrationId: matchedIntegration.id,
     projectId: matchedIntegration.project_id,
-    projectName: project?.name ?? "Veltrix",
+    projectName: project?.name ?? "VYNTRO",
     chatId: chatId.trim(),
     settings: {
       commandsEnabled: settingsRow?.commands_enabled === true,
@@ -188,7 +188,7 @@ export async function loadTelegramIntegrationContexts() {
 
   const projectNameById = new Map<string, string>();
   for (const project of (projects ?? []) as Array<{ id: string; name: string | null }>) {
-    projectNameById.set(project.id, project.name ?? "Veltrix");
+    projectNameById.set(project.id, project.name ?? "VYNTRO");
   }
 
   const settingsByIntegrationId = new Map<
@@ -226,7 +226,7 @@ export async function loadTelegramIntegrationContexts() {
       return {
         integrationId: integration.id,
         projectId: integration.project_id,
-        projectName: projectNameById.get(integration.project_id) ?? "Veltrix",
+        projectName: projectNameById.get(integration.project_id) ?? "VYNTRO",
         chatId,
         settings: {
           commandsEnabled: settingsRow?.commands_enabled === true,

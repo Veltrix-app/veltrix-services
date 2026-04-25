@@ -1,4 +1,4 @@
--- Veltrix Permissioned Payout Console
+-- VYNTRO Permissioned Payout Console
 -- Run this migration manually in the Supabase SQL editor before deploying the first payout safety tranche.
 
 begin;

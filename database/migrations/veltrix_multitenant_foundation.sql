@@ -1,4 +1,4 @@
--- Veltrix multi-tenant foundation
+-- VYNTRO multi-tenant foundation
 -- Run in Supabase SQL Editor.
 --
 -- Goals:

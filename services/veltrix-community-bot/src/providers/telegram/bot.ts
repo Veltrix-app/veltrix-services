@@ -43,8 +43,8 @@ function buildTelegramCommandPayload(settings: {
   }
 
   return [
-    { command: "link", description: "Link your Telegram identity with Veltrix" },
-    { command: "profile", description: "Show your live Veltrix community profile" },
+    { command: "link", description: "Link your Telegram identity with VYNTRO" },
+    { command: "profile", description: "Show your live VYNTRO community profile" },
     ...(settings.missionCommandsEnabled
       ? [{ command: "missions", description: "Show the live project mission board" }]
       : []),
@@ -92,19 +92,19 @@ function listEnabledTelegramCommands(settings: {
 async function resolveCommunityContext(ctx: any, command?: CommunityCommandKey) {
   const chatId = getChatId(ctx);
   if (!chatId) {
-    await ctx.reply("This command needs to run inside a Telegram group or chat mapped in Veltrix.");
+    await ctx.reply("This command needs to run inside a Telegram group or chat mapped in VYNTRO.");
     return null;
   }
 
   const context = await loadTelegramIntegrationContextByChatId(chatId);
   if (!context) {
-    await ctx.reply("This Telegram chat is not mapped to a Veltrix project yet.");
+    await ctx.reply("This Telegram chat is not mapped to a VYNTRO project yet.");
     return null;
   }
 
   if (!context.settings.commandsEnabled) {
     await ctx.reply(
-      "Telegram community commands are disabled for this project right now. Enable them in the Veltrix portal first."
+      "Telegram community commands are disabled for this project right now. Enable them in the VYNTRO portal first."
     );
     return null;
   }
@@ -141,10 +141,10 @@ function registerTelegramCommandHandlers(bot: Telegraf) {
     const enabledCommands = listEnabledTelegramCommands(context.settings);
 
     await ctx.reply(
-      `Veltrix is live for ${context.projectName}. Available commands: ${enabledCommands.join(", ")}.`,
+      `VYNTRO is live for ${context.projectName}. Available commands: ${enabledCommands.join(", ")}.`,
       buildTelegramProjectButtons([
         { label: "Open onboarding rail", url: links.onboardingUrl },
-        { label: "Open Veltrix profile", url: links.profileUrl },
+        { label: "Open VYNTRO profile", url: links.profileUrl },
       ])
     );
   });
@@ -160,10 +160,10 @@ function registerTelegramCommandHandlers(bot: Telegraf) {
     });
 
     await ctx.reply(
-      `Link into ${context.projectName} so this chat can use your live Veltrix profile for community ranks, captain rails, leaderboards and the right onboarding journey.`,
+      `Link into ${context.projectName} so this chat can use your live VYNTRO profile for community ranks, captain rails, leaderboards and the right onboarding journey.`,
       buildTelegramProjectButtons([
         { label: "Open onboarding rail", url: links.onboardingUrl },
-        { label: "Open Veltrix profile", url: links.profileUrl },
+        { label: "Open VYNTRO profile", url: links.profileUrl },
       ])
     );
   });
@@ -175,7 +175,7 @@ function registerTelegramCommandHandlers(bot: Telegraf) {
     const providerUserId = String(ctx.from?.id ?? "");
     const snapshot = await loadTelegramIdentitySnapshot(providerUserId, context.projectId);
     if (!snapshot) {
-      await ctx.reply("Your Telegram account is not linked to Veltrix yet. Use /link first.");
+      await ctx.reply("Your Telegram account is not linked to VYNTRO yet. Use /link first.");
       return;
     }
 
@@ -434,8 +434,8 @@ export async function launchTelegramBot() {
   }
 
   await bot.telegram.setMyCommands([
-    { command: "link", description: "Link your Telegram identity with Veltrix" },
-    { command: "profile", description: "Show your live Veltrix community profile" },
+    { command: "link", description: "Link your Telegram identity with VYNTRO" },
+    { command: "profile", description: "Show your live VYNTRO community profile" },
     { command: "missions", description: "Show the live project mission board" },
     { command: "leaderboard", description: "Show the current weekly leaderboard" },
     { command: "raid", description: "Show the live raid rail" },

@@ -2,21 +2,21 @@ import type { Metadata } from "next";
 import { LegalPageShell, LegalSection } from "@/components/marketing/legal-page-shell";
 
 export const metadata: Metadata = {
-  title: "Veltrix Privacy",
+  title: "VYNTRO Privacy",
   description:
-    "How Veltrix handles account data, linked identities, project activity, security review, subprocessors and privacy requests.",
+    "How VYNTRO handles account data, linked identities, project activity, security review, subprocessors and privacy requests.",
 };
 
 export default function PrivacyPage() {
   return (
     <LegalPageShell
       eyebrow="Privacy"
-      title="How Veltrix handles account, project and activity data."
-      intro="This page explains the main categories of information Veltrix uses to operate launches, community workflows, member journeys, support and security review. It is the public privacy posture for Veltrix, not a hidden internal note."
+      title="How VYNTRO handles account, project and activity data."
+      intro="This page explains the main categories of information VYNTRO uses to operate launches, community workflows, member journeys, support and security review. It is the public privacy posture for VYNTRO, not a hidden internal note."
     >
       <LegalSection title="What we collect">
         <p>
-          Veltrix may collect account details such as email, username, linked identity data, wallet connections,
+          VYNTRO may collect account details such as email, username, linked identity data, wallet connections,
           project participation, quest and reward progress, community actions, support messages and operational audit
           records.
         </p>
@@ -39,20 +39,20 @@ export default function PrivacyPage() {
 
       <LegalSection title="Legal and operational basis">
         <p>
-          Veltrix processes data to provide the product, secure operator access, respond to support requests, investigate abuse or incidents and meet legitimate operational or legal obligations.
+          VYNTRO processes data to provide the product, secure operator access, respond to support requests, investigate abuse or incidents and meet legitimate operational or legal obligations.
         </p>
         <p>
-          Where customer teams configure launches, campaigns or member experiences, Veltrix may process the resulting operational data as part of running the service on their behalf.
+          Where customer teams configure launches, campaigns or member experiences, VYNTRO may process the resulting operational data as part of running the service on their behalf.
         </p>
       </LegalSection>
 
       <LegalSection title="Linked accounts, wallets and third-party services">
         <p>
-          If you connect external identities such as Discord, Telegram, X or a wallet, Veltrix may store the minimum
+          If you connect external identities such as Discord, Telegram, X or a wallet, VYNTRO may store the minimum
           data needed to verify the link, show readiness, route actions and keep project-specific experiences working.
         </p>
         <p>
-          Third-party services have their own terms and privacy practices. Using those connected services inside Veltrix
+          Third-party services have their own terms and privacy practices. Using those connected services inside VYNTRO
           does not replace the policies of the underlying providers.
         </p>
       </LegalSection>
@@ -71,7 +71,7 @@ export default function PrivacyPage() {
 
       <LegalSection title="Security, sessions and access review">
         <p>
-          Veltrix uses authentication, session review, audit trails and bounded permissions to protect workspace and operator access. Enterprise accounts may also use SSO or enforce two-factor authentication for higher-risk roles.
+          VYNTRO uses authentication, session review, audit trails and bounded permissions to protect workspace and operator access. Enterprise accounts may also use SSO or enforce two-factor authentication for higher-risk roles.
         </p>
         <p>
           Security logs, recovery reviews and access metadata may be retained where needed to investigate incidents, enforce policy or confirm the safety of administrative actions.
@@ -80,16 +80,16 @@ export default function PrivacyPage() {
 
       <LegalSection title="Subprocessors and infrastructure">
         <p>
-          Veltrix relies on third-party infrastructure and service providers to operate hosting, authentication, payments and product delivery. Our current public vendor list is available on the subprocessor registry and may evolve as the platform matures.
+          VYNTRO relies on third-party infrastructure and service providers to operate hosting, authentication, payments and product delivery. Our current public vendor list is available on the subprocessor registry and may evolve as the platform matures.
         </p>
         <p>
-          Where subprocessors handle data for Veltrix operations, that use remains subject to contractual and operational review rather than casual vendor sprawl.
+          Where subprocessors handle data for VYNTRO operations, that use remains subject to contractual and operational review rather than casual vendor sprawl.
         </p>
       </LegalSection>
 
       <LegalSection title="Your privacy requests">
         <p>
-          Veltrix provides structured export and deletion request flows instead of treating privacy requests as informal support messages. Those requests may move through review and verification states before completion so they can be handled safely.
+          VYNTRO provides structured export and deletion request flows instead of treating privacy requests as informal support messages. Those requests may move through review and verification states before completion so they can be handled safely.
         </p>
         <p>
           Use support if you need privacy follow-up, a DPA discussion or help understanding what data is tied to your account or workspace.
@@ -102,7 +102,7 @@ export default function PrivacyPage() {
           investigate incidents, resolve disputes, comply with obligations or improve system reliability.
         </p>
         <p>
-          For launch questions, privacy-related support or security review follow-up, use the public support route in Veltrix.
+          For launch questions, privacy-related support or security review follow-up, use the public support route in VYNTRO.
         </p>
       </LegalSection>
     </LegalPageShell>

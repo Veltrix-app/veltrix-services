@@ -4,7 +4,7 @@ export default function LifecycleStatesPage() {
   return (
     <DocsReferencePage
       eyebrow="Reference"
-      title="Lifecycle States define how Veltrix treats readiness, activation and historical posture."
+      title="Lifecycle States define how VYNTRO treats readiness, activation and historical posture."
       description="This page explains the common lifecycle language shared across builder surfaces and operator workflows."
       referenceSlug="lifecycle-states"
       stateExplorerSlug="lifecycle"

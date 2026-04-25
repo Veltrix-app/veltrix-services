@@ -26,7 +26,7 @@ export type PublicTrustSubprocessor = {
 export const trustControls: PublicTrustControl[] = [
   {
     title: "Authentication and access",
-    summary: "Veltrix uses role-aware portal access with enterprise-ready identity controls for operator surfaces.",
+    summary: "VYNTRO uses role-aware portal access with enterprise-ready identity controls for operator surfaces.",
     bullets: [
       "Two-factor authentication can be enabled by any operator and enforced for enterprise owner and admin roles.",
       "Enterprise SSO and SAML are scoped to portal and workspace operators instead of the public member webapp.",
@@ -44,7 +44,7 @@ export const trustControls: PublicTrustControl[] = [
   },
   {
     title: "Data lifecycle",
-    summary: "Veltrix exposes structured intake and review flows for export and deletion requests instead of treating them as ad hoc support work.",
+    summary: "VYNTRO exposes structured intake and review flows for export and deletion requests instead of treating them as ad hoc support work.",
     bullets: [
       "Data access requests move through submitted, review, verification and completion states.",
       "Privacy, deletion and support lanes stay linked to internal security review queues.",
@@ -71,7 +71,7 @@ export const trustDocuments: PublicTrustDocument[] = [
   {
     label: "Privacy",
     href: "/privacy",
-    summary: "How Veltrix handles product data, lawful use, retention and request rights.",
+    summary: "How VYNTRO handles product data, lawful use, retention and request rights.",
   },
   {
     label: "Terms",
@@ -92,19 +92,19 @@ export const trustDocuments: PublicTrustDocument[] = [
 
 export const trustFaqs = [
   {
-    question: "Does Veltrix support enterprise identity controls?",
+    question: "Does VYNTRO support enterprise identity controls?",
     answer:
       "Yes. Enterprise SSO and SAML are available for portal and workspace operators, and two-factor requirements can be enforced for high-risk roles.",
   },
   {
     question: "Can customers request export or deletion of account data?",
     answer:
-      "Yes. Export and deletion requests move through a reviewed lifecycle so Veltrix can verify the requester, track progress and complete the request safely.",
+      "Yes. Export and deletion requests move through a reviewed lifecycle so VYNTRO can verify the requester, track progress and complete the request safely.",
   },
   {
     question: "Where do I report a security issue or ask for a DPA?",
     answer:
-      "Use the public support route and choose the security or privacy lane. Veltrix uses that path for buyer reviews, DPA requests and coordinated security follow-up.",
+      "Use the public support route and choose the security or privacy lane. VYNTRO uses that path for buyer reviews, DPA requests and coordinated security follow-up.",
   },
 ];
 

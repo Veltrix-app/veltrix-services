@@ -10,9 +10,9 @@ import {
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Veltrix Trust Center",
+  title: "VYNTRO Trust Center",
   description:
-    "Public security, privacy, subprocessors and operational trust posture for Veltrix buyers, operators and reviewers.",
+    "Public security, privacy, subprocessors and operational trust posture for VYNTRO buyers, operators and reviewers.",
 };
 
 export default async function TrustPage() {

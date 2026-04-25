@@ -7,8 +7,8 @@ export default function BuyerGuideLaunchOperationsPage() {
   return (
     <DocsPageFrame
       eyebrow="Buyer Guides"
-      title="Launch operations is the clearest way to understand what Veltrix actually replaces."
-      description="Veltrix is not just a quest page or an airdrop surface. The product is designed as one operating system for launch planning, content execution, community motion, trust handling and recovery loops."
+      title="Launch operations is the clearest way to understand what VYNTRO actually replaces."
+      description="VYNTRO is not just a quest page or an airdrop surface. The product is designed as one operating system for launch planning, content execution, community motion, trust handling and recovery loops."
       actions={[
         { href: "/project-docs", label: "Open Project Docs" },
         { href: "/operator-docs", label: "Open Operator Docs" },
@@ -19,7 +19,7 @@ export default function BuyerGuideLaunchOperationsPage() {
     >
       <DocsSection
         eyebrow="Operating model"
-        title="Veltrix keeps launch, execution and recovery in one product spine."
+        title="VYNTRO keeps launch, execution and recovery in one product spine."
         description="That matters commercially because buyers do not need to stitch together one tool for tasks, another for community, another for trust review and another for incident handling."
       >
         <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
@@ -52,7 +52,7 @@ export default function BuyerGuideLaunchOperationsPage() {
       <DocsSection
         eyebrow="Why buyers care"
         title="The value is operational continuity, not just more surfaces."
-        description="When teams evaluate Veltrix, the important question is whether they can run a launch program with less fragmentation, clearer ownership and safer follow-through."
+        description="When teams evaluate VYNTRO, the important question is whether they can run a launch program with less fragmentation, clearer ownership and safer follow-through."
       >
         <div className="grid gap-4 xl:grid-cols-3">
           {[

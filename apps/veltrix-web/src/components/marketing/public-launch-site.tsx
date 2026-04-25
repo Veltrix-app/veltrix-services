@@ -83,7 +83,7 @@ export function PublicLaunchSite() {
             <Orbit className="h-5 w-5 text-lime-200" />
           </div>
           <div>
-            <p className="font-display text-[11px] font-bold uppercase tracking-[0.34em] text-lime-300">Veltrix</p>
+            <p className="font-display text-[11px] font-bold uppercase tracking-[0.34em] text-lime-300">VYNTRO</p>
             <p className="mt-1 text-sm text-slate-400">Launch operating system</p>
           </div>
         </div>
@@ -129,7 +129,7 @@ export function PublicLaunchSite() {
               The premium operating system for serious project launches.
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-8 text-slate-200 sm:text-lg">
-              Veltrix gives teams one dark, calm command layer for launch execution, community operations, member
+              VYNTRO gives teams one dark, calm command layer for launch execution, community operations, member
               journeys and recovery rails when launches start to drift.
             </p>
 
@@ -232,7 +232,7 @@ export function PublicLaunchSite() {
               A clearer top-to-bottom story than a quest marketplace.
             </h2>
             <p className="mt-5 text-sm leading-7 text-slate-300 sm:text-base sm:leading-8">
-              Veltrix should read like a launch operating system. The page starts with the product promise, moves into
+              VYNTRO should read like a launch operating system. The page starts with the product promise, moves into
               how teams use it, and then explains the control rails that make it trustworthy.
             </p>
           </div>
@@ -368,7 +368,7 @@ export function PublicLaunchSite() {
         <EnterpriseCtaBand
           eyebrow="Buyer path"
           title="Need security review, rollout help or a higher-touch enterprise posture?"
-          body="Veltrix stays self-serve first, but serious buyers should have a premium path into trust review, commercial guidance and rollout planning without losing momentum."
+          body="VYNTRO stays self-serve first, but serious buyers should have a premium path into trust review, commercial guidance and rollout planning without losing momentum."
           primaryHref="/talk-to-sales?from=homepage&intent=enterprise_review"
           primaryLabel="Open buyer intake"
           secondaryHref="/trust"
@@ -403,7 +403,7 @@ export function PublicLaunchSite() {
         </div>
 
       <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-white/8 py-6 text-sm text-slate-400">
-          <p>Veltrix is the operating system for launch execution, community operations and member journeys.</p>
+          <p>VYNTRO is the operating system for launch execution, community operations and member journeys.</p>
           <div className="flex flex-wrap items-center gap-5">
             <Link href="/privacy" className="transition hover:text-white">
               Privacy

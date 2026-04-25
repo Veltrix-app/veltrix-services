@@ -52,7 +52,7 @@ function buildVerificationMessage(params: {
   nonce: string;
 }) {
   return [
-    "Veltrix wallet verification",
+    "VYNTRO wallet verification",
     `Address: ${params.walletAddress}`,
     `Chain: ${params.chain}`,
     `Nonce: ${params.nonce}`,

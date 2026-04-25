@@ -62,12 +62,12 @@ export const launchProofPoints = [
 
 export const launchFaqs = [
   {
-    question: "Who is Veltrix for?",
+    question: "Who is VYNTRO for?",
     answer:
-      "Veltrix is built for projects that need one system for launch execution, community operations, member progression and safety management.",
+      "VYNTRO is built for projects that need one system for launch execution, community operations, member progression and safety management.",
   },
   {
-    question: "Is Veltrix self-serve or founder-led?",
+    question: "Is VYNTRO self-serve or founder-led?",
     answer:
       "Both. Teams can start directly in the product, and projects that want a tighter rollout, security review or enterprise path can open a higher-touch commercial conversation without losing the self-serve option.",
   },
@@ -77,9 +77,9 @@ export const launchFaqs = [
       "Free is for proving fit in a small live lane. Starter is the first serious paid operating tier. Growth is for repeat launch volume and larger execution pressure. Enterprise is for custom commercial posture, security review and higher-touch rollout help.",
   },
   {
-    question: "Does Veltrix replace separate quest and bot tools?",
+    question: "Does VYNTRO replace separate quest and bot tools?",
     answer:
-      "That is the point. Veltrix brings campaign setup, community activation, member journeys, trust, payouts and on-chain operations into one product family.",
+      "That is the point. VYNTRO brings campaign setup, community activation, member journeys, trust, payouts and on-chain operations into one product family.",
   },
 ];
 
@@ -119,6 +119,6 @@ export const launchAccessModes = [
   {
     name: "Book a walkthrough",
     summary:
-      "Use a higher-touch path if you want help shaping rollout order, operating model and the first launch architecture inside Veltrix.",
+      "Use a higher-touch path if you want help shaping rollout order, operating model and the first launch architecture inside VYNTRO.",
   },
 ];

@@ -30,7 +30,7 @@ export function TrustCenterShell({
               Security, privacy and operator trust with buyer-level clarity.
             </h1>
             <p className="mt-6 max-w-3xl text-base leading-8 text-slate-200 sm:text-lg">
-              This is the public trust surface for how Veltrix approaches operator identity, bounded visibility,
+              This is the public trust surface for how VYNTRO approaches operator identity, bounded visibility,
               incident handling, data lifecycle requests and vendor transparency.
             </p>
           </div>
@@ -39,7 +39,7 @@ export function TrustCenterShell({
             <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-cyan-200">Review routes</p>
             <div className="mt-4 grid gap-4">
               <div className="rounded-[26px] border border-cyan-300/16 bg-cyan-300/[0.08] p-4">
-                <p className="text-sm font-black text-white">Talk to Veltrix when trust review is active.</p>
+                <p className="text-sm font-black text-white">Talk to VYNTRO when trust review is active.</p>
                 <p className="mt-2 text-sm leading-7 text-slate-200">
                   Security review, DPA follow-up, SSO questions and enterprise trust posture should all land in one
                   clear buyer path.
@@ -160,7 +160,7 @@ export function TrustCenterShell({
             <p className="font-display text-[11px] font-bold uppercase tracking-[0.28em] text-cyan-200">Subprocessors</p>
         <h2 className="mt-2 text-[1.15rem] font-black tracking-[-0.03em] text-white">Current vendor registry.</h2>
             <p className="mt-4 text-sm leading-7 text-slate-300">
-              This list covers the main vendors Veltrix uses to operate infrastructure, payments and product delivery.
+              This list covers the main vendors VYNTRO uses to operate infrastructure, payments and product delivery.
               It stays public so buyers do not need to start from zero in review calls.
             </p>
           </div>
@@ -191,7 +191,7 @@ export function TrustCenterShell({
               <p className="font-display text-[11px] font-bold uppercase tracking-[0.28em] text-cyan-200">Next step</p>
         <h2 className="mt-2 text-[1.15rem] font-black tracking-[-0.03em] text-white">When the review gets specific, keep the route simple.</h2>
               <p className="mt-4 text-sm leading-7 text-slate-300">
-                Veltrix keeps trust materials public, but real buyer review should still land in one clear commercial path so security, rollout and commercial questions stay connected.
+                VYNTRO keeps trust materials public, but real buyer review should still land in one clear commercial path so security, rollout and commercial questions stay connected.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -212,7 +212,7 @@ export function TrustCenterShell({
         </section>
 
         <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-white/8 pt-6 text-sm text-slate-400">
-          <p>Trust, privacy and security materials for Veltrix buyers, operators and reviewers.</p>
+          <p>Trust, privacy and security materials for VYNTRO buyers, operators and reviewers.</p>
           <div className="flex flex-wrap items-center gap-5">
             <Link href="/privacy" className="transition hover:text-white">
               Privacy

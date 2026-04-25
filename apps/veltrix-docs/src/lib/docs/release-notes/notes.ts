@@ -13,7 +13,7 @@ export const docsReleaseNotes: DocsReleaseNote[] = [
     title: "Public launch baseline",
     dateLabel: "April 2026",
     summary:
-      "Veltrix crossed from product-complete infrastructure into a public launch posture with a real public site, full product surfaces and shared system language across portal, webapp, bots and docs.",
+      "VYNTRO crossed from product-complete infrastructure into a public launch posture with a real public site, full product surfaces and shared system language across portal, webapp, bots and docs.",
     highlights: [
       "Public launch site now lives on the main web root instead of hiding behind product entry.",
       "Portal, member webapp and bot copy were aligned so the product reads like one brand instead of separate systems.",

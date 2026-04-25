@@ -21,7 +21,7 @@ export function GrowthAttributionBeacon({
 
   useEffect(() => {
     const search = typeof window !== "undefined" ? window.location.search : "";
-    const dedupeKey = `veltrix-growth:${eventType}:${pathname}:${search}`;
+    const dedupeKey = `vyntro-growth:${eventType}:${pathname}:${search}`;
 
     if (typeof window !== "undefined" && window.sessionStorage.getItem(dedupeKey)) {
       return;

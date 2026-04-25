@@ -22,7 +22,7 @@ function isContextMeta(label: string) {
 }
 
 function formatContextLine(projectName?: string, campaignTitle?: string) {
-  const project = projectName?.trim() || "Veltrix";
+  const project = projectName?.trim() || "VYNTRO";
   const campaign = campaignTitle?.trim() || "";
   return campaign ? `${project} | ${campaign}` : project;
 }
@@ -61,7 +61,7 @@ export async function sendTelegramPush(params: {
     .slice(0, 4);
 
   const text = [
-    params.eyebrow?.trim() ? `<b>${escapeHtml(params.eyebrow.trim())}</b>` : "<b>VELTRIX UPDATE</b>",
+    params.eyebrow?.trim() ? `<b>${escapeHtml(params.eyebrow.trim())}</b>` : "<b>VYNTRO UPDATE</b>",
     `<b>${escapeHtml(title)}</b>`,
     ...(hasDistinctBody ? [escapeHtml(body)] : []),
     ...visibleMeta.map(
@@ -80,7 +80,7 @@ export async function sendTelegramPush(params: {
             inline_keyboard: [
               [
                 {
-                  text: params.buttonLabel?.trim() || "Open in Veltrix",
+                  text: params.buttonLabel?.trim() || "Open in VYNTRO",
                   url: params.url.trim(),
                 },
               ],

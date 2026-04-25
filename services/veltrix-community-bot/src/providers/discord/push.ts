@@ -34,7 +34,7 @@ function isContextMeta(label: string) {
 }
 
 function formatContextLine(projectName?: string, campaignTitle?: string) {
-  const project = projectName?.trim() || "Veltrix";
+  const project = projectName?.trim() || "VYNTRO";
   const campaign = campaignTitle?.trim() || "";
   return campaign ? `${project} | ${campaign}` : project;
 }
@@ -89,7 +89,7 @@ export async function sendDiscordPush(params: {
   const embed = new EmbedBuilder()
     .setColor(toDiscordColor(params.accentColor))
     .setAuthor({
-      name: params.eyebrow?.trim() || "VELTRIX UPDATE",
+      name: params.eyebrow?.trim() || "VYNTRO UPDATE",
     })
     .setTitle(title)
     .setFooter({
@@ -119,7 +119,7 @@ export async function sendDiscordPush(params: {
             new ActionRowBuilder<ButtonBuilder>().addComponents(
               new ButtonBuilder()
                 .setStyle(ButtonStyle.Link)
-                .setLabel(params.buttonLabel?.trim() || "Open in Veltrix")
+                .setLabel(params.buttonLabel?.trim() || "Open in VYNTRO")
                 .setURL(params.url.trim())
             ),
           ],

@@ -4,7 +4,7 @@ const docsReferenceDatasets: DocsReferenceDataset[] = [
   {
     slug: "docs-coverage-map",
     title: "Docs Coverage Map",
-    summary: "The atlas view of which Veltrix product domains are covered by surface docs, workflow docs and exact reference language.",
+    summary: "The atlas view of which VYNTRO product domains are covered by surface docs, workflow docs and exact reference language.",
     entries: [
       { label: "Project launch and builders", meta: "Surface and workflow heavy", summary: "Launch Workspace, Campaign Studio, Quest Studio, Raid Studio and reward flows now have both narrative surface coverage and system-model depth." },
       { label: "Community and member journey", meta: "Cross-lane coverage", summary: "Community OS, member journey, commands and integrations are documented from both the project operating side and the member consequence side." },
@@ -238,7 +238,7 @@ const docsReferenceDatasets: DocsReferenceDataset[] = [
   {
     slug: "empty-states-and-zero-data",
     title: "Empty States and Zero-Data",
-    summary: "The reference model for how Veltrix should explain blank, calm, blocked or not-yet-configured surfaces without leaving users guessing.",
+    summary: "The reference model for how VYNTRO should explain blank, calm, blocked or not-yet-configured surfaces without leaving users guessing.",
     entries: [
       { label: "Not configured yet", meta: "Setup posture", summary: "Use when the surface is empty because the user has not created the underlying object or connected the required setup yet." },
       { label: "Configured but quiet", meta: "Calm posture", summary: "Use when the system is healthy but currently has no open work, incidents, claims or matching activity in that slice." },
@@ -341,7 +341,7 @@ const docsReferenceDatasets: DocsReferenceDataset[] = [
         },
         {
           title: "Surface-level examples",
-          description: "These examples show how empty states should sound on real Veltrix surfaces instead of as abstract rules only.",
+          description: "These examples show how empty states should sound on real VYNTRO surfaces instead of as abstract rules only.",
           items: [
             {
               label: "\"No launch spine yet. Open Campaign Studio to define the first campaign architecture for this project.\"",
@@ -469,7 +469,7 @@ const docsReferenceDatasets: DocsReferenceDataset[] = [
         },
         {
           title: "Surface-level button examples",
-          description: "These examples show how concrete Veltrix buttons should be interpreted when someone reads the docs page for that surface.",
+          description: "These examples show how concrete VYNTRO buttons should be interpreted when someone reads the docs page for that surface.",
           items: [
             {
               label: "\"Open Campaign Studio\"",
@@ -499,7 +499,7 @@ const docsReferenceDatasets: DocsReferenceDataset[] = [
   {
     slug: "warning-copy-and-escalation-language",
     title: "Warning Copy and Escalation Language",
-    summary: "The reference model for how Veltrix phrases warnings, blocked states, waiting states and escalation prompts so risk feels clear without becoming vague or alarmist.",
+    summary: "The reference model for how VYNTRO phrases warnings, blocked states, waiting states and escalation prompts so risk feels clear without becoming vague or alarmist.",
     entries: [
       { label: "Advisory warning", meta: "Watch posture", summary: "Use when the system wants attention or prioritization but the current path is still usable if the reader understands the caveat." },
       { label: "Blocking warning", meta: "Needs action", summary: "Use when the current path cannot proceed safely until a specific missing input, setup step or owner action is resolved." },
@@ -816,7 +816,7 @@ const docsReferenceDatasets: DocsReferenceDataset[] = [
         },
         {
           title: "Owners are the local authority",
-          description: "Owner-managed grants are one of the key ways Veltrix balances autonomy and safety.",
+          description: "Owner-managed grants are one of the key ways VYNTRO balances autonomy and safety.",
           items: [
             {
               label: "Owner intent shapes the console",
@@ -1210,7 +1210,7 @@ const docsReferenceDatasets: DocsReferenceDataset[] = [
     ],
     matrix: {
       title: "Permission split matrix",
-      description: "Veltrix permissions are deliberately split by what someone can see and what someone can do.",
+      description: "VYNTRO permissions are deliberately split by what someone can see and what someone can do.",
       columns: ["Summary access", "Detail access", "Action access"],
       rows: [
         {
@@ -1239,7 +1239,7 @@ const docsReferenceDatasets: DocsReferenceDataset[] = [
   {
     slug: "entities-and-relationships",
     title: "Entities and Relationships",
-    summary: "The map of how the main Veltrix objects and surfaces depend on each other.",
+    summary: "The map of how the main VYNTRO objects and surfaces depend on each other.",
     entries: [
       { label: "Project", meta: "Root object", summary: "The context that holds launch posture, team access, community operations and the project-side settings surface together." },
       { label: "Campaign", meta: "Mission architecture", summary: "The strategic parent object that gives quests, raids and rewards their place in a launch or growth path." },
@@ -1411,7 +1411,7 @@ const docsReferenceDatasets: DocsReferenceDataset[] = [
     },
     deepDive: {
       title: "Why the handoff model matters",
-      description: "A product like Veltrix breaks down fast if builders feel detached from each other or from the launch state around them.",
+      description: "A product like VYNTRO breaks down fast if builders feel detached from each other or from the launch state around them.",
       sections: [
         {
           title: "Why Campaign usually comes first",
@@ -1519,7 +1519,7 @@ const docsReferenceDatasets: DocsReferenceDataset[] = [
     },
     deepDive: {
       title: "Why the community layer needs deeper docs",
-      description: "This is where a lot of products become vague. Veltrix should explain the loop clearly instead of treating community work as generic growth activity.",
+      description: "This is where a lot of products become vague. VYNTRO should explain the loop clearly instead of treating community work as generic growth activity.",
       sections: [
         {
           title: "Owner versus captain is a design choice",
@@ -1545,7 +1545,7 @@ const docsReferenceDatasets: DocsReferenceDataset[] = [
   {
     slug: "signal-and-scoring-models",
     title: "Signal and Scoring Models",
-    summary: "The shared map for how Veltrix turns raw system activity into warnings, severity bands, cases and bounded project visibility.",
+    summary: "The shared map for how VYNTRO turns raw system activity into warnings, severity bands, cases and bounded project visibility.",
     entries: [
       { label: "Deterministic rules", meta: "Exact thresholds", summary: "These are explicit checks such as event caps, hold windows, allowlist violations, missing wallet links or blocked finalization paths." },
       { label: "Watch bands", meta: "Posture layer", summary: "Some inputs do not hard-reject the workflow, but they still push the system into a warning or watch posture that operators should see." },
@@ -1858,7 +1858,7 @@ const docsReferenceDatasets: DocsReferenceDataset[] = [
           description: "These cases appear before the event can safely join the normal pipeline.",
           items: [
             { label: "Unmatched project asset", meta: "Validation gate", summary: "The event contract or token did not match an active tracked project asset, so the system opens an unmatched-project-asset case." },
-            { label: "Unlinked wallet activity", meta: "Identity gate", summary: "Tracked activity reached the system for a wallet that is not linked to a verified Veltrix account." },
+            { label: "Unlinked wallet activity", meta: "Identity gate", summary: "Tracked activity reached the system for a wallet that is not linked to a verified VYNTRO account." },
             { label: "Ingress rejected", meta: "Trust gate", summary: "The event failed the trust assessment hard enough that the pipeline rejected it instead of accepting it with warnings." },
           ],
         },

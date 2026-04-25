@@ -158,7 +158,7 @@ export async function emitMemberActivationNudges(state: SuccessMemberState) {
       reasonKey: "member_comeback_email",
       status: "pending",
       title: "Come back to your live missions",
-      body: "Veltrix should nudge this member back into the comeback lane with a bounded email prompt.",
+      body: "VYNTRO should nudge this member back into the comeback lane with a bounded email prompt.",
       route: state.nextBestActionRoute ?? "/community/comeback",
       metadata: {
         memberHealthState: state.memberHealthState,

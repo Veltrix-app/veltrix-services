@@ -18,7 +18,7 @@ export default function PayoutRiskAndResolutionModelPage() {
         <div className="space-y-4">
           <p className="docs-kicker text-lime-300">Failure-driven model</p>
           <p className="text-sm leading-7 text-slate-300">
-            This page is here to make one thing clear: payout safety in Veltrix is designed around explicit blocked states, retries and disputes, not around a vague payout score.
+            This page is here to make one thing clear: payout safety in VYNTRO is designed around explicit blocked states, retries and disputes, not around a vague payout score.
           </p>
         </div>
       }

@@ -625,7 +625,7 @@ const docsGuidePages: DocsGuideDefinition[] = [
     track: "project-docs",
     slug: "rewards",
     eyebrow: "Project Docs",
-    title: "Rewards docs explain how incentives, claims and launch outcomes connect inside Veltrix.",
+    title: "Rewards docs explain how incentives, claims and launch outcomes connect inside VYNTRO.",
     description:
       "This page documents the reward layer from the project side: what reward setup means, how claims fit in and how rewards connect back into campaigns, quests, raids and member motivation.",
     surfaceTitle: "Rewards",
@@ -897,7 +897,7 @@ const docsGuidePages: DocsGuideDefinition[] = [
     eyebrow: "Project Docs",
     title: "Member Journey explains what the project-side system turns into for members on the other end.",
     description:
-      "This page documents the member-facing side of Veltrix from a project perspective: onboarding, comeback, missions, recognition, rewards and the routes that help members know where they are going next.",
+      "This page documents the member-facing side of VYNTRO from a project perspective: onboarding, comeback, missions, recognition, rewards and the routes that help members know where they are going next.",
     surfaceTitle: "Member Journey",
     chips: ["Member-facing", "Journey layer", "Project context"],
     actions: [
@@ -1196,7 +1196,7 @@ const docsGuidePages: DocsGuideDefinition[] = [
       ],
       asideTitle: "Why it exists",
       asideBody:
-        "Projects often experience Veltrix through chat surfaces as much as through the webapp. The docs should reflect that reality directly.",
+        "Projects often experience VYNTRO through chat surfaces as much as through the webapp. The docs should reflect that reality directly.",
     },
     whereToFind: {
       title: "Where to find it",
@@ -1363,7 +1363,7 @@ const docsGuidePages: DocsGuideDefinition[] = [
     deepDive: {
       title: "Why bot command docs need to explain scope, delivery posture and system handoffs instead of only listing slash commands.",
       description:
-        "Commands are one of the main delivery rails for community execution. The docs should explain how command visibility, output and deep-linking fit into the rest of Veltrix.",
+        "Commands are one of the main delivery rails for community execution. The docs should explain how command visibility, output and deep-linking fit into the rest of VYNTRO.",
       sections: [
         {
           title: "Commands extend the community operating model",
@@ -1435,7 +1435,7 @@ const docsGuidePages: DocsGuideDefinition[] = [
     track: "project-docs",
     slug: "integrations",
     eyebrow: "Project Docs",
-    title: "Integrations docs explain how Veltrix connects to the channels, providers and rails a project depends on.",
+    title: "Integrations docs explain how VYNTRO connects to the channels, providers and rails a project depends on.",
     description:
       "This page documents the integration layer from the project side: social verification, wallets, provider hooks, chat delivery and the system boundaries that keep integrations understandable.",
     surfaceTitle: "Integrations",
@@ -1459,7 +1459,7 @@ const docsGuidePages: DocsGuideDefinition[] = [
     },
     whatItIs: {
       description:
-        "Integrations are the connected rails that let Veltrix verify actions, deliver bot responses, track on-chain context and move information across the product. This page explains the integration layer without collapsing into raw API detail.",
+        "Integrations are the connected rails that let VYNTRO verify actions, deliver bot responses, track on-chain context and move information across the product. This page explains the integration layer without collapsing into raw API detail.",
       bullets: [
         "It shows projects how provider choices shape product capabilities and verification posture.",
         "It connects social, wallet, bot and chain rails into one understandable system view.",
@@ -1637,7 +1637,7 @@ const docsGuidePages: DocsGuideDefinition[] = [
       sections: [
         {
           title: "Integrations are product contracts",
-          description: "Every connection powers a specific part of the Veltrix system, from verification to on-chain recovery.",
+          description: "Every connection powers a specific part of the VYNTRO system, from verification to on-chain recovery.",
           items: [
             {
               label: "Verification depends on source quality",
@@ -1729,7 +1729,7 @@ const docsGuidePages: DocsGuideDefinition[] = [
     },
     whatItIs: {
       description:
-        "Project Settings is the workspace governance layer. It covers team access, billing posture, personal settings and the context that shapes how a project uses the rest of Veltrix.",
+        "Project Settings is the workspace governance layer. It covers team access, billing posture, personal settings and the context that shapes how a project uses the rest of VYNTRO.",
       bullets: [
         "It explains the workspace itself rather than a single launch surface.",
         "It gives owners a place to understand team access and operating posture together.",
@@ -3026,7 +3026,7 @@ const docsGuidePages: DocsGuideDefinition[] = [
     track: "operator-docs",
     slug: "incident-handling",
     eyebrow: "Operator Docs",
-    title: "Incident Handling explains how Veltrix moves from signal to coordinated recovery.",
+    title: "Incident Handling explains how VYNTRO moves from signal to coordinated recovery.",
     description:
       "This page documents the broader incident response layer across consoles, summary surfaces and support posture: how incidents are recognized, coordinated and brought back under control.",
     surfaceTitle: "Incident Handling",

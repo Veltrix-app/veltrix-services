@@ -11,9 +11,9 @@ import {
 } from "@/lib/commercial/commercial-contract";
 
 export const metadata: Metadata = {
-  title: "Talk to Sales | Veltrix",
+  title: "Talk to Sales | VYNTRO",
   description:
-    "Request a Veltrix walkthrough, buyer review or enterprise intake without slowing self-serve customers down.",
+    "Request a VYNTRO walkthrough, buyer review or enterprise intake without slowing self-serve customers down.",
 };
 
 const intentCards = [
@@ -32,7 +32,7 @@ const intentCards = [
   {
     icon: Building2,
     title: "Commercial truth",
-    body: "Every request drops into the same internal growth queue that Veltrix uses to run leads and follow-up calmly.",
+    body: "Every request drops into the same internal growth queue that VYNTRO uses to run leads and follow-up calmly.",
     accent: "cyan",
   },
 ] as const;
@@ -75,7 +75,7 @@ export default async function TalkToSalesPage({
               Start self-serve, or bring us in when the launch needs a tighter path.
             </h1>
             <p className="mt-6 max-w-3xl text-base leading-8 text-slate-200 sm:text-lg">
-              Veltrix is self-serve first, but serious buyers should never have to guess where security review,
+              VYNTRO is self-serve first, but serious buyers should never have to guess where security review,
               custom limits or a guided rollout conversation starts.
             </p>
           </div>

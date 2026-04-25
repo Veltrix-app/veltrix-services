@@ -17,7 +17,7 @@ export default function ProjectDocsPage() {
     <DocsPageFrame
       eyebrow="Project Docs"
       title="Public docs for teams running launches, growth and community execution."
-      description="This track explains the project-facing parts of Veltrix: how launches are set up, how campaigns and missions are built, how communities are operated and how members move through the product."
+      description="This track explains the project-facing parts of VYNTRO: how launches are set up, how campaigns and missions are built, how communities are operated and how members move through the product."
       actions={[
         { href: "/reference", label: "Open Reference" },
         { href: "/reference/control-atlas", label: "Open Control Atlas" },
@@ -39,7 +39,7 @@ export default function ProjectDocsPage() {
           <p className="docs-kicker text-lime-300">Track focus</p>
           <h2 className="text-2xl font-black text-white">For founders, growth leads and community teams.</h2>
           <p className="text-sm leading-7 text-slate-300">
-            This lane explains how a project touches Veltrix from launch planning through community execution and member follow-through.
+            This lane explains how a project touches VYNTRO from launch planning through community execution and member follow-through.
           </p>
         </div>
       }

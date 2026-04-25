@@ -18,7 +18,7 @@ export function DocsSidebar() {
               <BookOpenText className="h-5 w-5" />
             </div>
             <div>
-              <p className="docs-display docs-kicker text-lime-300">Veltrix Docs</p>
+              <p className="docs-display docs-kicker text-lime-300">VYNTRO Docs</p>
               <p className="mt-2 text-sm text-slate-400">Public encyclopedia</p>
             </div>
           </div>

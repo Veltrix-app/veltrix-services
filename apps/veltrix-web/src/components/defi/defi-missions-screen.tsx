@@ -712,7 +712,7 @@ function VaultMoveFundsPanel({
             Move funds
           </p>
           <p className="mt-2 text-[13px] leading-6 text-slate-400">
-            Deposit or withdraw directly with your wallet. Veltrix never takes custody.
+            Deposit or withdraw directly with your wallet. VYNTRO never takes custody.
           </p>
         </div>
         <div className="inline-flex rounded-full border border-white/8 bg-white/[0.035] p-1">

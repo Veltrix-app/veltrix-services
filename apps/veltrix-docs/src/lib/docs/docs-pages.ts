@@ -86,7 +86,7 @@ export const docsTracks: DocsTrackDefinition[] = [
     label: "Project Docs",
     summary: "Public docs for launch, growth and community teams.",
     description:
-      "This track explains how projects use Veltrix to set up launches, build missions, operate communities and guide members through the system.",
+      "This track explains how projects use VYNTRO to set up launches, build missions, operate communities and guide members through the system.",
     sections: [
       {
         id: "launch-and-build",
@@ -208,7 +208,7 @@ export const docsTracks: DocsTrackDefinition[] = [
     label: "Buyer Guides",
     summary: "Commercial, pricing and enterprise-readiness docs for evaluation paths.",
     description:
-      "This track helps buyers understand how Veltrix packages the platform, when to choose self-serve versus enterprise and how launch operations map back to the product.",
+      "This track helps buyers understand how VYNTRO packages the platform, when to choose self-serve versus enterprise and how launch operations map back to the product.",
     sections: [
       {
         id: "commercial-entry",
@@ -225,7 +225,7 @@ export const docsTracks: DocsTrackDefinition[] = [
           {
             href: "/buyer-guides/launch-operations",
             label: "Launch Operations",
-            summary: "How Veltrix turns launch planning, community execution and recovery work into one connected operating model.",
+            summary: "How VYNTRO turns launch planning, community execution and recovery work into one connected operating model.",
             status: "live",
             kind: "surface",
           },
@@ -246,7 +246,7 @@ export const docsTracks: DocsTrackDefinition[] = [
           {
             href: "/operator-docs/incident-handling",
             label: "Incident Handling",
-            summary: "How Veltrix communicates incident posture, response flow and recovery ownership once security or launch issues are already live.",
+            summary: "How VYNTRO communicates incident posture, response flow and recovery ownership once security or launch issues are already live.",
             status: "live",
             kind: "workflow",
           },
@@ -267,7 +267,7 @@ export const docsTracks: DocsTrackDefinition[] = [
     label: "Operator Docs",
     summary: "Public docs for trust, payout, on-chain and support operations.",
     description:
-      "This track explains the case-driven consoles, escalation rails, runbooks and recovery loops that support the full Veltrix system.",
+      "This track explains the case-driven consoles, escalation rails, runbooks and recovery loops that support the full VYNTRO system.",
     sections: [
       {
         id: "safety-consoles",
@@ -644,12 +644,12 @@ export const docsTracks: DocsTrackDefinition[] = [
     label: "Release Notes",
     summary: "Track meaningful product evolution over time.",
     description:
-      "This lane records the major Veltrix milestones and gives the docs product a living history from public launch onward.",
+      "This lane records the major VYNTRO milestones and gives the docs product a living history from public launch onward.",
     sections: [
       {
         id: "launch-milestones",
         label: "Launch milestones",
-        summary: "The platform arcs that made Veltrix public-launch ready.",
+        summary: "The platform arcs that made VYNTRO public-launch ready.",
         items: [
           {
             href: "/release-notes/public-launch",

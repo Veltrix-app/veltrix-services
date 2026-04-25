@@ -31,7 +31,7 @@ export default function BuyerGuidePricingAndPlansPage() {
     <DocsPageFrame
       eyebrow="Buyer Guides"
       title="Pricing and plans should make scale, posture and commercial path obvious."
-      description="Veltrix pricing is intentionally capacity-led. The core product story stays coherent across packages, while scale, operating depth and enterprise controls determine where a team fits best."
+      description="VYNTRO pricing is intentionally capacity-led. The core product story stays coherent across packages, while scale, operating depth and enterprise controls determine where a team fits best."
       actions={[
         { href: "/buyer-guides/launch-operations", label: "Open Launch Operations" },
         { href: "/buyer-guides/enterprise-readiness", label: "Open Enterprise Readiness" },
@@ -66,7 +66,7 @@ export default function BuyerGuidePricingAndPlansPage() {
 
       <DocsSection
         eyebrow="Commercial posture"
-        title="Veltrix is self-serve first, but enterprise-ready when launch operations demand it."
+        title="VYNTRO is self-serve first, but enterprise-ready when launch operations demand it."
         description="The right buyer motion depends less on company size alone and more on how much coordination, trust review, onboarding help and policy control the team needs around the core launch stack."
       >
         <div className="grid gap-4 lg:grid-cols-3">

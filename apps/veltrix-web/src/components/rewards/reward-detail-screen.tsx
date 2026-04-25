@@ -73,7 +73,7 @@ export function RewardDetailScreen() {
     if (!result.ok) {
       setMessage({
         tone: "error",
-        text: result.error ?? "Veltrix could not submit this reward claim yet.",
+        text: result.error ?? "VYNTRO could not submit this reward claim yet.",
       });
       setBusy(false);
       return;

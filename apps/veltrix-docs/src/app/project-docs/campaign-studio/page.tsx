@@ -5,7 +5,7 @@ export default function CampaignStudioDocsPage() {
     <DocsFlagshipPage
       eyebrow="Project Docs"
       title="Campaign Studio turns launch intent into a mission architecture."
-      description="This page explains Campaign Studio as the campaign-building core of Veltrix: where a project frames the goal, shapes the mission path and gets launch posture ready before members ever see the campaign."
+      description="This page explains Campaign Studio as the campaign-building core of VYNTRO: where a project frames the goal, shapes the mission path and gets launch posture ready before members ever see the campaign."
       actions={[
         { href: "/project-docs", label: "Back to Project Docs" },
         { href: "/reference", label: "Open Reference" },

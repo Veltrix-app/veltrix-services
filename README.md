@@ -1,6 +1,6 @@
-# Veltrix Infrastructure Workspace
+# VYNTRO Infrastructure Workspace
 
-This repo is the shared infrastructure workspace for Veltrix services and database assets.
+This repo is the shared infrastructure workspace for VYNTRO services and database assets.
 
 ## Structure
 

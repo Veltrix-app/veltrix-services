@@ -1,12 +1,12 @@
-# Veltrix Community Bot
+# VYNTRO Community Bot
 
-Community integration service for Veltrix.
+Community integration service for VYNTRO.
 
 This service is responsible for:
 - Discord bot connectivity
 - Telegram bot connectivity
 - provider-specific membership events
-- forwarding verified events to the Veltrix confirm callback
+- forwarding verified events to the VYNTRO confirm callback
 
 ## Current foundation
 
@@ -34,7 +34,7 @@ This service is responsible for:
 
 The webhook routes accept confirmed membership payloads and then:
 1. store a provider verification event in Supabase
-2. call the Veltrix confirm callback
+2. call the VYNTRO confirm callback
 
 The Discord verify route is the first real provider-owned verification endpoint:
 1. load the linked Discord account from Supabase
@@ -76,7 +76,7 @@ This service should run as a long-lived Node web service because the Discord cli
 The repo root now includes [render.yaml](C:\Users\jordi\OneDrive\Documenten\New%20project\render.yaml), so you can create a Render Blueprint directly from the GitHub repo.
 
 Render settings:
-- service: `veltrix-community-bot`
+- service: `vyntro-community-bot`
 - root directory: `services/veltrix-community-bot`
 - build command: `npm ci && npm run build`
 - start command: `npm run start`

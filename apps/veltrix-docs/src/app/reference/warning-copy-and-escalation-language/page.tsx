@@ -4,7 +4,7 @@ export default function WarningCopyAndEscalationLanguagePage() {
   return (
     <DocsReferencePage
       eyebrow="Reference"
-      title="Warning Copy and Escalation Language explain how Veltrix phrases caution, blockage and coordination clearly."
+      title="Warning Copy and Escalation Language explain how VYNTRO phrases caution, blockage and coordination clearly."
       description="This page documents advisory warnings, blocking warnings, waiting-state prompts and escalation language so the product can communicate risk without sounding vague or alarmist."
       referenceSlug="warning-copy-and-escalation-language"
       stateExplorerSlug="warning-semantics"

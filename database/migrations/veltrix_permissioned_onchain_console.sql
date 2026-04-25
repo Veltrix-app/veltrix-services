@@ -1,4 +1,4 @@
--- Veltrix Permissioned On-chain Console
+-- VYNTRO Permissioned On-chain Console
 -- Run this migration manually in the Supabase SQL editor before deploying the first on-chain observability tranche.
 
 begin;

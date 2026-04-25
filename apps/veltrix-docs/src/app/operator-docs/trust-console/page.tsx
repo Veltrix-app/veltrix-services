@@ -4,7 +4,7 @@ export default function TrustConsoleDocsPage() {
   return (
     <DocsFlagshipPage
       eyebrow="Operator Docs"
-      title="Trust Console shows how Veltrix handles review, escalation and bounded project visibility."
+      title="Trust Console shows how VYNTRO handles review, escalation and bounded project visibility."
       description="This page explains the permissioned trust system: internal full-control trust ops, project-bounded trust visibility, explicit owner grants and auditable case timelines."
       actions={[
         { href: "/operator-docs", label: "Back to Operator Docs" },

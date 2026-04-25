@@ -15,7 +15,7 @@ export default function BuyerGuidesPage() {
   return (
     <DocsPageFrame
       eyebrow="Buyer Guides"
-      title="Commercial docs for teams evaluating Veltrix as a real launch system."
+      title="Commercial docs for teams evaluating VYNTRO as a real launch system."
       description="This lane is for buyers deciding between self-serve and enterprise. It keeps pricing, launch operations and enterprise readiness in one commercial story instead of scattering it across unrelated pages."
       actions={[
         { href: "/buyer-guides/pricing-and-plans", label: "Open Pricing and Plans" },
@@ -29,7 +29,7 @@ export default function BuyerGuidesPage() {
           <p className="docs-kicker text-lime-300">Buyer posture</p>
           <h2 className="text-2xl font-black text-white">Choose the route that fits your operating shape.</h2>
           <p className="text-sm leading-7 text-slate-300">
-            Veltrix is designed to let smaller teams self-serve quickly while giving larger launch programs a clean
+            VYNTRO is designed to let smaller teams self-serve quickly while giving larger launch programs a clean
             path into trust review, onboarding and high-touch rollout planning.
           </p>
         </div>
@@ -114,7 +114,7 @@ export default function BuyerGuidesPage() {
 
         <DocsReferenceBlock
           title="What this lane needs to explain"
-          description="Buyer docs should make the commercial shape of Veltrix easy to understand without hiding the real operating model underneath."
+          description="Buyer docs should make the commercial shape of VYNTRO easy to understand without hiding the real operating model underneath."
           items={[
             {
               label: "Package clarity",
@@ -124,7 +124,7 @@ export default function BuyerGuidesPage() {
             {
               label: "Launch-system value",
               meta: "Product narrative",
-              summary: "Show how launch planning, missions, community execution, trust and recovery live inside one platform so buyers understand why Veltrix is broader than a quest tool.",
+              summary: "Show how launch planning, missions, community execution, trust and recovery live inside one platform so buyers understand why VYNTRO is broader than a quest tool.",
             },
             {
               label: "Enterprise route",

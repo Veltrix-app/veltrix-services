@@ -1,4 +1,4 @@
--- Veltrix Community OS V5 schema
+-- VYNTRO Community OS V5 schema
 -- Run this migration manually in the Supabase SQL editor before V5 code deploys.
 -- Keep this aligned with the project-private Community OS RLS posture.
 

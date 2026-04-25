@@ -1,16 +1,16 @@
 {
-  "name": "veltrix-infra-workspace",
+  "name": "vyntro-infra-workspace",
   "private": true,
   "workspaces": [
     "services/*",
     "apps/*"
   ],
   "scripts": {
-    "typecheck": "npm run typecheck --workspace veltrix-community-bot && npm run typecheck --workspace veltrix-web",
-    "build": "npm run build --workspace veltrix-community-bot && npm run build --workspace veltrix-web",
-    "dev:web": "npm run dev --workspace veltrix-web",
-    "dev:docs": "npm run dev --workspace veltrix-docs",
-    "build:docs": "npm run build --workspace veltrix-docs",
-    "typecheck:docs": "npm run typecheck --workspace veltrix-docs"
+    "typecheck": "npm run typecheck --workspace vyntro-community-bot && npm run typecheck --workspace vyntro-web",
+    "build": "npm run build --workspace vyntro-community-bot && npm run build --workspace vyntro-web",
+    "dev:web": "npm run dev --workspace vyntro-web",
+    "dev:docs": "npm run dev --workspace vyntro-docs",
+    "build:docs": "npm run build --workspace vyntro-docs",
+    "typecheck:docs": "npm run typecheck --workspace vyntro-docs"
   }
 }

@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           ok: false,
-          error: "This wallet is already verified on another Veltrix account.",
+          error: "This wallet is already verified on another VYNTRO account.",
         },
         { status: 409 }
       );

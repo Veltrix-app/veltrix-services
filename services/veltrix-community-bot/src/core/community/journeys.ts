@@ -137,7 +137,7 @@ function buildCommunityJourneyPrompt(input: {
           : `${input.project.name} lane is live`,
     supportingCopy:
       input.lane === "onboarding"
-        ? "Veltrix will keep prioritizing identity, wallet and first-mission moves until this rail is armed."
+        ? "VYNTRO will keep prioritizing identity, wallet and first-mission moves until this rail is armed."
         : input.lane === "comeback"
           ? "The comeback rail focuses only on the fastest moves that pull a returning member back into pressure."
           : "The active rail stays focused on recognition, streak and the next unlock that keeps this project moving.",

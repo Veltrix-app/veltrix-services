@@ -60,7 +60,7 @@ export default function StartPage() {
               Start from the path that matches your launch state.
             </h1>
             <p className="mt-6 max-w-3xl text-base leading-8 text-slate-200 sm:text-lg">
-              Veltrix should make one thing obvious here: whether you need to create a fresh workspace, sign back into
+              VYNTRO should make one thing obvious here: whether you need to create a fresh workspace, sign back into
               an existing one, or open the buyer path before you touch the product at all.
             </p>
           </div>
@@ -74,7 +74,7 @@ export default function StartPage() {
                   Create a fresh account and move straight into workspace setup.
                 </h2>
                 <p className="mt-3 text-sm leading-7 text-slate-200">
-                  This path is for founders and operators who want to start a new Veltrix workspace, verify identity
+                  This path is for founders and operators who want to start a new VYNTRO workspace, verify identity
                   and continue into first-run onboarding.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-3">

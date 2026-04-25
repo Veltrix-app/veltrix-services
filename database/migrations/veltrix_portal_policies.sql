@@ -1,4 +1,4 @@
--- Veltrix portal RLS policies
+-- VYNTRO portal RLS policies
 -- Run in Supabase SQL Editor.
 --
 -- Goal:

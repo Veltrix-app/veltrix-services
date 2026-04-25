@@ -138,14 +138,14 @@ export function CommunityDetailScreen() {
         >
           <p className="text-sm leading-7 text-slate-300">
             {currentCommunity.description ||
-              "This community uses Veltrix to run campaigns, highlight contributors and convert engagement into visible reputation."}
+              "This community uses VYNTRO to run campaigns, highlight contributors and convert engagement into visible reputation."}
           </p>
         </Surface>
 
         <Surface
           eyebrow="Reputation"
           title="Project reputation"
-          description="Your momentum inside this ecosystem is tracked separately from your global Veltrix score."
+          description="Your momentum inside this ecosystem is tracked separately from your global VYNTRO score."
         >
           <div className="grid gap-4 sm:grid-cols-2">
             <MetricTile

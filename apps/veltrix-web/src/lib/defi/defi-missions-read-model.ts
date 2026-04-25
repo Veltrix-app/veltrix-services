@@ -148,14 +148,14 @@ const vaults: DefiVaultMission[] = [
 
 export function buildDefiMissionOverview(): DefiMissionOverview {
   return {
-    productName: "Veltrix DeFi Missions",
+    productName: "VYNTRO DeFi Missions",
     heroTitle: "Earn XP for verified DeFi actions",
     heroDescription:
       "A calm savings-style mission surface where users can discover vaults, move funds with their own wallet and later earn XP for verified on-chain activity.",
     primaryCta: "Start with USDC",
     secondaryCta: "View risk notes",
     disclosure:
-      "Underlying vault infrastructure: Moonwell ERC-4626 vaults. Veltrix does not custody funds, promise yield, or manage deposits.",
+      "Underlying vault infrastructure: Moonwell ERC-4626 vaults. VYNTRO does not custody funds, promise yield, or manage deposits.",
     vaults,
     productRails: [
       {

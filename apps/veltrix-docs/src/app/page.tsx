@@ -19,8 +19,8 @@ export default function DocsOverviewPage() {
   return (
     <DocsPageFrame
       eyebrow="Overview"
-      title="The public operating manual for the full Veltrix system."
-      description="Veltrix Docs explains the product as one connected system: launch setup, community execution, member journeys, bot activation, safety workflows and the exact states behind them."
+      title="The public operating manual for the full VYNTRO system."
+      description="VYNTRO Docs explains the product as one connected system: launch setup, community execution, member journeys, bot activation, safety workflows and the exact states behind them."
       actions={[
         { href: "/project-docs", label: "Open Project Docs" },
         { href: "/buyer-guides", label: "Open Buyer Guides" },

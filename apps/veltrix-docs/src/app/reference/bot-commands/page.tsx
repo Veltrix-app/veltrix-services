@@ -5,7 +5,7 @@ export default function BotCommandsReferencePage() {
     <DocsReferencePage
       eyebrow="Reference"
       title="Bot Commands define the shared member and captain command language."
-      description="This page explains the command dictionary used across Discord and Telegram, and how those commands connect back to the wider Veltrix system."
+      description="This page explains the command dictionary used across Discord and Telegram, and how those commands connect back to the wider VYNTRO system."
       referenceSlug="bot-commands"
       relatedHrefs={["/reference", "/project-docs", "/project-docs/community-os", "/operator-docs"]}
       rail={

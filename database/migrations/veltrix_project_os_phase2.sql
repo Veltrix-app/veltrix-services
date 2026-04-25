@@ -1,4 +1,4 @@
--- Veltrix Project OS Phase 2
+-- VYNTRO Project OS Phase 2
 -- Run this migration manually in the Supabase SQL editor before deploying Phase 2 portal changes.
 
 begin;

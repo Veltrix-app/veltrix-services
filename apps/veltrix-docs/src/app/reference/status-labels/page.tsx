@@ -5,7 +5,7 @@ export default function StatusLabelsPage() {
     <DocsReferencePage
       eyebrow="Reference"
       title="Status Labels define the public-facing language for readiness, waiting and recovery."
-      description="This page explains how Veltrix labels health, pressure and next-action posture across builder, member and operator surfaces."
+      description="This page explains how VYNTRO labels health, pressure and next-action posture across builder, member and operator surfaces."
       referenceSlug="status-labels"
       relatedHrefs={["/reference", "/reference/lifecycle-states", "/reference/permissions", "/operator-docs"]}
       rail={

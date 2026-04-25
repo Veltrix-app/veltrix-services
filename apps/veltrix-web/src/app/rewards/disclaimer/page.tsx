@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { LegalPageShell, LegalSection } from "@/components/marketing/legal-page-shell";
 
 export const metadata: Metadata = {
-  title: "Veltrix Reward Disclaimer",
+  title: "VYNTRO Reward Disclaimer",
   description:
-    "Important public-launch information about reward availability, eligibility, claim handling and delivery timing in Veltrix.",
+    "Important public-launch information about reward availability, eligibility, claim handling and delivery timing in VYNTRO.",
 };
 
 export default function RewardDisclaimerPage() {
@@ -12,12 +12,12 @@ export default function RewardDisclaimerPage() {
     <LegalPageShell
       eyebrow="Reward Disclaimer"
       title="Reward availability, eligibility and delivery may vary."
-      intro="Veltrix can surface rewards, claimable payouts and campaign-linked unlocks, but reward outcomes still depend on project configuration, operational review and delivery state. This page explains that posture in plain language."
+      intro="VYNTRO can surface rewards, claimable payouts and campaign-linked unlocks, but reward outcomes still depend on project configuration, operational review and delivery state. This page explains that posture in plain language."
     >
       <LegalSection title="Rewards are project-dependent">
         <p>
           Projects configure their own campaigns, quests, raids, rewards and payout logic inside
-          Veltrix. A reward appearing in the product does not guarantee immediate availability,
+          VYNTRO. A reward appearing in the product does not guarantee immediate availability,
           approval or delivery.
         </p>
         <p>
@@ -32,7 +32,7 @@ export default function RewardDisclaimerPage() {
           posture, moderation outcomes, inventory checks or project-specific participation rules.
         </p>
         <p>
-          Veltrix may pause, queue, review or reject reward claims when additional checks are
+          VYNTRO may pause, queue, review or reject reward claims when additional checks are
           required for safety, abuse prevention or delivery reliability.
         </p>
       </LegalSection>
@@ -50,7 +50,7 @@ export default function RewardDisclaimerPage() {
 
       <LegalSection title="No guarantee of market value">
         <p>
-          Veltrix is software infrastructure, not a guarantee of asset value, liquidity, utility or
+          VYNTRO is software infrastructure, not a guarantee of asset value, liquidity, utility or
           financial outcome. Rewards shown in the product should not be treated as financial advice
           or as a promise of economic performance.
         </p>

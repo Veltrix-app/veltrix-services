@@ -9,9 +9,9 @@ import { commercialPlanPresentation } from "@/lib/commercial/commercial-contract
 import { getPublicBillingPlan, getPublicBillingPlans } from "@/lib/billing/plan-catalog";
 
 export const metadata: Metadata = {
-  title: "Veltrix Pricing | Free, Starter, Growth and Enterprise",
+  title: "VYNTRO Pricing | Free, Starter, Growth and Enterprise",
   description:
-    "Compare Veltrix plans, see what each tier includes, and choose the right commercial posture for launches, community execution and member journeys.",
+    "Compare VYNTRO plans, see what each tier includes, and choose the right commercial posture for launches, community execution and member journeys.",
 };
 
 const trustNotes = [
@@ -111,8 +111,8 @@ export default async function PricingPage({
               Pick the plan that matches your launch pressure.
             </h1>
             <p className="mt-6 max-w-3xl text-base leading-8 text-slate-200 sm:text-lg">
-              Veltrix pricing is built around operating volume, live campaigns, project count and team pressure. Use
-              Free to feel the product, Starter for the first real live team, Growth when Veltrix becomes the daily
+              VYNTRO pricing is built around operating volume, live campaigns, project count and team pressure. Use
+              Free to feel the product, Starter for the first real live team, Growth when VYNTRO becomes the daily
               operating layer, and Enterprise when rollout shape needs a buyer conversation.
             </p>
 

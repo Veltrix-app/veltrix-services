@@ -1,4 +1,4 @@
--- Veltrix support, incident communications, and status operations v1
+-- VYNTRO support, incident communications, and status operations v1
 -- Run this migration manually in the Supabase SQL editor before deploying the first Phase 11 tranche.
 
 begin;

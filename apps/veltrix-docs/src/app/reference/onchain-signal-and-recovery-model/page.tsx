@@ -5,7 +5,7 @@ export default function OnchainSignalAndRecoveryModelPage() {
     <DocsReferencePage
       eyebrow="Reference"
       title="On-chain Signal and Recovery Model explains how chain-side warnings, flags and cases are actually created."
-      description="This page documents the validation gates, trust thresholds, suspicious-signal pressure and recovery-job behavior that shape on-chain warnings and cases in Veltrix."
+      description="This page documents the validation gates, trust thresholds, suspicious-signal pressure and recovery-job behavior that shape on-chain warnings and cases in VYNTRO."
       referenceSlug="onchain-signal-and-recovery-model"
       stateExplorerSlug="onchain-signals"
       relatedHrefs={[

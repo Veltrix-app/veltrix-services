@@ -301,7 +301,7 @@ export function AppShell({
                   <span className="text-sm font-black uppercase tracking-[0.2em] text-white">V</span>
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-500">Veltrix</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-500">VYNTRO</p>
                   <p className="mt-1 text-sm font-semibold text-white">Member OS</p>
                 </div>
               </Link>

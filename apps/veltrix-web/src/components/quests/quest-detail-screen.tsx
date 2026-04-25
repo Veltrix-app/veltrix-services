@@ -39,7 +39,7 @@ function getProofGuidance(params: {
     verificationProvider === "x" &&
     completionMode === "integration_auto"
   ) {
-    return "Link your X account, follow the project profile and let Veltrix wait for follow confirmation instead of asking for manual proof.";
+    return "Link your X account, follow the project profile and let VYNTRO wait for follow confirmation instead of asking for manual proof.";
   }
 
   if (
@@ -47,7 +47,7 @@ function getProofGuidance(params: {
     verificationProvider === "telegram" &&
     completionMode === "integration_auto"
   ) {
-    return "Link your Telegram account, join the group and let Veltrix wait for membership confirmation instead of asking for manual proof.";
+    return "Link your Telegram account, join the group and let VYNTRO wait for membership confirmation instead of asking for manual proof.";
   }
 
   if (
@@ -55,7 +55,7 @@ function getProofGuidance(params: {
     verificationProvider === "discord" &&
     completionMode === "integration_auto"
   ) {
-    return "Link your Discord account, join the server and let Veltrix wait for membership confirmation instead of asking for manual proof.";
+    return "Link your Discord account, join the server and let VYNTRO wait for membership confirmation instead of asking for manual proof.";
   }
 
   if (
@@ -63,7 +63,7 @@ function getProofGuidance(params: {
     verificationProvider === "website" &&
     completionMode === "integration_auto"
   ) {
-    return "Open the tracked destination and Veltrix will complete this mission automatically after the website visit is confirmed.";
+    return "Open the tracked destination and VYNTRO will complete this mission automatically after the website visit is confirmed.";
   }
 
   if (!proofRequired || proofType === "none") {
@@ -75,7 +75,7 @@ function getProofGuidance(params: {
   }
 
   if (proofType === "tx_hash") {
-    return "Paste the onchain transaction hash so Veltrix can verify the action cleanly.";
+    return "Paste the onchain transaction hash so VYNTRO can verify the action cleanly.";
   }
 
   if (proofType === "wallet") {
@@ -372,7 +372,7 @@ export function QuestDetailScreen() {
     : !providerAccountConnected && requiredAccount
       ? `Link ${requiredAccount === "wallet" ? "your wallet" : requiredAccount.toUpperCase()} first so this provider-aware route can actually verify.`
       : derivedActionUrl
-        ? "Open the live destination first, then let Veltrix decide whether this clears instantly or waits in the queue."
+        ? "Open the live destination first, then let VYNTRO decide whether this clears instantly or waits in the queue."
         : "This mission still needs a configured destination before the live route can start.";
   const watchMissionCue =
     linkedRewards.length > 0
@@ -411,7 +411,7 @@ export function QuestDetailScreen() {
         if (!walletSnapshotSettled) {
           setMessage({
             tone: "default",
-            text: "Veltrix is syncing your wallet readiness inside the live loadout now. Give it a second and try again.",
+            text: "VYNTRO is syncing your wallet readiness inside the live loadout now. Give it a second and try again.",
           });
           return;
         }
@@ -426,7 +426,7 @@ export function QuestDetailScreen() {
       if (!accountSnapshotSettled) {
         setMessage({
           tone: "default",
-          text: `Syncing ${requiredAccount?.toUpperCase()} readiness inside your live loadout now. Give Veltrix a second and try again.`,
+          text: `Syncing ${requiredAccount?.toUpperCase()} readiness inside your live loadout now. Give VYNTRO a second and try again.`,
         });
         return;
       }
@@ -452,8 +452,8 @@ export function QuestDetailScreen() {
     setMessage({
       tone: "default",
       text: usesWebsiteVerification
-        ? "Veltrix is routing this website mission through the live grid now."
-        : "Veltrix is opening the live verification route now.",
+        ? "VYNTRO is routing this website mission through the live grid now."
+        : "VYNTRO is opening the live verification route now.",
       });
 
     try {
@@ -482,7 +482,7 @@ export function QuestDetailScreen() {
         const payload = await response.json().catch(() => null);
 
         if (!response.ok || !payload?.ok) {
-          throw new Error(payload?.error || "Veltrix could not start this verification flow.");
+          throw new Error(payload?.error || "VYNTRO could not start this verification flow.");
         }
 
         const targetUrl =
@@ -505,8 +505,8 @@ export function QuestDetailScreen() {
             (usesWebsiteVerification
               ? "Website verification cleared. Opening the tracked destination now."
               : verificationStatus === "approved"
-                ? "Verification cleared immediately. Veltrix has marked this mission as approved and closed."
-                : "Verification started. Enter the destination and let Veltrix keep this mission pending until confirmation lands."),
+                ? "Verification cleared immediately. VYNTRO has marked this mission as approved and closed."
+                : "Verification started. Enter the destination and let VYNTRO keep this mission pending until confirmation lands."),
         });
 
         if (missionWindow) {
@@ -607,7 +607,7 @@ export function QuestDetailScreen() {
         text:
           nextError instanceof Error
             ? nextError.message
-            : "Veltrix could not start this mission action.",
+            : "VYNTRO could not start this mission action.",
       });
     } finally {
       setBusy(false);
@@ -626,7 +626,7 @@ export function QuestDetailScreen() {
     if (usesWebsiteVerification) {
       setMessage({
         tone: "default",
-        text: "This mission completes automatically after Veltrix confirms the website visit.",
+        text: "This mission completes automatically after VYNTRO confirms the website visit.",
       });
       return;
     }
@@ -670,7 +670,7 @@ export function QuestDetailScreen() {
         text:
           nextError instanceof Error
             ? nextError.message
-            : "Veltrix could not submit this mission yet.",
+            : "VYNTRO could not submit this mission yet.",
       });
     } finally {
       setBusy(false);
@@ -771,7 +771,7 @@ export function QuestDetailScreen() {
             ((requiredAccount === "wallet" && !walletSnapshotSettled) ||
               (requiredAccount !== "wallet" && !accountSnapshotSettled)) ? (
               <div className="rounded-[20px] border border-cyan-300/20 bg-cyan-400/10 p-3.5 text-[13px] text-cyan-100">
-                Veltrix is syncing your{" "}
+                VYNTRO is syncing your{" "}
                 {requiredAccount === "wallet"
                   ? "wallet"
                   : requiredAccount.toUpperCase()}{" "}

@@ -4,7 +4,7 @@ export default function DocsCoverageMapPage() {
   return (
     <DocsReferencePage
       eyebrow="Reference"
-      title="Docs Coverage Map explains how deep each Veltrix product domain is documented today."
+      title="Docs Coverage Map explains how deep each VYNTRO product domain is documented today."
       description="This page is the atlas view of documentation depth. It shows which domains are covered through surface pages, workflows and exact reference language so the encyclopedia stays legible as it grows."
       referenceSlug="docs-coverage-map"
       stateExplorerSlug="docs-coverage"

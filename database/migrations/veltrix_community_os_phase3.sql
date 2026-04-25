@@ -1,4 +1,4 @@
--- Veltrix Community OS Phase 3 schema
+-- VYNTRO Community OS Phase 3 schema
 -- Run this migration manually in the Supabase SQL editor before Phase 3 code deploys.
 -- Keep this aligned with the project-private Community OS RLS posture.
 

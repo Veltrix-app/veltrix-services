@@ -64,7 +64,7 @@ async function bootstrap() {
   app.get("/", (_req, res) => {
     res.json({
       ok: true,
-      service: "veltrix-community-bot",
+      service: "vyntro-community-bot",
       providers: {
         discord: Boolean(env.DISCORD_BOT_TOKEN),
         telegram: Boolean(env.TELEGRAM_BOT_TOKEN)
@@ -73,7 +73,7 @@ async function bootstrap() {
   });
 
   app.listen(env.PORT, () => {
-    console.log(`veltrix-community-bot listening on :${env.PORT}`);
+    console.log(`vyntro-community-bot listening on :${env.PORT}`);
   });
 }
 

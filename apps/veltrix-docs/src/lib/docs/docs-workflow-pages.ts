@@ -73,7 +73,7 @@ const docsWorkflowPages: DocsWorkflowDefinition[] = [
     track: "project-docs",
     slug: "launch-a-project",
     eyebrow: "Project Docs Workflow",
-    title: "Launch a project in Veltrix without losing sequencing, readiness or builder context.",
+    title: "Launch a project in VYNTRO without losing sequencing, readiness or builder context.",
     description:
       "This workflow explains how a project moves from first launch posture into the right builders, then back into one readable launch operating state instead of getting lost across routes.",
     chips: ["Workflow", "Launch setup", "Project-first"],
@@ -746,7 +746,7 @@ const docsWorkflowPages: DocsWorkflowDefinition[] = [
       ],
       asideTitle: "Why it matters",
       asideBody:
-        "Trust work often fails when it becomes opaque. The docs need to show how Veltrix prevents that through case structure, permissions and timelines.",
+        "Trust work often fails when it becomes opaque. The docs need to show how VYNTRO prevents that through case structure, permissions and timelines.",
     },
     involvedSurfaces: {
       title: "Involved surfaces",
@@ -1169,7 +1169,7 @@ const docsWorkflowPages: DocsWorkflowDefinition[] = [
       ],
       asideTitle: "Why it matters",
       asideBody:
-        "On-chain systems can become opaque very quickly. The docs need to show how Veltrix turns them into case-driven recovery work rather than exposing raw operational chaos.",
+        "On-chain systems can become opaque very quickly. The docs need to show how VYNTRO turns them into case-driven recovery work rather than exposing raw operational chaos.",
     },
     involvedSurfaces: {
       title: "Involved surfaces",
@@ -1275,7 +1275,7 @@ const docsWorkflowPages: DocsWorkflowDefinition[] = [
     deepDive: {
       title: "Why on-chain recovery is documented as a normalized case system with project-safe action boundaries.",
       description:
-        "Raw chain events and job logs are too noisy to reason about directly. The docs should explain how Veltrix turns that noise into bounded recovery work.",
+        "Raw chain events and job logs are too noisy to reason about directly. The docs should explain how VYNTRO turns that noise into bounded recovery work.",
       sections: [
         {
           title: "Raw failures become readable cases",

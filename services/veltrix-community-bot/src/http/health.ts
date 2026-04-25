@@ -22,7 +22,7 @@ healthRouter.get("/", (_req, res) => {
 
   res.json({
     ok: true,
-    service: "veltrix-community-bot",
+    service: "vyntro-community-bot",
     supabaseHost,
     callbackHost,
     onchain: {

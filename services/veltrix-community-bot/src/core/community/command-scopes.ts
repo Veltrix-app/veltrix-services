@@ -62,20 +62,20 @@ export function areCommunityCommandDeepLinksEnabled(
 
 export function buildDisabledCommandMessage(command: CommunityCommandKey) {
   if (command === "missions") {
-    return "Mission commands are disabled for this community right now. Enable them in the Veltrix portal first.";
+    return "Mission commands are disabled for this community right now. Enable them in the VYNTRO portal first.";
   }
 
   if (command === "leaderboard") {
-    return "Leaderboards are disabled for this community right now. Enable them in the Veltrix portal first.";
+    return "Leaderboards are disabled for this community right now. Enable them in the VYNTRO portal first.";
   }
 
   if (command === "raid") {
-    return "Raid ops are disabled for this community right now. Enable them in the Veltrix portal first.";
+    return "Raid ops are disabled for this community right now. Enable them in the VYNTRO portal first.";
   }
 
   if (command === "captain") {
-    return "Captain commands are disabled for this community right now. Enable them in the Veltrix portal first.";
+    return "Captain commands are disabled for this community right now. Enable them in the VYNTRO portal first.";
   }
 
-  return "Community commands are disabled for this community right now. Enable them in the Veltrix portal first.";
+  return "Community commands are disabled for this community right now. Enable them in the VYNTRO portal first.";
 }

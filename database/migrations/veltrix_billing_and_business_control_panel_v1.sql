@@ -1,4 +1,4 @@
--- Veltrix billing and business control panel v1 foundation
+-- VYNTRO billing and business control panel v1 foundation
 -- Run this migration manually in the Supabase SQL editor before deploying the first Phase 10 tranche.
 
 begin;

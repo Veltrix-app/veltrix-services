@@ -539,7 +539,7 @@ export async function buildCommunityJourneySnapshot(input: {
       contributionStatus: "Pick a community to start your rail.",
       nextUnlockLabel: "Join your first project world to unlock a live community journey.",
       headline: "Pick a community rail",
-      supportingCopy: "As soon as you join a project world, Veltrix can shape your onboarding, comeback and live contribution lane.",
+      supportingCopy: "As soon as you join a project world, VYNTRO can shape your onboarding, comeback and live contribution lane.",
       nextBestAction: {
         key: "open_worlds",
         label: "Browse live communities",
@@ -694,7 +694,7 @@ export async function buildCommunityJourneySnapshot(input: {
         : `${project?.name ?? "Community"} lane is live`;
   const supportingCopy =
     lane === "onboarding"
-      ? "Veltrix will keep shaping your next actions until your identity, wallet and first mission are all armed."
+      ? "VYNTRO will keep shaping your next actions until your identity, wallet and first mission are all armed."
       : lane === "comeback"
         ? "The comeback rail is designed to get you back into visible pressure fast, without dumping you into the full mission backlog."
       : "Your Community Home is now focused on momentum, recognition and the next unlock that keeps this project hot.";

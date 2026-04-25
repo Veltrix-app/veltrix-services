@@ -945,7 +945,7 @@ async function runMissionDigest(projectId: string, providerScope: ProviderScope)
     providerScope,
     title: `${state.project.name} mission board`,
     body: [
-      "Today's mission path is live inside Veltrix.",
+      "Today's mission path is live inside VYNTRO.",
       state.campaigns.length
         ? `Campaigns: ${state.campaigns.slice(0, 2).map((item) => item.title).join(" | ")}`
         : "Campaigns: none live right now",

@@ -4,7 +4,7 @@ export default function SignalAndScoringModelsPage() {
   return (
     <DocsReferencePage
       eyebrow="Reference"
-      title="Signal and Scoring Models explain how Veltrix turns raw activity into warnings, cases and bounded visibility."
+      title="Signal and Scoring Models explain how VYNTRO turns raw activity into warnings, cases and bounded visibility."
       description="This page defines the shared logic behind deterministic rules, warning bands, severity shaping and why project-facing consoles only receive a bounded view of internal safety signals."
       referenceSlug="signal-and-scoring-models"
       relatedHrefs={[

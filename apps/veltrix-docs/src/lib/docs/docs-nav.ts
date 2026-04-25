@@ -50,7 +50,7 @@ export function getDocsPageByPath(pathname: string) {
 export function getDocsBreadcrumbs(pathname: string): DocsBreadcrumb[] {
   const track = getDocsTrackByPath(pathname);
   const page = getDocsPageByPath(pathname);
-  const trail: DocsBreadcrumb[] = [{ label: "Veltrix Docs", href: "/" }];
+  const trail: DocsBreadcrumb[] = [{ label: "VYNTRO Docs", href: "/" }];
 
   if (track.id !== "overview") {
     trail.push({ label: track.label, href: track.href });

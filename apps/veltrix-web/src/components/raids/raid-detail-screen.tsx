@@ -84,7 +84,7 @@ export function RaidDetailScreen() {
     } catch (nextError) {
       setMessage({
         tone: "error",
-        text: nextError instanceof Error ? nextError.message : "Veltrix could not confirm this raid yet.",
+        text: nextError instanceof Error ? nextError.message : "VYNTRO could not confirm this raid yet.",
       });
     } finally {
       setBusy(false);

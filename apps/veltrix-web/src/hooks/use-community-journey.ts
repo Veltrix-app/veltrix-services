@@ -55,7 +55,7 @@ const emptyJourneySnapshot: LiveCommunityJourneySnapshot = {
   contributionStatus: "No community rail is active yet.",
   nextUnlockLabel: "Join a project world to unlock your community journey.",
   headline: "Community rail is standing by",
-  supportingCopy: "As soon as a project lane is active for your account, Veltrix will prioritize the next best move here.",
+  supportingCopy: "As soon as a project lane is active for your account, VYNTRO will prioritize the next best move here.",
   nextBestAction: null,
   actions: [],
   missionLane: [],

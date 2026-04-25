@@ -17,7 +17,7 @@ export default function OperatorDocsPage() {
     <DocsPageFrame
       eyebrow="Operator Docs"
       title="Public docs for trust, payouts, on-chain recovery and operator follow-through."
-      description="This track explains the deeper operational side of Veltrix. It is public, but structured to show how the consoles, cases, escalations and recovery paths work without exposing unsafe detail."
+      description="This track explains the deeper operational side of VYNTRO. It is public, but structured to show how the consoles, cases, escalations and recovery paths work without exposing unsafe detail."
       actions={[
         { href: "/reference", label: "Open Reference" },
         { href: "/reference/control-atlas", label: "Open Control Atlas" },

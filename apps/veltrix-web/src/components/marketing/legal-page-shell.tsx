@@ -48,7 +48,7 @@ export function LegalPageShell({
         <div className="space-y-5">{children}</div>
 
         <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-white/8 pt-6 text-sm text-slate-400">
-          <p>Veltrix public launch materials and product policies.</p>
+          <p>VYNTRO public launch materials and product policies.</p>
           <div className="flex flex-wrap items-center gap-5">
             <Link href="/privacy" className="transition hover:text-white">
               Privacy

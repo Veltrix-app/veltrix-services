@@ -5,7 +5,7 @@ export default function AutomationTypesPage() {
     <DocsReferencePage
       eyebrow="Reference"
       title="Automation Types define how follow-through enters the product."
-      description="This page explains the common automation rails that power scheduled, state-driven and recovery-led follow-through across Veltrix."
+      description="This page explains the common automation rails that power scheduled, state-driven and recovery-led follow-through across VYNTRO."
       referenceSlug="automation-types"
       relatedHrefs={["/reference", "/project-docs/community-os", "/project-docs", "/operator-docs"]}
       rail={

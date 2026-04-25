@@ -7,9 +7,9 @@ import { loadPublicStatusOverview } from "@/lib/status/public-status";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Veltrix Status",
+  title: "VYNTRO Status",
   description:
-    "Track current Veltrix service posture, active incidents, degraded components, and recently resolved incident history.",
+    "Track current VYNTRO service posture, active incidents, degraded components, and recently resolved incident history.",
 };
 
 function toneClasses(status: string) {

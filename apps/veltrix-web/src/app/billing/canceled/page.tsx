@@ -7,7 +7,7 @@ export default function BillingCanceledPage() {
         <p className="text-xs font-bold uppercase tracking-[0.26em] text-slate-400">Checkout canceled</p>
         <h1 className="mt-4 text-4xl font-black">No billing changes were applied.</h1>
         <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-200">
-          You can return to pricing, keep using your current workspace posture, or talk to Veltrix if you want help
+          You can return to pricing, keep using your current workspace posture, or talk to VYNTRO if you want help
           choosing the right plan.
         </p>
 

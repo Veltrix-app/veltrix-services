@@ -115,7 +115,7 @@ export function useWalletIdentityActions() {
         throw new Error(result.error || "Could not unlink your wallet.");
       }
 
-      setMessage("Wallet disconnected from your Veltrix identity.");
+      setMessage("Wallet disconnected from your VYNTRO identity.");
       return { ok: true };
     } catch (nextError) {
       const error =

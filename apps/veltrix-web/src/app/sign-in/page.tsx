@@ -5,7 +5,7 @@ export default function SignInPage() {
   return (
     <AppShell
       eyebrow="Account"
-      title="Sign in to Veltrix"
+      title="Sign in to VYNTRO"
       description="Access your workspace, continue live projects and recover your operator context without reopening setup from scratch."
     >
       <SignInScreen />

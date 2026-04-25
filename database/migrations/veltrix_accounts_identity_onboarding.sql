@@ -1,4 +1,4 @@
--- Veltrix accounts, identity, and self-serve onboarding foundation
+-- VYNTRO accounts, identity, and self-serve onboarding foundation
 -- Run in Supabase SQL Editor.
 --
 -- Goals:

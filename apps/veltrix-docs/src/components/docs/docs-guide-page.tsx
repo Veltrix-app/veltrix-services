@@ -69,7 +69,7 @@ export function DocsGuidePage({
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
         <DocsSnapshotFrame
           title={`${page.surfaceTitle} snapshot`}
-          description={`A docs-safe visual model of how ${page.surfaceTitle} is structured in the current Veltrix product system.`}
+          description={`A docs-safe visual model of how ${page.surfaceTitle} is structured in the current VYNTRO product system.`}
           caption={`Read-only docs model / ${track === "project-docs" ? "Project track" : "Operator track"}`}
           stats={[
             {

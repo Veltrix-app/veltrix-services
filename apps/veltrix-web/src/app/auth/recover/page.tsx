@@ -5,7 +5,7 @@ export default function RecoverPage() {
   return (
     <AppShell
       eyebrow="Account"
-      title="Recover Veltrix account access"
+      title="Recover VYNTRO account access"
       description="Request a reset link or set a new password after opening the recovery email, without losing your current workspace and product context."
     >
       <AccountRecoveryScreen />

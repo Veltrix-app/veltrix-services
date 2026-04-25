@@ -134,7 +134,7 @@ async function handleLinkCommand(interaction: ChatInputCommandInteraction) {
     await interaction.reply({
       ephemeral: true,
       content:
-        "This Discord server is not mapped to a Veltrix project yet. Connect it in the portal first.",
+        "This Discord server is not mapped to a VYNTRO project yet. Connect it in the portal first.",
     });
     return;
   }
@@ -148,7 +148,7 @@ async function handleLinkCommand(interaction: ChatInputCommandInteraction) {
     .setColor(0xc6ff2e)
     .setTitle(`Link into ${context.projectName}`)
     .setDescription(
-      "Connect your Veltrix profile so this server can sync ranks, captain rails, leaderboard placement and the right onboarding journey."
+      "Connect your VYNTRO profile so this server can sync ranks, captain rails, leaderboard placement and the right onboarding journey."
     )
     .addFields(
       { name: "Project", value: context.projectName, inline: true },
@@ -166,7 +166,7 @@ async function handleLinkCommand(interaction: ChatInputCommandInteraction) {
     embeds: [embed],
     components: buildDiscordCommunityButtons([
       { label: "Open onboarding rail", url: links.onboardingUrl },
-      { label: "Open Veltrix profile", url: links.profileUrl },
+      { label: "Open VYNTRO profile", url: links.profileUrl },
     ]),
   });
 }
@@ -186,7 +186,7 @@ async function handleProfileCommand(interaction: ChatInputCommandInteraction) {
     await interaction.reply({
       ephemeral: true,
       content:
-        "This Discord server is not mapped to a Veltrix project yet. Connect it in the portal first.",
+        "This Discord server is not mapped to a VYNTRO project yet. Connect it in the portal first.",
     });
     return;
   }
@@ -200,7 +200,7 @@ async function handleProfileCommand(interaction: ChatInputCommandInteraction) {
   if (!snapshot) {
     await interaction.reply({
       ephemeral: true,
-      content: "Your Discord account is not linked to Veltrix yet. Use `/link` first.",
+      content: "Your Discord account is not linked to VYNTRO yet. Use `/link` first.",
     });
     return;
   }
@@ -317,7 +317,7 @@ async function handleRankCommand(interaction: ChatInputCommandInteraction) {
     await interaction.reply({
       ephemeral: true,
       content:
-        "This Discord server is not mapped to a Veltrix project yet. Connect it in the portal first.",
+        "This Discord server is not mapped to a VYNTRO project yet. Connect it in the portal first.",
     });
     return;
   }
@@ -331,7 +331,7 @@ async function handleRankCommand(interaction: ChatInputCommandInteraction) {
   if (!snapshot) {
     await interaction.reply({
       ephemeral: true,
-      content: "Your Discord account is not linked to Veltrix yet. Use `/link` first.",
+      content: "Your Discord account is not linked to VYNTRO yet. Use `/link` first.",
     });
     return;
   }
@@ -431,7 +431,7 @@ async function handleLeaderboardCommand(interaction: ChatInputCommandInteraction
     await interaction.reply({
       ephemeral: true,
       content:
-        "This Discord server is not mapped to a Veltrix project yet. Connect it in the portal first.",
+        "This Discord server is not mapped to a VYNTRO project yet. Connect it in the portal first.",
     });
     return;
   }
@@ -522,7 +522,7 @@ async function handleMissionsCommand(interaction: ChatInputCommandInteraction) {
     await interaction.reply({
       ephemeral: true,
       content:
-        "This Discord server is not mapped to a Veltrix project yet. Connect it in the portal first.",
+        "This Discord server is not mapped to a VYNTRO project yet. Connect it in the portal first.",
     });
     return;
   }
@@ -611,7 +611,7 @@ async function handleRaidCommand(interaction: ChatInputCommandInteraction) {
     await interaction.reply({
       ephemeral: true,
       content:
-        "This Discord server is not mapped to a Veltrix project yet. Connect it in the portal first.",
+        "This Discord server is not mapped to a VYNTRO project yet. Connect it in the portal first.",
     });
     return;
   }
@@ -675,7 +675,7 @@ async function handleCaptainCommand(interaction: ChatInputCommandInteraction) {
     await interaction.reply({
       ephemeral: true,
       content:
-        "This Discord server is not mapped to a Veltrix project yet. Connect it in the portal first.",
+        "This Discord server is not mapped to a VYNTRO project yet. Connect it in the portal first.",
     });
     return;
   }
@@ -815,10 +815,10 @@ export async function syncDiscordGuildCommands(
       ? [
           new SlashCommandBuilder()
             .setName("link")
-            .setDescription("Open your Veltrix profile so you can link this Discord identity."),
+            .setDescription("Open your VYNTRO profile so you can link this Discord identity."),
           new SlashCommandBuilder()
             .setName("profile")
-            .setDescription("Show your live Veltrix profile snapshot for this community."),
+            .setDescription("Show your live VYNTRO profile snapshot for this community."),
           new SlashCommandBuilder()
             .setName("rank")
             .setDescription("Show your app-side Discord rank matches for this community."),
@@ -833,7 +833,7 @@ export async function syncDiscordGuildCommands(
             ? [
                 new SlashCommandBuilder()
                   .setName("leaderboard")
-                  .setDescription("Show the live community leaderboard from Veltrix data.")
+                  .setDescription("Show the live community leaderboard from VYNTRO data.")
                   .addStringOption((option) =>
                     option
                       .setName("scope")

@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 
-export const GROWTH_ATTRIBUTION_COOKIE = "veltrix_growth_attribution_v1";
+export const GROWTH_ATTRIBUTION_COOKIE = "vyntro_growth_attribution_v1";
 const GROWTH_ATTRIBUTION_MAX_AGE_SECONDS = 60 * 60 * 24 * 90;
 
 export type GrowthAttributionTouch = {

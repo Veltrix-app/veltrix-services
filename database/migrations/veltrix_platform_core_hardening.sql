@@ -1,4 +1,4 @@
--- Veltrix Platform Core Hardening
+-- VYNTRO Platform Core Hardening
 -- Run this migration manually in the Supabase SQL editor before deploying portal/runtime changes.
 
 begin;

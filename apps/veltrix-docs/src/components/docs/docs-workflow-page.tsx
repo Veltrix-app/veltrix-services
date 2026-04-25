@@ -68,7 +68,7 @@ export function DocsWorkflowPage({
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.12fr)_minmax(320px,0.88fr)]">
         <DocsSnapshotFrame
           title={`${page.outcome.title} snapshot`}
-          description={`A docs-safe view of how this ${track === "project-docs" ? "project" : "operator"} workflow moves through Veltrix today.`}
+          description={`A docs-safe view of how this ${track === "project-docs" ? "project" : "operator"} workflow moves through VYNTRO today.`}
           caption={`Read-only workflow model / ${track === "project-docs" ? "Project track" : "Operator track"}`}
           stats={[
             {

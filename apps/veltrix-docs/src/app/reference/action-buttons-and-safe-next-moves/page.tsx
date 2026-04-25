@@ -4,7 +4,7 @@ export default function ActionButtonsAndSafeNextMovesPage() {
   return (
     <DocsReferencePage
       eyebrow="Reference"
-      title="Action Buttons and Safe Next Moves explain what Veltrix buttons change and where they send you next."
+      title="Action Buttons and Safe Next Moves explain what VYNTRO buttons change and where they send you next."
       description="This page documents the main action families across launch, builders and safety consoles so readers understand whether a button routes, changes posture, starts recovery or changes visibility."
       referenceSlug="action-buttons-and-safe-next-moves"
       stateExplorerSlug="action-behavior"

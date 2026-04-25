@@ -51,7 +51,7 @@ export function StatusHero({ overview }: { overview: PublicStatusOverview }) {
         <div className="max-w-3xl">
           <p className="font-display text-[11px] font-bold uppercase tracking-[0.34em] text-cyan-200">Service status</p>
           <h1 className="font-display mt-4 text-balance text-4xl font-black tracking-[0.03em] text-white sm:text-5xl">
-            Current Veltrix platform posture
+            Current VYNTRO platform posture
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
             Use this page during rollout, support, or incident handling to see whether current platform conditions are
