@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ComponentType, ReactNode } from "react";
+import { useState } from "react";
 import {
   Bell,
+  ChevronDown,
   Compass,
   Gem,
   Home,
@@ -123,7 +125,109 @@ function HeaderRead({
   return (
     <div className="rounded-[20px] border border-white/6 bg-black/20 px-4 py-3">
       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
-      <p className="mt-2 text-sm font-semibold text-white">{value}</p>
+      <p className="mt-2 break-words text-sm font-semibold text-white [overflow-wrap:anywhere]">{value}</p>
+    </div>
+  );
+}
+
+function SessionMenu({
+  accountReady,
+  authConfigured,
+  walletReady,
+  wallet,
+  identityLabel,
+  onSignOut,
+}: {
+  accountReady: boolean;
+  authConfigured: boolean;
+  walletReady: boolean;
+  wallet?: string | null;
+  identityLabel: string;
+  onSignOut: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const accessLabel = accountReady ? "Signed in" : authConfigured ? "Preview mode" : "Auth offline";
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+        className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.03] px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-300 transition hover:border-white/12 hover:bg-white/[0.05] hover:text-white"
+      >
+        <span className={`h-2 w-2 rounded-full ${accountReady ? "bg-lime-300 shadow-[0_0_14px_rgba(190,255,74,0.5)]" : "bg-slate-500"}`} />
+        <span className="hidden sm:inline">Session</span>
+        <span className="max-w-[7rem] truncate normal-case tracking-normal text-white sm:max-w-[9rem]">
+          {walletReady ? shortenWallet(wallet) : accountReady ? identityLabel : "Guest"}
+        </span>
+        <ChevronDown className={`h-3.5 w-3.5 transition ${open ? "rotate-180 text-lime-200" : "text-slate-500"}`} />
+      </button>
+
+      {open ? (
+        <div className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-[min(21rem,calc(100vw-2rem))] rounded-[22px] border border-white/8 bg-[#080a0e]/95 p-3.5 shadow-[0_24px_80px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[9px] font-bold uppercase tracking-[0.24em] text-lime-300">
+                Session read
+              </p>
+              <p className="mt-1.5 text-[12px] leading-5 text-slate-400">
+                Compact account state without taking space from the page banner.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="rounded-full bg-white/[0.04] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400 transition hover:bg-white/[0.07] hover:text-white"
+            >
+              Close
+            </button>
+          </div>
+
+          <div className="mt-3 grid gap-2.5">
+            <HeaderRead label="Access" value={accessLabel} />
+            <HeaderRead label="Wallet" value={walletReady ? shortenWallet(wallet) : "Not connected"} />
+            <HeaderRead label="Member" value={identityLabel} />
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link
+              href="/profile/edit"
+              onClick={() => setOpen(false)}
+              className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[0.14em] transition ${
+                walletReady
+                  ? "border border-lime-300/18 bg-lime-300/12 text-lime-100"
+                  : "border border-white/8 bg-white/[0.04] text-slate-300 hover:border-white/12 hover:text-white"
+              }`}
+            >
+              <Wallet className="h-3.5 w-3.5" />
+              {walletReady ? "Manage wallet" : "Connect wallet"}
+            </Link>
+
+            {accountReady ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  onSignOut();
+                }}
+                className="inline-flex items-center rounded-full border border-white/8 bg-white/[0.03] px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-300 transition hover:border-white/12 hover:bg-white/[0.05] hover:text-white"
+              >
+                Sign out
+              </button>
+            ) : (
+              <Link
+                href="/sign-in"
+                onClick={() => setOpen(false)}
+                className="inline-flex items-center rounded-full border border-lime-300/18 bg-lime-300/12 px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[0.14em] text-lime-100 transition hover:bg-lime-300/18"
+              >
+                Access
+              </Link>
+            )}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -202,21 +306,23 @@ export function AppShell({
                 })}
               </div>
 
-              {accountReady ? (
-                <button
-                  onClick={() => void signOut()}
-                  className="hidden rounded-full border border-white/8 bg-white/[0.03] px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-300 transition hover:border-white/12 hover:bg-white/[0.05] hover:text-white lg:inline-flex"
-                >
-                  Sign out
-                </button>
-              ) : (
+              <SessionMenu
+                accountReady={accountReady}
+                authConfigured={authConfigured}
+                walletReady={walletReady}
+                wallet={profile?.wallet}
+                identityLabel={identityLabel}
+                onSignOut={() => void signOut()}
+              />
+
+              {!accountReady ? (
                 <Link
                   href="/sign-in"
                   className="rounded-full border border-lime-300/18 bg-lime-300/12 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.16em] text-lime-100 transition hover:bg-lime-300/18"
                 >
                   Access
                 </Link>
-              )}
+              ) : null}
             </div>
           </div>
 
@@ -234,40 +340,15 @@ export function AppShell({
         </div>
       </header>
 
-        <div className="mx-auto max-w-[1720px] px-4 py-6 sm:px-6 lg:px-8 lg:py-7">
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start">
-          <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-lime-300">{eyebrow}</p>
-            <h1 className="mt-4 max-w-4xl text-balance text-[clamp(2rem,3vw,3.3rem)] font-black leading-[0.96] tracking-[-0.04em] text-white">
-              {title}
-            </h1>
-            <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-400 sm:text-[0.95rem]">
-              {description}
-            </p>
-          </div>
-
-            <div className="rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(16,18,22,0.95),rgba(8,10,14,0.98))] p-4 shadow-[0_18px_46px_rgba(0,0,0,0.22)]">
-            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-500">Session read</p>
-            <div className="mt-4 grid gap-3">
-              <HeaderRead label="Access" value={accountReady ? "Signed in" : authConfigured ? "Preview mode" : "Auth offline"} />
-              <HeaderRead label="Wallet" value={walletReady ? shortenWallet(profile?.wallet) : "Not connected"} />
-              <HeaderRead label="Member" value={identityLabel} />
-            </div>
-
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Link
-                href="/profile/edit"
-                className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.16em] transition ${
-                  walletReady
-                    ? "border border-lime-300/18 bg-lime-300/12 text-lime-100"
-                    : "border border-white/8 bg-white/[0.04] text-slate-300 hover:border-white/12 hover:text-white"
-                }`}
-              >
-                <Wallet className="h-3.5 w-3.5" />
-                {walletReady ? "Manage wallet" : "Connect wallet"}
-              </Link>
-            </div>
-          </div>
+      <div className="mx-auto max-w-[1720px] px-4 py-6 sm:px-6 lg:px-8 lg:py-7">
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-lime-300">{eyebrow}</p>
+          <h1 className="mt-4 max-w-4xl text-balance text-[clamp(2rem,3vw,3.3rem)] font-black leading-[0.96] tracking-[-0.04em] text-white">
+            {title}
+          </h1>
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-400 sm:text-[0.95rem]">
+            {description}
+          </p>
         </div>
 
         <main className="mt-8 lg:mt-10">{children}</main>
