@@ -253,8 +253,8 @@ export function AppShell({
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(148,98,255,0.12),transparent_18%),linear-gradient(180deg,#050608_0%,#040507_36%,#020304_100%)] text-white">
       <header className="sticky top-0 z-40 border-b border-white/6 bg-[#030406]/86 backdrop-blur-2xl">
         <div className="mx-auto max-w-[1720px] px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex min-w-0 items-center gap-5">
+          <div className="flex items-center gap-4">
+            <div className="flex min-w-0 flex-1 items-center gap-5">
               <Link href="/home" className="flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-[linear-gradient(135deg,rgba(111,249,182,0.16),rgba(116,244,255,0.12))] shadow-[0_16px_50px_rgba(0,0,0,0.3)]">
                   <span className="text-sm font-black uppercase tracking-[0.2em] text-white">V</span>
@@ -278,16 +278,16 @@ export function AppShell({
               </nav>
             </div>
 
-            <div className="flex min-w-0 items-center gap-3">
-              <label className="hidden min-w-[280px] items-center gap-3 rounded-full border border-white/8 bg-white/[0.03] px-4 py-3 lg:flex">
-                <Search className="h-4 w-4 text-slate-500" />
-                <input
-                  type="search"
-                  placeholder="Search spaces, quests, raids and rewards..."
-                  className="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
-                />
-              </label>
+            <label className="ml-auto hidden w-[min(24vw,360px)] max-w-[360px] items-center gap-3 rounded-full border border-white/8 bg-white/[0.03] px-4 py-3 2xl:flex">
+              <Search className="h-4 w-4 text-slate-500" />
+              <input
+                type="search"
+                placeholder="Search spaces, quests, raids and rewards..."
+                className="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
+              />
+            </label>
 
+            <div className="ml-auto flex shrink-0 items-center justify-end gap-2">
               <div className="flex items-center gap-2">
                 {utilityNavItems.map((item) => {
                   if (item.requiresAccount && !accountReady) {
