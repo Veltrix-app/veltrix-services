@@ -10,6 +10,7 @@ import { StatusChip } from "@/components/ui/status-chip";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useCommunityJourney } from "@/hooks/use-community-journey";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
+import { buildXpProgressionRead } from "@/lib/xp/xp-economy";
 import type { ConnectedAccount } from "@/types/auth";
 
 export function ProfileScreen() {
@@ -200,6 +201,7 @@ export function ProfileScreen() {
       : activeStakeCount > 0
         ? `${activeStakeCount} active AESP stake lanes are still live and worth monitoring.`
         : `${unreadNotificationCount} unread signals are still competing for your attention.`;
+  const xpProgression = buildXpProgressionRead(profile?.xp ?? 0);
 
   async function handleProviderLink(provider: "discord" | "x") {
     setProviderMessage(null);
@@ -434,6 +436,33 @@ export function ProfileScreen() {
                   <FeatureStat label="Level" value={String(profile?.level ?? 1)} />
                   <FeatureStat label="Streak" value={String(profile?.streak ?? 0)} />
                   <FeatureStat label="Trust" value={String(profile?.trustScore ?? 50)} />
+                </div>
+
+                <div className="rounded-[18px] border border-lime-300/12 bg-lime-300/[0.055] p-3.5">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-[0.18em] text-lime-300">
+                        XP economy v1
+                      </p>
+                      <p className="mt-2 text-[14px] font-black text-white">
+                        {xpProgression.levelLabel} to {xpProgression.nextLevelXp.toLocaleString()} XP
+                      </p>
+                      <p className="mt-1.5 text-[11px] leading-5 text-slate-300">
+                        Quests, raids, DeFi, streaks and anti-abuse now share one central XP logic.
+                      </p>
+                    </div>
+                    <StatusChip label={xpProgression.contributionTier} tone="info" />
+                  </div>
+                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-black/30">
+                    <div
+                      className="h-full rounded-full bg-lime-300"
+                      style={{ width: `${xpProgression.progressPercent}%` }}
+                    />
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[10px] font-semibold text-slate-400">
+                    <span>{xpProgression.totalXp.toLocaleString()} XP</span>
+                    <span>{xpProgression.progressPercent}% to next level</span>
+                  </div>
                 </div>
 
                 <div className="rounded-[18px] border border-white/8 bg-white/[0.04] p-3.5">

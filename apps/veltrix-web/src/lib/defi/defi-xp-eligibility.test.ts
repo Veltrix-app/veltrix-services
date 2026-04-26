@@ -9,6 +9,7 @@ import {
   buildDefiVaultTransactionSummary,
   buildDefiXpEligibilitySnapshot,
 } from "./defi-xp-eligibility";
+import { XP_SOURCE_TYPES, buildXpSourceRef } from "../xp/xp-economy";
 
 const baseVaultPositions = [
   {
@@ -132,6 +133,8 @@ test("defi xp snapshot marks already claimed missions without making them claima
 
   assert.equal(DEFI_XP_SOURCE_TYPE, "defi_mission");
   assert.equal(connectMission?.sourceRef, "defi:connect-wallet");
+  assert.equal(DEFI_XP_SOURCE_TYPE, XP_SOURCE_TYPES.defi);
+  assert.equal(buildDefiXpSourceRef("connect-wallet"), buildXpSourceRef(XP_SOURCE_TYPES.defi, "connect-wallet"));
   assert.equal(connectMission?.claimState, "claimed");
   assert.equal(snapshot.claimedXp, 100);
   assert.equal(snapshot.claimableXp, 150);

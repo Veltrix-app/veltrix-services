@@ -1,3 +1,5 @@
+import { XP_SOURCE_TYPES, buildXpSourceRef } from "../xp/xp-economy";
+
 export type DefiVaultTransactionStatus = "submitted" | "confirmed" | "failed";
 export type DefiVaultTransactionAction = "deposit" | "withdraw";
 export type DefiMarketTransactionAction =
@@ -59,7 +61,7 @@ export type DefiXpMissionSlug =
 export type DefiXpMissionState = "locked" | "eligible" | "active" | "completed" | "warning";
 export type DefiXpClaimState = "locked" | "claimable" | "claimed";
 
-export const DEFI_XP_SOURCE_TYPE = "defi_mission";
+export const DEFI_XP_SOURCE_TYPE = XP_SOURCE_TYPES.defi;
 
 export type DefiXpMission = {
   slug: DefiXpMissionSlug;
@@ -200,7 +202,7 @@ export function buildDefiMarketTransactionSummary(
 }
 
 export function buildDefiXpSourceRef(slug: DefiXpMissionSlug) {
-  return `defi:${slug}`;
+  return buildXpSourceRef(DEFI_XP_SOURCE_TYPE, slug);
 }
 
 export function buildDefiXpEligibilitySnapshot(input: {

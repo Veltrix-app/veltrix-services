@@ -23,6 +23,11 @@ import {
   createSupabaseUserServerClient,
 } from "@/lib/supabase/server";
 import {
+  buildXpAwardPlan,
+  buildXpProgressionRead,
+  buildXpReputationPatch,
+} from "@/lib/xp/xp-economy";
+import {
   MOONWELL_BASE_VAULTS,
   getBaseRpcUrls,
   isEvmAddress,
@@ -100,17 +105,6 @@ function getConfiguredBaseRpcUrls() {
       process.env.NEXT_PUBLIC_BASE_RPC_URL ??
       ""
   );
-}
-
-function deriveLevel(totalXp: number) {
-  return Math.max(1, Math.floor(totalXp / 1000) + 1);
-}
-
-function deriveContributionTier(totalXp: number) {
-  if (totalXp >= 10_000) return "legend";
-  if (totalXp >= 5_000) return "champion";
-  if (totalXp >= 2_000) return "contender";
-  return "explorer";
 }
 
 function safeNumber(value: unknown, fallback = 0) {
@@ -411,7 +405,7 @@ async function applyXpToGlobalReputation(params: {
 }) {
   const { data: reputation, error: reputationError } = await params.serviceSupabase
     .from("user_global_reputation")
-    .select("total_xp, streak, trust_score, sybil_score, quests_completed, raids_completed, rewards_claimed, status")
+    .select("total_xp, active_xp, streak, trust_score, sybil_score, quests_completed, raids_completed, rewards_claimed, status")
     .eq("auth_user_id", params.authUserId)
     .maybeSingle();
 
@@ -419,18 +413,24 @@ async function applyXpToGlobalReputation(params: {
     throw new Error(reputationError.message);
   }
 
-  const nextTotalXp = safeNumber(reputation?.total_xp) + params.xpAmount;
+  const reputationPatch = buildXpReputationPatch({
+    currentTotalXp: safeNumber(reputation?.total_xp),
+    currentActiveXp: safeNumber(reputation?.active_xp, safeNumber(reputation?.total_xp)),
+    xpAwarded: params.xpAmount,
+  });
+  const progression = buildXpProgressionRead(reputationPatch.totalXp);
   const { error: upsertError } = await params.serviceSupabase
     .from("user_global_reputation")
     .upsert(
       {
         auth_user_id: params.authUserId,
-        total_xp: nextTotalXp,
-        level: deriveLevel(nextTotalXp),
+        total_xp: reputationPatch.totalXp,
+        active_xp: reputationPatch.activeXp,
+        level: progression.level,
         streak: safeNumber(reputation?.streak),
         trust_score: safeNumber(reputation?.trust_score, 50),
         sybil_score: safeNumber(reputation?.sybil_score),
-        contribution_tier: deriveContributionTier(nextTotalXp),
+        contribution_tier: progression.contributionTier,
         quests_completed: safeNumber(reputation?.quests_completed),
         raids_completed: safeNumber(reputation?.raids_completed),
         rewards_claimed: safeNumber(reputation?.rewards_claimed),
@@ -444,7 +444,7 @@ async function applyXpToGlobalReputation(params: {
     throw new Error(upsertError.message);
   }
 
-  return nextTotalXp;
+  return reputationPatch.totalXp;
 }
 
 export async function GET(request: NextRequest) {
@@ -559,24 +559,56 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const { data: reputationForAward, error: reputationForAwardError } = await context.serviceSupabase
+      .from("user_global_reputation")
+      .select("sybil_score")
+      .eq("auth_user_id", context.user.id)
+      .maybeSingle();
+
+    if (reputationForAwardError) {
+      return NextResponse.json({ ok: false, error: reputationForAwardError.message }, { status: 500 });
+    }
+
+    const xpAwardPlan = buildXpAwardPlan({
+      sourceType: claimPlan.event.sourceType,
+      sourceId: claimPlan.mission.slug,
+      baseXp: claimPlan.event.xpAmount,
+      claimedSourceRefs: claimsRead.claimedSourceRefs,
+      sybilScore: safeNumber(reputationForAward?.sybil_score),
+      trustScore: 50,
+    });
+
+    if (!xpAwardPlan.ok) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: xpAwardPlan.message,
+          reason: xpAwardPlan.reason,
+        },
+        { status: xpAwardPlan.reason === "duplicate" ? 200 : 409 }
+      );
+    }
+
     const timestamp = new Date().toISOString();
     const { data: event, error: eventError } = await context.serviceSupabase
       .from("xp_events")
       .insert({
         auth_user_id: context.user.id,
-        source_type: claimPlan.event.sourceType,
-        source_ref: claimPlan.event.sourceRef,
-        base_value: claimPlan.event.xpAmount,
-        xp_amount: claimPlan.event.xpAmount,
-        quality_multiplier: 1,
-        trust_multiplier: 1,
-        action_multiplier: 1,
-        effective_xp: claimPlan.event.xpAmount,
+        source_type: xpAwardPlan.event.sourceType,
+        source_ref: xpAwardPlan.event.sourceRef,
+        base_value: xpAwardPlan.event.baseXp,
+        xp_amount: xpAwardPlan.event.baseXp,
+        quality_multiplier: xpAwardPlan.event.qualityMultiplier,
+        trust_multiplier: xpAwardPlan.event.trustMultiplier,
+        action_multiplier: xpAwardPlan.event.actionMultiplier,
+        effective_xp: xpAwardPlan.event.effectiveXp,
         metadata: {
           source: "vyntro_defi_xp",
           walletAddress: context.wallet,
           missionSlug: claimPlan.mission.slug,
           missionTitle: claimPlan.mission.title,
+          antiAbuseStatus: xpAwardPlan.event.antiAbuseStatus,
+          streakMultiplier: xpAwardPlan.event.streakMultiplier,
           trackingReady: transactionRead.trackingReady && marketTransactionRead.trackingReady,
         },
         created_at: timestamp,
@@ -604,7 +636,7 @@ export async function POST(request: NextRequest) {
       totalXp = await applyXpToGlobalReputation({
         serviceSupabase: context.serviceSupabase,
         authUserId: context.user.id,
-        xpAmount: claimPlan.event.xpAmount,
+        xpAmount: xpAwardPlan.event.effectiveXp,
       });
     } catch (error) {
       if (event?.id) {
@@ -619,8 +651,8 @@ export async function POST(request: NextRequest) {
       alreadyClaimed: false,
       eventId: event?.id ?? null,
       missionSlug,
-      sourceRef: claimPlan.event.sourceRef,
-      xpAwarded: claimPlan.event.xpAmount,
+      sourceRef: xpAwardPlan.event.sourceRef,
+      xpAwarded: xpAwardPlan.event.effectiveXp,
       totalXp,
     });
   } catch (error) {
