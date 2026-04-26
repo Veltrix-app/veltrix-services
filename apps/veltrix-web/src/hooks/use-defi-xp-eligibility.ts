@@ -4,8 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import type { MoonwellMarketRead } from "@/lib/defi/moonwell-markets";
 import type { MoonwellVaultPositionRead } from "@/lib/defi/moonwell-vaults";
 import {
+  buildDefiMarketTransactionSummary,
   buildDefiVaultTransactionSummary,
   buildDefiXpEligibilitySnapshot,
+  type DefiMarketTransactionSummary,
   type DefiVaultTransactionSummary,
   type DefiXpEligibilitySnapshot,
   type DefiXpMissionSlug,
@@ -25,6 +27,7 @@ type DefiXpEligibilityPayload = {
   wallet?: string;
   trackingReady?: boolean;
   transactions?: DefiVaultTransactionSummary;
+  marketTransactions?: DefiMarketTransactionSummary;
   claimedSourceRefs?: string[];
   claims?: DefiXpClaimRecord[];
   warning?: string;
@@ -44,6 +47,7 @@ type DefiXpEligibilityState = {
   status: DefiXpTrackingStatus;
   wallet: string | null;
   transactions: DefiVaultTransactionSummary;
+  marketTransactions: DefiMarketTransactionSummary;
   claimedSourceRefs: string[];
   claims: DefiXpClaimRecord[];
   trackingReady: boolean;
@@ -67,6 +71,7 @@ export function useDefiXpEligibility(input: {
     status: "wallet-missing",
     wallet: null,
     transactions: buildDefiVaultTransactionSummary([]),
+    marketTransactions: buildDefiMarketTransactionSummary([]),
     claimedSourceRefs: [],
     claims: [],
     trackingReady: false,
@@ -83,6 +88,7 @@ export function useDefiXpEligibility(input: {
         status: "wallet-missing",
         wallet: null,
         transactions: buildDefiVaultTransactionSummary([]),
+        marketTransactions: buildDefiMarketTransactionSummary([]),
         claimedSourceRefs: [],
         claims: [],
         trackingReady: false,
@@ -130,6 +136,7 @@ export function useDefiXpEligibility(input: {
           status: "ready",
           wallet: payload.wallet ?? walletAddress,
           transactions: payload.transactions ?? buildDefiVaultTransactionSummary([]),
+          marketTransactions: payload.marketTransactions ?? buildDefiMarketTransactionSummary([]),
           claimedSourceRefs: Array.isArray(payload.claimedSourceRefs)
             ? payload.claimedSourceRefs
             : [],
@@ -150,6 +157,7 @@ export function useDefiXpEligibility(input: {
           status: "error",
           wallet: walletAddress,
           transactions: buildDefiVaultTransactionSummary([]),
+          marketTransactions: buildDefiMarketTransactionSummary([]),
           claimedSourceRefs: [],
           claims: [],
           trackingReady: false,
@@ -177,11 +185,13 @@ export function useDefiXpEligibility(input: {
         vaultPositions: input.vaultPositions,
         markets: input.markets,
         transactions: remoteState.transactions,
+        marketTransactions: remoteState.marketTransactions,
       }),
     [
       input.markets,
       input.vaultPositions,
       remoteState.claimedSourceRefs,
+      remoteState.marketTransactions,
       remoteState.transactions,
       wallet,
     ]

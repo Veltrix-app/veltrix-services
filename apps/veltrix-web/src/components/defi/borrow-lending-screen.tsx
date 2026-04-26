@@ -4,8 +4,13 @@ import { useMemo, useState } from "react";
 import { AlertTriangle, ArrowRight, Layers3, RefreshCw, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { StatusChip } from "@/components/ui/status-chip";
+import { useDefiXpEligibility } from "@/hooks/use-defi-xp-eligibility";
 import { useMoonwellMarketTransactions } from "@/hooks/use-moonwell-market-transactions";
 import { useMoonwellMarkets } from "@/hooks/use-moonwell-markets";
+import type {
+  DefiXpEligibilitySnapshot,
+  DefiXpMissionSlug,
+} from "@/lib/defi/defi-xp-eligibility";
 import type {
   MoonwellMarketAccent,
   MoonwellMarketRead,
@@ -101,16 +106,25 @@ function getPortfolioTone(status?: MoonwellPortfolioRead["status"]) {
 }
 
 export function BorrowLendingScreen() {
-  const { session, profile } = useAuth();
+  const { session, profile, reloadProfile } = useAuth();
   const marketsRead = useMoonwellMarkets();
   const [selectedSlug, setSelectedSlug] = useState("usdc-market");
   const [action, setAction] = useState<MoonwellMarketTransactionKind>("supply");
   const [amount, setAmount] = useState("");
   const [riskAccepted, setRiskAccepted] = useState(false);
+  const defiXp = useDefiXpEligibility({
+    accessToken: session?.access_token,
+    wallet: profile?.wallet,
+    vaultPositions: [],
+    markets: marketsRead.markets,
+  });
   const transaction = useMoonwellMarketTransactions({
     accessToken: session?.access_token,
     wallet: profile?.wallet,
-    onConfirmed: marketsRead.refresh,
+    onConfirmed: () => {
+      marketsRead.refresh();
+      defiXp.refresh();
+    },
   });
 
   const selectedMarket = useMemo(() => {
@@ -371,9 +385,141 @@ export function BorrowLendingScreen() {
 
           <aside className="space-y-4">
             <RiskCard selectedMarket={selectedMarket} />
+            <MarketXpPanel
+              claimMessage={defiXp.claimMessage}
+              claimingSlug={defiXp.claimingSlug}
+              claimStatus={defiXp.claimStatus}
+              error={defiXp.error}
+              onClaim={async (missionSlug) => {
+                const result = await defiXp.claimMission(missionSlug);
+                if (result.ok) {
+                  await reloadProfile();
+                }
+              }}
+              onRefresh={defiXp.refresh}
+              snapshot={defiXp.snapshot}
+              status={defiXp.status}
+              trackingReady={defiXp.trackingReady}
+              warning={defiXp.warning}
+            />
             <RouteCard />
           </aside>
         </section>
+      ) : null}
+    </div>
+  );
+}
+
+function MarketXpPanel({
+  claimMessage,
+  claimingSlug,
+  claimStatus,
+  error,
+  onClaim,
+  onRefresh,
+  snapshot,
+  status,
+  trackingReady,
+  warning,
+}: {
+  claimMessage: string | null;
+  claimingSlug: DefiXpMissionSlug | null;
+  claimStatus: "idle" | "claiming" | "claimed" | "error";
+  error: string | null;
+  onClaim: (missionSlug: DefiXpMissionSlug) => Promise<void>;
+  onRefresh: () => void;
+  snapshot: DefiXpEligibilitySnapshot;
+  status: "wallet-missing" | "loading" | "ready" | "error";
+  trackingReady: boolean;
+  warning: string | null;
+}) {
+  const marketMissionSlugs: DefiXpMissionSlug[] = [
+    "first-market-supply",
+    "collateral-ready",
+    "repay-discipline",
+    "borrow-safety",
+  ];
+  const marketMissions = snapshot.missions.filter((mission) =>
+    marketMissionSlugs.includes(mission.slug)
+  );
+  const statusLabel =
+    status === "loading"
+      ? "Reading proof"
+      : status === "error"
+        ? "Proof fallback"
+        : trackingReady
+          ? "Market XP live"
+          : "SQL pending";
+
+  return (
+    <div className="rounded-[26px] border border-lime-300/10 bg-[radial-gradient(circle_at_100%_0%,rgba(190,255,74,0.1),transparent_34%),linear-gradient(180deg,rgba(12,15,18,0.98),rgba(7,9,12,0.995))] p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.24em] text-lime-300">
+            Market XP
+          </p>
+          <h3 className="mt-2 text-[1.05rem] font-black tracking-[-0.035em] text-white">
+            Safety-first XP rail
+          </h3>
+        </div>
+        <button
+          type="button"
+          onClick={onRefresh}
+          className="rounded-full border border-white/8 bg-white/[0.035] px-3 py-2 text-[9px] font-black uppercase tracking-[0.14em] text-slate-300 transition hover:text-white"
+        >
+          {statusLabel}
+        </button>
+      </div>
+
+      <div className="mt-4 grid gap-2">
+        {marketMissions.map((mission) => (
+          <div
+            key={mission.slug}
+            className="rounded-[17px] border border-white/6 bg-black/20 p-3"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[12px] font-semibold leading-5 text-white">{mission.title}</p>
+                <p className="mt-1 text-[10px] leading-4 text-slate-400">
+                  {mission.progressLabel}
+                </p>
+              </div>
+              <StatusChip
+                label={mission.state}
+                tone={
+                  mission.state === "completed"
+                    ? "positive"
+                    : mission.state === "warning"
+                      ? "warning"
+                      : mission.state === "active"
+                        ? "info"
+                        : "default"
+                }
+              />
+            </div>
+
+            {mission.claimState === "claimable" ? (
+              <button
+                type="button"
+                disabled={claimStatus === "claiming"}
+                onClick={() => void onClaim(mission.slug)}
+                className="mt-3 w-full rounded-full bg-lime-300 px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-black transition hover:bg-lime-200 disabled:cursor-not-allowed disabled:bg-white/8 disabled:text-slate-500"
+              >
+                {claimingSlug === mission.slug ? "Claiming..." : `Claim ${mission.xp} XP`}
+              </button>
+            ) : (
+              <p className="mt-2 text-[10px] font-black uppercase tracking-[0.14em] text-lime-200">
+                {mission.claimState === "claimed" ? "Claimed" : mission.actionLabel}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {claimMessage || warning || error ? (
+        <p className="mt-3 rounded-[16px] border border-amber-300/12 bg-amber-300/[0.055] px-3 py-2 text-[11px] leading-5 text-amber-100">
+          {claimMessage || warning || error}
+        </p>
       ) : null}
     </div>
   );

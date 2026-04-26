@@ -1,5 +1,11 @@
 export type DefiVaultTransactionStatus = "submitted" | "confirmed" | "failed";
 export type DefiVaultTransactionAction = "deposit" | "withdraw";
+export type DefiMarketTransactionAction =
+  | "supply"
+  | "withdraw"
+  | "enable-collateral"
+  | "borrow"
+  | "repay";
 
 export type DefiVaultTransactionRow = {
   status: DefiVaultTransactionStatus | string | null;
@@ -19,11 +25,35 @@ export type DefiVaultTransactionSummary = {
   latestConfirmedAt: string | null;
 };
 
+export type DefiMarketTransactionRow = {
+  status: DefiVaultTransactionStatus | string | null;
+  action: DefiMarketTransactionAction | string | null;
+  market_slug: string | null;
+  asset_symbol: string | null;
+  tx_hash: string | null;
+  confirmed_at: string | null;
+};
+
+export type DefiMarketTransactionSummary = {
+  confirmedCount: number;
+  confirmedSupplies: number;
+  confirmedWithdrawals: number;
+  confirmedCollateralEnables: number;
+  confirmedBorrows: number;
+  confirmedRepays: number;
+  uniqueMarkets: string[];
+  assetsTouched: string[];
+  latestConfirmedAt: string | null;
+};
+
 export type DefiXpMissionSlug =
   | "connect-wallet"
   | "market-scout"
   | "first-vault-tx"
   | "active-vault-position"
+  | "first-market-supply"
+  | "collateral-ready"
+  | "repay-discipline"
   | "borrow-safety";
 
 export type DefiXpMissionState = "locked" | "eligible" | "active" | "completed" | "warning";
@@ -74,6 +104,7 @@ export type DefiXpMarketInput = {
   status: string;
   hasSupplyPosition?: boolean | null;
   hasBorrowPosition?: boolean | null;
+  collateralEnabled?: boolean | null;
   asset?: string | null;
   slug?: string | null;
   title?: string | null;
@@ -129,6 +160,45 @@ export function buildDefiVaultTransactionSummary(
   };
 }
 
+export function buildDefiMarketTransactionSummary(
+  rows: DefiMarketTransactionRow[]
+): DefiMarketTransactionSummary {
+  const confirmedRows = rows.filter((row) => row.status === "confirmed");
+  const uniqueMarkets = Array.from(
+    new Set(
+      confirmedRows
+        .map((row) => row.market_slug?.trim())
+        .filter((value): value is string => Boolean(value))
+    )
+  );
+  const assetsTouched = Array.from(
+    new Set(
+      confirmedRows
+        .map((row) => row.asset_symbol?.trim())
+        .filter((value): value is string => Boolean(value))
+    )
+  );
+  const latestConfirmedAt =
+    confirmedRows
+      .map((row) => row.confirmed_at)
+      .filter((value): value is string => Boolean(value))
+      .sort((left, right) => Date.parse(right) - Date.parse(left))[0] ?? null;
+
+  return {
+    confirmedCount: confirmedRows.length,
+    confirmedSupplies: confirmedRows.filter((row) => row.action === "supply").length,
+    confirmedWithdrawals: confirmedRows.filter((row) => row.action === "withdraw").length,
+    confirmedCollateralEnables: confirmedRows.filter(
+      (row) => row.action === "enable-collateral"
+    ).length,
+    confirmedBorrows: confirmedRows.filter((row) => row.action === "borrow").length,
+    confirmedRepays: confirmedRows.filter((row) => row.action === "repay").length,
+    uniqueMarkets,
+    assetsTouched,
+    latestConfirmedAt,
+  };
+}
+
 export function buildDefiXpSourceRef(slug: DefiXpMissionSlug) {
   return `defi:${slug}`;
 }
@@ -139,14 +209,22 @@ export function buildDefiXpEligibilitySnapshot(input: {
   vaultPositions: DefiXpVaultPositionInput[];
   markets: DefiXpMarketInput[];
   transactions: DefiVaultTransactionSummary;
+  marketTransactions?: DefiMarketTransactionSummary;
 }): DefiXpEligibilitySnapshot {
+  const marketTransactions =
+    input.marketTransactions ?? buildDefiMarketTransactionSummary([]);
   const activeVaultPositions = input.vaultPositions.filter(
     (position) => position.status === "position-detected" && isPositiveRaw(position.underlyingRaw)
   );
   const readyMarkets = input.markets.filter((market) => market.status === "ready");
   const suppliedMarkets = readyMarkets.filter((market) => Boolean(market.hasSupplyPosition));
   const borrowedMarkets = readyMarkets.filter((market) => Boolean(market.hasBorrowPosition));
+  const collateralMarkets = readyMarkets.filter((market) => Boolean(market.collateralEnabled));
   const hasConfirmedVaultAction = input.transactions.confirmedCount > 0;
+  const hasConfirmedMarketSupply = marketTransactions.confirmedSupplies > 0;
+  const hasCollateralEnabled =
+    marketTransactions.confirmedCollateralEnables > 0 || collateralMarkets.length > 0;
+  const hasConfirmedRepay = marketTransactions.confirmedRepays > 0;
   const hasWallet = input.walletReady;
   const hasBorrowRisk = borrowedMarkets.length > 0;
   const claimedSourceRefs = new Set(input.claimedSourceRefs ?? []);
@@ -195,6 +273,47 @@ export function buildDefiXpEligibilitySnapshot(input: {
       actionLabel: activeVaultPositions.length > 0 ? "Position detected" : "Open or refresh vault",
     },
     {
+      slug: "first-market-supply",
+      title: "Supply into a lending market",
+      description: "Complete a confirmed market supply action before any borrowing rail is suggested.",
+      xp: 300,
+      state: !hasWallet ? "locked" : hasConfirmedMarketSupply ? "completed" : "eligible",
+      progressLabel: `${marketTransactions.confirmedSupplies} confirmed supply tx`,
+      actionLabel: hasConfirmedMarketSupply ? "Supply tracked" : "Supply first market",
+    },
+    {
+      slug: "collateral-ready",
+      title: "Enable collateral consciously",
+      description: "Make collateral an explicit signed step, separate from deposits and lending reads.",
+      xp: 250,
+      state: !hasWallet
+        ? "locked"
+        : hasCollateralEnabled
+          ? "completed"
+          : suppliedMarkets.length > 0 || hasConfirmedMarketSupply
+            ? "eligible"
+            : "locked",
+      progressLabel: hasCollateralEnabled
+        ? `${collateralMarkets.length || marketTransactions.confirmedCollateralEnables} collateral routes`
+        : `${suppliedMarkets.length} supplied markets`,
+      actionLabel: hasCollateralEnabled ? "Collateral ready" : "Enable after supply",
+    },
+    {
+      slug: "repay-discipline",
+      title: "Repay discipline",
+      description: "Reward closing or reducing borrow exposure, not opening bigger debt.",
+      xp: 300,
+      state: !hasWallet
+        ? "locked"
+        : hasConfirmedRepay && !hasBorrowRisk
+          ? "completed"
+          : hasBorrowRisk
+            ? "eligible"
+            : "locked",
+      progressLabel: `${marketTransactions.confirmedRepays} confirmed repay tx`,
+      actionLabel: hasConfirmedRepay && !hasBorrowRisk ? "Repay tracked" : "Repay active debt",
+    },
+    {
       slug: "borrow-safety",
       title: "Keep borrow risk clear",
       description: "Borrow exposure pauses new XP recommendations until health and repay UX are obvious.",
@@ -202,7 +321,7 @@ export function buildDefiXpEligibilitySnapshot(input: {
       state: !hasWallet ? "locked" : hasBorrowRisk ? "warning" : "completed",
       progressLabel: hasBorrowRisk
         ? `${borrowedMarkets.length} borrow markets`
-        : `${suppliedMarkets.length} supply markets / 0 borrows`,
+        : `${suppliedMarkets.length} supply markets / ${marketTransactions.confirmedBorrows} borrow tx`,
       actionLabel: hasBorrowRisk ? "Review borrow risk" : "Safety clear",
     },
   ];

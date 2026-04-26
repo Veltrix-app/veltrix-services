@@ -2,16 +2,22 @@ import { Contract, JsonRpcProvider, isAddress } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
 import {
   DEFI_XP_SOURCE_TYPE,
+  buildDefiMarketTransactionSummary,
   buildDefiXpClaimPlan,
   buildDefiXpEligibilitySnapshot,
   buildDefiVaultTransactionSummary,
+  type DefiMarketTransactionRow,
+  type DefiMarketTransactionSummary,
   type DefiVaultTransactionSummary,
   type DefiVaultTransactionRow,
   type DefiXpMarketInput,
   type DefiXpMissionSlug,
   type DefiXpVaultPositionInput,
 } from "@/lib/defi/defi-xp-eligibility";
-import { MOONWELL_BASE_CORE_MARKETS } from "@/lib/defi/moonwell-markets";
+import {
+  MOONWELL_BASE_COMPTROLLER_ADDRESS,
+  MOONWELL_BASE_CORE_MARKETS,
+} from "@/lib/defi/moonwell-markets";
 import {
   createSupabaseServiceClient,
   createSupabaseUserServerClient,
@@ -36,6 +42,10 @@ const MTOKEN_ABI = [
   "function borrowBalanceCurrent(address account) returns (uint256)",
 ] as const;
 
+const COMPTROLLER_ABI = [
+  "function checkMembership(address account, address mToken) view returns (bool)",
+] as const;
+
 function getBearerToken(request: NextRequest) {
   const header = request.headers.get("authorization") || "";
   if (!header.toLowerCase().startsWith("bearer ")) {
@@ -57,6 +67,25 @@ function normalizeTransactionRows(rows: unknown): DefiVaultTransactionRow[] {
       status: typeof value.status === "string" ? value.status : null,
       action: typeof value.action === "string" ? value.action : null,
       vault_slug: typeof value.vault_slug === "string" ? value.vault_slug : null,
+      asset_symbol: typeof value.asset_symbol === "string" ? value.asset_symbol : null,
+      tx_hash: typeof value.tx_hash === "string" ? value.tx_hash : null,
+      confirmed_at: typeof value.confirmed_at === "string" ? value.confirmed_at : null,
+    };
+  });
+}
+
+function normalizeMarketTransactionRows(rows: unknown): DefiMarketTransactionRow[] {
+  if (!Array.isArray(rows)) {
+    return [];
+  }
+
+  return rows.map((row) => {
+    const value = row as Record<string, unknown>;
+
+    return {
+      status: typeof value.status === "string" ? value.status : null,
+      action: typeof value.action === "string" ? value.action : null,
+      market_slug: typeof value.market_slug === "string" ? value.market_slug : null,
       asset_symbol: typeof value.asset_symbol === "string" ? value.asset_symbol : null,
       tx_hash: typeof value.tx_hash === "string" ? value.tx_hash : null,
       confirmed_at: typeof value.confirmed_at === "string" ? value.confirmed_at : null,
@@ -138,10 +167,18 @@ async function readMarketForXp(params: {
     try {
       const provider = new JsonRpcProvider(rpcUrl);
       const marketContract = new Contract(params.market.mTokenAddress, MTOKEN_ABI, provider);
-      const [, suppliedRaw, borrowedRaw] = await Promise.all([
+      const comptroller = new Contract(
+        MOONWELL_BASE_COMPTROLLER_ADDRESS,
+        COMPTROLLER_ABI,
+        provider
+      );
+      const [, suppliedRaw, borrowedRaw, collateralEnabled] = await Promise.all([
         marketContract.supplyRatePerTimestamp() as Promise<bigint>,
         marketContract.balanceOfUnderlying(params.wallet).catch(() => BigInt(0)) as Promise<bigint>,
         marketContract.borrowBalanceCurrent(params.wallet).catch(() => BigInt(0)) as Promise<bigint>,
+        comptroller
+          .checkMembership(params.wallet, params.market.mTokenAddress)
+          .catch(() => false) as Promise<boolean>,
       ]);
 
       return {
@@ -151,6 +188,7 @@ async function readMarketForXp(params: {
         asset: params.market.assetSymbol,
         hasSupplyPosition: suppliedRaw > BigInt(0),
         hasBorrowPosition: borrowedRaw > BigInt(0),
+        collateralEnabled,
       };
     } catch {
       continue;
@@ -164,12 +202,14 @@ async function readMarketForXp(params: {
     asset: params.market.assetSymbol,
     hasSupplyPosition: false,
     hasBorrowPosition: false,
+    collateralEnabled: false,
   };
 }
 
 async function buildServerDefiXpSnapshot(params: {
   wallet: string;
   transactions: DefiVaultTransactionSummary;
+  marketTransactions: DefiMarketTransactionSummary;
   claimedSourceRefs: string[];
 }) {
   const rpcUrls = getConfiguredBaseRpcUrls();
@@ -202,6 +242,7 @@ async function buildServerDefiXpSnapshot(params: {
     vaultPositions,
     markets,
     transactions: params.transactions,
+    marketTransactions: params.marketTransactions,
   });
 }
 
@@ -253,6 +294,34 @@ async function loadVaultTransactionSummary(params: {
   return {
     trackingReady: true,
     transactions: buildDefiVaultTransactionSummary(normalizeTransactionRows(transactions)),
+    warning: null,
+  };
+}
+
+async function loadMarketTransactionSummary(params: {
+  serviceSupabase: ReturnType<typeof createSupabaseServiceClient>;
+  authUserId: string;
+  wallet: string;
+}) {
+  const { data: transactions, error: transactionError } = await params.serviceSupabase
+    .from("defi_market_transactions")
+    .select("status, action, market_slug, asset_symbol, tx_hash, confirmed_at")
+    .eq("auth_user_id", params.authUserId)
+    .eq("wallet_address", params.wallet)
+    .order("created_at", { ascending: false })
+    .limit(75);
+
+  if (transactionError) {
+    return {
+      trackingReady: false,
+      transactions: buildDefiMarketTransactionSummary([]),
+      warning: transactionError.message,
+    };
+  }
+
+  return {
+    trackingReady: true,
+    transactions: buildDefiMarketTransactionSummary(normalizeMarketTransactionRows(transactions)),
     warning: null,
   };
 }
@@ -385,24 +454,31 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const [transactionRead, claimsRead] = await Promise.all([
+    const [transactionRead, marketTransactionRead, claimsRead] = await Promise.all([
       loadVaultTransactionSummary({
+        serviceSupabase: context.serviceSupabase,
+        authUserId: context.user.id,
+        wallet: context.wallet,
+      }),
+      loadMarketTransactionSummary({
         serviceSupabase: context.serviceSupabase,
         authUserId: context.user.id,
         wallet: context.wallet,
       }),
       loadDefiXpClaims(context.serviceSupabase, context.user.id),
     ]);
+    const warnings = [transactionRead.warning, marketTransactionRead.warning].filter(Boolean);
 
     return NextResponse.json(
       {
         ok: true,
         wallet: context.wallet,
-        trackingReady: transactionRead.trackingReady,
+        trackingReady: transactionRead.trackingReady && marketTransactionRead.trackingReady,
         transactions: transactionRead.transactions,
+        marketTransactions: marketTransactionRead.transactions,
         claims: claimsRead.claims,
         claimedSourceRefs: claimsRead.claimedSourceRefs,
-        warning: transactionRead.warning,
+        warning: warnings.length ? warnings.join(" / ") : null,
       },
       {
         headers: {
@@ -440,20 +516,31 @@ export async function POST(request: NextRequest) {
       missionSlug !== "market-scout" &&
       missionSlug !== "first-vault-tx" &&
       missionSlug !== "active-vault-position" &&
+      missionSlug !== "first-market-supply" &&
+      missionSlug !== "collateral-ready" &&
+      missionSlug !== "repay-discipline" &&
       missionSlug !== "borrow-safety"
     ) {
       return NextResponse.json({ ok: false, error: "Unknown DeFi XP mission." }, { status: 400 });
     }
 
-    const transactionRead = await loadVaultTransactionSummary({
-      serviceSupabase: context.serviceSupabase,
-      authUserId: context.user.id,
-      wallet: context.wallet,
-    });
-    const claimsRead = await loadDefiXpClaims(context.serviceSupabase, context.user.id);
+    const [transactionRead, marketTransactionRead, claimsRead] = await Promise.all([
+      loadVaultTransactionSummary({
+        serviceSupabase: context.serviceSupabase,
+        authUserId: context.user.id,
+        wallet: context.wallet,
+      }),
+      loadMarketTransactionSummary({
+        serviceSupabase: context.serviceSupabase,
+        authUserId: context.user.id,
+        wallet: context.wallet,
+      }),
+      loadDefiXpClaims(context.serviceSupabase, context.user.id),
+    ]);
     const snapshot = await buildServerDefiXpSnapshot({
       wallet: context.wallet,
       transactions: transactionRead.transactions,
+      marketTransactions: marketTransactionRead.transactions,
       claimedSourceRefs: claimsRead.claimedSourceRefs,
     });
     const claimPlan = buildDefiXpClaimPlan({
@@ -490,7 +577,7 @@ export async function POST(request: NextRequest) {
           walletAddress: context.wallet,
           missionSlug: claimPlan.mission.slug,
           missionTitle: claimPlan.mission.title,
-          trackingReady: transactionRead.trackingReady,
+          trackingReady: transactionRead.trackingReady && marketTransactionRead.trackingReady,
         },
         created_at: timestamp,
         updated_at: timestamp,

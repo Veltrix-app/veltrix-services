@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   DEFI_XP_SOURCE_TYPE,
   buildDefiXpClaimPlan,
+  buildDefiMarketTransactionSummary,
   buildDefiXpSourceRef,
   buildDefiVaultTransactionSummary,
   buildDefiXpEligibilitySnapshot,
@@ -26,6 +27,7 @@ const baseMarkets = [
     asset: "USDC",
     hasSupplyPosition: false,
     hasBorrowPosition: false,
+    collateralEnabled: false,
   },
 ];
 
@@ -114,7 +116,7 @@ test("defi xp snapshot recognizes confirmed vault activity and active positions"
     "claimable"
   );
   assert.equal(snapshot.missions.find((mission) => mission.slug === "active-vault-position")?.state, "completed");
-  assert.match(snapshot.nextSafeAction, /XP economy/i);
+  assert.match(snapshot.nextSafeAction, /eligible DeFi mission/i);
 });
 
 test("defi xp snapshot marks already claimed missions without making them claimable again", () => {
@@ -187,4 +189,134 @@ test("defi xp snapshot turns borrow exposure into a safety rail before rewards",
   assert.equal(snapshot.status, "risk-watch");
   assert.equal(snapshot.missions.find((mission) => mission.slug === "borrow-safety")?.state, "warning");
   assert.match(snapshot.nextSafeAction, /borrow/i);
+});
+
+test("defi market transaction summary counts safe lending actions without rewarding borrow volume", () => {
+  const summary = buildDefiMarketTransactionSummary([
+    {
+      status: "confirmed",
+      action: "supply",
+      market_slug: "usdc-market",
+      asset_symbol: "USDC",
+      tx_hash: "0xaaa",
+      confirmed_at: "2026-04-22T10:00:00.000Z",
+    },
+    {
+      status: "confirmed",
+      action: "enable-collateral",
+      market_slug: "usdc-market",
+      asset_symbol: "USDC",
+      tx_hash: "0xbbb",
+      confirmed_at: "2026-04-22T11:00:00.000Z",
+    },
+    {
+      status: "confirmed",
+      action: "borrow",
+      market_slug: "eth-market",
+      asset_symbol: "ETH",
+      tx_hash: "0xccc",
+      confirmed_at: "2026-04-22T12:00:00.000Z",
+    },
+    {
+      status: "submitted",
+      action: "repay",
+      market_slug: "eth-market",
+      asset_symbol: "ETH",
+      tx_hash: "0xddd",
+      confirmed_at: null,
+    },
+  ]);
+
+  assert.equal(summary.confirmedCount, 3);
+  assert.equal(summary.confirmedSupplies, 1);
+  assert.equal(summary.confirmedCollateralEnables, 1);
+  assert.equal(summary.confirmedBorrows, 1);
+  assert.equal(summary.confirmedRepays, 0);
+  assert.deepEqual(summary.uniqueMarkets, ["usdc-market", "eth-market"]);
+  assert.equal(summary.latestConfirmedAt, "2026-04-22T12:00:00.000Z");
+});
+
+test("defi xp snapshot adds market supply and collateral missions but keeps borrow as a guard", () => {
+  const snapshot = buildDefiXpEligibilitySnapshot({
+    walletReady: true,
+    vaultPositions: baseVaultPositions,
+    markets: [
+      {
+        ...baseMarkets[0],
+        hasSupplyPosition: true,
+        collateralEnabled: true,
+      },
+    ],
+    transactions: buildDefiVaultTransactionSummary([]),
+    marketTransactions: buildDefiMarketTransactionSummary([
+      {
+        status: "confirmed",
+        action: "supply",
+        market_slug: "usdc-market",
+        asset_symbol: "USDC",
+        tx_hash: "0xaaa",
+        confirmed_at: "2026-04-22T10:00:00.000Z",
+      },
+      {
+        status: "confirmed",
+        action: "enable-collateral",
+        market_slug: "usdc-market",
+        asset_symbol: "USDC",
+        tx_hash: "0xbbb",
+        confirmed_at: "2026-04-22T11:00:00.000Z",
+      },
+      {
+        status: "confirmed",
+        action: "borrow",
+        market_slug: "usdc-market",
+        asset_symbol: "USDC",
+        tx_hash: "0xccc",
+        confirmed_at: "2026-04-22T12:00:00.000Z",
+      },
+    ]),
+  });
+
+  const supplyMission = snapshot.missions.find((mission) => mission.slug === "first-market-supply");
+  const collateralMission = snapshot.missions.find((mission) => mission.slug === "collateral-ready");
+  const borrowSafetyMission = snapshot.missions.find((mission) => mission.slug === "borrow-safety");
+
+  assert.equal(snapshot.status, "ready");
+  assert.equal(supplyMission?.state, "completed");
+  assert.equal(supplyMission?.claimState, "claimable");
+  assert.equal(collateralMission?.state, "completed");
+  assert.equal(collateralMission?.claimState, "claimable");
+  assert.equal(borrowSafetyMission?.xp, 0);
+  assert.equal(snapshot.previewXp, 1850);
+});
+
+test("defi xp snapshot rewards repay discipline only after a confirmed repay clears borrow risk", () => {
+  const snapshot = buildDefiXpEligibilitySnapshot({
+    walletReady: true,
+    vaultPositions: baseVaultPositions,
+    markets: [
+      {
+        ...baseMarkets[0],
+        hasSupplyPosition: true,
+        hasBorrowPosition: false,
+        collateralEnabled: true,
+      },
+    ],
+    transactions: buildDefiVaultTransactionSummary([]),
+    marketTransactions: buildDefiMarketTransactionSummary([
+      {
+        status: "confirmed",
+        action: "repay",
+        market_slug: "usdc-market",
+        asset_symbol: "USDC",
+        tx_hash: "0xaaa",
+        confirmed_at: "2026-04-23T10:00:00.000Z",
+      },
+    ]),
+  });
+
+  const repayMission = snapshot.missions.find((mission) => mission.slug === "repay-discipline");
+
+  assert.equal(repayMission?.state, "completed");
+  assert.equal(repayMission?.claimState, "claimable");
+  assert.equal(snapshot.status, "ready");
 });
