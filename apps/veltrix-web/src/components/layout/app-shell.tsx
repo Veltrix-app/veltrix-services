@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import type { ComponentType, ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Bell,
   ChevronDown,
@@ -107,7 +108,7 @@ function TopNavLink({
   return (
     <Link
       href={href}
-      className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.16em] transition ${
+      className={`inline-flex items-center gap-2 rounded-full px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.16em] transition 2xl:px-4 ${
         active
           ? "border border-white/10 bg-white/[0.09] text-white shadow-[0_12px_40px_rgba(0,0,0,0.28)]"
           : "border border-transparent text-slate-400 hover:border-white/8 hover:bg-white/[0.04] hover:text-white"
@@ -144,26 +145,7 @@ function TopNavItem({
 
   if (mobile) {
     return (
-      <>
-        <TopNavLink pathname={pathname} href={item.href} label={item.label} icon={item.icon} />
-        {item.children.map((child) => {
-          const childActive = isActivePath(pathname, child.href);
-
-          return (
-            <Link
-              key={child.href}
-              href={child.href}
-              className={`inline-flex items-center rounded-full border px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.16em] transition ${
-                childActive
-                  ? "border-lime-300/14 bg-lime-300/12 text-lime-100"
-                  : "border-white/6 bg-white/[0.025] text-slate-400 hover:border-white/10 hover:text-white"
-              }`}
-            >
-              {child.label}
-            </Link>
-          );
-        })}
-      </>
+      <TopNavLink pathname={pathname} href={item.href} label={item.label} icon={item.icon} />
     );
   }
 
@@ -171,7 +153,7 @@ function TopNavItem({
     <div className="group relative">
       <Link
         href={item.href}
-        className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.16em] transition ${
+        className={`inline-flex items-center gap-2 rounded-full px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.16em] transition 2xl:px-4 ${
           active
             ? "border border-white/10 bg-white/[0.09] text-white shadow-[0_12px_40px_rgba(0,0,0,0.28)]"
             : "border border-transparent text-slate-400 hover:border-white/8 hover:bg-white/[0.04] hover:text-white"
@@ -224,7 +206,7 @@ function UtilityLink({
       href={href}
       aria-label={label}
       title={label}
-      className={`flex h-11 w-11 items-center justify-center rounded-full border transition ${
+      className={`flex h-10 w-10 items-center justify-center rounded-full border transition 2xl:h-11 2xl:w-11 ${
         active
           ? "border-lime-300/18 bg-lime-300/12 text-lime-100"
           : "border-white/8 bg-white/[0.03] text-slate-400 hover:border-white/12 hover:bg-white/[0.05] hover:text-white"
@@ -251,33 +233,86 @@ function HeaderRead({
 }
 
 function MainPageSignalBannerCard({ banner }: { banner: MainPageSignalBanner }) {
+  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  const activeSlide = banner.slides[activeSlideIndex] ?? banner.slides[0];
+
+  useEffect(() => {
+    if (banner.slides.length <= 1) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setActiveSlideIndex((current) => (current + 1) % banner.slides.length);
+    }, 5200);
+
+    return () => window.clearInterval(intervalId);
+  }, [banner.route, banner.slides.length]);
+
   return (
-    <Link
-      href={banner.href}
-      className="group relative overflow-hidden rounded-[28px] border border-white/7 bg-[radial-gradient(circle_at_88%_18%,rgba(190,255,74,0.1),transparent_32%),linear-gradient(180deg,rgba(14,17,22,0.78),rgba(7,9,12,0.82))] p-4 shadow-[0_18px_70px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:border-lime-300/18 hover:bg-white/[0.045] xl:ml-auto xl:w-[min(360px,24vw)]"
-    >
+    <section className="relative w-full min-w-0 overflow-hidden rounded-[28px] border border-white/7 bg-[linear-gradient(180deg,rgba(14,17,22,0.72),rgba(7,9,12,0.82))] p-2 shadow-[0_18px_70px_rgba(0,0,0,0.28)] backdrop-blur-xl xl:ml-auto xl:w-[min(430px,27vw)]">
       <div className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-lime-300/28 to-transparent" />
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-[9px] font-black uppercase tracking-[0.24em] text-lime-300">
-            {banner.eyebrow}
-          </p>
-          <h2 className="mt-3 max-w-[18rem] text-[1rem] font-black leading-tight tracking-[-0.035em] text-white">
-            {banner.title}
-          </h2>
+
+      <Link href={banner.href} className="group block">
+        <div className="relative aspect-[16/9] overflow-hidden rounded-[22px] border border-white/8 bg-black">
+          {activeSlide ? (
+            <Image
+              src={activeSlide.src}
+              alt={activeSlide.alt}
+              fill
+              sizes="(min-width: 1280px) 430px, 100vw"
+              className="object-cover transition duration-700 group-hover:scale-[1.02]"
+              priority={banner.route === "/home"}
+            />
+          ) : null}
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,transparent_54%,rgba(0,0,0,0.62))]" />
+          <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between gap-3">
+            <span className="rounded-full border border-white/12 bg-black/45 px-2.5 py-1.5 text-[9px] font-black uppercase tracking-[0.14em] text-white backdrop-blur-xl">
+              {activeSlide?.label ?? banner.signal}
+            </span>
+            <span className="text-[10px] font-black uppercase tracking-[0.14em] text-lime-200 transition group-hover:translate-x-0.5">
+              {banner.cta}
+            </span>
+          </div>
         </div>
-        <span className="mt-1 h-2.5 w-2.5 rounded-full bg-lime-300 shadow-[0_0_18px_rgba(190,255,74,0.5)]" />
-      </div>
-      <p className="mt-3 text-[12px] leading-5 text-slate-400">{banner.copy}</p>
-      <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/6 pt-3">
+
+        <div className="px-2.5 py-3">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[9px] font-black uppercase tracking-[0.24em] text-lime-300">
+                {banner.eyebrow}
+              </p>
+              <h2 className="mt-2 text-[0.95rem] font-black leading-tight tracking-[-0.035em] text-white">
+                {banner.title}
+              </h2>
+            </div>
+            <span className="mt-1 h-2.5 w-2.5 rounded-full bg-lime-300 shadow-[0_0_18px_rgba(190,255,74,0.5)]" />
+          </div>
+          <p className="mt-2 text-[12px] leading-5 text-slate-400">{banner.copy}</p>
+        </div>
+      </Link>
+
+      <div className="flex items-center justify-between gap-3 border-t border-white/6 px-2.5 py-2">
         <span className="rounded-full border border-white/8 bg-black/20 px-2.5 py-1.5 text-[9px] font-black uppercase tracking-[0.14em] text-slate-400">
           {banner.signal}
         </span>
-        <span className="text-[10px] font-black uppercase tracking-[0.14em] text-lime-200 transition group-hover:translate-x-0.5">
-          {banner.cta}
-        </span>
+        <div className="flex items-center gap-1.5" aria-label="Banner slideshow controls">
+          {banner.slides.map((slide, index) => (
+            <button
+              key={slide.key}
+              type="button"
+              aria-label={`Show ${slide.label} slide`}
+              aria-current={index === activeSlideIndex}
+              onClick={() => setActiveSlideIndex(index)}
+              className={`h-1.5 rounded-full transition ${
+                index === activeSlideIndex
+                  ? "w-5 bg-lime-300"
+                  : "w-1.5 bg-white/18 hover:bg-white/35"
+              }`}
+            />
+          ))}
+        </div>
       </div>
-    </Link>
+    </section>
   );
 }
 
@@ -286,14 +321,12 @@ function SessionMenu({
   authConfigured,
   walletReady,
   wallet,
-  identityLabel,
   onSignOut,
 }: {
   accountReady: boolean;
   authConfigured: boolean;
   walletReady: boolean;
   wallet?: string | null;
-  identityLabel: string;
   onSignOut: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -314,14 +347,14 @@ function SessionMenu({
         aria-haspopup="dialog"
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
-        className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.03] px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-300 transition hover:border-white/12 hover:bg-white/[0.05] hover:text-white"
+        className="inline-flex h-11 w-11 items-center justify-center gap-2 rounded-full border border-white/8 bg-white/[0.03] px-0 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-300 transition hover:border-white/12 hover:bg-white/[0.05] hover:text-white sm:w-auto sm:px-3.5 sm:py-2.5"
       >
         <span className={`h-2 w-2 rounded-full ${accountReady ? "bg-lime-300 shadow-[0_0_14px_rgba(190,255,74,0.5)]" : "bg-slate-500"}`} />
         <span className="hidden sm:inline">Session</span>
-        <span className="max-w-[7rem] truncate normal-case tracking-normal text-white sm:max-w-[9rem]">
+        <span className="hidden max-w-[7rem] truncate normal-case tracking-normal text-white sm:inline sm:max-w-[9rem]">
           {walletReady ? shortenWallet(wallet) : accountReady ? "Wallet needed" : "Guest"}
         </span>
-        <ChevronDown className={`h-3.5 w-3.5 transition ${open ? "rotate-180 text-lime-200" : "text-slate-500"}`} />
+        <ChevronDown className={`hidden h-3.5 w-3.5 transition sm:block ${open ? "rotate-180 text-lime-200" : "text-slate-500"}`} />
       </button>
 
       {open ? (
@@ -435,7 +468,6 @@ export function AppShell({
 }) {
   const pathname = usePathname();
   const { authConfigured, session, profile, signOut } = useAuth();
-  const identityLabel = profile?.username ?? session?.user?.email ?? "Guest member";
   const accountReady = Boolean(session);
   const walletReady = Boolean(profile?.wallet);
   const mainPageSignalBanner = getMainPageSignalBanner(pathname);
@@ -456,7 +488,7 @@ export function AppShell({
                 </div>
               </Link>
 
-              <nav className="hidden items-center gap-2 xl:flex">
+              <nav className="hidden items-center gap-2 2xl:flex">
                 {primaryNavItems.map((item) => (
                   <TopNavItem key={item.href} pathname={pathname} item={item} />
                 ))}
@@ -472,8 +504,8 @@ export function AppShell({
               />
             </label>
 
-            <div className="ml-auto flex shrink-0 items-center justify-end gap-2">
-              <div className="flex items-center gap-2">
+            <div className="ml-auto flex shrink-0 items-center justify-end gap-1.5 2xl:gap-2">
+              <div className="hidden items-center gap-1.5 sm:flex 2xl:gap-2">
                 {utilityNavItems.map((item) => {
                   if (item.requiresAccount && !accountReady) {
                     return null;
@@ -496,14 +528,13 @@ export function AppShell({
                 authConfigured={authConfigured}
                 walletReady={walletReady}
                 wallet={profile?.wallet}
-                identityLabel={identityLabel}
                 onSignOut={() => void signOut()}
               />
 
               {!accountReady ? (
                 <Link
                   href="/sign-in"
-                  className="rounded-full border border-lime-300/18 bg-lime-300/12 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.16em] text-lime-100 transition hover:bg-lime-300/18"
+                  className="hidden rounded-full border border-lime-300/18 bg-lime-300/12 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.16em] text-lime-100 transition hover:bg-lime-300/18 sm:inline-flex"
                 >
                   Access
                 </Link>
@@ -511,7 +542,7 @@ export function AppShell({
             </div>
           </div>
 
-          <div className="mt-4 flex gap-2 overflow-x-auto pb-1 xl:hidden">
+          <div className="mt-4 flex gap-2 overflow-x-auto pb-1 2xl:hidden">
             {primaryNavItems.map((item) => (
               <TopNavItem key={item.href} pathname={pathname} item={item} mobile />
             ))}
@@ -532,7 +563,7 @@ export function AppShell({
           </div>
 
           {mainPageSignalBanner ? (
-            <MainPageSignalBannerCard banner={mainPageSignalBanner} />
+            <MainPageSignalBannerCard key={mainPageSignalBanner.route} banner={mainPageSignalBanner} />
           ) : null}
         </div>
 

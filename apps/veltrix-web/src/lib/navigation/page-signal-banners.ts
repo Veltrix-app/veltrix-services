@@ -16,6 +16,21 @@ export type MainPageSignalBanner = {
   href: string;
   cta: string;
   signal: string;
+  slides: MainPageSignalBannerSlide[];
+};
+
+export type MainPageSignalBannerSlide = {
+  key:
+    | "anti-sybil"
+    | "borrow-lending"
+    | "community"
+    | "quests"
+    | "raids"
+    | "rewards"
+    | "vaults";
+  src: string;
+  alt: string;
+  label: string;
 };
 
 export const mainPageSignalBannerRoutes: MainPageSignalBannerRoute[] = [
@@ -29,6 +44,55 @@ export const mainPageSignalBannerRoutes: MainPageSignalBannerRoute[] = [
   "/rewards",
 ];
 
+const vyntroSlides: Record<MainPageSignalBannerSlide["key"], MainPageSignalBannerSlide> = {
+  "anti-sybil": {
+    key: "anti-sybil",
+    src: "/brand/slides/vyntro-anti-sybil.png",
+    alt: "VYNTRO anti-sybil banner with secure shield and verification modules.",
+    label: "Anti-sybil",
+  },
+  "borrow-lending": {
+    key: "borrow-lending",
+    src: "/brand/slides/vyntro-borrow-lending.png",
+    alt: "VYNTRO borrow and lending banner provided by Moonwell.",
+    label: "Borrow / lending",
+  },
+  community: {
+    key: "community",
+    src: "/brand/slides/vyntro-community.png",
+    alt: "VYNTRO community banner focused on real connections.",
+    label: "Community",
+  },
+  quests: {
+    key: "quests",
+    src: "/brand/slides/vyntro-quests.png",
+    alt: "VYNTRO quests banner with mission checklist and XP rewards.",
+    label: "Quests",
+  },
+  raids: {
+    key: "raids",
+    src: "/brand/slides/vyntro-raids.png",
+    alt: "VYNTRO raids banner with team raid shield and rewards.",
+    label: "Raids",
+  },
+  rewards: {
+    key: "rewards",
+    src: "/brand/slides/vyntro-rewards.png",
+    alt: "VYNTRO rewards banner with treasure chest and claim rewards call to action.",
+    label: "Rewards",
+  },
+  vaults: {
+    key: "vaults",
+    src: "/brand/slides/vyntro-vaults.png",
+    alt: "VYNTRO vaults banner provided by Moonwell with a blue vault safe.",
+    label: "Vaults",
+  },
+};
+
+function selectSlides(keys: MainPageSignalBannerSlide["key"][]) {
+  return keys.map((key) => vyntroSlides[key]);
+}
+
 const mainPageSignalBanners: Record<MainPageSignalBannerRoute, MainPageSignalBanner> = {
   "/home": {
     route: "/home",
@@ -38,6 +102,15 @@ const mainPageSignalBanners: Record<MainPageSignalBannerRoute, MainPageSignalBan
     href: "/quests",
     cta: "View quests",
     signal: "Live routes first",
+    slides: selectSlides([
+      "quests",
+      "raids",
+      "rewards",
+      "community",
+      "vaults",
+      "borrow-lending",
+      "anti-sybil",
+    ]),
   },
   "/community": {
     route: "/community",
@@ -47,6 +120,7 @@ const mainPageSignalBanners: Record<MainPageSignalBannerRoute, MainPageSignalBan
     href: "/projects",
     cta: "Browse projects",
     signal: "Signal over noise",
+    slides: selectSlides(["community", "anti-sybil"]),
   },
   "/projects": {
     route: "/projects",
@@ -56,6 +130,7 @@ const mainPageSignalBanners: Record<MainPageSignalBannerRoute, MainPageSignalBan
     href: "/campaigns",
     cta: "Open campaigns",
     signal: "Context ready",
+    slides: selectSlides(["community", "quests", "rewards"]),
   },
   "/campaigns": {
     route: "/campaigns",
@@ -65,6 +140,7 @@ const mainPageSignalBanners: Record<MainPageSignalBannerRoute, MainPageSignalBan
     href: "/quests",
     cta: "Find quests",
     signal: "Momentum map",
+    slides: selectSlides(["quests", "raids", "rewards"]),
   },
   "/quests": {
     route: "/quests",
@@ -74,6 +150,7 @@ const mainPageSignalBanners: Record<MainPageSignalBannerRoute, MainPageSignalBan
     href: "/raids",
     cta: "Open raids",
     signal: "Action first",
+    slides: selectSlides(["quests", "rewards"]),
   },
   "/defi": {
     route: "/defi",
@@ -83,6 +160,7 @@ const mainPageSignalBanners: Record<MainPageSignalBannerRoute, MainPageSignalBan
     href: "/defi/activity",
     cta: "View proof",
     signal: "Non-custodial",
+    slides: selectSlides(["vaults", "borrow-lending"]),
   },
   "/raids": {
     route: "/raids",
@@ -92,6 +170,7 @@ const mainPageSignalBanners: Record<MainPageSignalBannerRoute, MainPageSignalBan
     href: "/leaderboard",
     cta: "View ranks",
     signal: "Group action",
+    slides: selectSlides(["raids", "rewards"]),
   },
   "/rewards": {
     route: "/rewards",
@@ -101,6 +180,7 @@ const mainPageSignalBanners: Record<MainPageSignalBannerRoute, MainPageSignalBan
     href: "/rewards/disclaimer",
     cta: "Read rules",
     signal: "Proof-backed",
+    slides: selectSlides(["rewards", "quests"]),
   },
 };
 
