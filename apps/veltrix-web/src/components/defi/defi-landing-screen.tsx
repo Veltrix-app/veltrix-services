@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Layers3, ShieldCheck, Wallet } from "lucide-react";
+import { ArrowRight, History, Layers3, ShieldCheck, Wallet } from "lucide-react";
 
 const defiRoutes = [
   {
@@ -21,6 +21,15 @@ const defiRoutes = [
     description:
       "Supply, enable collateral, borrow, repay and monitor positions with explicit safety gates.",
     stats: ["Live Base reads", "Collateral gate", "Repay first posture"],
+  },
+  {
+    href: "/defi/activity",
+    label: "Activity proof",
+    eyebrow: "Proof center",
+    icon: History,
+    description:
+      "Review vault transactions, lending actions, XP claims and Basescan references in one wallet-scoped timeline.",
+    stats: ["Vault tx", "Market tx", "XP claims"],
   },
 ] as const;
 
@@ -63,7 +72,7 @@ export function DefiLandingScreen() {
         </div>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-2">
+      <section className="grid gap-4 lg:grid-cols-3">
         {defiRoutes.map((route) => {
           const Icon = route.icon;
 
