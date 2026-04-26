@@ -6,6 +6,7 @@ import {
   ArrowRight,
   Gem,
   Layers3,
+  RefreshCw,
   ShieldCheck,
   Sparkles,
   Wallet,
@@ -18,12 +19,17 @@ import {
   type MoonwellMarketOpportunity,
   type MoonwellPortfolioPosture,
 } from "@/lib/defi/defi-missions-read-model";
+import type {
+  MoonwellMarketRead,
+  MoonwellPortfolioRead,
+} from "@/lib/defi/moonwell-markets";
 import {
   type MoonwellVaultPositionRead,
   type MoonwellVaultTransactionKind,
 } from "@/lib/defi/moonwell-vaults";
 import { useAuth } from "@/components/providers/auth-provider";
 import { StatusChip } from "@/components/ui/status-chip";
+import { useMoonwellMarkets } from "@/hooks/use-moonwell-markets";
 import { useMoonwellVaultPositions } from "@/hooks/use-moonwell-vault-positions";
 import { useMoonwellVaultTransactions } from "@/hooks/use-moonwell-vault-transactions";
 
@@ -78,6 +84,7 @@ function shortenWallet(address?: string | null) {
 export function DefiMissionsScreen() {
   const { session, profile } = useAuth();
   const vaultPositions = useMoonwellVaultPositions();
+  const liveMarkets = useMoonwellMarkets();
   const vaultTransactions = useMoonwellVaultTransactions({
     accessToken: session?.access_token,
     wallet: profile?.wallet,
@@ -105,6 +112,23 @@ export function DefiMissionsScreen() {
     readStatus: vaultPositions.status,
     vaultPositions: vaultPositions.positions,
   });
+  const readyLiveMarkets = liveMarkets.markets.filter((market) => market.status === "ready")
+    .length;
+  const hasLiveMarketRows = readyLiveMarkets > 0;
+  const displayedMarkets = hasLiveMarketRows ? liveMarkets.markets : marketExpansion.markets;
+  const displayedPortfolio =
+    hasLiveMarketRows && liveMarkets.portfolio ? liveMarkets.portfolio : marketExpansion.portfolio;
+  const liveMarketUnavailable =
+    liveMarkets.status === "error" ||
+    (liveMarkets.status === "ready" &&
+      liveMarkets.markets.length > 0 &&
+      readyLiveMarkets === 0);
+  const marketReadLabel =
+    liveMarkets.status === "ready" && hasLiveMarketRows
+      ? `${readyLiveMarkets}/${liveMarkets.markets.length} live`
+      : liveMarkets.status === "error"
+        ? "Fallback read"
+        : "Reading Base";
   const readStatusLabel = getReadStatusLabel({
     status: vaultPositions.status,
     walletReady,
@@ -445,20 +469,37 @@ export function DefiMissionsScreen() {
                 {marketExpansion.description}
               </p>
             </div>
-            <span className="rounded-full border border-lime-300/12 bg-lime-300/[0.08] px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-lime-200">
-              Read-only
-            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full border border-lime-300/12 bg-lime-300/[0.08] px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-lime-200">
+                {marketReadLabel}
+              </span>
+              <button
+                type="button"
+                onClick={liveMarkets.refresh}
+                className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.035] px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-slate-300 transition hover:border-white/14 hover:text-white"
+              >
+                <RefreshCw className="h-3 w-3" />
+                Refresh
+              </button>
+            </div>
           </div>
 
           <div className="mt-5 grid gap-3 md:grid-cols-2">
-            {marketExpansion.markets.map((market) => (
+            {displayedMarkets.map((market) => (
               <MoonwellMarketCard key={market.slug} market={market} />
             ))}
           </div>
+
+          {liveMarketUnavailable ? (
+            <p className="mt-3 rounded-[18px] border border-amber-300/12 bg-amber-300/[0.055] px-3.5 py-3 text-[12px] leading-5 text-amber-100">
+              Live market reads are temporarily unavailable, so this section is showing the safe
+              product fallback.
+            </p>
+          ) : null}
         </div>
 
         <aside className="space-y-4">
-          <MoonwellPortfolioCard portfolio={marketExpansion.portfolio} />
+          <MoonwellPortfolioCard portfolio={displayedPortfolio} />
 
           <div className="rounded-[24px] border border-amber-300/10 bg-[linear-gradient(180deg,rgba(18,16,10,0.72),rgba(8,9,12,0.98))] p-4">
             <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-amber-200">
@@ -510,8 +551,12 @@ export function DefiMissionsScreen() {
   );
 }
 
-function MoonwellMarketCard({ market }: { market: MoonwellMarketOpportunity }) {
+type MoonwellMarketCardModel = MoonwellMarketOpportunity | MoonwellMarketRead;
+type MoonwellPortfolioCardModel = MoonwellPortfolioPosture | MoonwellPortfolioRead;
+
+function MoonwellMarketCard({ market }: { market: MoonwellMarketCardModel }) {
   const accent = accentStyles[market.accent];
+  const live = isLiveMarketRead(market);
 
   return (
     <div
@@ -530,14 +575,30 @@ function MoonwellMarketCard({ market }: { market: MoonwellMarketOpportunity }) {
           </h4>
         </div>
         <span className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] ${accent.bg} ${accent.softText}`}>
-          {market.mode}
+          {live ? "live" : market.mode}
         </span>
       </div>
       <p className="mt-3 text-[12px] leading-5 text-slate-400">{market.description}</p>
-      <div className="mt-4 grid gap-2 sm:grid-cols-2">
-        <MiniSignal label="Signal" value={market.signal} />
-        <MiniSignal label="Risk" value={market.riskLabel} />
-      </div>
+      {live && market.status === "read-error" ? (
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          <MiniSignal label="Status" value="Read retry" />
+          <MiniSignal label="Risk" value={market.riskLabel} />
+        </div>
+      ) : live ? (
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          <MiniSignal label="Supply APY" value={market.supplyApyLabel} />
+          <MiniSignal label="Borrow APY" value={market.borrowApyLabel} />
+          <MiniSignal label="Liquidity" value={market.liquidityLabel} />
+          <MiniSignal label="Collateral" value={market.collateralFactorLabel} />
+          <MiniSignal label="Supplied" value={market.userSuppliedLabel} />
+          <MiniSignal label="Borrowed" value={market.userBorrowedLabel} />
+        </div>
+      ) : (
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          <MiniSignal label="Signal" value={market.signal} />
+          <MiniSignal label="Risk" value={market.riskLabel} />
+        </div>
+      )}
       <p className={`mt-4 text-[10px] font-black uppercase tracking-[0.16em] ${accent.softText}`}>
         {market.primaryAction}
       </p>
@@ -545,8 +606,11 @@ function MoonwellMarketCard({ market }: { market: MoonwellMarketOpportunity }) {
   );
 }
 
-function MoonwellPortfolioCard({ portfolio }: { portfolio: MoonwellPortfolioPosture }) {
+function MoonwellPortfolioCard({ portfolio }: { portfolio: MoonwellPortfolioCardModel }) {
   const statusLabel = portfolio.status.replace("-", " ");
+  const live = isLivePortfolioRead(portfolio);
+  const primaryCount = live ? portfolio.suppliedMarkets : portfolio.activeVaults;
+  const primaryLabel = live ? "Supplied markets" : "Active vaults";
 
   return (
     <div className="rounded-[24px] border border-white/6 bg-[linear-gradient(180deg,rgba(13,15,18,0.99),rgba(7,9,12,0.99))] p-4">
@@ -563,11 +627,12 @@ function MoonwellPortfolioCard({ portfolio }: { portfolio: MoonwellPortfolioPost
       </div>
       <p className="mt-2 text-[12px] leading-5 text-slate-400">{portfolio.description}</p>
       <div className="mt-4 grid grid-cols-2 gap-2">
-        <MiniSignal label="Active vaults" value={String(portfolio.activeVaults)} />
+        <MiniSignal label={primaryLabel} value={String(primaryCount)} />
         <MiniSignal
           label="Assets"
           value={portfolio.detectedAssets.length ? portfolio.detectedAssets.join(", ") : "None"}
         />
+        {live ? <MiniSignal label="Borrowed markets" value={String(portfolio.borrowedMarkets)} /> : null}
       </div>
       <div className="mt-3 rounded-[18px] border border-lime-300/10 bg-lime-300/[0.045] p-3">
         <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-lime-300">
@@ -579,6 +644,16 @@ function MoonwellPortfolioCard({ portfolio }: { portfolio: MoonwellPortfolioPost
       </div>
     </div>
   );
+}
+
+function isLiveMarketRead(market: MoonwellMarketCardModel): market is MoonwellMarketRead {
+  return market.mode === "live-read";
+}
+
+function isLivePortfolioRead(
+  portfolio: MoonwellPortfolioCardModel
+): portfolio is MoonwellPortfolioRead {
+  return "suppliedMarkets" in portfolio;
 }
 
 function MiniSignal({ label, value }: { label: string; value: string }) {
