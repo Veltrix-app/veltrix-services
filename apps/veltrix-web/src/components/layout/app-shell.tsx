@@ -41,6 +41,7 @@ const primaryNavItems = [
       { href: "/defi", label: "Overview" },
       { href: "/defi/vaults", label: "Vaults" },
       { href: "/defi/borrow-lending", label: "Borrow / lending" },
+      { href: "/defi/risk-guide", label: "Risk guide" },
       { href: "/defi/activity", label: "Activity" },
     ],
   },

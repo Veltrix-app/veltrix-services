@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { AlertTriangle, ArrowRight, Layers3, RefreshCw, ShieldCheck } from "lucide-react";
+import { BorrowRiskMiniPanel } from "@/components/defi/risk-education-screen";
 import { useAuth } from "@/components/providers/auth-provider";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useDefiXpEligibility } from "@/hooks/use-defi-xp-eligibility";
@@ -163,7 +164,7 @@ export function BorrowLendingScreen() {
               </h2>
               <p className="mt-3 text-[13px] leading-6 text-slate-400">
                 This route signs directly from your wallet on Base. VYNTRO tracks proof and UX
-                posture, but Moonwell markets remain non-custodial and borrow positions can be
+                posture, but the underlying markets remain non-custodial and borrow positions can be
                 liquidated.
               </p>
             </div>
@@ -215,7 +216,7 @@ export function BorrowLendingScreen() {
 
       {marketsRead.status === "loading" ? (
         <section className="rounded-[26px] border border-white/6 bg-white/[0.025] p-5 text-[13px] leading-6 text-slate-400">
-          Reading Moonwell markets from Base...
+          Reading lending markets from Base...
         </section>
       ) : null}
 
@@ -384,6 +385,7 @@ export function BorrowLendingScreen() {
           </div>
 
           <aside className="space-y-4">
+            <BorrowRiskMiniPanel />
             <RiskCard selectedMarket={selectedMarket} />
             <MarketXpPanel
               claimMessage={defiXp.claimMessage}
