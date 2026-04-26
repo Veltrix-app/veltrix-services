@@ -51,6 +51,13 @@ export type MoonwellMarketRead = {
   collateralFactorLabel: string;
   userSuppliedLabel: string;
   userBorrowedLabel: string;
+  assetDecimals: number;
+  marketLiquidityRaw: string;
+  suppliedUnderlyingRaw: string;
+  borrowedUnderlyingRaw: string;
+  collateralEnabled: boolean;
+  accountLiquidityRaw: string;
+  accountShortfallRaw: string;
   hasSupplyPosition: boolean;
   hasBorrowPosition: boolean;
   error?: string;
@@ -210,6 +217,9 @@ export function buildMoonwellMarketRead(input: {
   suppliedUnderlyingRaw?: bigint | string | number | null | undefined;
   borrowedUnderlyingRaw?: bigint | string | number | null | undefined;
   assetDecimals?: number;
+  collateralEnabled?: boolean;
+  accountLiquidityRaw?: bigint | string | number | null | undefined;
+  accountShortfallRaw?: bigint | string | number | null | undefined;
   readFailed?: boolean;
   error?: string;
 }): MoonwellMarketRead {
@@ -254,6 +264,13 @@ export function buildMoonwellMarketRead(input: {
       `m${input.market.assetSymbol}`
     ),
     collateralFactorLabel: formatMoonwellRatioLabel(input.collateralFactorRaw),
+    assetDecimals,
+    marketLiquidityRaw: String(input.cashRaw ?? "0"),
+    suppliedUnderlyingRaw: String(userSuppliedRaw ?? "0"),
+    borrowedUnderlyingRaw: String(userBorrowedRaw ?? "0"),
+    collateralEnabled: Boolean(input.collateralEnabled),
+    accountLiquidityRaw: String(input.accountLiquidityRaw ?? "0"),
+    accountShortfallRaw: String(input.accountShortfallRaw ?? "0"),
     userSuppliedLabel: formatMoonwellTokenAmount(
       userSuppliedRaw,
       assetDecimals,

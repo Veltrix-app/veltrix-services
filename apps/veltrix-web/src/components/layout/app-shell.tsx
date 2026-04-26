@@ -28,7 +28,17 @@ const primaryNavItems = [
   { href: "/projects", label: "Projects", icon: Compass },
   { href: "/campaigns", label: "Campaigns", icon: Layers3 },
   { href: "/quests", label: "Quests", icon: ShieldCheck },
-  { href: "/defi-missions", label: "DeFi", icon: Wallet },
+  {
+    href: "/defi",
+    label: "DeFi",
+    icon: Wallet,
+    aliases: ["/defi-missions"],
+    children: [
+      { href: "/defi", label: "Overview" },
+      { href: "/defi/vaults", label: "Vaults" },
+      { href: "/defi/borrow-lending", label: "Borrow / lending" },
+    ],
+  },
   { href: "/raids", label: "Raids", icon: Swords },
   { href: "/rewards", label: "Rewards", icon: Gem },
 ] as const;
@@ -46,6 +56,18 @@ const utilityNavItems: ReadonlyArray<{
 
 function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function isActiveNavItem(pathname: string, item: (typeof primaryNavItems)[number]) {
+  if (isActivePath(pathname, item.href)) {
+    return true;
+  }
+
+  if ("aliases" in item && item.aliases.some((alias) => isActivePath(pathname, alias))) {
+    return true;
+  }
+
+  return "children" in item && item.children.some((child) => isActivePath(pathname, child.href));
 }
 
 function shortenWallet(address?: string | null) {
@@ -85,6 +107,93 @@ function TopNavLink({
       <Icon className={`h-3.5 w-3.5 ${active ? "text-lime-200" : "text-slate-500"}`} />
       <span>{label}</span>
     </Link>
+  );
+}
+
+function TopNavItem({
+  pathname,
+  item,
+  mobile = false,
+}: {
+  pathname: string;
+  item: (typeof primaryNavItems)[number];
+  mobile?: boolean;
+}) {
+  if (!("children" in item)) {
+    return (
+      <TopNavLink
+        pathname={pathname}
+        href={item.href}
+        label={item.label}
+        icon={item.icon}
+      />
+    );
+  }
+
+  const Icon = item.icon;
+  const active = isActiveNavItem(pathname, item);
+
+  if (mobile) {
+    return (
+      <>
+        <TopNavLink pathname={pathname} href={item.href} label={item.label} icon={item.icon} />
+        {item.children.map((child) => {
+          const childActive = isActivePath(pathname, child.href);
+
+          return (
+            <Link
+              key={child.href}
+              href={child.href}
+              className={`inline-flex items-center rounded-full border px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.16em] transition ${
+                childActive
+                  ? "border-lime-300/14 bg-lime-300/12 text-lime-100"
+                  : "border-white/6 bg-white/[0.025] text-slate-400 hover:border-white/10 hover:text-white"
+              }`}
+            >
+              {child.label}
+            </Link>
+          );
+        })}
+      </>
+    );
+  }
+
+  return (
+    <div className="group relative">
+      <Link
+        href={item.href}
+        className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.16em] transition ${
+          active
+            ? "border border-white/10 bg-white/[0.09] text-white shadow-[0_12px_40px_rgba(0,0,0,0.28)]"
+            : "border border-transparent text-slate-400 hover:border-white/8 hover:bg-white/[0.04] hover:text-white"
+        }`}
+      >
+        <Icon className={`h-3.5 w-3.5 ${active ? "text-lime-200" : "text-slate-500"}`} />
+        <span>{item.label}</span>
+        <ChevronDown className="h-3.5 w-3.5 text-slate-500 transition group-hover:rotate-180 group-hover:text-lime-200" />
+      </Link>
+
+      <div className="invisible absolute left-0 top-[calc(100%+0.65rem)] z-50 min-w-[15rem] rounded-[22px] border border-white/8 bg-[#080a0e]/96 p-2 opacity-0 shadow-[0_24px_80px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+        {item.children.map((child) => {
+          const childActive = isActivePath(pathname, child.href);
+
+          return (
+            <Link
+              key={child.href}
+              href={child.href}
+              className={`flex items-center justify-between gap-4 rounded-[16px] px-3.5 py-3 text-[11px] font-bold uppercase tracking-[0.14em] transition ${
+                childActive
+                  ? "bg-lime-300/12 text-lime-100"
+                  : "text-slate-400 hover:bg-white/[0.05] hover:text-white"
+              }`}
+            >
+              {child.label}
+              <span className={`h-1.5 w-1.5 rounded-full ${childActive ? "bg-lime-300" : "bg-white/12"}`} />
+            </Link>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -308,13 +417,7 @@ export function AppShell({
 
               <nav className="hidden items-center gap-2 xl:flex">
                 {primaryNavItems.map((item) => (
-                  <TopNavLink
-                    key={item.href}
-                    pathname={pathname}
-                    href={item.href}
-                    label={item.label}
-                    icon={item.icon}
-                  />
+                  <TopNavItem key={item.href} pathname={pathname} item={item} />
                 ))}
               </nav>
             </div>
@@ -369,13 +472,7 @@ export function AppShell({
 
           <div className="mt-4 flex gap-2 overflow-x-auto pb-1 xl:hidden">
             {primaryNavItems.map((item) => (
-              <TopNavLink
-                key={item.href}
-                pathname={pathname}
-                href={item.href}
-                label={item.label}
-                icon={item.icon}
-              />
+              <TopNavItem key={item.href} pathname={pathname} item={item} mobile />
             ))}
           </div>
         </div>

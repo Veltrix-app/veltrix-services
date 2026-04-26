@@ -27,6 +27,8 @@ const MTOKEN_ABI = [
 
 const COMPTROLLER_ABI = [
   "function markets(address mToken) view returns (bool isListed, uint256 collateralFactorMantissa, bool isComped)",
+  "function checkMembership(address account, address mToken) view returns (bool)",
+  "function getAccountLiquidity(address account) view returns (uint256 error, uint256 liquidity, uint256 shortfall)",
 ] as const;
 
 function getConfiguredBaseRpcUrls() {
@@ -91,6 +93,71 @@ function getCollateralFactor(marketsResult: unknown) {
   return BigInt(0);
 }
 
+function getTupleBigInt(result: unknown, index: number) {
+  if (result !== null && (Array.isArray(result) || typeof result === "object")) {
+    const tuple = result as { [key: number]: unknown };
+    const value = tuple[index];
+
+    if (typeof value === "bigint") {
+      return value;
+    }
+
+    if (typeof value === "string" || typeof value === "number") {
+      try {
+        return BigInt(value);
+      } catch {
+        return BigInt(0);
+      }
+    }
+  }
+
+  return BigInt(0);
+}
+
+async function readCollateralMembership(params: {
+  comptroller: Contract;
+  wallet: string | null;
+  mTokenAddress: string;
+}) {
+  if (!params.wallet) {
+    return false;
+  }
+
+  try {
+    return (await params.comptroller.checkMembership(
+      params.wallet,
+      params.mTokenAddress
+    )) as boolean;
+  } catch {
+    return false;
+  }
+}
+
+async function readAccountLiquidity(params: {
+  comptroller: Contract;
+  wallet: string | null;
+}) {
+  if (!params.wallet) {
+    return {
+      liquidityRaw: BigInt(0),
+      shortfallRaw: BigInt(0),
+    };
+  }
+
+  try {
+    const result = await params.comptroller.getAccountLiquidity(params.wallet);
+    return {
+      liquidityRaw: getTupleBigInt(result, 1),
+      shortfallRaw: getTupleBigInt(result, 2),
+    };
+  } catch {
+    return {
+      liquidityRaw: BigInt(0),
+      shortfallRaw: BigInt(0),
+    };
+  }
+}
+
 function buildFailedMarketRead(market: MoonwellMarketConfig, error: unknown) {
   return buildMoonwellMarketRead({
     market,
@@ -131,6 +198,8 @@ async function readMarket(params: {
       marketConfigRaw,
       suppliedUnderlyingRaw,
       borrowedUnderlyingRaw,
+      collateralEnabled,
+      accountLiquidity,
     ] = await Promise.all([
       mToken.supplyRatePerTimestamp() as Promise<bigint>,
       mToken.borrowRatePerTimestamp() as Promise<bigint>,
@@ -141,6 +210,15 @@ async function readMarket(params: {
       comptroller.markets(params.market.mTokenAddress) as Promise<unknown>,
       readUserSupply(mToken, params.wallet),
       readUserBorrow(mToken, params.wallet),
+      readCollateralMembership({
+        comptroller,
+        wallet: params.wallet,
+        mTokenAddress: params.market.mTokenAddress,
+      }),
+      readAccountLiquidity({
+        comptroller,
+        wallet: params.wallet,
+      }),
     ]);
 
     return buildMoonwellMarketRead({
@@ -154,6 +232,9 @@ async function readMarket(params: {
       collateralFactorRaw: getCollateralFactor(marketConfigRaw),
       suppliedUnderlyingRaw,
       borrowedUnderlyingRaw,
+      collateralEnabled,
+      accountLiquidityRaw: accountLiquidity.liquidityRaw,
+      accountShortfallRaw: accountLiquidity.shortfallRaw,
     });
   } catch (error) {
     return buildFailedMarketRead(params.market, error);
