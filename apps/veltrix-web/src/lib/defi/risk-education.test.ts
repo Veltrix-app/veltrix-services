@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  buildBorrowPreflightRead,
   borrowLendingRiskTopics,
   getBorrowLendingRiskTopic,
   getRiskEducationChecklist,
@@ -45,5 +46,55 @@ test("risk education checklist keeps the recommended order conservative", () => 
   assert.deepEqual(
     getRiskEducationChecklist().map((item) => item.label),
     ["Supply first", "Enable collateral deliberately", "Borrow small", "Monitor and repay"]
+  );
+});
+
+test("borrow preflight blocks unsafe setup before a borrow can be considered", () => {
+  assert.equal(
+    buildBorrowPreflightRead({
+      walletReady: false,
+      marketStatus: "ready",
+      hasSupplyPosition: false,
+      collateralEnabled: false,
+      hasBorrowPosition: false,
+      accountLiquidityRaw: "0",
+      accountShortfallRaw: "0",
+    }).primaryMove,
+    "Connect wallet"
+  );
+
+  const shortfall = buildBorrowPreflightRead({
+    walletReady: true,
+    marketStatus: "ready",
+    hasSupplyPosition: true,
+    collateralEnabled: true,
+    hasBorrowPosition: true,
+    accountLiquidityRaw: "0",
+    accountShortfallRaw: "25000000000000000000",
+  });
+
+  assert.equal(shortfall.status, "blocked");
+  assert.match(shortfall.headline, /shortfall/i);
+  assert.match(shortfall.primaryMove, /repay|collateral/i);
+});
+
+test("borrow preflight promotes conservative next moves when collateral is ready", () => {
+  const preflight = buildBorrowPreflightRead({
+    walletReady: true,
+    marketStatus: "ready",
+    hasSupplyPosition: true,
+    collateralEnabled: true,
+    hasBorrowPosition: false,
+    accountLiquidityRaw: "150000000000000000000",
+    accountShortfallRaw: "0",
+  });
+
+  assert.equal(preflight.status, "ready");
+  assert.equal(preflight.label, "Ready with caution");
+  assert.equal(preflight.primaryMove, "Borrow small");
+  assert.match(preflight.description, /credit remaining/i);
+  assert.deepEqual(
+    preflight.metrics.map((metric) => metric.label),
+    ["Credit remaining", "Shortfall", "Posture"]
   );
 });

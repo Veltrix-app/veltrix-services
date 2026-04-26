@@ -17,6 +17,10 @@ import type {
   MoonwellMarketRead,
   MoonwellPortfolioRead,
 } from "@/lib/defi/moonwell-markets";
+import {
+  buildBorrowPreflightRead,
+  type BorrowPreflightRead,
+} from "@/lib/defi/risk-education";
 import type { MoonwellMarketTransactionKind } from "@/lib/defi/moonwell-market-transactions";
 
 const accentStyles = {
@@ -137,6 +141,17 @@ export function BorrowLendingScreen() {
   }, [marketsRead.markets, selectedSlug]);
 
   const walletReady = Boolean(profile?.wallet);
+  const borrowPreflight = selectedMarket
+    ? buildBorrowPreflightRead({
+        walletReady,
+        marketStatus: selectedMarket.status,
+        hasSupplyPosition: selectedMarket.hasSupplyPosition,
+        collateralEnabled: selectedMarket.collateralEnabled,
+        hasBorrowPosition: selectedMarket.hasBorrowPosition,
+        accountLiquidityRaw: selectedMarket.accountLiquidityRaw,
+        accountShortfallRaw: selectedMarket.accountShortfallRaw,
+      })
+    : null;
   const actionDisabledReason = getActionDisabledReason({
     action,
     market: selectedMarket,
@@ -294,6 +309,10 @@ export function BorrowLendingScreen() {
                   {actionOptions.find((option) => option.kind === action)?.description}
                 </p>
               </div>
+
+              {action === "borrow" && borrowPreflight ? (
+                <BorrowPreflightPanel preflight={borrowPreflight} />
+              ) : null}
 
               {action !== "enable-collateral" ? (
                 <label className="mt-4 block rounded-[18px] border border-white/8 bg-white/[0.035] px-3.5 py-3">
@@ -644,6 +663,52 @@ function RiskCard({ selectedMarket }: { selectedMarket: MoonwellMarketRead }) {
   );
 }
 
+function BorrowPreflightPanel({ preflight }: { preflight: BorrowPreflightRead }) {
+  const tone =
+    preflight.status === "ready"
+      ? "border-lime-300/14 bg-lime-300/[0.055] text-lime-100"
+      : preflight.status === "watch"
+        ? "border-amber-300/14 bg-amber-300/[0.055] text-amber-100"
+        : preflight.status === "setup"
+          ? "border-cyan-300/14 bg-cyan-300/[0.045] text-cyan-100"
+          : "border-rose-300/14 bg-rose-300/[0.055] text-rose-100";
+  const chipTone =
+    preflight.status === "ready"
+      ? "positive"
+      : preflight.status === "watch"
+        ? "warning"
+        : preflight.status === "setup"
+          ? "info"
+          : "warning";
+
+  return (
+    <div className={`mt-4 rounded-[20px] border p-4 ${tone}`}>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="max-w-2xl">
+          <p className="text-[10px] font-black uppercase tracking-[0.24em] opacity-80">
+            Borrow preflight
+          </p>
+          <h4 className="mt-2 text-[1rem] font-black tracking-[-0.03em] text-white">
+            {preflight.headline}
+          </h4>
+          <p className="mt-2 text-[12px] leading-6 text-slate-300">{preflight.description}</p>
+        </div>
+        <StatusChip label={preflight.label} tone={chipTone} />
+      </div>
+
+      <div className="mt-4 grid gap-2 sm:grid-cols-3">
+        {preflight.metrics.map((metric) => (
+          <MarketMetric key={metric.label} label={metric.label} value={metric.value} />
+        ))}
+      </div>
+
+      <p className="mt-3 inline-flex rounded-full border border-white/8 bg-black/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-white">
+        Next move: {preflight.primaryMove}
+      </p>
+    </div>
+  );
+}
+
 function RouteCard() {
   return (
     <div className="rounded-[26px] border border-white/6 bg-white/[0.025] p-5">
@@ -720,6 +785,10 @@ function getActionDisabledReason({
 
   if (action === "borrow" && BigInt(market.accountShortfallRaw || "0") > BigInt(0)) {
     return "Shortfall detected";
+  }
+
+  if (action === "borrow" && BigInt(market.accountLiquidityRaw || "0") <= BigInt(0)) {
+    return "No credit remaining";
   }
 
   return null;
