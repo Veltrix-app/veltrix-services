@@ -1,3 +1,5 @@
+import type { MoonwellVaultPositionRead } from "./moonwell-vaults";
+
 export type DefiMissionStep = {
   label: string;
   description: string;
@@ -34,6 +36,45 @@ export type DefiMissionOverview = {
   disclosure: string;
   vaults: DefiVaultMission[];
   productRails: Array<{
+    label: string;
+    value: string;
+    description: string;
+  }>;
+};
+
+export type MoonwellMarketOpportunity = {
+  slug: string;
+  title: string;
+  asset: string;
+  chain: "Base";
+  mode: "read-only";
+  primaryAction: string;
+  signal: string;
+  description: string;
+  riskLabel: string;
+  accent: "lime" | "cyan" | "violet" | "amber";
+};
+
+export type MoonwellPortfolioPosture = {
+  status: "wallet-needed" | "loading" | "empty" | "active" | "read-error";
+  headline: string;
+  description: string;
+  activeVaults: number;
+  detectedAssets: string[];
+  nextSafeAction: string;
+};
+
+export type MoonwellMarketExpansion = {
+  title: string;
+  description: string;
+  markets: MoonwellMarketOpportunity[];
+  portfolio: MoonwellPortfolioPosture;
+  borrowRail: {
+    label: string;
+    status: "later";
+    description: string;
+  };
+  nextRails: Array<{
     label: string;
     value: string;
     description: string;
@@ -146,6 +187,121 @@ const vaults: DefiVaultMission[] = [
   },
 ];
 
+const moonwellMarkets: MoonwellMarketOpportunity[] = [
+  {
+    slug: "usdc-market",
+    title: "USDC market",
+    asset: "USDC",
+    chain: "Base",
+    mode: "read-only",
+    primaryAction: "Review supply route",
+    signal: "Stable first market",
+    description: "Track lending-market liquidity, supply demand and future supply missions.",
+    riskLabel: "Stablecoin and smart-contract risk",
+    accent: "lime",
+  },
+  {
+    slug: "eth-market",
+    title: "ETH market",
+    asset: "ETH",
+    chain: "Base",
+    mode: "read-only",
+    primaryAction: "Review ETH supply",
+    signal: "Core collateral asset",
+    description: "Prepare a clean supply posture before any borrow experience is exposed.",
+    riskLabel: "Market movement and smart-contract risk",
+    accent: "cyan",
+  },
+  {
+    slug: "eurc-market",
+    title: "EURC market",
+    asset: "EURC",
+    chain: "Base",
+    mode: "read-only",
+    primaryAction: "Review EURC route",
+    signal: "Euro stable rail",
+    description: "Surface regional stablecoin opportunities without adding leverage yet.",
+    riskLabel: "Stablecoin, liquidity and peg risk",
+    accent: "violet",
+  },
+  {
+    slug: "well-rewards",
+    title: "Rewards posture",
+    asset: "WELL",
+    chain: "Base",
+    mode: "read-only",
+    primaryAction: "Watch rewards",
+    signal: "Claim center next",
+    description: "Lay the read layer for claimable rewards, badges and campaign boosts.",
+    riskLabel: "Reward availability can vary",
+    accent: "amber",
+  },
+];
+
+function buildPortfolioPosture(input: {
+  walletReady: boolean;
+  readStatus: "wallet-missing" | "loading" | "ready" | "error";
+  vaultPositions: MoonwellVaultPositionRead[];
+}): MoonwellPortfolioPosture {
+  if (!input.walletReady || input.readStatus === "wallet-missing") {
+    return {
+      status: "wallet-needed",
+      headline: "Connect wallet to build portfolio posture",
+      description: "Vaults, market reads and future rewards need the same verified wallet spine.",
+      activeVaults: 0,
+      detectedAssets: [],
+      nextSafeAction: "Connect a verified wallet",
+    };
+  }
+
+  if (input.readStatus === "loading") {
+    return {
+      status: "loading",
+      headline: "Reading Base positions",
+      description: "We are checking vault positions before recommending the next safe DeFi action.",
+      activeVaults: 0,
+      detectedAssets: [],
+      nextSafeAction: "Wait for the read to finish",
+    };
+  }
+
+  if (input.readStatus === "error") {
+    return {
+      status: "read-error",
+      headline: "Portfolio read needs another attempt",
+      description: "The wallet is connected, but the current Base read failed.",
+      activeVaults: 0,
+      detectedAssets: [],
+      nextSafeAction: "Refresh the vault read",
+    };
+  }
+
+  const activePositions = input.vaultPositions.filter(
+    (position) => position.status === "position-detected"
+  );
+  const detectedAssets = Array.from(new Set(activePositions.map((position) => position.assetSymbol)));
+
+  if (activePositions.length === 0) {
+    return {
+      status: "empty",
+      headline: "No Moonwell position detected yet",
+      description: "Start with a low-complexity vault before moving into markets, rewards or XP.",
+      activeVaults: 0,
+      detectedAssets: [],
+      nextSafeAction: "Review USDC Vault first",
+    };
+  }
+
+  return {
+    status: "active",
+    headline: "Moonwell position detected",
+    description: "Your wallet already has DeFi posture we can turn into future XP eligibility.",
+    activeVaults: activePositions.length,
+    detectedAssets,
+    nextSafeAction: "Review detected positions before adding market actions",
+  };
+}
+
 export function buildDefiMissionOverview(): DefiMissionOverview {
   return {
     productName: "VYNTRO DeFi Missions",
@@ -179,4 +335,41 @@ export function buildDefiMissionOverview(): DefiMissionOverview {
 
 export function getPrimaryVaultMission() {
   return vaults[0];
+}
+
+export function buildMoonwellMarketExpansion(input: {
+  walletReady: boolean;
+  readStatus: "wallet-missing" | "loading" | "ready" | "error";
+  vaultPositions: MoonwellVaultPositionRead[];
+}): MoonwellMarketExpansion {
+  return {
+    title: "Moonwell market cockpit",
+    description:
+      "A read-first expansion layer for lending markets, portfolio posture and rewards before we expose higher-risk actions.",
+    markets: moonwellMarkets,
+    portfolio: buildPortfolioPosture(input),
+    borrowRail: {
+      label: "Borrow and repay",
+      status: "later",
+      description:
+        "Borrow flows come later, after collateral, liquidation and health-factor UX are strong enough for real users.",
+    },
+    nextRails: [
+      {
+        label: "Next",
+        value: "Market reads",
+        description: "Show supply APY, liquidity and caps before any new transaction flow.",
+      },
+      {
+        label: "Then",
+        value: "Rewards",
+        description: "Add claimable rewards and campaign boosts once position reads are stable.",
+      },
+      {
+        label: "Later",
+        value: "Borrow",
+        description: "Only launch borrow after liquidation-risk education is unmistakable.",
+      },
+    ],
+  };
 }

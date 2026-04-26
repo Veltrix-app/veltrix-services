@@ -11,9 +11,12 @@ import {
   Wallet,
 } from "lucide-react";
 import {
+  buildMoonwellMarketExpansion,
   buildDefiMissionOverview,
   getPrimaryVaultMission,
   type DefiVaultMission,
+  type MoonwellMarketOpportunity,
+  type MoonwellPortfolioPosture,
 } from "@/lib/defi/defi-missions-read-model";
 import {
   type MoonwellVaultPositionRead,
@@ -97,6 +100,11 @@ export function DefiMissionsScreen() {
   const detectedPositions = vaultPositions.positions.filter(
     (position) => position.status === "position-detected"
   ).length;
+  const marketExpansion = buildMoonwellMarketExpansion({
+    walletReady,
+    readStatus: vaultPositions.status,
+    vaultPositions: vaultPositions.positions,
+  });
   const readStatusLabel = getReadStatusLabel({
     status: vaultPositions.status,
     walletReady,
@@ -423,6 +431,62 @@ export function DefiMissionsScreen() {
         </aside>
       </section>
 
+      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_360px]">
+        <div className="rounded-[26px] border border-white/6 bg-[linear-gradient(180deg,rgba(13,15,18,0.985),rgba(7,9,12,0.99))] p-4 sm:p-5">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-lime-300">
+                Market read mode
+              </p>
+              <h3 className="mt-3 text-[1.35rem] font-black tracking-[-0.04em] text-white">
+                {marketExpansion.title}
+              </h3>
+              <p className="mt-2 max-w-3xl text-[13px] leading-6 text-slate-400">
+                {marketExpansion.description}
+              </p>
+            </div>
+            <span className="rounded-full border border-lime-300/12 bg-lime-300/[0.08] px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-lime-200">
+              Read-only
+            </span>
+          </div>
+
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
+            {marketExpansion.markets.map((market) => (
+              <MoonwellMarketCard key={market.slug} market={market} />
+            ))}
+          </div>
+        </div>
+
+        <aside className="space-y-4">
+          <MoonwellPortfolioCard portfolio={marketExpansion.portfolio} />
+
+          <div className="rounded-[24px] border border-amber-300/10 bg-[linear-gradient(180deg,rgba(18,16,10,0.72),rgba(8,9,12,0.98))] p-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-amber-200">
+              {marketExpansion.borrowRail.label}
+            </p>
+            <p className="mt-3 text-[0.98rem] font-semibold text-white">Keep leverage locked</p>
+            <p className="mt-2 text-[12px] leading-5 text-slate-400">
+              {marketExpansion.borrowRail.description}
+            </p>
+          </div>
+
+          <div className="grid gap-2">
+            {marketExpansion.nextRails.map((rail) => (
+              <div
+                key={rail.label}
+                className="rounded-[18px] border border-white/6 bg-white/[0.025] px-3.5 py-3"
+              >
+                <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-500">
+                  {rail.label}
+                </p>
+                <p className="mt-1.5 text-[13px] font-semibold text-white">{rail.value}</p>
+                <p className="mt-1 text-[11px] leading-5 text-slate-400">{rail.description}</p>
+              </div>
+            ))}
+          </div>
+        </aside>
+      </section>
+
       <section className="grid gap-3 md:grid-cols-3">
         {overview.productRails.map((rail) => (
           <div
@@ -442,6 +506,86 @@ export function DefiMissionsScreen() {
           </div>
         ))}
       </section>
+    </div>
+  );
+}
+
+function MoonwellMarketCard({ market }: { market: MoonwellMarketOpportunity }) {
+  const accent = accentStyles[market.accent];
+
+  return (
+    <div
+      className={`rounded-[22px] border ${accent.border} bg-white/[0.025] p-4`}
+      style={{
+        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.04), 0 18px 44px ${accent.glow}`,
+      }}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+            {market.chain} / {market.asset}
+          </p>
+          <h4 className="mt-2 text-[1rem] font-bold tracking-[-0.03em] text-white">
+            {market.title}
+          </h4>
+        </div>
+        <span className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] ${accent.bg} ${accent.softText}`}>
+          {market.mode}
+        </span>
+      </div>
+      <p className="mt-3 text-[12px] leading-5 text-slate-400">{market.description}</p>
+      <div className="mt-4 grid gap-2 sm:grid-cols-2">
+        <MiniSignal label="Signal" value={market.signal} />
+        <MiniSignal label="Risk" value={market.riskLabel} />
+      </div>
+      <p className={`mt-4 text-[10px] font-black uppercase tracking-[0.16em] ${accent.softText}`}>
+        {market.primaryAction}
+      </p>
+    </div>
+  );
+}
+
+function MoonwellPortfolioCard({ portfolio }: { portfolio: MoonwellPortfolioPosture }) {
+  const statusLabel = portfolio.status.replace("-", " ");
+
+  return (
+    <div className="rounded-[24px] border border-white/6 bg-[linear-gradient(180deg,rgba(13,15,18,0.99),rgba(7,9,12,0.99))] p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-cyan-200">
+            Portfolio posture
+          </p>
+          <p className="mt-3 text-[0.98rem] font-semibold text-white">{portfolio.headline}</p>
+        </div>
+        <span className="rounded-full border border-white/8 bg-white/[0.04] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-slate-300">
+          {statusLabel}
+        </span>
+      </div>
+      <p className="mt-2 text-[12px] leading-5 text-slate-400">{portfolio.description}</p>
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <MiniSignal label="Active vaults" value={String(portfolio.activeVaults)} />
+        <MiniSignal
+          label="Assets"
+          value={portfolio.detectedAssets.length ? portfolio.detectedAssets.join(", ") : "None"}
+        />
+      </div>
+      <div className="mt-3 rounded-[18px] border border-lime-300/10 bg-lime-300/[0.045] p-3">
+        <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-lime-300">
+          Next safe action
+        </p>
+        <p className="mt-2 text-[12px] font-semibold leading-5 text-white">
+          {portfolio.nextSafeAction}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function MiniSignal({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[15px] border border-white/6 bg-black/20 px-3 py-2">
+      <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-slate-500">{label}</p>
+      <p className="mt-1.5 text-[12px] font-semibold text-white">{value}</p>
     </div>
   );
 }
