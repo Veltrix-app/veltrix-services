@@ -6,10 +6,14 @@ import {
   type XpSourceType,
 } from "./xp-economy";
 
-export type UserXpAwardSourceType =
+export type PublicUserXpAwardSourceType =
   | typeof XP_SOURCE_TYPES.quest
   | typeof XP_SOURCE_TYPES.raid
   | typeof XP_SOURCE_TYPES.streak;
+
+export type UserXpAwardSourceType =
+  | PublicUserXpAwardSourceType
+  | typeof XP_SOURCE_TYPES.defi;
 
 export type XpReputationSnapshot = {
   total_xp?: unknown;
@@ -72,8 +76,17 @@ export const XP_USER_AWARD_SOURCE_TYPES = [
   XP_SOURCE_TYPES.streak,
 ] as const satisfies readonly XpSourceType[];
 
-export function isUserXpAwardSourceType(value: unknown): value is UserXpAwardSourceType {
-  return XP_USER_AWARD_SOURCE_TYPES.includes(value as UserXpAwardSourceType);
+export const XP_CENTRAL_AWARD_SOURCE_TYPES = [
+  ...XP_USER_AWARD_SOURCE_TYPES,
+  XP_SOURCE_TYPES.defi,
+] as const satisfies readonly XpSourceType[];
+
+export function isUserXpAwardSourceType(value: unknown): value is PublicUserXpAwardSourceType {
+  return XP_USER_AWARD_SOURCE_TYPES.includes(value as PublicUserXpAwardSourceType);
+}
+
+export function isCentralXpAwardSourceType(value: unknown): value is UserXpAwardSourceType {
+  return XP_CENTRAL_AWARD_SOURCE_TYPES.includes(value as UserXpAwardSourceType);
 }
 
 export function buildUserXpAwardPlan(input: {

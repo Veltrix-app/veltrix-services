@@ -1,4 +1,4 @@
-import type { UserXpAwardSourceType } from "./xp-awards";
+import type { PublicUserXpAwardSourceType } from "./xp-awards";
 
 export type UserXpAwardResponse = {
   ok: boolean;
@@ -14,7 +14,7 @@ export type UserXpAwardResponse = {
 
 export async function claimUserXpAward(input: {
   accessToken: string;
-  sourceType: UserXpAwardSourceType;
+  sourceType: PublicUserXpAwardSourceType;
   sourceId: string;
   baseXp: number;
   projectId?: string | null;

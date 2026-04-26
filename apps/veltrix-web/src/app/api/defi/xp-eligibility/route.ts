@@ -22,11 +22,7 @@ import {
   createSupabaseServiceClient,
   createSupabaseUserServerClient,
 } from "@/lib/supabase/server";
-import {
-  buildXpAwardPlan,
-  buildXpProgressionRead,
-  buildXpReputationPatch,
-} from "@/lib/xp/xp-economy";
+import { applyUserXpAward } from "@/lib/xp/xp-award-server";
 import {
   MOONWELL_BASE_VAULTS,
   getBaseRpcUrls,
@@ -398,55 +394,6 @@ async function resolveRequestContext(request: NextRequest) {
   }
 }
 
-async function applyXpToGlobalReputation(params: {
-  serviceSupabase: ReturnType<typeof createSupabaseServiceClient>;
-  authUserId: string;
-  xpAmount: number;
-}) {
-  const { data: reputation, error: reputationError } = await params.serviceSupabase
-    .from("user_global_reputation")
-    .select("total_xp, active_xp, streak, trust_score, sybil_score, quests_completed, raids_completed, rewards_claimed, status")
-    .eq("auth_user_id", params.authUserId)
-    .maybeSingle();
-
-  if (reputationError) {
-    throw new Error(reputationError.message);
-  }
-
-  const reputationPatch = buildXpReputationPatch({
-    currentTotalXp: safeNumber(reputation?.total_xp),
-    currentActiveXp: safeNumber(reputation?.active_xp, safeNumber(reputation?.total_xp)),
-    xpAwarded: params.xpAmount,
-  });
-  const progression = buildXpProgressionRead(reputationPatch.totalXp);
-  const { error: upsertError } = await params.serviceSupabase
-    .from("user_global_reputation")
-    .upsert(
-      {
-        auth_user_id: params.authUserId,
-        total_xp: reputationPatch.totalXp,
-        active_xp: reputationPatch.activeXp,
-        level: progression.level,
-        streak: safeNumber(reputation?.streak),
-        trust_score: safeNumber(reputation?.trust_score, 50),
-        sybil_score: safeNumber(reputation?.sybil_score),
-        contribution_tier: progression.contributionTier,
-        quests_completed: safeNumber(reputation?.quests_completed),
-        raids_completed: safeNumber(reputation?.raids_completed),
-        rewards_claimed: safeNumber(reputation?.rewards_claimed),
-        status: typeof reputation?.status === "string" ? reputation.status : "active",
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "auth_user_id" }
-    );
-
-  if (upsertError) {
-    throw new Error(upsertError.message);
-  }
-
-  return reputationPatch.totalXp;
-}
-
 export async function GET(request: NextRequest) {
   const context = await resolveRequestContext(request);
   if (!context.ok) {
@@ -559,101 +506,43 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data: reputationForAward, error: reputationForAwardError } = await context.serviceSupabase
-      .from("user_global_reputation")
-      .select("sybil_score")
-      .eq("auth_user_id", context.user.id)
-      .maybeSingle();
-
-    if (reputationForAwardError) {
-      return NextResponse.json({ ok: false, error: reputationForAwardError.message }, { status: 500 });
-    }
-
-    const xpAwardPlan = buildXpAwardPlan({
+    const award = await applyUserXpAward({
+      serviceSupabase: context.serviceSupabase,
+      authUserId: context.user.id,
       sourceType: claimPlan.event.sourceType,
       sourceId: claimPlan.mission.slug,
       baseXp: claimPlan.event.xpAmount,
-      claimedSourceRefs: claimsRead.claimedSourceRefs,
-      sybilScore: safeNumber(reputationForAward?.sybil_score),
-      trustScore: 50,
+      metadata: {
+        source: "vyntro_defi_xp",
+        walletAddress: context.wallet,
+        missionSlug: claimPlan.mission.slug,
+        missionTitle: claimPlan.mission.title,
+        trackingReady: transactionRead.trackingReady && marketTransactionRead.trackingReady,
+      },
     });
 
-    if (!xpAwardPlan.ok) {
+    if (!award.ok) {
       return NextResponse.json(
         {
           ok: false,
-          error: xpAwardPlan.message,
-          reason: xpAwardPlan.reason,
+          error: award.error,
+          reason: award.reason,
         },
-        { status: xpAwardPlan.reason === "duplicate" ? 200 : 409 }
+        { status: 409 }
       );
-    }
-
-    const timestamp = new Date().toISOString();
-    const { data: event, error: eventError } = await context.serviceSupabase
-      .from("xp_events")
-      .insert({
-        auth_user_id: context.user.id,
-        source_type: xpAwardPlan.event.sourceType,
-        source_ref: xpAwardPlan.event.sourceRef,
-        base_value: xpAwardPlan.event.baseXp,
-        xp_amount: xpAwardPlan.event.baseXp,
-        quality_multiplier: xpAwardPlan.event.qualityMultiplier,
-        trust_multiplier: xpAwardPlan.event.trustMultiplier,
-        action_multiplier: xpAwardPlan.event.actionMultiplier,
-        effective_xp: xpAwardPlan.event.effectiveXp,
-        metadata: {
-          source: "vyntro_defi_xp",
-          walletAddress: context.wallet,
-          missionSlug: claimPlan.mission.slug,
-          missionTitle: claimPlan.mission.title,
-          antiAbuseStatus: xpAwardPlan.event.antiAbuseStatus,
-          streakMultiplier: xpAwardPlan.event.streakMultiplier,
-          trackingReady: transactionRead.trackingReady && marketTransactionRead.trackingReady,
-        },
-        created_at: timestamp,
-        updated_at: timestamp,
-      })
-      .select("id")
-      .single();
-
-    if (eventError) {
-      if (eventError.code === "23505") {
-        return NextResponse.json({
-          ok: true,
-          alreadyClaimed: true,
-          missionSlug,
-          sourceRef: claimPlan.event.sourceRef,
-        });
-      }
-
-      return NextResponse.json({ ok: false, error: eventError.message }, { status: 500 });
-    }
-
-    let totalXp: number;
-
-    try {
-      totalXp = await applyXpToGlobalReputation({
-        serviceSupabase: context.serviceSupabase,
-        authUserId: context.user.id,
-        xpAmount: xpAwardPlan.event.effectiveXp,
-      });
-    } catch (error) {
-      if (event?.id) {
-        await context.serviceSupabase.from("xp_events").delete().eq("id", event.id);
-      }
-
-      throw error;
     }
 
     return NextResponse.json({
       ok: true,
-      alreadyClaimed: false,
-      eventId: event?.id ?? null,
+      alreadyClaimed: award.alreadyClaimed,
+      eventId: award.eventId,
       missionSlug,
-      sourceRef: xpAwardPlan.event.sourceRef,
-      xpAwarded: xpAwardPlan.event.effectiveXp,
-      totalXp,
+      sourceRef: award.sourceRef,
+      xpAwarded: award.xpAwarded,
+      totalXp: award.totalXp,
+      activeXp: award.activeXp,
+      level: award.level,
+      contributionTier: award.contributionTier,
     });
   } catch (error) {
     return NextResponse.json(
