@@ -644,6 +644,8 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
         level: row.level ?? 1,
         avatarUrl: row.avatar_url ?? "",
         bannerUrl: row.banner_url ?? "",
+        title: row.title ?? "Explorer",
+        faction: row.faction ?? "Unassigned",
         isCurrentUser: row.auth_user_id === authUserId,
       }));
     if (shouldLoadLeaderboard) {

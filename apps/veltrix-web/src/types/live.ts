@@ -81,6 +81,8 @@ export type LiveLeaderboardUser = {
   level: number;
   avatarUrl: string;
   bannerUrl: string;
+  title: string;
+  faction: string;
   isCurrentUser: boolean;
 };
 
