@@ -39,6 +39,7 @@ const primaryNavItems = [
     aliases: ["/defi-missions"],
     children: [
       { href: "/defi", label: "Overview" },
+      { href: "/defi/portfolio", label: "Portfolio" },
       { href: "/defi/vaults", label: "Vaults" },
       { href: "/defi/borrow-lending", label: "Borrow / lending" },
       { href: "/defi/risk-guide", label: "Risk guide" },

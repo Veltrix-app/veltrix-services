@@ -1,9 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, BookOpenCheck, History, Layers3, ShieldCheck, Wallet } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpenCheck,
+  History,
+  Layers3,
+  ShieldCheck,
+  Wallet,
+  WalletCards,
+} from "lucide-react";
 
 const defiRoutes = [
+  {
+    href: "/defi/portfolio",
+    label: "Portfolio",
+    eyebrow: "Command read",
+    icon: WalletCards,
+    description:
+      "Read vaults, supplied markets, borrowed markets, claimable XP and the next safe action in one place.",
+    stats: ["Vaults", "Borrow risk", "Claimable XP"],
+  },
   {
     href: "/defi/vaults",
     label: "Vault missions",
@@ -81,7 +98,7 @@ export function DefiLandingScreen() {
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {defiRoutes.map((route) => {
           const Icon = route.icon;
 
