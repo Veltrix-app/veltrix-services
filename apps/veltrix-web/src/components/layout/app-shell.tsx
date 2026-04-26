@@ -21,6 +21,10 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useWalletIdentityActions } from "@/hooks/use-wallet-identity-actions";
+import {
+  getMainPageSignalBanner,
+  type MainPageSignalBanner,
+} from "@/lib/navigation/page-signal-banners";
 
 const primaryNavItems = [
   { href: "/home", label: "Home", icon: Home },
@@ -242,6 +246,37 @@ function HeaderRead({
   );
 }
 
+function MainPageSignalBannerCard({ banner }: { banner: MainPageSignalBanner }) {
+  return (
+    <Link
+      href={banner.href}
+      className="group relative overflow-hidden rounded-[28px] border border-white/7 bg-[radial-gradient(circle_at_88%_18%,rgba(190,255,74,0.1),transparent_32%),linear-gradient(180deg,rgba(14,17,22,0.78),rgba(7,9,12,0.82))] p-4 shadow-[0_18px_70px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:border-lime-300/18 hover:bg-white/[0.045] xl:ml-auto xl:w-[min(360px,24vw)]"
+    >
+      <div className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-lime-300/28 to-transparent" />
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[9px] font-black uppercase tracking-[0.24em] text-lime-300">
+            {banner.eyebrow}
+          </p>
+          <h2 className="mt-3 max-w-[18rem] text-[1rem] font-black leading-tight tracking-[-0.035em] text-white">
+            {banner.title}
+          </h2>
+        </div>
+        <span className="mt-1 h-2.5 w-2.5 rounded-full bg-lime-300 shadow-[0_0_18px_rgba(190,255,74,0.5)]" />
+      </div>
+      <p className="mt-3 text-[12px] leading-5 text-slate-400">{banner.copy}</p>
+      <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/6 pt-3">
+        <span className="rounded-full border border-white/8 bg-black/20 px-2.5 py-1.5 text-[9px] font-black uppercase tracking-[0.14em] text-slate-400">
+          {banner.signal}
+        </span>
+        <span className="text-[10px] font-black uppercase tracking-[0.14em] text-lime-200 transition group-hover:translate-x-0.5">
+          {banner.cta}
+        </span>
+      </div>
+    </Link>
+  );
+}
+
 function SessionMenu({
   accountReady,
   authConfigured,
@@ -399,6 +434,7 @@ export function AppShell({
   const identityLabel = profile?.username ?? session?.user?.email ?? "Guest member";
   const accountReady = Boolean(session);
   const walletReady = Boolean(profile?.wallet);
+  const mainPageSignalBanner = getMainPageSignalBanner(pathname);
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(148,98,255,0.12),transparent_18%),linear-gradient(180deg,#050608_0%,#040507_36%,#020304_100%)] text-white">
@@ -480,14 +516,20 @@ export function AppShell({
       </header>
 
       <div className="mx-auto max-w-[1720px] px-4 py-6 sm:px-6 lg:px-8 lg:py-7">
-        <div className="min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-lime-300">{eyebrow}</p>
-          <h1 className="mt-4 max-w-4xl text-balance text-[clamp(2rem,3vw,3.3rem)] font-black leading-[0.96] tracking-[-0.04em] text-white">
-            {title}
-          </h1>
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-400 sm:text-[0.95rem]">
-            {description}
-          </p>
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start">
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-lime-300">{eyebrow}</p>
+            <h1 className="mt-4 max-w-4xl text-balance text-[clamp(2rem,3vw,3.3rem)] font-black leading-[0.96] tracking-[-0.04em] text-white">
+              {title}
+            </h1>
+            <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-400 sm:text-[0.95rem]">
+              {description}
+            </p>
+          </div>
+
+          {mainPageSignalBanner ? (
+            <MainPageSignalBannerCard banner={mainPageSignalBanner} />
+          ) : null}
         </div>
 
         <main className="mt-8 lg:mt-10">{children}</main>
