@@ -14,6 +14,7 @@ import {
 import {
   type DefiXpEligibilitySnapshot,
   type DefiXpMissionState,
+  type DefiXpMissionSlug,
 } from "@/lib/defi/defi-xp-eligibility";
 import {
   buildMoonwellMarketExpansion,
@@ -87,7 +88,7 @@ function shortenWallet(address?: string | null) {
 }
 
 export function DefiMissionsScreen() {
-  const { session, profile } = useAuth();
+  const { session, profile, reloadProfile } = useAuth();
   const vaultPositions = useMoonwellVaultPositions();
   const liveMarkets = useMoonwellMarkets();
   const defiXp = useDefiXpEligibility({
@@ -470,7 +471,16 @@ export function DefiMissionsScreen() {
       </section>
 
       <DefiXpEligibilityPanel
+        claimMessage={defiXp.claimMessage}
+        claimingSlug={defiXp.claimingSlug}
+        claimStatus={defiXp.claimStatus}
         error={defiXp.error}
+        onClaim={async (missionSlug) => {
+          const result = await defiXp.claimMission(missionSlug);
+          if (result.ok) {
+            await reloadProfile();
+          }
+        }}
         onRefresh={defiXp.refresh}
         snapshot={defiXp.snapshot}
         status={defiXp.status}
@@ -670,14 +680,22 @@ function MoonwellPortfolioCard({ portfolio }: { portfolio: MoonwellPortfolioCard
 }
 
 function DefiXpEligibilityPanel({
+  claimMessage,
+  claimingSlug,
+  claimStatus,
   error,
+  onClaim,
   onRefresh,
   snapshot,
   status,
   trackingReady,
   warning,
 }: {
+  claimMessage: string | null;
+  claimingSlug: DefiXpMissionSlug | null;
+  claimStatus: "idle" | "claiming" | "claimed" | "error";
   error: string | null;
+  onClaim: (missionSlug: DefiXpMissionSlug) => Promise<void>;
   onRefresh: () => void;
   snapshot: DefiXpEligibilitySnapshot;
   status: "wallet-missing" | "loading" | "ready" | "error";
@@ -727,12 +745,12 @@ function DefiXpEligibilityPanel({
             Preview XP
           </p>
           <p className="mt-3 text-3xl font-black tracking-[-0.05em] text-white">
-            {snapshot.completedXp}
+            {snapshot.claimedXp}
             <span className="text-sm font-semibold text-slate-500"> / {snapshot.previewXp}</span>
           </p>
           <p className="mt-2 text-[12px] leading-5 text-slate-400">
-            {snapshot.completedMissions}/{snapshot.totalMissions} XP missions eligible. Final
-            payout rules and anti-abuse thresholds come in the economy pass.
+            {snapshot.completedMissions}/{snapshot.totalMissions} missions eligible, with{" "}
+            {snapshot.claimableXp} XP ready to claim when proof checks pass.
           </p>
           <div className="mt-4 rounded-[18px] border border-white/8 bg-black/20 p-3">
             <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">
@@ -767,17 +785,32 @@ function DefiXpEligibilityPanel({
               <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
                 {mission.progressLabel}
               </p>
-              <p className="mt-1 text-[10px] font-black uppercase tracking-[0.14em] text-lime-200">
-                {mission.actionLabel}
-              </p>
+              {mission.claimState === "claimable" ? (
+                <button
+                  type="button"
+                  disabled={claimStatus === "claiming"}
+                  onClick={() => void onClaim(mission.slug)}
+                  className="mt-3 w-full rounded-full bg-lime-300 px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-black transition hover:bg-lime-200 disabled:cursor-not-allowed disabled:bg-white/8 disabled:text-slate-500"
+                >
+                  {claimingSlug === mission.slug ? "Claiming..." : `Claim ${mission.xp} XP`}
+                </button>
+              ) : mission.claimState === "claimed" ? (
+                <p className="mt-3 rounded-full border border-lime-300/12 bg-lime-300/[0.07] px-3 py-2 text-center text-[10px] font-black uppercase tracking-[0.14em] text-lime-200">
+                  Claimed
+                </p>
+              ) : (
+                <p className="mt-1 text-[10px] font-black uppercase tracking-[0.14em] text-lime-200">
+                  {mission.actionLabel}
+                </p>
+              )}
             </div>
           ))}
         </div>
       </div>
 
-      {warning || error ? (
+      {claimMessage || warning || error ? (
         <p className="mt-3 rounded-[18px] border border-amber-300/12 bg-amber-300/[0.055] px-3.5 py-3 text-[12px] leading-5 text-amber-100">
-          {warning || error}
+          {claimMessage || warning || error}
         </p>
       ) : null}
     </section>

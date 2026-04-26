@@ -27,6 +27,9 @@ export type DefiXpMissionSlug =
   | "borrow-safety";
 
 export type DefiXpMissionState = "locked" | "eligible" | "active" | "completed" | "warning";
+export type DefiXpClaimState = "locked" | "claimable" | "claimed";
+
+export const DEFI_XP_SOURCE_TYPE = "defi_mission";
 
 export type DefiXpMission = {
   slug: DefiXpMissionSlug;
@@ -34,6 +37,9 @@ export type DefiXpMission = {
   description: string;
   xp: number;
   state: DefiXpMissionState;
+  claimState: DefiXpClaimState;
+  sourceType: typeof DEFI_XP_SOURCE_TYPE;
+  sourceRef: string;
   progressLabel: string;
   actionLabel: string;
 };
@@ -45,6 +51,8 @@ export type DefiXpEligibilitySnapshot = {
   headline: string;
   description: string;
   completedXp: number;
+  claimedXp: number;
+  claimableXp: number;
   previewXp: number;
   completedMissions: number;
   totalMissions: number;
@@ -70,6 +78,22 @@ export type DefiXpMarketInput = {
   slug?: string | null;
   title?: string | null;
 };
+
+export type DefiXpClaimPlan =
+  | {
+      ok: true;
+      mission: DefiXpMission;
+      event: {
+        sourceType: typeof DEFI_XP_SOURCE_TYPE;
+        sourceRef: string;
+        xpAmount: number;
+      };
+    }
+  | {
+      ok: false;
+      alreadyClaimed: boolean;
+      error: string;
+    };
 
 export function buildDefiVaultTransactionSummary(
   rows: DefiVaultTransactionRow[]
@@ -105,8 +129,13 @@ export function buildDefiVaultTransactionSummary(
   };
 }
 
+export function buildDefiXpSourceRef(slug: DefiXpMissionSlug) {
+  return `defi:${slug}`;
+}
+
 export function buildDefiXpEligibilitySnapshot(input: {
   walletReady: boolean;
+  claimedSourceRefs?: string[];
   vaultPositions: DefiXpVaultPositionInput[];
   markets: DefiXpMarketInput[];
   transactions: DefiVaultTransactionSummary;
@@ -120,8 +149,9 @@ export function buildDefiXpEligibilitySnapshot(input: {
   const hasConfirmedVaultAction = input.transactions.confirmedCount > 0;
   const hasWallet = input.walletReady;
   const hasBorrowRisk = borrowedMarkets.length > 0;
+  const claimedSourceRefs = new Set(input.claimedSourceRefs ?? []);
 
-  const missions: DefiXpMission[] = [
+  const baseMissions: Array<Omit<DefiXpMission, "claimState" | "sourceType" | "sourceRef">> = [
     {
       slug: "connect-wallet",
       title: "Connect verified wallet",
@@ -176,11 +206,33 @@ export function buildDefiXpEligibilitySnapshot(input: {
       actionLabel: hasBorrowRisk ? "Review borrow risk" : "Safety clear",
     },
   ];
+  const missions: DefiXpMission[] = baseMissions.map((mission) => {
+    const sourceRef = buildDefiXpSourceRef(mission.slug);
+    const claimState =
+      mission.xp <= 0 || mission.state !== "completed"
+        ? "locked"
+        : claimedSourceRefs.has(sourceRef)
+          ? "claimed"
+          : "claimable";
+
+    return {
+      ...mission,
+      claimState,
+      sourceType: DEFI_XP_SOURCE_TYPE,
+      sourceRef,
+    };
+  });
 
   const xpMissions = missions.filter((mission) => mission.xp > 0);
   const completedMissions = xpMissions.filter((mission) => mission.state === "completed").length;
   const completedXp = xpMissions
     .filter((mission) => mission.state === "completed")
+    .reduce((total, mission) => total + mission.xp, 0);
+  const claimedXp = xpMissions
+    .filter((mission) => mission.claimState === "claimed")
+    .reduce((total, mission) => total + mission.xp, 0);
+  const claimableXp = xpMissions
+    .filter((mission) => mission.claimState === "claimable")
     .reduce((total, mission) => total + mission.xp, 0);
   const previewXp = xpMissions.reduce((total, mission) => total + mission.xp, 0);
 
@@ -190,6 +242,8 @@ export function buildDefiXpEligibilitySnapshot(input: {
       headline: "Connect wallet to unlock DeFi XP",
       description: "XP eligibility starts with the verified wallet that signs vault actions.",
       completedXp,
+      claimedXp,
+      claimableXp,
       previewXp,
       completedMissions,
       totalMissions: xpMissions.length,
@@ -204,6 +258,8 @@ export function buildDefiXpEligibilitySnapshot(input: {
       headline: "Borrow risk before rewards",
       description: "This wallet has borrow exposure, so XP recommendations should stay conservative.",
       completedXp,
+      claimedXp,
+      claimableXp,
       previewXp,
       completedMissions,
       totalMissions: xpMissions.length,
@@ -217,6 +273,8 @@ export function buildDefiXpEligibilitySnapshot(input: {
     headline: "DeFi XP rail is ready",
     description: "Vault activity and live position reads can now feed the next XP economy phase.",
     completedXp,
+    claimedXp,
+    claimableXp,
     previewXp,
     completedMissions,
     totalMissions: xpMissions.length,
@@ -225,6 +283,55 @@ export function buildDefiXpEligibilitySnapshot(input: {
         ? "Define final XP economy rules and anti-abuse thresholds"
         : "Complete the next eligible DeFi mission",
     missions,
+  };
+}
+
+export function buildDefiXpClaimPlan(input: {
+  snapshot: DefiXpEligibilitySnapshot;
+  missionSlug: DefiXpMissionSlug;
+}): DefiXpClaimPlan {
+  const mission = input.snapshot.missions.find((item) => item.slug === input.missionSlug);
+
+  if (!mission) {
+    return {
+      ok: false,
+      alreadyClaimed: false,
+      error: "Unknown DeFi XP mission.",
+    };
+  }
+
+  if (mission.xp <= 0) {
+    return {
+      ok: false,
+      alreadyClaimed: false,
+      error: "This DeFi rail is a safety guard, not an XP claim.",
+    };
+  }
+
+  if (mission.claimState === "claimed") {
+    return {
+      ok: false,
+      alreadyClaimed: true,
+      error: "This DeFi XP mission is already claimed.",
+    };
+  }
+
+  if (mission.claimState !== "claimable") {
+    return {
+      ok: false,
+      alreadyClaimed: false,
+      error: "This DeFi XP mission is not claimable yet.",
+    };
+  }
+
+  return {
+    ok: true,
+    mission,
+    event: {
+      sourceType: mission.sourceType,
+      sourceRef: mission.sourceRef,
+      xpAmount: mission.xp,
+    },
   };
 }
 
