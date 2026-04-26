@@ -8,6 +8,12 @@ import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
+import { XP_SOURCE_TYPES } from "@/lib/xp/xp-economy";
+import {
+  claimUserXpAward,
+  describeXpAward,
+  type UserXpAwardResponse,
+} from "@/lib/xp/xp-award-client";
 
 async function confirmRaidForUser(authUserId: string, raidId: string) {
   const supabase = createSupabaseBrowserClient();
@@ -49,7 +55,7 @@ async function confirmRaidForUser(authUserId: string, raidId: string) {
 export function RaidDetailScreen() {
   const params = useParams<{ id: string }>();
   const raidId = Array.isArray(params.id) ? params.id[0] : params.id;
-  const { authUserId } = useAuth();
+  const { authUserId, session, reloadProfile } = useAuth();
   const { raids, loading, error, reload } = useLiveUserData({
     datasets: ["raids"],
   });
@@ -74,13 +80,45 @@ export function RaidDetailScreen() {
       return;
     }
 
+    if (!session?.access_token) {
+      setMessage({ tone: "error", text: "Please sign in again before confirming this raid." });
+      return;
+    }
+
     setBusy(true);
     setMessage(null);
 
     try {
       await confirmRaidForUser(authUserId, currentRaid.id);
-      await reload();
-      setMessage({ tone: "success", text: "Your raid has been confirmed." });
+      let xpAward: UserXpAwardResponse | null = null;
+      let xpAwardError: string | null = null;
+      try {
+        xpAward = await claimUserXpAward({
+          accessToken: session.access_token,
+          sourceType: XP_SOURCE_TYPES.raid,
+          sourceId: currentRaid.id,
+          baseXp: currentRaid.reward,
+          campaignId: currentRaid.campaignId,
+          metadata: {
+            raidTitle: currentRaid.title,
+            community: currentRaid.community,
+            timer: currentRaid.timer,
+          },
+        });
+      } catch (error) {
+        xpAwardError =
+          error instanceof Error
+            ? error.message
+            : "XP sync could not finish for this confirmed raid.";
+      }
+      await Promise.all([reload(), reloadProfile()]);
+      const successText = "Your raid has been confirmed.";
+      setMessage({
+        tone: "success",
+        text: xpAwardError
+          ? `${successText} XP sync needs attention: ${xpAwardError}`
+          : describeXpAward(xpAward, successText),
+      });
     } catch (nextError) {
       setMessage({
         tone: "error",

@@ -9,6 +9,12 @@ import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
+import { XP_SOURCE_TYPES } from "@/lib/xp/xp-economy";
+import {
+  claimUserXpAward,
+  describeXpAward,
+  type UserXpAwardResponse,
+} from "@/lib/xp/xp-award-client";
 
 function getStatusTone(status: string) {
   if (status === "approved") return "positive";
@@ -381,6 +387,55 @@ export function QuestDetailScreen() {
         ? `${linkedCampaign.title} is the main campaign lane this mission rolls back into.`
         : "Watch the provider and proof state, because this mission is not yet tied to a larger unlock lane.";
 
+  async function awardApprovedQuestXp(): Promise<UserXpAwardResponse | null> {
+    if (!session?.access_token || currentQuest.xp <= 0) {
+      return null;
+    }
+
+    return claimUserXpAward({
+      accessToken: session.access_token,
+      sourceType: XP_SOURCE_TYPES.quest,
+      sourceId: currentQuest.id,
+      baseXp: currentQuest.xp,
+      projectId: currentQuest.projectId,
+      campaignId: currentQuest.campaignId,
+      metadata: {
+        questTitle: currentQuest.title,
+        questType: currentQuest.questType,
+        verificationProvider: inferredVerificationProvider,
+        completionMode: currentQuest.completionMode,
+      },
+    });
+  }
+
+  async function tryAwardApprovedQuestXp() {
+    try {
+      return {
+        xpAward: await awardApprovedQuestXp(),
+        xpAwardError: null as string | null,
+      };
+    } catch (error) {
+      return {
+        xpAward: null,
+        xpAwardError:
+          error instanceof Error
+            ? error.message
+            : "XP sync could not finish for this completed mission.",
+      };
+    }
+  }
+
+  function describeCompletionWithXp(
+    fallback: string,
+    result: { xpAward: UserXpAwardResponse | null; xpAwardError: string | null }
+  ) {
+    if (result.xpAwardError) {
+      return `${fallback} The mission is closed, but XP sync needs attention: ${result.xpAwardError}`;
+    }
+
+    return describeXpAward(result.xpAward, fallback);
+  }
+
   async function handleOpenTask() {
     if (missionClosed) {
       setMessage({
@@ -490,23 +545,32 @@ export function QuestDetailScreen() {
             ? payload.targetUrl.trim()
             : derivedActionUrl;
         const verificationStatus = payload?.status === "approved" ? "approved" : "pending";
+        let xpAwardResult: {
+          xpAward: UserXpAwardResponse | null;
+          xpAwardError: string | null;
+        } = { xpAward: null, xpAwardError: null };
 
         if ((usesWebsiteVerification || verificationStatus === "approved") && authUserId) {
           await updateQuestStatus(authUserId, currentQuest.id, "approved");
+          xpAwardResult = await tryAwardApprovedQuestXp();
         } else if (authUserId) {
           await updateQuestStatus(authUserId, currentQuest.id, "pending");
         }
 
         await Promise.all([reload(), reloadProfile()]);
+        const completionText =
+          payload?.message ||
+          (usesWebsiteVerification
+            ? "Website verification cleared. Opening the tracked destination now."
+            : verificationStatus === "approved"
+              ? "Verification cleared immediately. VYNTRO has marked this mission as approved and closed."
+              : "Verification started. Enter the destination and let VYNTRO keep this mission pending until confirmation lands.");
         setMessage({
-          tone: verificationStatus === "approved" ? "success" : "default",
+          tone: usesWebsiteVerification || verificationStatus === "approved" ? "success" : "default",
           text:
-            payload?.message ||
-            (usesWebsiteVerification
-              ? "Website verification cleared. Opening the tracked destination now."
-              : verificationStatus === "approved"
-                ? "Verification cleared immediately. VYNTRO has marked this mission as approved and closed."
-                : "Verification started. Enter the destination and let VYNTRO keep this mission pending until confirmation lands."),
+            usesWebsiteVerification || verificationStatus === "approved"
+              ? describeCompletionWithXp(completionText, xpAwardResult)
+              : completionText,
         });
 
         if (missionWindow) {
@@ -566,12 +630,14 @@ export function QuestDetailScreen() {
                 await updateQuestStatus(authUserId, currentQuest.id, "approved");
               }
 
+              const xpAwardResult = await tryAwardApprovedQuestXp();
               await Promise.all([reload(), reloadProfile()]);
+              const completionText =
+                retryPayload?.message ||
+                "Membership was confirmed after you returned. This mission is now approved and closed.";
               setMessage({
                 tone: "success",
-                text:
-                  retryPayload?.message ||
-                  "Membership was confirmed after you returned. This mission is now approved and closed.",
+                text: describeCompletionWithXp(completionText, xpAwardResult),
               });
             } catch {
               // Leave the mission pending if the one-time return check cannot complete.
