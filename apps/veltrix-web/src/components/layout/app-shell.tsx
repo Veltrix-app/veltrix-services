@@ -18,6 +18,7 @@ import {
   Trophy,
   UserRound,
   Wallet,
+  Zap,
 } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useWalletIdentityActions } from "@/hooks/use-wallet-identity-actions";
@@ -56,6 +57,7 @@ const utilityNavItems: ReadonlyArray<{
   icon: ComponentType<{ className?: string }>;
   requiresAccount?: boolean;
 }> = [
+  { href: "/xp", label: "XP Economy", icon: Zap },
   { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
   { href: "/notifications", label: "Notifications", icon: Bell, requiresAccount: true },
   { href: "/profile", label: "Profile", icon: UserRound },
