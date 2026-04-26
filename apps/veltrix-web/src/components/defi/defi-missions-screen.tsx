@@ -12,6 +12,10 @@ import {
   Wallet,
 } from "lucide-react";
 import {
+  type DefiXpEligibilitySnapshot,
+  type DefiXpMissionState,
+} from "@/lib/defi/defi-xp-eligibility";
+import {
   buildMoonwellMarketExpansion,
   buildDefiMissionOverview,
   getPrimaryVaultMission,
@@ -29,6 +33,7 @@ import {
 } from "@/lib/defi/moonwell-vaults";
 import { useAuth } from "@/components/providers/auth-provider";
 import { StatusChip } from "@/components/ui/status-chip";
+import { useDefiXpEligibility } from "@/hooks/use-defi-xp-eligibility";
 import { useMoonwellMarkets } from "@/hooks/use-moonwell-markets";
 import { useMoonwellVaultPositions } from "@/hooks/use-moonwell-vault-positions";
 import { useMoonwellVaultTransactions } from "@/hooks/use-moonwell-vault-transactions";
@@ -85,10 +90,19 @@ export function DefiMissionsScreen() {
   const { session, profile } = useAuth();
   const vaultPositions = useMoonwellVaultPositions();
   const liveMarkets = useMoonwellMarkets();
+  const defiXp = useDefiXpEligibility({
+    accessToken: session?.access_token,
+    wallet: profile?.wallet,
+    vaultPositions: vaultPositions.positions,
+    markets: liveMarkets.markets,
+  });
   const vaultTransactions = useMoonwellVaultTransactions({
     accessToken: session?.access_token,
     wallet: profile?.wallet,
-    onConfirmed: vaultPositions.refresh,
+    onConfirmed: () => {
+      vaultPositions.refresh();
+      defiXp.refresh();
+    },
   });
   const [selectedSlug, setSelectedSlug] = useState(primaryVault.slug);
   const [flowPreviewOpen, setFlowPreviewOpen] = useState(false);
@@ -455,6 +469,15 @@ export function DefiMissionsScreen() {
         </aside>
       </section>
 
+      <DefiXpEligibilityPanel
+        error={defiXp.error}
+        onRefresh={defiXp.refresh}
+        snapshot={defiXp.snapshot}
+        status={defiXp.status}
+        trackingReady={defiXp.trackingReady}
+        warning={defiXp.warning}
+      />
+
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_360px]">
         <div className="rounded-[26px] border border-white/6 bg-[linear-gradient(180deg,rgba(13,15,18,0.985),rgba(7,9,12,0.99))] p-4 sm:p-5">
           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -644,6 +667,137 @@ function MoonwellPortfolioCard({ portfolio }: { portfolio: MoonwellPortfolioCard
       </div>
     </div>
   );
+}
+
+function DefiXpEligibilityPanel({
+  error,
+  onRefresh,
+  snapshot,
+  status,
+  trackingReady,
+  warning,
+}: {
+  error: string | null;
+  onRefresh: () => void;
+  snapshot: DefiXpEligibilitySnapshot;
+  status: "wallet-missing" | "loading" | "ready" | "error";
+  trackingReady: boolean;
+  warning: string | null;
+}) {
+  const statusLabel =
+    status === "loading"
+      ? "Reading tx log"
+      : status === "error"
+        ? "Tracking fallback"
+        : trackingReady
+          ? "Eligibility live"
+          : "Tracking warming up";
+
+  return (
+    <section className="rounded-[28px] border border-white/6 bg-[radial-gradient(circle_at_90%_10%,rgba(190,255,74,0.12),transparent_28%),linear-gradient(180deg,rgba(13,15,18,0.99),rgba(7,9,12,0.995))] p-4 sm:p-5">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="max-w-3xl">
+          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-lime-300">
+            XP eligibility preview
+          </p>
+          <h3 className="mt-3 text-[1.35rem] font-black tracking-[-0.04em] text-white">
+            {snapshot.headline}
+          </h3>
+          <p className="mt-2 text-[13px] leading-6 text-slate-400">{snapshot.description}</p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-lime-300/12 bg-lime-300/[0.08] px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-lime-200">
+            {statusLabel}
+          </span>
+          <button
+            type="button"
+            onClick={onRefresh}
+            className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.035] px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-slate-300 transition hover:border-white/14 hover:text-white"
+          >
+            <RefreshCw className="h-3 w-3" />
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-3 md:grid-cols-[280px_minmax(0,1fr)]">
+        <div className="rounded-[22px] border border-lime-300/10 bg-lime-300/[0.045] p-4">
+          <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-lime-300">
+            Preview XP
+          </p>
+          <p className="mt-3 text-3xl font-black tracking-[-0.05em] text-white">
+            {snapshot.completedXp}
+            <span className="text-sm font-semibold text-slate-500"> / {snapshot.previewXp}</span>
+          </p>
+          <p className="mt-2 text-[12px] leading-5 text-slate-400">
+            {snapshot.completedMissions}/{snapshot.totalMissions} XP missions eligible. Final
+            payout rules and anti-abuse thresholds come in the economy pass.
+          </p>
+          <div className="mt-4 rounded-[18px] border border-white/8 bg-black/20 p-3">
+            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">
+              Next safe action
+            </p>
+            <p className="mt-2 text-[12px] font-semibold leading-5 text-white">
+              {snapshot.nextSafeAction}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-2 lg:grid-cols-5">
+          {snapshot.missions.map((mission) => (
+            <div
+              key={mission.slug}
+              className={`rounded-[20px] border p-3.5 ${getDefiXpMissionClasses(mission.state)}`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">
+                  {mission.xp > 0 ? `${mission.xp} XP` : "Guard"}
+                </span>
+                <span className="rounded-full border border-white/8 bg-black/18 px-2 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-slate-300">
+                  {mission.state}
+                </span>
+              </div>
+              <p className="mt-3 text-[13px] font-semibold leading-5 text-white">
+                {mission.title}
+              </p>
+              <p className="mt-2 text-[11px] leading-5 text-slate-400">
+                {mission.description}
+              </p>
+              <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                {mission.progressLabel}
+              </p>
+              <p className="mt-1 text-[10px] font-black uppercase tracking-[0.14em] text-lime-200">
+                {mission.actionLabel}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {warning || error ? (
+        <p className="mt-3 rounded-[18px] border border-amber-300/12 bg-amber-300/[0.055] px-3.5 py-3 text-[12px] leading-5 text-amber-100">
+          {warning || error}
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
+function getDefiXpMissionClasses(state: DefiXpMissionState) {
+  if (state === "completed") {
+    return "border-lime-300/14 bg-lime-300/[0.055]";
+  }
+
+  if (state === "warning") {
+    return "border-amber-300/14 bg-amber-300/[0.055]";
+  }
+
+  if (state === "eligible" || state === "active") {
+    return "border-cyan-300/12 bg-cyan-300/[0.045]";
+  }
+
+  return "border-white/6 bg-white/[0.025]";
 }
 
 function isLiveMarketRead(market: MoonwellMarketCardModel): market is MoonwellMarketRead {
