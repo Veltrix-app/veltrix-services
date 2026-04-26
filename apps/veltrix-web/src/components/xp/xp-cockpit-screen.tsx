@@ -24,6 +24,7 @@ import {
   type XpCockpitSourceLane,
   type XpCockpitStatus,
 } from "@/lib/xp/xp-cockpit";
+import { XP_ECONOMY_V1_POLICY } from "@/lib/xp/xp-economy";
 
 function getStatusTone(status: XpCockpitStatus) {
   if (status === "claim-ready" || status === "growth-ready") return "positive";
@@ -84,6 +85,7 @@ export function XpCockpitScreen() {
   const claimableMissions = defiXp.snapshot.missions.filter(
     (mission) => mission.claimState === "claimable"
   );
+  const systemNotice = live.error || vaults.error || markets.error || defiXp.error || defiXp.warning;
 
   function refreshAll() {
     void live.reload();
@@ -294,6 +296,21 @@ export function XpCockpitScreen() {
             Borrowing remains separate from yield missions. XP rewards verified proof, collateral
             awareness and repay discipline, not bigger debt.
           </p>
+          <div className="mt-4 grid gap-2">
+            <MiniRead label="Policy" value={XP_ECONOMY_V1_POLICY.version} />
+            <MiniRead
+              label="Quest cap"
+              value={`${XP_ECONOMY_V1_POLICY.sources.quest.maxDailyXp}/day`}
+            />
+            <MiniRead
+              label="Raid cap"
+              value={`${XP_ECONOMY_V1_POLICY.sources.raid.maxDailyXp}/day`}
+            />
+            <MiniRead
+              label="DeFi cap"
+              value={`${XP_ECONOMY_V1_POLICY.sources.defi.maxDailyXp}/day`}
+            />
+          </div>
           <Link
             href="/defi/risk-guide"
             className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-amber-300/14 bg-amber-300/[0.08] px-4 py-3 text-[11px] font-black uppercase tracking-[0.14em] text-amber-100 transition hover:bg-amber-300/[0.12]"
@@ -309,6 +326,23 @@ export function XpCockpitScreen() {
           <GuardrailCard key={guardrail.key} guardrail={guardrail} />
         ))}
       </section>
+
+      <section className="grid gap-3 md:grid-cols-3">
+        {XP_ECONOMY_V1_POLICY.compliance.map((note) => (
+          <div key={note} className="rounded-[20px] border border-white/6 bg-white/[0.025] p-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">
+              Policy note
+            </p>
+            <p className="mt-2 text-[12px] leading-6 text-slate-400">{note}</p>
+          </div>
+        ))}
+      </section>
+
+      {systemNotice ? (
+        <section className="rounded-[22px] border border-amber-300/14 bg-amber-300/[0.055] p-4 text-[12px] leading-6 text-amber-100">
+          {systemNotice}
+        </section>
+      ) : null}
     </div>
   );
 }

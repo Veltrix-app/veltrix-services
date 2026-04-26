@@ -1,7 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, BadgeCheck, Gem, RefreshCw, ShieldAlert, WalletCards } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeCheck,
+  Gem,
+  RefreshCw,
+  ShieldAlert,
+  ShieldCheck,
+  WalletCards,
+} from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useDefiXpEligibility } from "@/hooks/use-defi-xp-eligibility";
@@ -78,10 +86,9 @@ export function DefiPortfolioScreen() {
           </div>
 
           <div className="relative z-10 mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <MetricCard label="Vault positions" value={String(portfolio.totals.activeVaults)} />
-            <MetricCard label="Supplied markets" value={String(portfolio.totals.suppliedMarkets)} />
-            <MetricCard label="Borrowed markets" value={String(portfolio.totals.borrowedMarkets)} />
-            <MetricCard label="Claimable XP" value={String(portfolio.totals.claimableXp)} />
+            {portfolio.exposureRows.map((row) => (
+              <MetricCard key={row.label} label={row.label} value={row.value} />
+            ))}
           </div>
         </div>
 
@@ -99,12 +106,23 @@ export function DefiPortfolioScreen() {
           </div>
           <p className="mt-3 text-[12px] leading-6 text-slate-400">{portfolio.description}</p>
           <div className="mt-4 rounded-[18px] border border-white/6 bg-black/22 p-3.5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">
+                  Health read
+                </p>
+                <p className="mt-2 text-[12px] font-semibold leading-5 text-white">
+                  {portfolio.health.copy}
+                </p>
+              </div>
+              <StatusChip label={portfolio.health.label} tone={portfolio.health.tone} />
+            </div>
+          </div>
+          <div className="mt-3 rounded-[18px] border border-white/6 bg-black/22 p-3.5">
             <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">
               Recommended move
             </p>
-            <p className="mt-2 text-[12px] font-semibold leading-5 text-white">
-              {portfolio.nextSafeAction}
-            </p>
+            <p className="mt-2 text-[12px] font-semibold leading-5 text-white">{portfolio.nextSafeAction}</p>
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             <RoutePill href="/defi/vaults" label="Vaults" />
@@ -152,6 +170,29 @@ export function DefiPortfolioScreen() {
           {vaults.error || markets.error || defiXp.error || defiXp.warning}
         </section>
       ) : null}
+
+      <section className="rounded-[24px] border border-white/6 bg-white/[0.025] p-4">
+        <div className="flex items-start gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-lime-300/14 bg-lime-300/10 text-lime-200">
+            <ShieldCheck className="h-4 w-4" />
+          </span>
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-lime-300">
+              Safety copy
+            </p>
+            <div className="mt-3 grid gap-2 md:grid-cols-3">
+              {portfolio.complianceNotes.map((note) => (
+                <p
+                  key={note}
+                  className="rounded-[16px] border border-white/6 bg-black/20 p-3 text-[11px] leading-5 text-slate-400"
+                >
+                  {note}
+                </p>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

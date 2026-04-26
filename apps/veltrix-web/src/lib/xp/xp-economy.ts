@@ -125,6 +125,39 @@ const SOURCE_CONFIGS: Record<XpSourceType, XpSourceConfig> = {
   },
 };
 
+export const XP_ECONOMY_V1_POLICY = {
+  version: "xp-economy-v1",
+  levelThresholds: LEVEL_THRESHOLDS,
+  sources: {
+    quest: SOURCE_CONFIGS.quest_completion,
+    raid: SOURCE_CONFIGS.raid_completion,
+    defi: SOURCE_CONFIGS.defi_mission,
+    streak: SOURCE_CONFIGS.streak_bonus,
+    manual: SOURCE_CONFIGS.manual_adjustment,
+  },
+  streak: {
+    activeHours: 24,
+    graceHours: 48,
+    multiplierStepDays: 2,
+    multiplierStep: 0.1,
+    maxMultiplier: 1.3,
+  },
+  antiAbuse: {
+    duplicateKey: "source_ref",
+    sybilReviewScore: 90,
+    trustMultiplierMin: 0.75,
+    trustMultiplierMax: 1.3,
+    qualityMultiplierMin: 0.5,
+    qualityMultiplierMax: 1.5,
+    rewardBorrowVolume: false,
+  },
+  compliance: [
+    "XP rewards verified participation proof, not investment performance.",
+    "Borrow volume is never rewarded directly.",
+    "DeFi actions are non-custodial and remain wallet-directed.",
+  ],
+} as const;
+
 export function getXpSourceConfig(sourceType: XpSourceType): XpSourceConfig {
   return SOURCE_CONFIGS[sourceType];
 }

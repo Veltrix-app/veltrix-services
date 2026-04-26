@@ -62,6 +62,11 @@ test("defi portfolio summarizes vaults supplied markets and claimable xp", () =>
   });
 
   assert.equal(portfolio.status, "active");
+  assert.equal(portfolio.health.label, "Clear");
+  assert.equal(portfolio.exposureRows.find((row) => row.label === "Vault balance")?.value, "25 USDC");
+  assert.equal(portfolio.exposureRows.find((row) => row.label === "Supplied")?.value, "12 USDC");
+  assert.equal(portfolio.exposureRows.find((row) => row.label === "Borrowed")?.value, "0 markets");
+  assert.equal(portfolio.complianceNotes.some((note) => /never takes custody/i.test(note)), true);
   assert.equal(portfolio.totals.activeVaults, 1);
   assert.equal(portfolio.totals.suppliedMarkets, 1);
   assert.equal(portfolio.totals.borrowedMarkets, 0);
@@ -96,6 +101,7 @@ test("defi portfolio prioritizes borrow risk and shortfall over rewards", () => 
   });
 
   assert.equal(portfolio.status, "risk-watch");
+  assert.equal(portfolio.health.label, "Liquidation watch");
   assert.equal(portfolio.totals.borrowedMarkets, 1);
   assert.match(portfolio.nextSafeAction, /repay|collateral/i);
   assert.equal(portfolio.borrowRows[0].tone, "warning");

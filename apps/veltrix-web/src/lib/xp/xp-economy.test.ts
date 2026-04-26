@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  XP_ECONOMY_V1_POLICY,
   XP_SOURCE_TYPES,
   buildXpAwardPlan,
   buildXpProgressionRead,
@@ -23,6 +24,20 @@ test("xp economy v1 exposes one source registry for quests raids defi and streak
   assert.equal(getXpSourceConfig("raid_completion").maxDailyXp, 1200);
   assert.equal(getXpSourceConfig("defi_mission").rewardBorrowVolume, false);
   assert.equal(getXpSourceConfig("streak_bonus").category, "retention");
+});
+
+test("xp economy v1 publishes final caps levels and anti abuse policy", () => {
+  assert.equal(XP_ECONOMY_V1_POLICY.version, "xp-economy-v1");
+  assert.deepEqual(XP_ECONOMY_V1_POLICY.levelThresholds.slice(0, 4), [
+    0,
+    500,
+    1250,
+    2250,
+  ]);
+  assert.equal(XP_ECONOMY_V1_POLICY.sources.defi.maxDailyXp, 1000);
+  assert.equal(XP_ECONOMY_V1_POLICY.sources.defi.rewardBorrowVolume, false);
+  assert.equal(XP_ECONOMY_V1_POLICY.antiAbuse.sybilReviewScore, 90);
+  assert.equal(XP_ECONOMY_V1_POLICY.streak.graceHours, 48);
 });
 
 test("xp progression uses one central level curve and contribution tiers", () => {

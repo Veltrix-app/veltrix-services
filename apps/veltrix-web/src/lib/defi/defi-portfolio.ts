@@ -37,11 +37,19 @@ export type DefiPortfolioRow = {
   tone: DefiPortfolioTone;
 };
 
+export type DefiPortfolioHealth = {
+  label: string;
+  copy: string;
+  tone: DefiPortfolioTone;
+};
+
 export type DefiPortfolioRead = {
   status: DefiPortfolioStatus;
   headline: string;
   description: string;
   nextSafeAction: string;
+  health: DefiPortfolioHealth;
+  complianceNotes: string[];
   totals: {
     activeVaults: number;
     suppliedMarkets: number;
@@ -50,10 +58,17 @@ export type DefiPortfolioRead = {
     claimedXp: number;
     completedXp: number;
   };
+  exposureRows: DefiPortfolioRow[];
   vaultRows: DefiPortfolioRow[];
   supplyRows: DefiPortfolioRow[];
   borrowRows: DefiPortfolioRow[];
 };
+
+const DEFI_COMPLIANCE_NOTES = [
+  "VYNTRO never takes custody; every move is signed from the user's wallet.",
+  "Yield is variable and never guaranteed.",
+  "Borrowing can be liquidated when collateral value drops or debt pressure rises.",
+];
 
 export function buildDefiPortfolioRead(input: {
   walletReady: boolean;
@@ -108,6 +123,22 @@ export function buildDefiPortfolioRead(input: {
       tone: "warning" as const,
     })),
   };
+  const health = buildPortfolioHealth({
+    walletReady: input.walletReady,
+    readError,
+    shortfallDetected,
+    borrowedMarkets: borrowedMarkets.length,
+    activeVaults: activeVaults.length,
+    suppliedMarkets: suppliedMarkets.length,
+  });
+  const exposureRows = buildExposureRows(baseRows, totals);
+  const sharedRead = {
+    health,
+    complianceNotes: DEFI_COMPLIANCE_NOTES,
+    totals,
+    exposureRows,
+    ...baseRows,
+  };
 
   if (!input.walletReady) {
     return {
@@ -115,8 +146,7 @@ export function buildDefiPortfolioRead(input: {
       headline: "Connect wallet to read your DeFi portfolio.",
       description: "Vaults, supplied markets, borrowed markets and XP need a verified wallet read.",
       nextSafeAction: "Connect wallet before reading portfolio exposure",
-      totals,
-      ...baseRows,
+      ...sharedRead,
     };
   }
 
@@ -129,8 +159,7 @@ export function buildDefiPortfolioRead(input: {
       nextSafeAction: shortfallDetected
         ? "Repay debt or add collateral before claiming more rewards"
         : "Monitor and repay before adding new exposure",
-      totals,
-      ...baseRows,
+      ...sharedRead,
     };
   }
 
@@ -141,8 +170,7 @@ export function buildDefiPortfolioRead(input: {
       description:
         "The dashboard found a read error, so the next move should be refreshing portfolio data.",
       nextSafeAction: "Refresh portfolio reads before taking a DeFi action",
-      totals,
-      ...baseRows,
+      ...sharedRead,
     };
   }
 
@@ -153,8 +181,7 @@ export function buildDefiPortfolioRead(input: {
       description:
         "Your portfolio has completed actions that can now be claimed into the central XP economy.",
       nextSafeAction: `Claim ${totals.claimableXp} XP before adding new DeFi actions`,
-      totals,
-      ...baseRows,
+      ...sharedRead,
     };
   }
 
@@ -165,8 +192,7 @@ export function buildDefiPortfolioRead(input: {
       description:
         "Vault and lending positions are visible, with no borrow risk currently taking priority.",
       nextSafeAction: input.xpSnapshot.nextSafeAction || "Review portfolio before adding exposure",
-      totals,
-      ...baseRows,
+      ...sharedRead,
     };
   }
 
@@ -176,9 +202,112 @@ export function buildDefiPortfolioRead(input: {
     description:
       "Start with a simple vault or supply read before moving toward advanced borrow/lending.",
     nextSafeAction: "Start with the USDC vault or review the USDC lending market",
-    totals,
-    ...baseRows,
+    ...sharedRead,
   };
+}
+
+function buildPortfolioHealth(input: {
+  walletReady: boolean;
+  readError: boolean;
+  shortfallDetected: boolean;
+  borrowedMarkets: number;
+  activeVaults: number;
+  suppliedMarkets: number;
+}): DefiPortfolioHealth {
+  if (!input.walletReady) {
+    return {
+      label: "Wallet needed",
+      copy: "Connect a wallet before the portfolio can make a safe recommendation.",
+      tone: "default",
+    };
+  }
+
+  if (input.shortfallDetected) {
+    return {
+      label: "Liquidation watch",
+      copy: "A borrow shortfall is visible. Repay debt or add collateral before chasing XP.",
+      tone: "warning",
+    };
+  }
+
+  if (input.borrowedMarkets > 0) {
+    return {
+      label: "Borrow open",
+      copy: "Borrow exposure exists. Keep repayment and collateral health ahead of new missions.",
+      tone: "warning",
+    };
+  }
+
+  if (input.readError) {
+    return {
+      label: "Read check",
+      copy: "One or more portfolio reads failed, so refresh before taking the next DeFi action.",
+      tone: "warning",
+    };
+  }
+
+  if (input.activeVaults > 0 || input.suppliedMarkets > 0) {
+    return {
+      label: "Clear",
+      copy: "Supply and vault exposure are readable with no borrow risk currently taking priority.",
+      tone: "positive",
+    };
+  }
+
+  return {
+    label: "No exposure",
+    copy: "No DeFi position is detected yet. Start small and keep the first action simple.",
+    tone: "info",
+  };
+}
+
+function buildExposureRows(
+  rows: {
+    vaultRows: DefiPortfolioRow[];
+    supplyRows: DefiPortfolioRow[];
+    borrowRows: DefiPortfolioRow[];
+  },
+  totals: DefiPortfolioRead["totals"]
+) {
+  return [
+    {
+      label: "Vault balance",
+      value: summarizeValues(rows.vaultRows, "0 vaults"),
+      detail: `${totals.activeVaults} active vault positions`,
+      tone: totals.activeVaults > 0 ? ("positive" as const) : ("default" as const),
+    },
+    {
+      label: "Supplied",
+      value: summarizeValues(rows.supplyRows, "0 markets"),
+      detail: `${totals.suppliedMarkets} supplied markets`,
+      tone: totals.suppliedMarkets > 0 ? ("positive" as const) : ("default" as const),
+    },
+    {
+      label: "Borrowed",
+      value: summarizeValues(rows.borrowRows, "0 markets"),
+      detail: `${totals.borrowedMarkets} borrowed markets`,
+      tone: totals.borrowedMarkets > 0 ? ("warning" as const) : ("positive" as const),
+    },
+    {
+      label: "Claimable XP",
+      value: `${totals.claimableXp} XP`,
+      detail: `${totals.claimedXp} claimed / ${totals.completedXp} completed`,
+      tone: totals.claimableXp > 0 ? ("positive" as const) : ("info" as const),
+    },
+  ];
+}
+
+function summarizeValues(rows: DefiPortfolioRow[], fallback: string) {
+  if (rows.length === 0) {
+    return fallback;
+  }
+
+  const values = rows.map((row) => row.value).filter(Boolean);
+  if (values.length <= 2) {
+    return values.join(" + ");
+  }
+
+  return `${values.slice(0, 2).join(" + ")} +${values.length - 2}`;
 }
 
 function toSafeNumber(value: unknown) {
