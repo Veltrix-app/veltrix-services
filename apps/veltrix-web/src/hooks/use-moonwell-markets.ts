@@ -44,15 +44,15 @@ export function useMoonwellMarkets() {
   useEffect(() => {
     const controller = new AbortController();
 
-    setRemoteState((current) => ({
-      ...current,
-      status: "loading",
-      wallet,
-      error: null,
-      readUrl,
-    }));
-
     async function loadMarkets() {
+      setRemoteState((current) => ({
+        ...current,
+        status: "loading",
+        wallet,
+        error: null,
+        readUrl,
+      }));
+
       try {
         const response = await fetch(readUrl, {
           cache: "no-store",

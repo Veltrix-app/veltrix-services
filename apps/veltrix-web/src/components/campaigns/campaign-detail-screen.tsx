@@ -92,12 +92,6 @@ export function CampaignDetailScreen() {
   }, [activeXp, campaign, requiredActiveXp]);
 
   useEffect(() => {
-    if (!stakeAmount && stakeRecommendation) {
-      setStakeAmount(stakeRecommendation);
-    }
-  }, [stakeAmount, stakeRecommendation]);
-
-  useEffect(() => {
     let cancelled = false;
 
     async function loadStakeLeaderboard() {
@@ -166,7 +160,7 @@ export function CampaignDetailScreen() {
         Authorization: `Bearer ${session.access_token}`,
       },
       body: JSON.stringify({
-        stakedXp: Number(stakeAmount),
+        stakedXp: Number(stakeAmount || stakeRecommendation),
       }),
     });
 

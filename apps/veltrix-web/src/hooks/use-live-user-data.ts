@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/providers/auth-provider";
 import { calculateQuestGlobalXp } from "@/lib/xp/xp-economy";
@@ -258,12 +258,15 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
     ? Array.from(new Set(options.datasets)).sort().join("|")
     : "all";
   const requestedDatasets = useMemo(
-    () => normalizeRequestedDatasets(options?.datasets),
+    () =>
+      datasetKey === "all"
+        ? normalizeRequestedDatasets()
+        : normalizeRequestedDatasets(datasetKey.split("|") as LiveUserDataDataset[]),
     [datasetKey]
   );
   const requestedDatasetSet = useMemo(
     () => new Set<LiveUserDataDataset>(requestedDatasets),
-    [datasetKey, requestedDatasets]
+    [requestedDatasets]
   );
   const cachedState = authUserId ? liveUserDataCache.get(authUserId) : null;
   const [loading, setLoading] = useState(true);
@@ -766,6 +769,9 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
     setLoading(false);
     setRefreshing(false);
   }
+  const reloadLiveUserData = useEffectEvent(async () => {
+    await reload();
+  });
 
   async function joinCommunity(projectId: string) {
     if (!authConfigured || !authUserId || !supabase) {
@@ -1157,33 +1163,37 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
       return;
     }
 
-    if (authConfigured && authUserId && liveUserDataCache.has(authUserId)) {
-      applyLiveUserDataCacheEntry(liveUserDataCache.get(authUserId)!, requestedDatasetSet, {
-        setConnectedAccounts,
-        setProjects,
-        setCampaigns,
-        setRewards,
-        setQuests,
-        setNotifications,
-        setLeaderboard,
-        setRaids,
-        setProjectReputation,
-        setJoinedCommunityIds,
-        setXpStakes,
-        setRewardDistributions,
-      });
-      const fullyCached = requestedDatasets.every((dataset) =>
-        liveUserDataCache.get(authUserId)!.loadedDatasets.includes(dataset)
-      );
-      setLoading(!fullyCached);
-      setRefreshing(fullyCached);
-    } else {
-      setLoading(true);
-      setRefreshing(false);
+    async function primeAndReload() {
+      if (authConfigured && authUserId && liveUserDataCache.has(authUserId)) {
+        applyLiveUserDataCacheEntry(liveUserDataCache.get(authUserId)!, requestedDatasetSet, {
+          setConnectedAccounts,
+          setProjects,
+          setCampaigns,
+          setRewards,
+          setQuests,
+          setNotifications,
+          setLeaderboard,
+          setRaids,
+          setProjectReputation,
+          setJoinedCommunityIds,
+          setXpStakes,
+          setRewardDistributions,
+        });
+        const fullyCached = requestedDatasets.every((dataset) =>
+          liveUserDataCache.get(authUserId)!.loadedDatasets.includes(dataset)
+        );
+        setLoading(!fullyCached);
+        setRefreshing(fullyCached);
+      } else {
+        setLoading(true);
+        setRefreshing(false);
+      }
+
+      await reloadLiveUserData();
     }
 
-    void reload();
-  }, [initialized, authConfigured, authUserId, datasetKey]);
+    void primeAndReload();
+  }, [initialized, authConfigured, authUserId, datasetKey, requestedDatasetSet, requestedDatasets]);
 
   const derived = useMemo(() => {
     return {

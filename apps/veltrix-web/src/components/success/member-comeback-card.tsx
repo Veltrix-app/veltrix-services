@@ -9,12 +9,12 @@ import type { SuccessMemberState } from "@/lib/success/member-activation";
 
 export function MemberComebackCard() {
   const { session } = useAuth();
+  const accessToken = session?.access_token ?? null;
   const [memberState, setMemberState] = useState<SuccessMemberState | null>(null);
+  const visibleMemberState = accessToken ? memberState : null;
 
   useEffect(() => {
-    const accessToken = session?.access_token;
     if (!accessToken) {
-      setMemberState(null);
       return;
     }
 
@@ -41,9 +41,9 @@ export function MemberComebackCard() {
     return () => {
       active = false;
     };
-  }, [session?.access_token]);
+  }, [accessToken]);
 
-  if (!memberState || memberState.activationLane !== "comeback") {
+  if (!visibleMemberState || visibleMemberState.activationLane !== "comeback") {
     return null;
   }
 
@@ -59,16 +59,16 @@ export function MemberComebackCard() {
         </div>
         <div>
           <p className="text-sm font-semibold text-white">
-            {memberState.nextBestActionLabel ?? "Resume momentum"}
+            {visibleMemberState.nextBestActionLabel ?? "Resume momentum"}
           </p>
           <p className="mt-1 text-sm text-slate-300">
-            {memberState.blockers[0] ?? "Open the comeback lane to get back into motion."}
+            {visibleMemberState.blockers[0] ?? "Open the comeback lane to get back into motion."}
           </p>
         </div>
       </div>
 
       <Link
-        href={memberState.nextBestActionRoute ?? "/community/comeback"}
+        href={visibleMemberState.nextBestActionRoute ?? "/community/comeback"}
         className="mt-4 inline-flex items-center gap-2 rounded-full bg-amber-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-amber-200"
       >
         Resume now

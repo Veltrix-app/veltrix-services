@@ -157,7 +157,7 @@ export async function loadSuccessAccountSummaryForUser(authUserId: string): Prom
     const ids = (projectIds ?? []).map((row) => row.id);
 
     if (ids.length) {
-      const [{ data: xpEvent, error: xpError }, { data: firstActiveCampaign, error: campaignError }] =
+      const [{ data: xpEvent, error: xpError }, { error: campaignError }] =
         await Promise.all([
           supabase
             .from("xp_events")

@@ -4,10 +4,11 @@ import {
   createContext,
   useContext,
   useEffect,
+  useEffectEvent,
   useMemo,
   useState,
 } from "react";
-import type { Session, User, UserIdentity } from "@supabase/supabase-js";
+import type { Session } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { publicEnv } from "@/lib/env";
 import { mapProfile } from "@/lib/auth";
@@ -184,68 +185,6 @@ async function fetchProfileWithReputation(
   };
 }
 
-function mapIdentityProvider(provider: string): ConnectedAccount["provider"] | null {
-  if (provider === "discord") {
-    return "discord";
-  }
-
-  if (provider === "twitter" || provider === "x") {
-    return "x";
-  }
-
-  return null;
-}
-
-function normalizeConnectedAccountRows(
-  rows:
-    | Array<{
-        id: string;
-        provider: ConnectedAccount["provider"];
-        provider_user_id: string;
-        username: string | null;
-        status: ConnectedAccount["status"];
-        connected_at: string;
-        updated_at: string;
-      }>
-    | null
-    | undefined
-) {
-  return (rows ?? []).map((row) => ({
-    id: row.id,
-    provider: row.provider,
-    providerUserId: row.provider_user_id,
-    username: row.username,
-    status: row.status,
-    connectedAt: row.connected_at,
-    updatedAt: row.updated_at,
-  }));
-}
-
-function deriveIdentityUserId(identity: UserIdentity) {
-  const identityData = identity.identity_data ?? {};
-  const rawValue =
-    identityData.sub ??
-    identityData.user_id ??
-    identityData.id ??
-    identityData.provider_id ??
-    identity.identity_id;
-
-  return rawValue ? String(rawValue) : "";
-}
-
-function deriveIdentityUsername(identity: UserIdentity) {
-  const identityData = identity.identity_data ?? {};
-  const username =
-    identityData.user_name ??
-    identityData.preferred_username ??
-    identityData.username ??
-    identityData.nick ??
-    identityData.name ??
-    null;
-
-  return typeof username === "string" && username.length > 0 ? username : null;
-}
-
 async function syncManagedConnectedAccountsViaApi(params: {
   accessToken: string;
 }) {
@@ -410,6 +349,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile(null);
     }
   }
+  const hydrateSessionData = useEffectEvent(() => {
+    void reloadProfile();
+    void reloadConnectedAccounts();
+  });
 
   useEffect(() => {
     let mounted = true;
@@ -465,19 +408,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (!authUserId) {
-      setProfile(null);
-      setConnectedAccounts([]);
-      setConnectedAccountsState("unknown");
+      async function clearSessionState() {
+        await Promise.resolve();
+        setProfile(null);
+        setConnectedAccounts([]);
+        setConnectedAccountsState("unknown");
+      }
+
+      void clearSessionState();
       return;
     }
 
     if (!session?.access_token) {
-      setConnectedAccountsState(connectedAccounts.length > 0 ? "ready" : "unknown");
+      async function settleConnectedAccountState() {
+        await Promise.resolve();
+        setConnectedAccountsState(connectedAccounts.length > 0 ? "ready" : "unknown");
+      }
+
+      void settleConnectedAccountState();
       return;
     }
 
-    void reloadProfile();
-    void reloadConnectedAccounts();
+    async function hydrateSessionState() {
+      await Promise.resolve();
+      hydrateSessionData();
+    }
+
+    void hydrateSessionState();
   }, [initialized, authUserId, connectedAccounts.length, session?.access_token]);
 
   async function signIn(email: string, password: string) {

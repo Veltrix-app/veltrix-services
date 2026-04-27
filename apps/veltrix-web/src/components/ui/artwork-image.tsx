@@ -1,7 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { ImageOff } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 type ArtworkTone = "cyan" | "lime" | "amber" | "rose" | "neutral";
 
@@ -47,22 +48,21 @@ export function ArtworkImage({
 
     return trimmed;
   }, [src]);
-  const [failed, setFailed] = useState(false);
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
 
-  useEffect(() => {
-    setFailed(false);
-  }, [normalizedSrc]);
-
-  const showImage = Boolean(normalizedSrc) && !failed;
+  const showImage = Boolean(normalizedSrc) && failedSrc !== normalizedSrc;
 
   return (
-    <div className={className}>
+    <div className={`relative ${className || "h-full w-full"}`}>
       {showImage ? (
-        <img
-          src={normalizedSrc ?? undefined}
+        <Image
+          src={normalizedSrc ?? ""}
           alt={alt}
+          fill
+          unoptimized
+          sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
           className={imgClassName}
-          onError={() => setFailed(true)}
+          onError={() => setFailedSrc(normalizedSrc)}
         />
       ) : (
         <div

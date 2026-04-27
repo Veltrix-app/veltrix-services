@@ -9,14 +9,14 @@ import type { SuccessAccountSummary } from "@/lib/success/account-activation";
 
 export function AccountActivationCard() {
   const { session } = useAuth();
+  const accessToken = session?.access_token ?? null;
   const [summary, setSummary] = useState<SuccessAccountSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const visibleSummary = accessToken ? summary : null;
+  const isLoading = accessToken ? loading : false;
 
   useEffect(() => {
-    const accessToken = session?.access_token;
     if (!accessToken) {
-      setSummary(null);
-      setLoading(false);
       return;
     }
 
@@ -55,7 +55,7 @@ export function AccountActivationCard() {
     return () => {
       active = false;
     };
-  }, [session?.access_token]);
+  }, [accessToken]);
 
   return (
     <Surface
@@ -63,35 +63,35 @@ export function AccountActivationCard() {
       title="How your workspace is progressing"
       description="This keeps the account-side activation story visible inside the member app, not only in the portal."
     >
-      {loading ? (
+      {isLoading ? (
         <div className="rounded-[22px] border border-white/8 bg-black/20 px-4 py-4 text-sm text-slate-300">
           Loading workspace activation...
         </div>
-      ) : summary ? (
+      ) : visibleSummary ? (
         <div className="space-y-4">
           <div className="flex items-center gap-3 rounded-[22px] border border-white/8 bg-black/20 px-4 py-4">
             <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-cyan-200">
               <Building2 className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-white">{summary.accountName}</p>
+              <p className="text-sm font-semibold text-white">{visibleSummary.accountName}</p>
               <p className="mt-1 text-sm text-slate-300">
-                {summary.blockers[0] ?? "The workspace is moving without hard blockers."}
+                {visibleSummary.blockers[0] ?? "The workspace is moving without hard blockers."}
               </p>
             </div>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
-            <StatTile label="Stage" value={summary.activationStage.replaceAll("_", " ")} />
-            <StatTile label="Workspace health" value={summary.workspaceHealthState.replaceAll("_", " ")} />
-            <StatTile label="Plan" value={summary.billingPlanId ?? "free"} />
+            <StatTile label="Stage" value={visibleSummary.activationStage.replaceAll("_", " ")} />
+            <StatTile label="Workspace health" value={visibleSummary.workspaceHealthState.replaceAll("_", " ")} />
+            <StatTile label="Plan" value={visibleSummary.billingPlanId ?? "free"} />
           </div>
 
           <Link
-            href={summary.nextBestActionRoute ?? "/getting-started"}
+            href={visibleSummary.nextBestActionRoute ?? "/getting-started"}
             className="inline-flex items-center gap-2 rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
           >
-            {summary.nextBestActionLabel ?? "Open workspace next move"}
+            {visibleSummary.nextBestActionLabel ?? "Open workspace next move"}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>

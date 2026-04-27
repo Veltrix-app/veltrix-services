@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ImagePlus, Upload, Wallet } from "lucide-react";
@@ -46,13 +47,29 @@ export function ProfileEditScreen() {
 
   useEffect(() => {
     if (profile) {
-      setUsername(profile.username);
-      setAvatarUrl(profile.avatarUrl);
-      setBannerUrl(profile.bannerUrl);
-      setTitle(profile.title);
-      setFaction(profile.faction);
-      setBio(profile.bio);
-      setWallet(profile.wallet);
+      const nextProfile = profile;
+      let active = true;
+
+      async function syncProfileDraft() {
+        await Promise.resolve();
+        if (!active) {
+          return;
+        }
+
+        setUsername(nextProfile.username);
+        setAvatarUrl(nextProfile.avatarUrl);
+        setBannerUrl(nextProfile.bannerUrl);
+        setTitle(nextProfile.title);
+        setFaction(nextProfile.faction);
+        setBio(nextProfile.bio);
+        setWallet(nextProfile.wallet);
+      }
+
+      void syncProfileDraft();
+
+      return () => {
+        active = false;
+      };
     }
   }, [profile]);
 
@@ -300,11 +317,16 @@ export function ProfileEditScreen() {
 
               <div className="mt-8 flex items-end gap-3.5">
                 {avatarUrl ? (
-                  <img
+                  <div className="relative h-16 w-16 overflow-hidden rounded-full border border-white/10 shadow-[0_18px_45px_rgba(0,0,0,0.35)]">
+                  <Image
                     src={avatarUrl}
                     alt="Profile avatar preview"
-                    className="h-16 w-16 rounded-full border border-white/10 object-cover shadow-[0_18px_45px_rgba(0,0,0,0.35)]"
+                    fill
+                    unoptimized
+                    sizes="64px"
+                    className="object-cover"
                   />
+                  </div>
                 ) : (
                   <div className="flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] text-[20px] font-black text-white shadow-[0_18px_45px_rgba(0,0,0,0.35)]">
                     {previewInitial}
@@ -371,15 +393,18 @@ function AssetUploader({
       </div>
 
       <div
-        className={`mt-3.5 overflow-hidden border border-white/8 bg-[linear-gradient(145deg,rgba(8,20,28,0.96),rgba(4,9,13,0.94))] ${
+        className={`relative mt-3.5 overflow-hidden border border-white/8 bg-[linear-gradient(145deg,rgba(8,20,28,0.96),rgba(4,9,13,0.94))] ${
           circular ? "h-24 w-24 rounded-full" : "h-32 rounded-[16px]"
         }`}
       >
         {imageUrl ? (
-          <img
+          <Image
             src={imageUrl}
             alt={`${label} preview`}
-            className="h-full w-full object-cover"
+            fill
+            unoptimized
+            sizes={circular ? "96px" : "(min-width: 768px) 40vw, 100vw"}
+            className="object-cover"
           />
         ) : (
            <div className="flex h-full w-full items-center justify-center text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">

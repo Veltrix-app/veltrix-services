@@ -30,6 +30,14 @@ const emptyActivity = buildDefiActivityTimeline({
   xpEvents: [],
 });
 
+const walletMissingState: DefiActivityState = {
+  status: "wallet-missing",
+  wallet: null,
+  activity: emptyActivity,
+  warning: null,
+  error: null,
+};
+
 export function useDefiActivity(input: {
   accessToken?: string | null;
   wallet?: string | null;
@@ -37,37 +45,24 @@ export function useDefiActivity(input: {
   const accessToken = input.accessToken ?? null;
   const wallet = input.wallet ?? null;
   const [refreshToken, setRefreshToken] = useState(0);
-  const [state, setState] = useState<DefiActivityState>({
-    status: "wallet-missing",
-    wallet: null,
-    activity: emptyActivity,
-    warning: null,
-    error: null,
-  });
+  const [state, setState] = useState<DefiActivityState>(walletMissingState);
 
   useEffect(() => {
     if (!wallet || !accessToken) {
-      setState({
-        status: "wallet-missing",
-        wallet: null,
-        activity: emptyActivity,
-        warning: null,
-        error: null,
-      });
       return;
     }
 
     const controller = new AbortController();
     const walletAddress = wallet;
 
-    setState((current) => ({
-      ...current,
-      status: "loading",
-      wallet: walletAddress,
-      error: null,
-    }));
-
     async function loadActivity() {
+      setState((current) => ({
+        ...current,
+        status: "loading",
+        wallet: walletAddress,
+        error: null,
+      }));
+
       try {
         const response = await fetch(
           `/api/defi/activity?wallet=${encodeURIComponent(walletAddress)}`,
@@ -115,7 +110,7 @@ export function useDefiActivity(input: {
   }, [accessToken, refreshToken, wallet]);
 
   return {
-    ...state,
+    ...(!wallet || !accessToken ? walletMissingState : state),
     refresh: () => setRefreshToken((current) => current + 1),
   };
 }

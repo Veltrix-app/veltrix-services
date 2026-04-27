@@ -9,14 +9,14 @@ import { publicEnv } from "@/lib/env";
 
 export function CustomerGrowthCard() {
   const { session } = useAuth();
+  const accessToken = session?.access_token ?? null;
   const [summary, setSummary] = useState<CustomerGrowthOverview | null>(null);
   const [loading, setLoading] = useState(true);
+  const visibleSummary = accessToken ? summary : null;
+  const isLoading = accessToken ? loading : false;
 
   useEffect(() => {
-    const accessToken = session?.access_token;
     if (!accessToken) {
-      setSummary(null);
-      setLoading(false);
       return;
     }
 
@@ -60,7 +60,7 @@ export function CustomerGrowthCard() {
     return () => {
       active = false;
     };
-  }, [session?.access_token]);
+  }, [accessToken]);
 
   return (
     <Surface
@@ -68,27 +68,27 @@ export function CustomerGrowthCard() {
       title="How your workspace stacks up"
       description="This pulls the same benchmark logic into the member app, so progress feels like a real operating signal instead of a private portal-only metric."
     >
-      {loading ? (
+      {isLoading ? (
         <CardNotice text="Loading growth analytics..." />
-      ) : summary ? (
+      ) : visibleSummary ? (
         <div className="space-y-4">
           <div className="flex items-center gap-3 rounded-[22px] border border-white/8 bg-black/20 px-4 py-4">
             <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-lime-200">
               <BarChart3 className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-white">{summary.accountName}</p>
+              <p className="text-sm font-semibold text-white">{visibleSummary.accountName}</p>
               <p className="mt-1 text-sm text-slate-300">
-                {summary.recommendedMove}
+                {visibleSummary.recommendedMove}
               </p>
             </div>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-4">
-            <StatTile label="Peer band" value={summary.benchmark.labelText} />
-            <StatTile label="Score" value={String(summary.benchmark.currentValue)} />
-            <StatTile label="Campaigns" value={String(summary.activeCampaignCount)} />
-            <StatTile label="Providers" value={String(summary.providerCount)} />
+            <StatTile label="Peer band" value={visibleSummary.benchmark.labelText} />
+            <StatTile label="Score" value={String(visibleSummary.benchmark.currentValue)} />
+            <StatTile label="Campaigns" value={String(visibleSummary.activeCampaignCount)} />
+            <StatTile label="Providers" value={String(visibleSummary.providerCount)} />
           </div>
 
           <div className="rounded-[22px] border border-white/8 bg-white/[0.04] px-4 py-4">
@@ -96,16 +96,16 @@ export function CustomerGrowthCard() {
               Peer cohort
             </p>
             <p className="mt-2 text-sm leading-6 text-white">
-              {summary.benchmark.cohortLabel
-                ? `${summary.benchmark.cohortLabel} (${summary.benchmark.cohortSize} workspaces)`
+              {visibleSummary.benchmark.cohortLabel
+                ? `${visibleSummary.benchmark.cohortLabel} (${visibleSummary.benchmark.cohortSize} workspaces)`
                 : "Benchmark building while more workspaces enter this peer set."}
             </p>
             <p className="mt-3 text-sm text-slate-300">
-              {summary.firstTouchSource
-                ? `First touch: ${summary.firstTouchSource}`
+              {visibleSummary.firstTouchSource
+                ? `First touch: ${visibleSummary.firstTouchSource}`
                 : "Attribution context is still building for this workspace."}
-              {summary.conversionTouchSource
-                ? ` / Conversion touch: ${summary.conversionTouchSource}`
+              {visibleSummary.conversionTouchSource
+                ? ` / Conversion touch: ${visibleSummary.conversionTouchSource}`
                 : ""}
             </p>
           </div>

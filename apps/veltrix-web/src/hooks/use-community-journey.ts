@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useState } from "react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { prependLiveUserNotification } from "@/hooks/use-live-user-data";
 import type { LiveCommunityJourneySnapshot } from "@/types/live";
@@ -76,9 +76,10 @@ export function clearCommunityJourneyCache(authUserId?: string | null) {
 
 export function useCommunityJourney(options?: UseCommunityJourneyOptions) {
   const { authConfigured, authUserId, initialized, session } = useAuth();
+  const projectId = options?.projectId?.trim() || "";
   const cacheKey = useMemo(
-    () => buildCacheKey(authUserId, options?.projectId),
-    [authUserId, options?.projectId]
+    () => buildCacheKey(authUserId, projectId),
+    [authUserId, projectId]
   );
   const cachedSnapshot = cacheKey ? communityJourneyCache.get(cacheKey)?.snapshot ?? null : null;
   const [snapshot, setSnapshot] = useState<LiveCommunityJourneySnapshot>(
@@ -111,8 +112,8 @@ export function useCommunityJourney(options?: UseCommunityJourneyOptions) {
     }
     setError(null);
 
-    const url = options?.projectId?.trim()
-      ? `/api/community/journey?projectId=${encodeURIComponent(options.projectId.trim())}`
+    const url = projectId
+      ? `/api/community/journey?projectId=${encodeURIComponent(projectId)}`
       : "/api/community/journey";
     const response = await fetch(url, {
       headers: {
@@ -141,6 +142,9 @@ export function useCommunityJourney(options?: UseCommunityJourneyOptions) {
     setLoading(false);
     setRefreshing(false);
   }
+  const reloadJourney = useEffectEvent(async () => {
+    await reload();
+  });
 
   async function advance(input: {
     actionKey: string;
@@ -158,7 +162,7 @@ export function useCommunityJourney(options?: UseCommunityJourneyOptions) {
       },
       body: JSON.stringify({
         actionKey: input.actionKey,
-        projectId: options?.projectId?.trim() || undefined,
+        projectId: projectId || undefined,
         lane: input.lane,
       }),
     });
@@ -196,17 +200,21 @@ export function useCommunityJourney(options?: UseCommunityJourneyOptions) {
       return;
     }
 
-    if (cachedSnapshot) {
-      setSnapshot(cachedSnapshot);
-      setLoading(false);
-      setRefreshing(true);
-    } else {
-      setLoading(true);
-      setRefreshing(false);
+    async function primeAndReload() {
+      if (cachedSnapshot) {
+        setSnapshot(cachedSnapshot);
+        setLoading(false);
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+        setRefreshing(false);
+      }
+
+      await reloadJourney();
     }
 
-    void reload();
-  }, [initialized, cacheKey, session?.access_token]);
+    void primeAndReload();
+  }, [cacheKey, cachedSnapshot, initialized, session?.access_token]);
 
   return {
     snapshot,

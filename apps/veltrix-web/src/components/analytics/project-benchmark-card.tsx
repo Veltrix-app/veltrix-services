@@ -8,14 +8,14 @@ import type { ProjectBenchmarkOverview } from "@/lib/analytics/customer-overview
 
 export function ProjectBenchmarkCard({ projectId }: { projectId: string }) {
   const { session } = useAuth();
+  const accessToken = session?.access_token ?? null;
   const [summary, setSummary] = useState<ProjectBenchmarkOverview | null>(null);
   const [loading, setLoading] = useState(true);
+  const visibleSummary = accessToken && projectId ? summary : null;
+  const isLoading = accessToken && projectId ? loading : false;
 
   useEffect(() => {
-    const accessToken = session?.access_token;
     if (!accessToken || !projectId) {
-      setSummary(null);
-      setLoading(false);
       return;
     }
 
@@ -62,7 +62,7 @@ export function ProjectBenchmarkCard({ projectId }: { projectId: string }) {
     return () => {
       active = false;
     };
-  }, [projectId, session?.access_token]);
+  }, [accessToken, projectId]);
 
   return (
     <Surface
@@ -70,25 +70,25 @@ export function ProjectBenchmarkCard({ projectId }: { projectId: string }) {
       title="Peer benchmark"
       description="This shows whether the project is building real launch density or just sitting with surface-level setup."
     >
-      {loading ? (
+      {isLoading ? (
         <CardNotice text="Loading project benchmark..." />
-      ) : summary ? (
+      ) : visibleSummary ? (
         <div className="space-y-4">
           <div className="flex items-center gap-3 rounded-[22px] border border-white/8 bg-black/20 px-4 py-4">
             <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-cyan-200">
               <Radar className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-white">{summary.projectName}</p>
-              <p className="mt-1 text-sm text-slate-300">{summary.recommendedMove}</p>
+              <p className="text-sm font-semibold text-white">{visibleSummary.projectName}</p>
+              <p className="mt-1 text-sm text-slate-300">{visibleSummary.recommendedMove}</p>
             </div>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-4">
-            <StatTile label="Peer band" value={summary.benchmark.labelText} />
-            <StatTile label="Launch score" value={String(summary.benchmark.currentValue)} />
-            <StatTile label="Live quests" value={String(summary.liveQuestCount)} />
-            <StatTile label="Providers" value={String(summary.providerCount)} />
+            <StatTile label="Peer band" value={visibleSummary.benchmark.labelText} />
+            <StatTile label="Launch score" value={String(visibleSummary.benchmark.currentValue)} />
+            <StatTile label="Live quests" value={String(visibleSummary.liveQuestCount)} />
+            <StatTile label="Providers" value={String(visibleSummary.providerCount)} />
           </div>
 
           <div className="rounded-[22px] border border-white/8 bg-white/[0.04] px-4 py-4">
@@ -96,13 +96,13 @@ export function ProjectBenchmarkCard({ projectId }: { projectId: string }) {
               Peer cohort
             </p>
             <p className="mt-2 text-sm leading-6 text-white">
-              {summary.benchmark.cohortLabel
-                ? `${summary.benchmark.cohortLabel} (${summary.benchmark.cohortSize} projects)`
+              {visibleSummary.benchmark.cohortLabel
+                ? `${visibleSummary.benchmark.cohortLabel} (${visibleSummary.benchmark.cohortSize} projects)`
                 : "Benchmark building as more comparable projects enter this lane."}
             </p>
             <p className="mt-3 text-sm text-slate-300">
-              {summary.benchmark.available
-                ? `Median peer score: ${summary.benchmark.medianValue ?? 0}.`
+              {visibleSummary.benchmark.available
+                ? `Median peer score: ${visibleSummary.benchmark.medianValue ?? 0}.`
                 : "This project is helping establish the peer band before a safe comparison can be shown."}
             </p>
           </div>

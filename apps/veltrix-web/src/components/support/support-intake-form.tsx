@@ -55,19 +55,12 @@ export function SupportIntakeForm() {
   const [accountPayload, setAccountPayload] = useState<CurrentCustomerAccountResponse | null>(null);
 
   const accessToken = session?.access_token ?? null;
-
-  useEffect(() => {
-    setForm((current) => ({
-      ...current,
-      requesterName:
-        current.requesterName || deriveDisplayName(session?.user?.email, profile?.username),
-      requesterEmail: current.requesterEmail || session?.user?.email || "",
-    }));
-  }, [profile?.username, session?.user?.email]);
+  const defaultRequesterName = deriveDisplayName(session?.user?.email, profile?.username);
+  const defaultRequesterEmail = session?.user?.email || "";
+  const visibleAccountPayload = accessToken ? accountPayload : null;
 
   useEffect(() => {
     if (!accessToken) {
-      setAccountPayload(null);
       return;
     }
 
@@ -101,7 +94,7 @@ export function SupportIntakeForm() {
     };
   }, [accessToken]);
 
-  const primaryAccount = accountPayload?.overview.accounts[0] ?? null;
+  const primaryAccount = visibleAccountPayload?.overview.accounts[0] ?? null;
 
   const selectedLane = useMemo(
     () => supportTicketTypeOptions.find((option) => option.value === form.ticketType) ?? supportTicketTypeOptions[0],
@@ -118,8 +111,8 @@ export function SupportIntakeForm() {
         ticketType: form.ticketType,
         subject: form.subject,
         message: form.message,
-        requesterName: accessToken ? undefined : form.requesterName,
-        requesterEmail: accessToken ? undefined : form.requesterEmail,
+        requesterName: accessToken ? undefined : form.requesterName || defaultRequesterName,
+        requesterEmail: accessToken ? undefined : form.requesterEmail || defaultRequesterEmail,
         customerAccountId: primaryAccount?.id,
         projectId: primaryAccount?.firstProjectId ?? undefined,
         contextDetails: form.contextDetails,
@@ -130,8 +123,8 @@ export function SupportIntakeForm() {
       setForm((current) => ({
         ...initialFormState,
         ticketType: current.ticketType,
-        requesterName: current.requesterName,
-        requesterEmail: current.requesterEmail,
+        requesterName: current.requesterName || defaultRequesterName,
+        requesterEmail: current.requesterEmail || defaultRequesterEmail,
       }));
     } catch (submitError) {
       setError(
@@ -193,7 +186,7 @@ export function SupportIntakeForm() {
               <label className="space-y-2">
                 <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Name</span>
                 <input
-                  value={form.requesterName}
+                  value={form.requesterName || defaultRequesterName}
                   onChange={(event) =>
                     setForm((current) => ({
                       ...current,
@@ -209,7 +202,7 @@ export function SupportIntakeForm() {
                 <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Email</span>
                 <input
                   type="email"
-                  value={form.requesterEmail}
+                  value={form.requesterEmail || defaultRequesterEmail}
                   onChange={(event) =>
                     setForm((current) => ({
                       ...current,

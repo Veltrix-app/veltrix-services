@@ -9,14 +9,14 @@ import type { SuccessMemberState } from "@/lib/success/member-activation";
 
 export function MemberActivationCard() {
   const { session } = useAuth();
+  const accessToken = session?.access_token ?? null;
   const [memberState, setMemberState] = useState<SuccessMemberState | null>(null);
   const [loading, setLoading] = useState(true);
+  const visibleMemberState = accessToken ? memberState : null;
+  const isLoading = accessToken ? loading : false;
 
   useEffect(() => {
-    const accessToken = session?.access_token;
     if (!accessToken) {
-      setMemberState(null);
-      setLoading(false);
       return;
     }
 
@@ -55,7 +55,7 @@ export function MemberActivationCard() {
     return () => {
       active = false;
     };
-  }, [session?.access_token]);
+  }, [accessToken]);
 
   return (
     <Surface
@@ -63,11 +63,11 @@ export function MemberActivationCard() {
       title="Your next meaningful move"
       description="This keeps the member-side activation rail explicit, even when the product has multiple paths open."
     >
-      {loading ? (
+      {isLoading ? (
         <div className="rounded-[22px] border border-white/8 bg-black/20 px-4 py-4 text-sm text-slate-300">
           Loading member activation...
         </div>
-      ) : memberState ? (
+      ) : visibleMemberState ? (
         <div className="space-y-4">
           <div className="flex items-center gap-3 rounded-[22px] border border-white/8 bg-black/20 px-4 py-4">
             <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-lime-200">
@@ -75,25 +75,25 @@ export function MemberActivationCard() {
             </div>
             <div>
               <p className="text-sm font-semibold text-white">
-                {memberState.nextBestActionLabel ?? "Open your member path"}
+                {visibleMemberState.nextBestActionLabel ?? "Open your member path"}
               </p>
               <p className="mt-1 text-sm text-slate-300">
-                {memberState.blockers[0] ?? "You can keep moving with the active path."}
+                {visibleMemberState.blockers[0] ?? "You can keep moving with the active path."}
               </p>
             </div>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
-            <StatTile label="Lane" value={memberState.activationLane.replaceAll("_", " ")} />
-            <StatTile label="Health" value={memberState.memberHealthState.replaceAll("_", " ")} />
-            <StatTile label="Projects" value={String(memberState.joinedProjectCount)} />
+            <StatTile label="Lane" value={visibleMemberState.activationLane.replaceAll("_", " ")} />
+            <StatTile label="Health" value={visibleMemberState.memberHealthState.replaceAll("_", " ")} />
+            <StatTile label="Projects" value={String(visibleMemberState.joinedProjectCount)} />
           </div>
 
           <Link
-            href={memberState.nextBestActionRoute ?? "/community/onboarding"}
+            href={visibleMemberState.nextBestActionRoute ?? "/community/onboarding"}
             className="inline-flex items-center gap-2 rounded-full bg-lime-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-lime-200"
           >
-            {memberState.nextBestActionLabel ?? "Open member path"}
+            {visibleMemberState.nextBestActionLabel ?? "Open member path"}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>

@@ -112,23 +112,6 @@ type ProfileRow = {
   title: string | null;
 };
 
-type JourneyContext = {
-  project: ProjectRow | null;
-  lane: "onboarding" | "active" | "comeback";
-  journey: JourneyRow | null;
-  snapshot: StatusSnapshotRow | null;
-  connectedProviders: Set<string>;
-  walletVerified: boolean;
-  joinedProjects: string[];
-  unreadSignals: number;
-  openQuests: QuestRow[];
-  liveRaids: RaidRow[];
-  claimableDistributions: RewardDistributionRow[];
-  globalReputation: GlobalReputationRow | null;
-  profile: ProfileRow | null;
-  projectReputation: ProjectReputationRow | null;
-};
-
 function getBearerToken(request: NextRequest) {
   const header = request.headers.get("authorization") || "";
   if (!header.toLowerCase().startsWith("bearer ")) {

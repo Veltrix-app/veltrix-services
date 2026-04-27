@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Copy, ShieldCheck, Signal, Trophy, UserRound, Wallet, Zap } from "lucide-react";
 import { CommunityStatusPanel } from "@/components/community/community-status-panel";
@@ -30,7 +31,6 @@ export function ProfileScreen() {
   const {
     notifications,
     unreadNotificationCount,
-    loading,
     error,
     campaigns,
     projectReputation,
@@ -56,7 +56,7 @@ export function ProfileScreen() {
     tone: "default" | "error" | "success";
     text: string;
   } | null>(null);
-  const [linkedSyncHandled, setLinkedSyncHandled] = useState<string | null>(null);
+  const linkedSyncHandledRef = useRef<string | null>(null);
   const [syncingLoadout, setSyncingLoadout] = useState(false);
   const effectiveConnectedAccounts = connectedAccounts;
   const loadoutSyncing = connectedAccountsState === "syncing" || syncingLoadout;
@@ -281,11 +281,11 @@ export function ProfileScreen() {
   useEffect(() => {
     const linkedProvider = searchParams.get("linked");
     const errorCode = searchParams.get("error_code");
-    if (!linkedProvider || linkedSyncHandled === linkedProvider) {
+    if (!linkedProvider || linkedSyncHandledRef.current === linkedProvider) {
       return;
     }
     const resolvedProvider = linkedProvider;
-    setLinkedSyncHandled(resolvedProvider);
+    linkedSyncHandledRef.current = resolvedProvider;
 
     let cancelled = false;
 
@@ -346,28 +346,7 @@ export function ProfileScreen() {
     return () => {
       cancelled = true;
     };
-  }, [linkedSyncHandled, pathname, reload, router, searchParams, syncConnectedAccounts]);
-
-  useEffect(() => {
-    if (!linkedSyncHandled || syncingLoadout) {
-      return;
-    }
-
-    const resolvedAccount = effectiveConnectedAccounts.find(
-      (account) =>
-        account.provider === linkedSyncHandled &&
-        account.status === "connected"
-    );
-
-    if (!resolvedAccount) {
-      return;
-    }
-
-    setProviderMessage({
-      tone: "success",
-      text: `${linkedSyncHandled.toUpperCase()} is connected and ready for provider-gated missions.`,
-    });
-  }, [effectiveConnectedAccounts, linkedSyncHandled, syncingLoadout]);
+  }, [pathname, reload, router, searchParams, syncConnectedAccounts]);
 
   async function handleCopyWallet() {
     if (!profile?.wallet || typeof navigator === "undefined" || !navigator.clipboard) {
@@ -899,10 +878,13 @@ function ProfileIdentityAvatar() {
 
   if (profile?.avatarUrl) {
     return (
-      <img
+      <Image
         src={profile.avatarUrl}
         alt="Member avatar"
-        className="h-full w-full object-cover"
+        fill
+        unoptimized
+        sizes="44px"
+        className="object-cover"
       />
     );
   }

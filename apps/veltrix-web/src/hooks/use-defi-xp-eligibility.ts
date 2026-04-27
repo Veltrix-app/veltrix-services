@@ -58,6 +58,23 @@ type DefiXpEligibilityState = {
   claimMessage: string | null;
 };
 
+const emptyVaultTransactions = buildDefiVaultTransactionSummary([]);
+const emptyMarketTransactions = buildDefiMarketTransactionSummary([]);
+const walletMissingState: DefiXpEligibilityState = {
+  status: "wallet-missing",
+  wallet: null,
+  transactions: emptyVaultTransactions,
+  marketTransactions: emptyMarketTransactions,
+  claimedSourceRefs: [],
+  claims: [],
+  trackingReady: false,
+  error: null,
+  warning: null,
+  claimStatus: "idle",
+  claimingSlug: null,
+  claimMessage: null,
+};
+
 export function useDefiXpEligibility(input: {
   accessToken?: string | null;
   wallet?: string | null;
@@ -67,52 +84,26 @@ export function useDefiXpEligibility(input: {
   const wallet = input.wallet ?? null;
   const accessToken = input.accessToken ?? null;
   const [refreshToken, setRefreshToken] = useState(0);
-  const [remoteState, setRemoteState] = useState<DefiXpEligibilityState>({
-    status: "wallet-missing",
-    wallet: null,
-    transactions: buildDefiVaultTransactionSummary([]),
-    marketTransactions: buildDefiMarketTransactionSummary([]),
-    claimedSourceRefs: [],
-    claims: [],
-    trackingReady: false,
-    error: null,
-    warning: null,
-    claimStatus: "idle",
-    claimingSlug: null,
-    claimMessage: null,
-  });
+  const [remoteState, setRemoteState] = useState<DefiXpEligibilityState>(walletMissingState);
+  const visibleRemoteState = wallet && accessToken ? remoteState : walletMissingState;
 
   useEffect(() => {
     if (!wallet || !accessToken) {
-      setRemoteState({
-        status: "wallet-missing",
-        wallet: null,
-        transactions: buildDefiVaultTransactionSummary([]),
-        marketTransactions: buildDefiMarketTransactionSummary([]),
-        claimedSourceRefs: [],
-        claims: [],
-        trackingReady: false,
-        error: null,
-        warning: null,
-        claimStatus: "idle",
-        claimingSlug: null,
-        claimMessage: null,
-      });
       return;
     }
 
     const walletAddress = wallet;
     const controller = new AbortController();
 
-    setRemoteState((current) => ({
-      ...current,
-      status: "loading",
-      wallet: walletAddress,
-      error: null,
-      claimMessage: null,
-    }));
-
     async function loadEligibility() {
+      setRemoteState((current) => ({
+        ...current,
+        status: "loading",
+        wallet: walletAddress,
+        error: null,
+        claimMessage: null,
+      }));
+
       try {
         const response = await fetch(
           `/api/defi/xp-eligibility?wallet=${encodeURIComponent(walletAddress)}`,
@@ -135,8 +126,8 @@ export function useDefiXpEligibility(input: {
         setRemoteState({
           status: "ready",
           wallet: payload.wallet ?? walletAddress,
-          transactions: payload.transactions ?? buildDefiVaultTransactionSummary([]),
-          marketTransactions: payload.marketTransactions ?? buildDefiMarketTransactionSummary([]),
+          transactions: payload.transactions ?? emptyVaultTransactions,
+          marketTransactions: payload.marketTransactions ?? emptyMarketTransactions,
           claimedSourceRefs: Array.isArray(payload.claimedSourceRefs)
             ? payload.claimedSourceRefs
             : [],
@@ -156,8 +147,8 @@ export function useDefiXpEligibility(input: {
         setRemoteState({
           status: "error",
           wallet: walletAddress,
-          transactions: buildDefiVaultTransactionSummary([]),
-          marketTransactions: buildDefiMarketTransactionSummary([]),
+          transactions: emptyVaultTransactions,
+          marketTransactions: emptyMarketTransactions,
           claimedSourceRefs: [],
           claims: [],
           trackingReady: false,
@@ -181,18 +172,18 @@ export function useDefiXpEligibility(input: {
     () =>
       buildDefiXpEligibilitySnapshot({
         walletReady: Boolean(wallet),
-        claimedSourceRefs: remoteState.claimedSourceRefs,
+        claimedSourceRefs: visibleRemoteState.claimedSourceRefs,
         vaultPositions: input.vaultPositions,
         markets: input.markets,
-        transactions: remoteState.transactions,
-        marketTransactions: remoteState.marketTransactions,
+        transactions: visibleRemoteState.transactions,
+        marketTransactions: visibleRemoteState.marketTransactions,
       }),
     [
       input.markets,
       input.vaultPositions,
-      remoteState.claimedSourceRefs,
-      remoteState.marketTransactions,
-      remoteState.transactions,
+      visibleRemoteState.claimedSourceRefs,
+      visibleRemoteState.marketTransactions,
+      visibleRemoteState.transactions,
       wallet,
     ]
   );
@@ -265,7 +256,7 @@ export function useDefiXpEligibility(input: {
   }
 
   return {
-    ...remoteState,
+    ...visibleRemoteState,
     snapshot,
     refresh,
     claimMission,
