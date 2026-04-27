@@ -8,9 +8,15 @@
   "scripts": {
     "typecheck": "npm run typecheck --workspace vyntro-community-bot && npm run typecheck --workspace vyntro-web",
     "build": "npm run build --workspace vyntro-community-bot && npm run build --workspace vyntro-web",
+    "lint": "npm run lint --workspace vyntro-web && npm run lint --workspace vyntro-docs",
+    "test": "node --import ./scripts/test-env.mjs --import tsx --test \"apps/veltrix-web/src/**/*.test.ts\" \"services/veltrix-community-bot/src/**/*.test.ts\"",
+    "verify": "npm run typecheck && npm run build && npm run typecheck:docs && npm run build:docs && npm run lint && npm run test",
     "dev:web": "npm run dev --workspace vyntro-web",
     "dev:docs": "npm run dev --workspace vyntro-docs",
     "build:docs": "npm run build --workspace vyntro-docs",
     "typecheck:docs": "npm run typecheck --workspace vyntro-docs"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0"
   }
 }

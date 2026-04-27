@@ -164,7 +164,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { user, serviceSupabase, supabase } = await resolveRequestUser(request);
+    const { user, serviceSupabase } = await resolveRequestUser(request);
 
     const { data: adminUserResult, error: adminUserError } =
       await serviceSupabase.auth.admin.getUserById(user.id);

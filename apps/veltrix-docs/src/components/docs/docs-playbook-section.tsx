@@ -43,7 +43,7 @@ export function DocsPlaybookSection({
 
             <div className="mt-4 rounded-[20px] border border-white/8 bg-white/[0.03] p-4">
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-lime-300">Example copy or control</p>
-              <p className="mt-3 text-sm leading-7 text-white">"{item.copy}"</p>
+              <p className="mt-3 text-sm leading-7 text-white">&quot;{item.copy}&quot;</p>
             </div>
 
             <div className="mt-4">

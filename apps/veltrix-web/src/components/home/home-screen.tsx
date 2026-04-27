@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Radar, Shield, Sparkles, Swords, Trophy, Wallet } from "lucide-react";
+import { ArrowRight, Radar, Shield, Sparkles, Swords, Wallet } from "lucide-react";
 import { CommunityStatusPanel } from "@/components/community/community-status-panel";
 import { ArtworkImage } from "@/components/ui/artwork-image";
 import { StatusChip } from "@/components/ui/status-chip";

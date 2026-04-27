@@ -30,7 +30,7 @@ function sanitizeExtension(fileName: string, mimeType: string) {
   return "jpg";
 }
 
-async function ensureBucketExists(supabase: any) {
+async function ensureBucketExists(supabase: ReturnType<typeof getServiceSupabaseClient>) {
   const { data: buckets } = await supabase.storage.listBuckets();
   const exists = (buckets ?? []).some((bucket: { name: string }) => bucket.name === bucketName);
 

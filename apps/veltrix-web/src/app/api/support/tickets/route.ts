@@ -146,14 +146,14 @@ export async function POST(request: NextRequest) {
     const authenticatedUser = hasBearer ? await resolveAuthenticatedBillingUser(request) : null;
     const serviceSupabase = createSupabaseServiceClient();
 
-    let requesterName =
+    const requesterName =
       authenticatedUser?.email || authenticatedUser?.user?.user_metadata
         ? deriveDisplayName({
             email: authenticatedUser?.email ?? null,
             metadata: (authenticatedUser?.user?.user_metadata as Record<string, unknown> | undefined) ?? {},
           })
         : (body?.requesterName?.trim() ?? "");
-    let requesterEmail = authenticatedUser?.email ?? body?.requesterEmail?.trim() ?? "";
+    const requesterEmail = authenticatedUser?.email ?? body?.requesterEmail?.trim() ?? "";
     let customerAccountId = body?.customerAccountId?.trim() || null;
     let projectId = body?.projectId?.trim() || null;
 
