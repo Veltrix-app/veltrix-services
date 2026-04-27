@@ -11,6 +11,7 @@ const envSchema = z.object({
   DISCORD_CLIENT_ID: z.string().min(1).optional(),
   DISCORD_CLIENT_SECRET: z.string().min(1).optional(),
   TELEGRAM_BOT_TOKEN: z.string().min(1).optional(),
+  X_API_BEARER_TOKEN: z.string().min(1).optional(),
   COMMUNITY_BOT_WEBHOOK_SECRET: z.string().min(1).optional(),
   COMMUNITY_RETRY_JOB_SECRET: z.string().min(1).optional(),
   ONCHAIN_EVM_RPC_URL: z.string().url().optional(),

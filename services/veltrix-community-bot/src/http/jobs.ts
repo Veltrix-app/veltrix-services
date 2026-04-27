@@ -16,6 +16,7 @@ import { retryOnchainIngressJob } from "../jobs/retry-onchain-ingress.js";
 import { syncDiscordRanks } from "../jobs/sync-discord-ranks.js";
 import { runOnchainProviderSyncJob } from "../jobs/sync-onchain-provider.js";
 import { ingestXRaidPost } from "../jobs/ingest-x-raid-post.js";
+import { pollXRaidSourcesJob } from "../jobs/poll-x-raid-sources.js";
 import { getDiscordClient } from "../providers/discord/client.js";
 import { syncDiscordGuildCommands } from "../providers/discord/commands.js";
 
@@ -53,6 +54,11 @@ const ingestXRaidPostSchema = z.object({
     isRepost: z.boolean().optional(),
     replyToPostId: z.string().optional().nullable(),
   }),
+});
+const pollXRaidSourcesSchema = z.object({
+  projectId: z.string().uuid().optional(),
+  sourceId: z.string().uuid().optional(),
+  limit: z.number().int().positive().max(100).optional(),
 });
 
 function hasValidJobSecret(secretHeader: string | undefined) {
@@ -289,6 +295,31 @@ jobsRouter.post("/ingest-x-raid-post", async (req, res) => {
     return res.status(500).json({
       ok: false,
       error: error instanceof Error ? error.message : "X raid ingest failed.",
+    });
+  }
+});
+
+jobsRouter.post("/poll-x-raid-sources", async (req, res) => {
+  if (!hasValidJobSecret(req.header("x-community-job-secret") ?? undefined)) {
+    return res.status(401).json({ ok: false, error: "Invalid job secret." });
+  }
+
+  const parsed = pollXRaidSourcesSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    return res.status(400).json({
+      ok: false,
+      error: "Invalid X raid source poll payload.",
+      details: parsed.error.flatten(),
+    });
+  }
+
+  try {
+    const result = await pollXRaidSourcesJob(parsed.data);
+    return res.status(result.ok ? 200 : 503).json(result);
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : "X raid source poll failed.",
     });
   }
 });

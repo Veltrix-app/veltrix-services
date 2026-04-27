@@ -252,10 +252,17 @@ export async function ingestXRaidPost(input: IngestXRaidPostInput) {
 
       if (candidateError) throw candidateError;
 
-      await supabaseAdmin
-        .from("x_raid_ingest_events")
-        .update({ candidate_id: candidate.id, updated_at: new Date().toISOString() })
-        .eq("id", event.id);
+      const eventSeenAt = new Date().toISOString();
+      await Promise.all([
+        supabaseAdmin
+          .from("x_raid_ingest_events")
+          .update({ candidate_id: candidate.id, updated_at: eventSeenAt })
+          .eq("id", event.id),
+        supabaseAdmin
+          .from("x_raid_sources")
+          .update({ last_event_at: eventSeenAt, updated_at: eventSeenAt })
+          .eq("id", source.id),
+      ]);
 
       return {
         ok: true,

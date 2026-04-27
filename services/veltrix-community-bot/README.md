@@ -61,6 +61,8 @@ Copy `.env.example` to `.env` and fill in:
 - `DISCORD_CLIENT_ID`
 - `DISCORD_CLIENT_SECRET`
 - `TELEGRAM_BOT_TOKEN`
+- `X_API_BEARER_TOKEN`
+- `X_RAID_SOURCE_POLL_LIMIT`
 - `COMMUNITY_BOT_WEBHOOK_SECRET`
 - `COMMUNITY_RETRY_JOB_SECRET`
 - `ONCHAIN_EVM_RPC_URL`
@@ -82,6 +84,12 @@ Render settings:
 - start command: `npm run start`
 - health check: `/health`
 
+Tweet-to-Raid automation also provisions a cron worker:
+- service: `veltrix-tweet-to-raid-poller`
+- schedule: every 10 minutes
+- command: `npm run poll:x-raid-sources`
+- failure signal: exits non-zero when X credentials are missing or a poll run fails
+
 After Render provisions the service, the public base URL becomes the bot URL you need in the web app, for example:
 - `https://veltrix-community-bot.onrender.com`
 
@@ -93,6 +101,7 @@ Then the important live endpoints are:
 - `POST /jobs/sync-onchain-provider`
 - `POST /jobs/enrich-onchain-events`
 - `POST /jobs/retry-onchain-ingress`
+- `POST /jobs/poll-x-raid-sources`
 
 ## On-chain provider sync
 
@@ -126,11 +135,13 @@ The next real implementation step after deployment is:
 
 ## Tweet-to-Raid Autopilot
 
-Tweet-to-Raid Autopilot turns an approved project X post event into a VYNTRO raid. The first production-safe path is manual ingest: an operator or portal action sends a structured post payload to the community bot, and the bot creates either a review candidate or an active raid based on `x_raid_sources.mode`.
+Tweet-to-Raid Autopilot turns an approved project X post event into a VYNTRO raid. The production-safe path has two rails: manual ingest for smoke tests and source polling for real automation. The poller reads active `x_raid_sources`, fetches recent X posts with `X_API_BEARER_TOKEN`, then creates either a review candidate or an active raid based on `x_raid_sources.mode`.
 
 ### Endpoint
 
 `POST /jobs/ingest-x-raid-post`
+
+`POST /jobs/poll-x-raid-sources`
 
 Required header:
 
@@ -154,6 +165,16 @@ Example payload:
 }
 ```
 
+Poll payload:
+
+```json
+{
+  "projectId": "9aceb865-06a4-4124-b5f8-e53018a4e712",
+  "sourceId": "optional-source-id",
+  "limit": 10
+}
+```
+
 ### Expected Decisions
 
 - `created_candidate`: review mode stored a row in `raid_generation_candidates`.
@@ -165,7 +186,10 @@ Example payload:
 
 1. Run the SQL migration in Supabase.
 2. Insert one active `x_raid_sources` row for the project account.
-3. Test the endpoint with `forceMode: "review"`.
-4. Confirm the candidate row is created.
-5. Switch the source to `auto_live` only after provider targets are connected.
-6. Test another post payload and confirm a raid appears at `/raids/<raidId>`.
+3. Configure `X_API_BEARER_TOKEN` on the live community bot.
+4. Test manual ingest with `forceMode: "review"`.
+5. Confirm the candidate row is created.
+6. Run `POST /jobs/poll-x-raid-sources` or the portal "Poll now" action.
+7. Confirm `x_raid_sources.metadata.lastPollStatus` and ingest events update.
+8. Switch the source to `auto_live` only after provider targets are connected.
+9. Test another post and confirm a raid appears at `/raids/<raidId>` and community delivery is attempted.
