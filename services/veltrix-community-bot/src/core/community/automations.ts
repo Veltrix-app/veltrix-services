@@ -1,8 +1,6 @@
 import { postCommunityLeaderboards } from "../../jobs/post-community-leaderboards.js";
 import { syncDiscordRanks } from "../../jobs/sync-discord-ranks.js";
 import { supabaseAdmin } from "../../lib/supabase.js";
-import { sendDiscordPush } from "../../providers/discord/push.js";
-import { sendTelegramPush } from "../../providers/telegram/push.js";
 import {
   computeNextCommunityAutomationRunAt,
   deriveCommunityAutomationExecutionPosture,
@@ -23,17 +21,13 @@ import {
   buildCommunityJourneyDeepLinks,
   resolveCommunityAutomationDeepLink,
 } from "./automation-links.js";
-
-type CommunityProvider = "discord" | "telegram";
-type ProviderScope = "discord" | "telegram" | "both";
-
-type ProjectCommunityTarget = {
-  integrationId: string;
-  provider: CommunityProvider;
-  targetChannelId?: string;
-  targetThreadId?: string;
-  targetChatId?: string;
-};
+import {
+  appUrl,
+  dispatchProjectCommunityMessage,
+  getDefaultCommunityArtwork,
+  type CommunityProvider,
+  type ProviderScope,
+} from "./delivery.js";
 
 type ProjectState = {
   project: {
@@ -131,7 +125,6 @@ type CommunityAutomationRunResult = {
   metadata?: Record<string, unknown>;
 };
 
-const appUrl = (process.env.PUBLIC_APP_URL || "https://veltrix-web.vercel.app").replace(/\/+$/, "");
 const AUTOMATION_SEQUENCE_RANK: Record<string, number> = {
   always_on: 0,
   launch: 1,
@@ -150,10 +143,6 @@ function normalizeCadence(value: unknown): CommunityAutomationCadence {
 
 function normalizeStatus(value: unknown): CommunityAutomationStatus {
   return value === "active" ? "active" : "paused";
-}
-
-function getDefaultCommunityArtwork(kind: "campaign" | "quest" | "raid") {
-  return `${appUrl}/community-push/defaults/${kind}.png`;
 }
 
 function getCommunityAutomationOwnerLabel(automationType: CommunityAutomationType) {
@@ -312,72 +301,6 @@ async function dispatchJourneyNudgesForLane(params: {
   };
 }
 
-async function loadProjectCommunityTargets(projectId: string, providerScope: ProviderScope) {
-  const { data, error } = await supabaseAdmin
-    .from("project_integrations")
-    .select("id, provider, status, config")
-    .eq("project_id", projectId)
-    .in("provider", ["discord", "telegram"])
-    .in("status", ["connected", "needs_attention"]);
-
-  if (error) {
-    throw new Error(error.message || "Failed to load project community targets.");
-  }
-
-  return ((data ?? []) as Array<{
-    id: string;
-    provider: CommunityProvider;
-    config: Record<string, unknown> | null;
-  }>)
-    .filter((integration) => providerScope === "both" || integration.provider === providerScope)
-    .map((integration): ProjectCommunityTarget | null => {
-      const pushSettings =
-        integration.config?.pushSettings && typeof integration.config.pushSettings === "object"
-          ? (integration.config.pushSettings as Record<string, unknown>)
-          : {};
-
-      if (integration.provider === "discord") {
-        const targetChannelId =
-          typeof pushSettings.targetChannelId === "string"
-            ? pushSettings.targetChannelId.trim()
-            : "";
-        const targetThreadId =
-          typeof pushSettings.targetThreadId === "string"
-            ? pushSettings.targetThreadId.trim()
-            : "";
-
-        return targetChannelId
-          ? {
-              integrationId: integration.id,
-              provider: "discord",
-              targetChannelId,
-              targetThreadId,
-            }
-          : null;
-      }
-
-      const fallbackChatId =
-        typeof integration.config?.chatId === "string" && integration.config.chatId.trim()
-          ? integration.config.chatId.trim()
-          : typeof integration.config?.groupId === "string"
-            ? integration.config.groupId.trim()
-            : "";
-      const targetChatId =
-        typeof pushSettings.targetChatId === "string" && pushSettings.targetChatId.trim()
-          ? pushSettings.targetChatId.trim()
-          : fallbackChatId;
-
-      return targetChatId
-        ? {
-            integrationId: integration.id,
-            provider: "telegram",
-            targetChatId,
-          }
-        : null;
-    })
-    .filter((target): target is ProjectCommunityTarget => Boolean(target));
-}
-
 async function loadProjectCommunityState(projectId: string): Promise<ProjectState> {
   const [
     { data: project, error: projectError },
@@ -450,65 +373,6 @@ async function loadProjectCommunityState(projectId: string): Promise<ProjectStat
     rewards: (rewards ?? []) as ProjectState["rewards"],
     raids: (raids ?? []) as ProjectState["raids"],
   };
-}
-
-async function dispatchProjectCommunityMessage(params: {
-  projectId: string;
-  providerScope: ProviderScope;
-  title: string;
-  body: string;
-  eyebrow?: string;
-  projectName: string;
-  campaignTitle?: string | null;
-  imageUrl?: string | null;
-  fallbackImageUrl?: string | null;
-  accentColor?: string | null;
-  meta?: Array<{ label: string; value: string }>;
-  url?: string | null;
-  buttonLabel?: string | null;
-}) {
-  const targets = await loadProjectCommunityTargets(params.projectId, params.providerScope);
-  let deliveries = 0;
-
-  for (const target of targets) {
-    if (target.provider === "discord" && target.targetChannelId) {
-      await sendDiscordPush({
-        targetChannelId: target.targetChannelId,
-        targetThreadId: target.targetThreadId,
-        title: params.title,
-        body: params.body,
-        eyebrow: params.eyebrow,
-        projectName: params.projectName,
-        campaignTitle: params.campaignTitle ?? undefined,
-        imageUrl: params.imageUrl ?? undefined,
-        accentColor: params.accentColor ?? undefined,
-        meta: params.meta,
-        url: params.url ?? undefined,
-        buttonLabel: params.buttonLabel ?? undefined,
-      });
-      deliveries += 1;
-      continue;
-    }
-
-    if (target.provider === "telegram" && target.targetChatId) {
-      await sendTelegramPush({
-        targetChatId: target.targetChatId,
-        title: params.title,
-        body: params.body,
-        eyebrow: params.eyebrow,
-        projectName: params.projectName,
-        campaignTitle: params.campaignTitle ?? undefined,
-        imageUrl: params.imageUrl ?? undefined,
-        fallbackImageUrl: params.fallbackImageUrl ?? undefined,
-        meta: params.meta,
-        url: params.url ?? undefined,
-        buttonLabel: params.buttonLabel ?? undefined,
-      });
-      deliveries += 1;
-    }
-  }
-
-  return deliveries;
 }
 
 async function updateCommunityMetadata(projectId: string, metadataPatch: Record<string, unknown>) {

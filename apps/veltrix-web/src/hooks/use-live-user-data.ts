@@ -671,7 +671,14 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
       setLeaderboard(nextLeaderboard);
     }
 
-    const nextRaids = (raidsResult.data ?? []).map((row) => ({
+    const nowMs = Date.now();
+    const nextRaids = (raidsResult.data ?? [])
+      .filter((row) => {
+        if (!row.ends_at) return true;
+        const endsAtMs = new Date(row.ends_at).getTime();
+        return Number.isNaN(endsAtMs) || endsAtMs > nowMs;
+      })
+      .map((row) => ({
         id: row.id,
         campaignId: row.campaign_id ?? null,
         title: row.title ?? "Raid",
@@ -687,6 +694,11 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
               (item): item is string => typeof item === "string"
             )
           : [],
+        sourceProvider: row.source_provider ?? null,
+        sourceUrl: row.source_url ?? null,
+        sourceExternalId: row.source_external_id ?? null,
+        endsAt: row.ends_at ?? null,
+        generatedBy: row.generated_by ?? null,
       }));
     if (shouldLoadRaids) {
       setRaids(nextRaids);

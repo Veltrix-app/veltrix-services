@@ -71,6 +71,7 @@ const AUTOMATION_PERMISSION_MAP: Record<CommunityAutomationType, CommunityCaptai
   newcomer_pulse: "newcomer_wave",
   reactivation_pulse: "reactivation_wave",
   activation_board: "activation_board",
+  tweet_to_raid: "raid_alert",
 };
 
 const DUE_WINDOW_MS = 72 * 60 * 60 * 1000;

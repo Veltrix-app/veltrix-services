@@ -99,6 +99,11 @@ export type LiveRaid = {
   target: string;
   banner: string;
   instructions: string[];
+  sourceProvider?: string | null;
+  sourceUrl?: string | null;
+  sourceExternalId?: string | null;
+  endsAt?: string | null;
+  generatedBy?: string | null;
 };
 
 export type LiveProjectReputation = {

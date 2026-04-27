@@ -27,6 +27,7 @@ const AUTOMATION_PERMISSION_MAP: Record<CommunityAutomationType, CommunityCaptai
   newcomer_pulse: "newcomer_wave",
   reactivation_pulse: "reactivation_wave",
   activation_board: "activation_board",
+  tweet_to_raid: "raid_alert",
 };
 
 const AUTOMATION_SCOPE_MAP: Record<CommunityAutomationType, CaptainSeatScope> = {
@@ -37,6 +38,7 @@ const AUTOMATION_SCOPE_MAP: Record<CommunityAutomationType, CaptainSeatScope> = 
   newcomer_pulse: "project_and_community",
   reactivation_pulse: "project_and_community",
   activation_board: "project_and_community",
+  tweet_to_raid: "community_only",
 };
 
 export function buildCaptainSeatKey(authUserId: string, role: string) {

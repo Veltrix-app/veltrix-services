@@ -21,6 +21,7 @@ test("model exports the supported automation and playbook keys", () => {
     "newcomer_pulse",
     "reactivation_pulse",
     "activation_board",
+    "tweet_to_raid",
   ]);
 
   assert.deepEqual(COMMUNITY_PLAYBOOK_KEYS, [
@@ -128,6 +129,7 @@ test("getCommunityAutomationSequence groups automations into predictable owner l
   assert.equal(getCommunityAutomationSequence("mission_digest"), "always_on");
   assert.equal(getCommunityAutomationSequence("newcomer_pulse"), "launch");
   assert.equal(getCommunityAutomationSequence("raid_reminder"), "raid");
+  assert.equal(getCommunityAutomationSequence("tweet_to_raid"), "raid");
   assert.equal(getCommunityAutomationSequence("reactivation_pulse"), "comeback");
   assert.equal(getCommunityAutomationSequence("activation_board"), "campaign_push");
 });

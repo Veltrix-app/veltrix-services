@@ -217,6 +217,16 @@ export function RaidDetailScreen() {
             <div className="metric-card rounded-[16px] p-3 text-[11px] leading-5 text-slate-300">
               Confirming a raid writes the completion into the same live progress layer used by the mobile app and web board.
             </div>
+            {currentRaid.sourceUrl ? (
+              <a
+                href={currentRaid.sourceUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-2 text-[11px] font-black uppercase tracking-[0.14em] text-slate-100 transition hover:border-rose-200/40 hover:text-rose-100"
+              >
+                Open source post
+              </a>
+            ) : null}
             <button
               onClick={() => void handleConfirm()}
               disabled={busy}

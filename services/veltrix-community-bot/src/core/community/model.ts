@@ -6,6 +6,7 @@ export const COMMUNITY_AUTOMATION_TYPES = [
   "newcomer_pulse",
   "reactivation_pulse",
   "activation_board",
+  "tweet_to_raid",
 ] as const;
 
 export const COMMUNITY_PLAYBOOK_KEYS = [
@@ -147,7 +148,7 @@ export function getCommunityAutomationSequence(
     return "launch";
   }
 
-  if (automationType === "raid_reminder") {
+  if (automationType === "raid_reminder" || automationType === "tweet_to_raid") {
     return "raid";
   }
 

@@ -15,6 +15,7 @@ import { retryPendingCommunityVerifications } from "../jobs/retry-community-veri
 import { retryOnchainIngressJob } from "../jobs/retry-onchain-ingress.js";
 import { syncDiscordRanks } from "../jobs/sync-discord-ranks.js";
 import { runOnchainProviderSyncJob } from "../jobs/sync-onchain-provider.js";
+import { ingestXRaidPost } from "../jobs/ingest-x-raid-post.js";
 import { getDiscordClient } from "../providers/discord/client.js";
 import { syncDiscordGuildCommands } from "../providers/discord/commands.js";
 
@@ -35,6 +36,23 @@ const discordCommunitySchema = z.object({
   projectId: z.string().uuid().optional(),
   integrationId: z.string().uuid().optional(),
   force: z.boolean().optional(),
+});
+const ingestXRaidPostSchema = z.object({
+  projectId: z.string().uuid(),
+  sourceId: z.string().uuid().optional(),
+  forceMode: z.enum(["review", "auto_live"]).optional(),
+  post: z.object({
+    id: z.string().min(1),
+    authorId: z.string().optional().nullable(),
+    username: z.string().min(1),
+    text: z.string().min(1),
+    url: z.string().url().optional().nullable(),
+    mediaUrls: z.array(z.string().url()).optional(),
+    createdAt: z.string().datetime().optional().nullable(),
+    isReply: z.boolean().optional(),
+    isRepost: z.boolean().optional(),
+    replyToPostId: z.string().optional().nullable(),
+  }),
 });
 
 function hasValidJobSecret(secretHeader: string | undefined) {
@@ -246,6 +264,31 @@ jobsRouter.post("/post-community-leaderboards", async (req, res) => {
     return res.status(500).json({
       ok: false,
       error: error instanceof Error ? error.message : "Community leaderboard post failed.",
+    });
+  }
+});
+
+jobsRouter.post("/ingest-x-raid-post", async (req, res) => {
+  if (!hasValidJobSecret(req.header("x-community-job-secret") ?? undefined)) {
+    return res.status(401).json({ ok: false, error: "Invalid job secret." });
+  }
+
+  const parsed = ingestXRaidPostSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    return res.status(400).json({
+      ok: false,
+      error: "Invalid X raid ingest payload.",
+      details: parsed.error.flatten(),
+    });
+  }
+
+  try {
+    const result = await ingestXRaidPost(parsed.data);
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : "X raid ingest failed.",
     });
   }
 });

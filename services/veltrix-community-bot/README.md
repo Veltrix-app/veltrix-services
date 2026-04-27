@@ -123,3 +123,49 @@ The next real implementation step after deployment is:
 - keep project-side Discord integration setup storing `guildId`
 - keep project-side Telegram integration setup storing `chatId`
 - wire a cron or worker to `POST /jobs/retry-community-verifications`
+
+## Tweet-to-Raid Autopilot
+
+Tweet-to-Raid Autopilot turns an approved project X post event into a VYNTRO raid. The first production-safe path is manual ingest: an operator or portal action sends a structured post payload to the community bot, and the bot creates either a review candidate or an active raid based on `x_raid_sources.mode`.
+
+### Endpoint
+
+`POST /jobs/ingest-x-raid-post`
+
+Required header:
+
+`x-community-job-secret: <COMMUNITY_BOT_WEBHOOK_SECRET or COMMUNITY_RETRY_JOB_SECRET>`
+
+Example payload:
+
+```json
+{
+  "projectId": "9aceb865-06a4-4124-b5f8-e53018a4e712",
+  "forceMode": "review",
+  "post": {
+    "id": "1916812345678900000",
+    "username": "chainwarshq",
+    "text": "New guild raid is live. Join the push. #VYNTRO",
+    "url": "https://x.com/chainwarshq/status/1916812345678900000",
+    "mediaUrls": ["https://example.com/banner.png"],
+    "isReply": false,
+    "isRepost": false
+  }
+}
+```
+
+### Expected Decisions
+
+- `created_candidate`: review mode stored a row in `raid_generation_candidates`.
+- `created_raid`: auto-live mode created a row in `raids` and attempted Discord/Telegram delivery.
+- `skipped`: dedupe, source mismatch, filters, cooldown or daily cap prevented creation.
+- `failed`: the job failed after accepting the event and stored the failure in the ingest event.
+
+### Rollout Checklist
+
+1. Run the SQL migration in Supabase.
+2. Insert one active `x_raid_sources` row for the project account.
+3. Test the endpoint with `forceMode: "review"`.
+4. Confirm the candidate row is created.
+5. Switch the source to `auto_live` only after provider targets are connected.
+6. Test another post payload and confirm a raid appears at `/raids/<raidId>`.
