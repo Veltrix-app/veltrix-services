@@ -8,6 +8,7 @@ import {
   buildXpProgressionRead,
   buildXpSourceRef,
   buildXpStreakRead,
+  calculateQuestGlobalXp,
   getXpSourceConfig,
 } from "./xp-economy";
 
@@ -38,6 +39,8 @@ test("xp economy v1 publishes final caps levels and anti abuse policy", () => {
   assert.equal(XP_ECONOMY_V1_POLICY.sources.defi.rewardBorrowVolume, false);
   assert.equal(XP_ECONOMY_V1_POLICY.antiAbuse.sybilReviewScore, 90);
   assert.equal(XP_ECONOMY_V1_POLICY.streak.graceHours, 48);
+  assert.equal(XP_ECONOMY_V1_POLICY.questRewards.maxGlobalQuestXp, 200);
+  assert.equal(XP_ECONOMY_V1_POLICY.questRewards.projectManagedPoints, true);
 });
 
 test("xp progression uses one central level curve and contribution tiers", () => {
@@ -97,6 +100,46 @@ test("xp award plan applies trust quality action and streak multipliers conserva
   assert.equal(plan.ok ? plan.event.sourceRef : "", "quest_completion:quest-2");
   assert.equal(plan.ok ? plan.event.effectiveXp : 0, 242);
   assert.equal(plan.ok ? plan.event.streakMultiplier : 0, 1.2);
+});
+
+test("quest global xp ignores inflated project supplied xp and preserves project points", () => {
+  const plan = calculateQuestGlobalXp({
+    questType: "social_follow",
+    requestedXp: 5000,
+    verificationType: "api_check",
+    verificationProvider: "x",
+    completionMode: "integration_auto",
+  });
+
+  assert.equal(plan.globalXp, 25);
+  assert.equal(plan.projectPoints, 5000);
+  assert.equal(plan.cappedByPolicy, true);
+  assert.equal(plan.verificationStrength, "verified");
+});
+
+test("quest global xp rewards stronger proof without letting one quest dominate", () => {
+  const onchain = calculateQuestGlobalXp({
+    questType: "onchain_action",
+    requestedXp: 50,
+    proofRequired: true,
+    proofType: "tx_hash",
+    verificationType: "wallet_check",
+    completionMode: "integration_auto",
+  });
+  const manualProof = calculateQuestGlobalXp({
+    questType: "content_submit",
+    requestedXp: 999,
+    proofRequired: true,
+    proofType: "url",
+    verificationType: "manual_review",
+    completionMode: "manual",
+  });
+
+  assert.equal(onchain.globalXp, 169);
+  assert.equal(onchain.band, "onchain");
+  assert.equal(manualProof.globalXp, 81);
+  assert.equal(manualProof.band, "reviewed");
+  assert.equal(manualProof.cappedByPolicy, true);
 });
 
 test("xp streak read keeps the daily retention loop explicit", () => {

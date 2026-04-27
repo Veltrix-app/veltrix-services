@@ -212,7 +212,9 @@ export async function POST(
 
     const { data: quest, error: questError } = await serviceSupabase
       .from("quests")
-      .select("id, title, project_id, campaign_id, xp, quest_type")
+      .select(
+        "id, title, project_id, campaign_id, xp, quest_type, proof_required, proof_type, verification_type, verification_provider, completion_mode, verification_config"
+      )
       .eq("id", String(submission.quest_id))
       .maybeSingle();
 
@@ -258,6 +260,17 @@ export async function POST(
         projectId: safeString(quest.project_id) || null,
         campaignId: safeString(quest.campaign_id) || null,
         questType: safeString(quest.quest_type) || null,
+        proofRequired: Boolean(quest.proof_required),
+        proofType: safeString(quest.proof_type) || null,
+        verificationType: safeString(quest.verification_type) || null,
+        verificationProvider: safeString(quest.verification_provider) || null,
+        completionMode: safeString(quest.completion_mode) || null,
+        difficulty:
+          quest.verification_config &&
+          typeof quest.verification_config === "object" &&
+          "difficulty" in quest.verification_config
+            ? safeString((quest.verification_config as Record<string, unknown>).difficulty) || null
+            : null,
       },
       existingQuestStatuses: normalizeQuestStatuses(userProgress?.quest_statuses),
       reviewNotes: safeString(body?.reviewNotes),

@@ -45,7 +45,7 @@ export type TelegramLeaderboardEntry = {
 
 export type TelegramMissionBoard = {
   campaigns: Array<{ id: string; title: string }>;
-  quests: Array<{ id: string; title: string; xp: number | null }>;
+  quests: Array<{ id: string; title: string; projectPoints: number }>;
   rewards: Array<{ id: string; title: string; cost: number | null }>;
 };
 
@@ -554,7 +554,13 @@ export async function loadTelegramMissionBoard(projectId: string) {
 
   return {
     campaigns: (campaigns ?? []) as Array<{ id: string; title: string }>,
-    quests: (quests ?? []) as Array<{ id: string; title: string; xp: number | null }>,
+    quests: ((quests ?? []) as Array<{ id: string; title: string; xp: number | null }>).map(
+      (quest) => ({
+        id: quest.id,
+        title: quest.title,
+        projectPoints: Number(quest.xp ?? 0),
+      })
+    ),
     rewards: (rewards ?? []) as Array<{ id: string; title: string; cost: number | null }>,
   };
 }

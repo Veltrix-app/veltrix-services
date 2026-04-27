@@ -80,7 +80,7 @@ export type DiscordRaidRailEntry = {
 
 export type DiscordMissionBoard = {
   campaigns: Array<{ id: string; title: string }>;
-  quests: Array<{ id: string; title: string; xp: number }>;
+  quests: Array<{ id: string; title: string; projectPoints: number }>;
   rewards: Array<{ id: string; title: string; cost: number }>;
 };
 
@@ -855,7 +855,7 @@ export async function loadDiscordMissionBoard(projectId: string): Promise<Discor
       (quest) => ({
         id: quest.id,
         title: quest.title,
-        xp: Number(quest.xp ?? 0),
+        projectPoints: Number(quest.xp ?? 0),
       })
     ),
     rewards: ((rewards ?? []) as Array<{ id: string; title: string; cost: number | null }>).map(

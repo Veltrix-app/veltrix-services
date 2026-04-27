@@ -25,6 +25,9 @@ test("approved quest submission decisions create an XP award intent and approved
       projectId: "project-1",
       campaignId: "campaign-1",
       questType: "telegram_join",
+      verificationType: "bot_check",
+      verificationProvider: "telegram",
+      completionMode: "integration_auto",
     },
     existingQuestStatuses: {
       "quest-1": "pending",
@@ -36,10 +39,37 @@ test("approved quest submission decisions create an XP award intent and approved
   assert.equal(plan.shouldAwardXp, true);
   assert.equal(plan.nextQuestStatuses["quest-1"], "approved");
   assert.equal(plan.xpAward?.sourceId, "quest-1");
-  assert.equal(plan.xpAward?.baseXp, 150);
+  assert.equal(plan.xpAward?.baseXp, 25);
+  assert.equal(plan.xpAward?.metadata.projectRequestedXp, 150);
+  assert.equal(plan.xpAward?.metadata.globalXpPolicyVersion, "xp-economy-v1");
   assert.equal(plan.xpAward?.metadata.questTitle, "Join the launch");
   assert.equal(plan.audit.action, "quest_submission_approved");
   assert.equal(plan.notification.title, "Quest approved");
+});
+
+test("approved quest submission decisions cap inflated manual project xp", () => {
+  const plan = buildQuestSubmissionDecisionPlan({
+    decision: "approved",
+    submissionId: "submission-2",
+    reviewerAuthUserId: "reviewer-1",
+    quest: {
+      id: "quest-2",
+      title: "Write a launch recap",
+      xp: 5000,
+      projectId: "project-1",
+      campaignId: "campaign-1",
+      questType: "content_submit",
+      proofRequired: true,
+      proofType: "url",
+      verificationType: "manual_review",
+      completionMode: "manual",
+    },
+  });
+
+  assert.equal(plan.shouldAwardXp, true);
+  assert.equal(plan.xpAward?.baseXp, 81);
+  assert.equal(plan.xpAward?.metadata.projectPoints, 5000);
+  assert.equal(plan.xpAward?.metadata.globalXpCappedByPolicy, true);
 });
 
 test("rejected quest submission decisions never create an XP award intent", () => {

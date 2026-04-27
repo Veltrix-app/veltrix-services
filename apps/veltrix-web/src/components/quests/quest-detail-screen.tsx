@@ -404,6 +404,8 @@ export function QuestDetailScreen() {
         questType: currentQuest.questType,
         verificationProvider: inferredVerificationProvider,
         completionMode: currentQuest.completionMode,
+        globalXp: currentQuest.xp,
+        projectPoints: currentQuest.projectPoints,
       },
     });
   }
@@ -765,6 +767,9 @@ export function QuestDetailScreen() {
             <div className="mt-4 flex flex-wrap gap-1.5">
               <MetricPill label="Type" value={currentQuest.type} />
               <MetricPill label="XP" value={`+${currentQuest.xp}`} />
+              {currentQuest.projectPoints !== currentQuest.xp ? (
+                <MetricPill label="Project pts" value={`${currentQuest.projectPoints}`} />
+              ) : null}
               <MetricPill label="Mode" value={currentQuest.completionMode ?? "manual"} />
               <MetricPill label="Provider" value={currentQuest.verificationProvider ?? "custom"} />
             </div>

@@ -44,7 +44,7 @@ export function formatTelegramMissionBoard(board: TelegramMissionBoard) {
       ? `Campaigns: ${board.campaigns.map((item) => item.title).join(" | ")}`
       : "Campaigns: none live right now",
     board.quests.length
-      ? `Quests: ${board.quests.map((item) => `${item.title} (+${item.xp ?? 0} XP)`).join(" | ")}`
+      ? `Quests: ${board.quests.map((item) => `${item.title} (+${item.projectPoints} project pts)`).join(" | ")}`
       : "Quests: none live right now",
     board.rewards.length
       ? `Rewards: ${board.rewards.map((item) => `${item.title} (${item.cost ?? 0} XP)`).join(" | ")}`

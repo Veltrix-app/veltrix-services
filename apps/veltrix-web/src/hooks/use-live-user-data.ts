@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/providers/auth-provider";
+import { calculateQuestGlobalXp } from "@/lib/xp/xp-economy";
 import type { ConnectedAccount } from "@/types/auth";
 import type {
   LiveCampaign,
@@ -600,6 +601,20 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
             : (row.auto_approve ?? false)
               ? "rule_auto"
               : "manual");
+        const projectPoints = row.xp ?? 0;
+        const globalXpPlan = calculateQuestGlobalXp({
+          questType,
+          requestedXp: projectPoints,
+          difficulty:
+            typeof verificationConfig?.difficulty === "string"
+              ? verificationConfig.difficulty
+              : null,
+          proofRequired: row.proof_required ?? false,
+          proofType: row.proof_type ?? "none",
+          verificationType,
+          verificationProvider,
+          completionMode,
+        });
 
         return {
           id: row.id,
@@ -610,7 +625,8 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
           type: row.type ?? row.quest_type ?? "Task",
           questType,
           status: questStatuses[row.id] ?? row.status ?? "open",
-          xp: row.xp ?? 0,
+          xp: globalXpPlan.globalXp,
+          projectPoints,
           actionLabel: row.action_label ?? "Open Task",
           actionUrl: row.action_url ?? null,
           proofRequired: row.proof_required ?? false,

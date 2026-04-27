@@ -1,15 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  ArrowRight,
-  BadgeCheck,
-  Flame,
-  RefreshCw,
-  ShieldCheck,
-  WalletCards,
-  Zap,
-} from "lucide-react";
+import { ArrowRight, BadgeCheck, Flame, RefreshCw, ShieldCheck, WalletCards, Zap } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useDefiXpEligibility } from "@/hooks/use-defi-xp-eligibility";
@@ -30,13 +22,6 @@ function getStatusTone(status: XpCockpitStatus) {
   if (status === "claim-ready" || status === "growth-ready") return "positive";
   if (status === "review-watch") return "warning";
   return "default";
-}
-
-function getLaneIcon(key: XpCockpitSourceLane["key"]) {
-  if (key === "quests") return BadgeCheck;
-  if (key === "raids") return Zap;
-  if (key === "defi") return WalletCards;
-  return Flame;
 }
 
 export function XpCockpitScreen() {
@@ -293,11 +278,19 @@ export function XpCockpitScreen() {
             </div>
           </div>
           <p className="mt-4 text-[12px] leading-6 text-slate-400">
-            Borrowing remains separate from yield missions. XP rewards verified proof, collateral
-            awareness and repay discipline, not bigger debt.
+            Borrowing remains separate from yield missions. Project points can stay local, but
+            global VYNTRO XP is calculated centrally from quest type, proof strength and caps.
           </p>
           <div className="mt-4 grid gap-2">
             <MiniRead label="Policy" value={XP_ECONOMY_V1_POLICY.version} />
+            <MiniRead
+              label="Global quest max"
+              value={`${XP_ECONOMY_V1_POLICY.questRewards.maxGlobalQuestXp}/quest`}
+            />
+            <MiniRead
+              label="Project points"
+              value={XP_ECONOMY_V1_POLICY.questRewards.projectManagedPoints ? "Local only" : "Disabled"}
+            />
             <MiniRead
               label="Quest cap"
               value={`${XP_ECONOMY_V1_POLICY.sources.quest.maxDailyXp}/day`}
@@ -348,8 +341,6 @@ export function XpCockpitScreen() {
 }
 
 function SourceLaneCard({ lane }: { lane: XpCockpitSourceLane }) {
-  const Icon = getLaneIcon(lane.key);
-
   return (
     <Link
       href={lane.href}
@@ -357,7 +348,7 @@ function SourceLaneCard({ lane }: { lane: XpCockpitSourceLane }) {
     >
       <div className="flex items-start justify-between gap-4">
         <span className="flex h-10 w-10 items-center justify-center rounded-full border border-white/8 bg-white/[0.04] text-lime-200">
-          <Icon className="h-4 w-4" />
+          <LaneIcon laneKey={lane.key} />
         </span>
         <StatusChip label={lane.value} tone={lane.tone} />
       </div>
@@ -371,6 +362,22 @@ function SourceLaneCard({ lane }: { lane: XpCockpitSourceLane }) {
       </div>
     </Link>
   );
+}
+
+function LaneIcon({ laneKey }: { laneKey: XpCockpitSourceLane["key"] }) {
+  if (laneKey === "quests") {
+    return <BadgeCheck className="h-4 w-4" />;
+  }
+
+  if (laneKey === "raids") {
+    return <Zap className="h-4 w-4" />;
+  }
+
+  if (laneKey === "defi") {
+    return <WalletCards className="h-4 w-4" />;
+  }
+
+  return <Flame className="h-4 w-4" />;
 }
 
 function GuardrailCard({ guardrail }: { guardrail: XpCockpitGuardrail }) {

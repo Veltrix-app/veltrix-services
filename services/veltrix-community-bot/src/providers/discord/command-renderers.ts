@@ -91,7 +91,7 @@ export function buildDiscordMissionFields(board: DiscordMissionBoard): APIEmbedF
       name: "Quest lane",
       value:
         board.quests.length > 0
-          ? board.quests.map((item) => `${item.title} (+${item.xp} XP)`).join("\n")
+          ? board.quests.map((item) => `${item.title} (+${item.projectPoints} project pts)`).join("\n")
           : "No live quests right now.",
       inline: false,
     },

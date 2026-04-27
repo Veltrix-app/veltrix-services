@@ -11,6 +11,9 @@ export type XpAntiAbuseWindow = "none" | "daily" | "campaign" | "lifetime";
 export type XpSourceCategory = "mission" | "coordination" | "defi" | "retention" | "operator";
 export type XpContributionTier = "explorer" | "contender" | "champion" | "legend";
 export type XpStreakStatus = "active" | "grace" | "reset";
+export type XpQuestDifficulty = "micro" | "standard" | "advanced" | "expert";
+export type XpQuestVerificationStrength = "light" | "verified" | "reviewed" | "onchain";
+export type XpQuestRewardBand = "social" | "community" | "education" | "reviewed" | "onchain" | "default";
 
 export type XpSourceConfig = {
   sourceType: XpSourceType;
@@ -81,7 +84,71 @@ export type XpStreakInput = {
   now?: string;
 };
 
+export type XpQuestGlobalXpInput = {
+  questType?: string | null;
+  requestedXp?: number | null;
+  difficulty?: string | null;
+  proofRequired?: boolean | null;
+  proofType?: string | null;
+  verificationType?: string | null;
+  verificationProvider?: string | null;
+  completionMode?: string | null;
+};
+
+export type XpQuestGlobalXpPlan = {
+  globalXp: number;
+  projectPoints: number;
+  projectRequestedXp: number;
+  difficulty: XpQuestDifficulty;
+  verificationStrength: XpQuestVerificationStrength;
+  band: XpQuestRewardBand;
+  typeBaseXp: number;
+  cap: number;
+  cappedByPolicy: boolean;
+};
+
 const LEVEL_THRESHOLDS = [0, 500, 1250, 2250, 3500, 5000, 7000, 9500, 12500, 16000];
+const QUEST_TYPE_BASE_XP: Record<string, number> = {
+  social_follow: 25,
+  x_follow: 25,
+  twitter_follow: 25,
+  telegram_join: 25,
+  discord_join: 30,
+  url_visit: 15,
+  website_visit: 15,
+  quiz: 45,
+  survey: 35,
+  poll: 25,
+  content_submit: 70,
+  proof_submission: 60,
+  referral: 25,
+  wallet_connect: 50,
+  onchain_action: 100,
+  token_hold: 90,
+  defi_deposit: 120,
+  defi_borrow: 130,
+  defi_repay: 110,
+};
+const QUEST_DIFFICULTY_MULTIPLIERS: Record<XpQuestDifficulty, number> = {
+  micro: 0.8,
+  standard: 1,
+  advanced: 1.35,
+  expert: 1.7,
+};
+const QUEST_VERIFICATION_MULTIPLIERS: Record<XpQuestVerificationStrength, number> = {
+  light: 1,
+  verified: 1,
+  reviewed: 1.15,
+  onchain: 1.25,
+};
+const QUEST_BAND_CAPS: Record<XpQuestRewardBand, number> = {
+  social: 30,
+  community: 35,
+  education: 75,
+  reviewed: 125,
+  onchain: 175,
+  default: 90,
+};
 const SOURCE_CONFIGS: Record<XpSourceType, XpSourceConfig> = {
   quest_completion: {
     sourceType: "quest_completion",
@@ -151,6 +218,20 @@ export const XP_ECONOMY_V1_POLICY = {
     qualityMultiplierMax: 1.5,
     rewardBorrowVolume: false,
   },
+  questRewards: {
+    projectManagedPoints: true,
+    maxGlobalQuestXp: 200,
+    bands: {
+      social: QUEST_BAND_CAPS.social,
+      community: QUEST_BAND_CAPS.community,
+      education: QUEST_BAND_CAPS.education,
+      reviewed: QUEST_BAND_CAPS.reviewed,
+      onchain: QUEST_BAND_CAPS.onchain,
+      default: QUEST_BAND_CAPS.default,
+    },
+    principle:
+      "Projects may manage local points and rewards, but global VYNTRO XP is calculated by type, difficulty, verification strength and caps.",
+  },
   compliance: [
     "XP rewards verified participation proof, not investment performance.",
     "Borrow volume is never rewarded directly.",
@@ -165,6 +246,38 @@ export function getXpSourceConfig(sourceType: XpSourceType): XpSourceConfig {
 export function buildXpSourceRef(sourceType: XpSourceType, sourceId: string) {
   const config = getXpSourceConfig(sourceType);
   return `${config.refPrefix}:${sourceId.trim()}`;
+}
+
+export function calculateQuestGlobalXp(input: XpQuestGlobalXpInput): XpQuestGlobalXpPlan {
+  const questType = normalizeKey(input.questType, "custom");
+  const band = deriveQuestRewardBand(questType, input);
+  const difficulty = normalizeQuestDifficulty(input.difficulty) ?? inferQuestDifficulty(questType, input);
+  const verificationStrength = inferQuestVerificationStrength(questType, input);
+  const typeBaseXp = QUEST_TYPE_BASE_XP[questType] ?? QUEST_TYPE_BASE_XP[band] ?? 45;
+  const rawXp = Math.round(
+    typeBaseXp *
+      QUEST_DIFFICULTY_MULTIPLIERS[difficulty] *
+      QUEST_VERIFICATION_MULTIPLIERS[verificationStrength]
+  );
+  const cap = Math.min(
+    XP_ECONOMY_V1_POLICY.questRewards.maxGlobalQuestXp,
+    QUEST_BAND_CAPS[band],
+    verificationStrength === "light" ? 40 : XP_ECONOMY_V1_POLICY.questRewards.maxGlobalQuestXp
+  );
+  const globalXp = Math.max(0, Math.min(rawXp, cap));
+  const projectRequestedXp = Math.max(0, Math.floor(toSafeNumber(input.requestedXp)));
+
+  return {
+    globalXp,
+    projectPoints: projectRequestedXp,
+    projectRequestedXp,
+    difficulty,
+    verificationStrength,
+    band,
+    typeBaseXp,
+    cap,
+    cappedByPolicy: projectRequestedXp > globalXp || rawXp > globalXp,
+  };
 }
 
 export function buildXpProgressionRead(totalXpInput: number): XpProgressionRead {
@@ -340,6 +453,110 @@ function deriveContributionTier(totalXp: number): XpContributionTier {
   if (totalXp >= 5_000) return "champion";
   if (totalXp >= 2_000) return "contender";
   return "explorer";
+}
+
+function deriveQuestRewardBand(
+  questType: string,
+  input: XpQuestGlobalXpInput
+): XpQuestRewardBand {
+  if (
+    questType.includes("onchain") ||
+    questType.includes("defi") ||
+    questType.includes("token") ||
+    input.proofType === "tx_hash" ||
+    input.verificationType === "wallet_check"
+  ) {
+    return "onchain";
+  }
+
+  if (questType.includes("social") || questType.includes("follow") || questType.includes("visit")) {
+    return "social";
+  }
+
+  if (questType.includes("telegram") || questType.includes("discord") || questType.includes("community")) {
+    return "community";
+  }
+
+  if (questType.includes("quiz") || questType.includes("survey") || questType.includes("poll")) {
+    return "education";
+  }
+
+  if (input.proofRequired || input.proofType === "url" || input.verificationType === "manual_review") {
+    return "reviewed";
+  }
+
+  return "default";
+}
+
+function inferQuestDifficulty(
+  questType: string,
+  input: XpQuestGlobalXpInput
+): XpQuestDifficulty {
+  if (
+    questType.includes("defi") ||
+    questType.includes("onchain") ||
+    input.proofType === "tx_hash" ||
+    input.verificationType === "wallet_check"
+  ) {
+    return "advanced";
+  }
+
+  if (questType.includes("referral") || input.verificationType === "manual_review") {
+    return "standard";
+  }
+
+  if (questType.includes("visit")) {
+    return "micro";
+  }
+
+  return "standard";
+}
+
+function inferQuestVerificationStrength(
+  questType: string,
+  input: XpQuestGlobalXpInput
+): XpQuestVerificationStrength {
+  if (
+    questType.includes("onchain") ||
+    questType.includes("defi") ||
+    input.proofType === "tx_hash" ||
+    input.verificationType === "wallet_check"
+  ) {
+    return "onchain";
+  }
+
+  if (input.verificationType === "manual_review" || (input.proofRequired && input.proofType !== "none")) {
+    return "reviewed";
+  }
+
+  if (
+    input.completionMode === "integration_auto" ||
+    ["api_check", "bot_check", "event_check"].includes(normalizeKey(input.verificationType, ""))
+  ) {
+    return "verified";
+  }
+
+  return "light";
+}
+
+function normalizeQuestDifficulty(value: string | null | undefined): XpQuestDifficulty | null {
+  const normalized = normalizeKey(value, "");
+  if (
+    normalized === "micro" ||
+    normalized === "standard" ||
+    normalized === "advanced" ||
+    normalized === "expert"
+  ) {
+    return normalized;
+  }
+
+  return null;
+}
+
+function normalizeKey(value: unknown, fallback: string) {
+  return typeof value === "string" && value.trim().length > 0
+    ? value.trim().toLowerCase()
+    : fallback;
 }
 
 function deriveTrustMultiplier(trustScore: number) {

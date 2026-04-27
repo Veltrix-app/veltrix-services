@@ -55,6 +55,7 @@ export type LiveQuest = {
   questType: string;
   status: "open" | "pending" | "approved" | "rejected";
   xp: number;
+  projectPoints: number;
   actionLabel: string | null;
   actionUrl: string | null;
   proofRequired: boolean;

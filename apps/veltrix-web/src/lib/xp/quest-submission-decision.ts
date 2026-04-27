@@ -1,4 +1,4 @@
-import { XP_SOURCE_TYPES } from "./xp-economy";
+import { XP_ECONOMY_V1_POLICY, XP_SOURCE_TYPES, calculateQuestGlobalXp } from "./xp-economy";
 import type { UserXpAwardSourceType } from "./xp-awards";
 
 export type QuestSubmissionDecision = "approved" | "rejected";
@@ -10,6 +10,12 @@ export type QuestSubmissionDecisionQuest = {
   projectId: string | null;
   campaignId: string | null;
   questType: string | null;
+  proofRequired?: boolean | null;
+  proofType?: string | null;
+  verificationType?: string | null;
+  verificationProvider?: string | null;
+  completionMode?: string | null;
+  difficulty?: string | null;
 };
 
 export type QuestSubmissionDecisionPlan = {
@@ -49,15 +55,38 @@ export function buildQuestSubmissionDecisionPlan(input: {
   reviewNotes?: string;
 }): QuestSubmissionDecisionPlan {
   const reviewNotes = input.reviewNotes?.trim() ?? "";
-  const shouldAwardXp = input.decision === "approved" && input.quest.xp > 0;
+  const globalXpPlan = calculateQuestGlobalXp({
+    questType: input.quest.questType,
+    requestedXp: input.quest.xp,
+    difficulty: input.quest.difficulty,
+    proofRequired: input.quest.proofRequired,
+    proofType: input.quest.proofType,
+    verificationType: input.quest.verificationType,
+    verificationProvider: input.quest.verificationProvider,
+    completionMode: input.quest.completionMode,
+  });
+  const shouldAwardXp = input.decision === "approved" && globalXpPlan.globalXp > 0;
   const baseMetadata = {
     submissionId: input.submissionId,
     questId: input.quest.id,
     questTitle: input.quest.title,
     questType: input.quest.questType,
+    proofRequired: input.quest.proofRequired ?? null,
+    proofType: input.quest.proofType ?? null,
+    verificationType: input.quest.verificationType ?? null,
+    verificationProvider: input.quest.verificationProvider ?? null,
+    completionMode: input.quest.completionMode ?? null,
     reviewerAuthUserId: input.reviewerAuthUserId,
     reviewNotes,
     source: "quest_submission_decision",
+    globalXpPolicyVersion: XP_ECONOMY_V1_POLICY.version,
+    globalXp: globalXpPlan.globalXp,
+    globalXpBand: globalXpPlan.band,
+    globalXpDifficulty: globalXpPlan.difficulty,
+    globalXpVerificationStrength: globalXpPlan.verificationStrength,
+    globalXpCappedByPolicy: globalXpPlan.cappedByPolicy,
+    projectRequestedXp: globalXpPlan.projectRequestedXp,
+    projectPoints: globalXpPlan.projectPoints,
   };
 
   return {
@@ -71,7 +100,7 @@ export function buildQuestSubmissionDecisionPlan(input: {
       ? {
           sourceType: XP_SOURCE_TYPES.quest,
           sourceId: input.quest.id,
-          baseXp: input.quest.xp,
+          baseXp: globalXpPlan.globalXp,
           projectId: input.quest.projectId,
           campaignId: input.quest.campaignId,
           metadata: baseMetadata,
