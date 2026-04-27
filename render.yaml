@@ -29,36 +29,8 @@ services:
         sync: false
       - key: X_API_BEARER_TOKEN
         sync: false
-      - key: COMMUNITY_BOT_WEBHOOK_SECRET
-        sync: false
-      - key: COMMUNITY_RETRY_JOB_SECRET
-        sync: false
-  - type: cron
-    name: veltrix-tweet-to-raid-poller
-    runtime: node
-    rootDir: services/veltrix-community-bot
-    schedule: "*/10 * * * *"
-    buildCommand: npm install && npm run build
-    startCommand: npm run poll:x-raid-sources
-    envVars:
-      - key: SUPABASE_URL
-        sync: false
-      - key: SUPABASE_SERVICE_ROLE_KEY
-        sync: false
-      - key: VERIFICATION_CALLBACK_URL
-        sync: false
-      - key: VERIFICATION_CALLBACK_SECRET
-        sync: false
-      - key: DISCORD_BOT_TOKEN
-        sync: false
-      - key: DISCORD_CLIENT_ID
-        sync: false
-      - key: DISCORD_CLIENT_SECRET
-        sync: false
-      - key: TELEGRAM_BOT_TOKEN
-        sync: false
-      - key: X_API_BEARER_TOKEN
-        sync: false
+      - key: X_RAID_SOURCE_POLL_INTERVAL_SECONDS
+        value: "600"
       - key: X_RAID_SOURCE_POLL_LIMIT
         value: "25"
       - key: COMMUNITY_BOT_WEBHOOK_SECRET

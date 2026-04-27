@@ -12,6 +12,8 @@ const envSchema = z.object({
   DISCORD_CLIENT_SECRET: z.string().min(1).optional(),
   TELEGRAM_BOT_TOKEN: z.string().min(1).optional(),
   X_API_BEARER_TOKEN: z.string().min(1).optional(),
+  X_RAID_SOURCE_POLL_INTERVAL_SECONDS: z.coerce.number().int().min(0).default(600),
+  X_RAID_SOURCE_POLL_LIMIT: z.coerce.number().int().positive().max(100).default(25),
   COMMUNITY_BOT_WEBHOOK_SECRET: z.string().min(1).optional(),
   COMMUNITY_RETRY_JOB_SECRET: z.string().min(1).optional(),
   ONCHAIN_EVM_RPC_URL: z.string().url().optional(),

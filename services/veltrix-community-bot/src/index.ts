@@ -12,6 +12,7 @@ import {
   syncDiscordGuildCommands,
 } from "./providers/discord/commands.js";
 import { createTelegramBot, launchTelegramBot } from "./providers/telegram/bot.js";
+import { startXRaidSourcePoller } from "./jobs/schedule-x-raid-poller.js";
 
 async function bootstrap() {
   const app = express();
@@ -60,6 +61,8 @@ async function bootstrap() {
   } else {
     console.log("[telegram] skipped because TELEGRAM_BOT_TOKEN is not configured");
   }
+
+  startXRaidSourcePoller();
 
   app.get("/", (_req, res) => {
     res.json({

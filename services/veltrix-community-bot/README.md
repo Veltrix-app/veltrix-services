@@ -62,6 +62,7 @@ Copy `.env.example` to `.env` and fill in:
 - `DISCORD_CLIENT_SECRET`
 - `TELEGRAM_BOT_TOKEN`
 - `X_API_BEARER_TOKEN`
+- `X_RAID_SOURCE_POLL_INTERVAL_SECONDS`
 - `X_RAID_SOURCE_POLL_LIMIT`
 - `COMMUNITY_BOT_WEBHOOK_SECRET`
 - `COMMUNITY_RETRY_JOB_SECRET`
@@ -84,11 +85,11 @@ Render settings:
 - start command: `npm run start`
 - health check: `/health`
 
-Tweet-to-Raid automation also provisions a cron worker:
-- service: `veltrix-tweet-to-raid-poller`
-- schedule: every 10 minutes
-- command: `npm run poll:x-raid-sources`
-- failure signal: exits non-zero when X credentials are missing or a poll run fails
+Tweet-to-Raid automation runs from the long-lived bot service when `X_API_BEARER_TOKEN` is configured:
+- default interval: every 10 minutes
+- interval env: `X_RAID_SOURCE_POLL_INTERVAL_SECONDS`
+- batch env: `X_RAID_SOURCE_POLL_LIMIT`
+- manual trigger: `POST /jobs/poll-x-raid-sources`
 
 After Render provisions the service, the public base URL becomes the bot URL you need in the web app, for example:
 - `https://veltrix-community-bot.onrender.com`

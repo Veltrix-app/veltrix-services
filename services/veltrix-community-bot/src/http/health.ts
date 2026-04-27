@@ -34,6 +34,12 @@ healthRouter.get("/", (_req, res) => {
     providers: {
       discord: Boolean(env.DISCORD_BOT_TOKEN),
       telegram: Boolean(env.TELEGRAM_BOT_TOKEN)
+    },
+    tweetToRaid: {
+      xApiConfigured: Boolean(env.X_API_BEARER_TOKEN),
+      pollerEnabled: Boolean(env.X_API_BEARER_TOKEN && env.X_RAID_SOURCE_POLL_INTERVAL_SECONDS > 0),
+      pollerIntervalSeconds: env.X_RAID_SOURCE_POLL_INTERVAL_SECONDS,
+      pollLimit: env.X_RAID_SOURCE_POLL_LIMIT
     }
   });
 });
