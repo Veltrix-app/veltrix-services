@@ -49,6 +49,22 @@ export type TelegramMissionBoard = {
   rewards: Array<{ id: string; title: string; cost: number | null }>;
 };
 
+type TelegramSettingsRow = {
+  integration_id: string;
+  project_id: string;
+  provider: string | null;
+  commands_enabled: boolean | null;
+  leaderboard_enabled: boolean | null;
+  raid_ops_enabled: boolean | null;
+  metadata: Record<string, unknown> | null;
+  updated_at: string | null;
+};
+
+type TelegramContextCandidate = {
+  context: TelegramCommunityContext;
+  updatedAt: string | null;
+};
+
 function chunkArray<T>(values: T[], size: number) {
   const chunks: T[][] = [];
   for (let index = 0; index < values.length; index += size) {
@@ -70,6 +86,65 @@ function readTelegramChatId(config: Record<string, unknown> | null | undefined) 
   return chatId || groupId || pushTarget || "";
 }
 
+function readSettingsMetadata(row: TelegramSettingsRow | null | undefined) {
+  return row?.metadata && typeof row.metadata === "object" ? row.metadata : null;
+}
+
+function buildTelegramSettings(
+  settingsRow: TelegramSettingsRow | null | undefined,
+  fallbackSettingsRow: TelegramSettingsRow | null | undefined
+) {
+  const metadata = {
+    ...(readSettingsMetadata(fallbackSettingsRow) ?? {}),
+    ...(readSettingsMetadata(settingsRow) ?? {}),
+  };
+
+  return {
+    commandsEnabled: settingsRow?.commands_enabled === true,
+    missionCommandsEnabled: metadata.missionCommandsEnabled !== false,
+    captainCommandsEnabled: metadata.captainCommandsEnabled !== false,
+    commandDeepLinksEnabled: metadata.commandDeepLinksEnabled !== false,
+    captainsEnabled: metadata.captainsEnabled === true,
+    leaderboardEnabled:
+      settingsRow?.leaderboard_enabled !== false &&
+      fallbackSettingsRow?.leaderboard_enabled !== false,
+    raidOpsEnabled:
+      settingsRow?.raid_ops_enabled === true || fallbackSettingsRow?.raid_ops_enabled === true,
+  };
+}
+
+function getCandidateRank(candidate: TelegramContextCandidate) {
+  const timestamp = candidate.updatedAt ? Date.parse(candidate.updatedAt) : 0;
+
+  return {
+    commands: candidate.context.settings.commandsEnabled ? 1 : 0,
+    raidOps: candidate.context.settings.raidOpsEnabled ? 1 : 0,
+    timestamp: Number.isFinite(timestamp) ? timestamp : 0,
+  };
+}
+
+function compareTelegramContextCandidates(
+  left: TelegramContextCandidate,
+  right: TelegramContextCandidate
+) {
+  const leftRank = getCandidateRank(left);
+  const rightRank = getCandidateRank(right);
+
+  if (leftRank.commands !== rightRank.commands) {
+    return rightRank.commands - leftRank.commands;
+  }
+
+  if (leftRank.raidOps !== rightRank.raidOps) {
+    return rightRank.raidOps - leftRank.raidOps;
+  }
+
+  return rightRank.timestamp - leftRank.timestamp;
+}
+
+function pickBestTelegramContextCandidate(candidates: TelegramContextCandidate[]) {
+  return [...candidates].sort(compareTelegramContextCandidates)[0] ?? null;
+}
+
 export async function loadTelegramIntegrationContextByChatId(chatId: string) {
   const { data: integrations, error: integrationError } = await supabaseAdmin
     .from("project_integrations")
@@ -81,28 +156,30 @@ export async function loadTelegramIntegrationContextByChatId(chatId: string) {
     throw new Error(integrationError.message || "Failed to load Telegram integrations.");
   }
 
-  const matchedIntegration = ((integrations ?? []) as Array<{
+  const matchedIntegrations = ((integrations ?? []) as Array<{
     id: string;
     project_id: string;
     config: Record<string, unknown> | null;
-  }>).find((integration) => readTelegramChatId(integration.config) === chatId.trim());
+  }>).filter((integration) => readTelegramChatId(integration.config) === chatId.trim());
 
-  if (!matchedIntegration) {
+  if (matchedIntegrations.length === 0) {
     return null;
   }
 
-  const [{ data: project, error: projectError }, { data: settingsRow, error: settingsError }] =
+  const projectIds = Array.from(new Set(matchedIntegrations.map((integration) => integration.project_id)));
+
+  const [{ data: projects, error: projectError }, { data: settingsRows, error: settingsError }] =
     await Promise.all([
       supabaseAdmin
         .from("projects")
         .select("id, name")
-        .eq("id", matchedIntegration.project_id)
-        .maybeSingle(),
+        .in("id", projectIds),
       supabaseAdmin
         .from("community_bot_settings")
-        .select("integration_id, commands_enabled, leaderboard_enabled, raid_ops_enabled, metadata")
-        .eq("integration_id", matchedIntegration.id)
-        .maybeSingle(),
+        .select(
+          "integration_id, project_id, provider, commands_enabled, leaderboard_enabled, raid_ops_enabled, metadata, updated_at"
+        )
+        .in("project_id", projectIds),
     ]);
 
   if (projectError) {
@@ -113,33 +190,40 @@ export async function loadTelegramIntegrationContextByChatId(chatId: string) {
     throw new Error(settingsError.message || "Failed to load Telegram community settings.");
   }
 
-  return {
-    integrationId: matchedIntegration.id,
-    projectId: matchedIntegration.project_id,
-    projectName: project?.name ?? "VYNTRO",
-    chatId: chatId.trim(),
-    settings: {
-      commandsEnabled: settingsRow?.commands_enabled === true,
-      missionCommandsEnabled:
-        settingsRow?.metadata && typeof settingsRow.metadata === "object"
-          ? (settingsRow.metadata as Record<string, unknown>).missionCommandsEnabled !== false
-          : true,
-      captainCommandsEnabled:
-        settingsRow?.metadata && typeof settingsRow.metadata === "object"
-          ? (settingsRow.metadata as Record<string, unknown>).captainCommandsEnabled !== false
-          : true,
-      commandDeepLinksEnabled:
-        settingsRow?.metadata && typeof settingsRow.metadata === "object"
-          ? (settingsRow.metadata as Record<string, unknown>).commandDeepLinksEnabled !== false
-          : true,
-      captainsEnabled:
-        settingsRow?.metadata && typeof settingsRow.metadata === "object"
-          ? (settingsRow.metadata as Record<string, unknown>).captainsEnabled === true
-          : false,
-      leaderboardEnabled: settingsRow?.leaderboard_enabled !== false,
-      raidOpsEnabled: settingsRow?.raid_ops_enabled === true,
-    },
-  } satisfies TelegramCommunityContext;
+  const projectNameById = new Map<string, string>();
+  for (const project of (projects ?? []) as Array<{ id: string; name: string | null }>) {
+    projectNameById.set(project.id, project.name ?? "VYNTRO");
+  }
+
+  const typedSettingsRows = (settingsRows ?? []) as TelegramSettingsRow[];
+  const settingsByIntegrationId = new Map(
+    typedSettingsRows.map((settings) => [settings.integration_id, settings])
+  );
+
+  const bestCandidate = pickBestTelegramContextCandidate(
+    matchedIntegrations.map((integration) => {
+      const settingsRow = settingsByIntegrationId.get(integration.id) ?? null;
+      const fallbackSettingsRow =
+        typedSettingsRows.find(
+          (settings) =>
+            settings.project_id === integration.project_id &&
+            settings.provider === "discord"
+        ) ?? settingsRow;
+
+      return {
+        context: {
+          integrationId: integration.id,
+          projectId: integration.project_id,
+          projectName: projectNameById.get(integration.project_id) ?? "VYNTRO",
+          chatId: chatId.trim(),
+          settings: buildTelegramSettings(settingsRow, fallbackSettingsRow),
+        } satisfies TelegramCommunityContext,
+        updatedAt: settingsRow?.updated_at ?? fallbackSettingsRow?.updated_at ?? null,
+      };
+    })
+  );
+
+  return bestCandidate?.context ?? null;
 }
 
 export async function loadTelegramIntegrationContexts() {
@@ -172,9 +256,9 @@ export async function loadTelegramIntegrationContexts() {
         ? supabaseAdmin
             .from("community_bot_settings")
             .select(
-              "integration_id, commands_enabled, leaderboard_enabled, raid_ops_enabled, metadata"
+              "integration_id, project_id, provider, commands_enabled, leaderboard_enabled, raid_ops_enabled, metadata, updated_at"
             )
-            .in("integration_id", integrationIds)
+            .in("project_id", projectIds)
         : Promise.resolve({ data: [], error: null }),
     ]);
 
@@ -191,26 +275,13 @@ export async function loadTelegramIntegrationContexts() {
     projectNameById.set(project.id, project.name ?? "VYNTRO");
   }
 
-  const settingsByIntegrationId = new Map<
-    string,
-    {
-      commands_enabled: boolean | null;
-      leaderboard_enabled: boolean | null;
-      raid_ops_enabled: boolean | null;
-      metadata: Record<string, unknown> | null;
-    }
-  >();
-  for (const settings of (settingsRows ?? []) as Array<{
-    integration_id: string;
-    commands_enabled: boolean | null;
-    leaderboard_enabled: boolean | null;
-    raid_ops_enabled: boolean | null;
-    metadata: Record<string, unknown> | null;
-  }>) {
+  const typedSettingsRows = (settingsRows ?? []) as TelegramSettingsRow[];
+  const settingsByIntegrationId = new Map<string, TelegramSettingsRow>();
+  for (const settings of typedSettingsRows) {
     settingsByIntegrationId.set(settings.integration_id, settings);
   }
 
-  return typedIntegrations
+  const candidates = typedIntegrations
     .map((integration) => {
       const chatId = readTelegramChatId(integration.config);
       if (!chatId) {
@@ -218,31 +289,35 @@ export async function loadTelegramIntegrationContexts() {
       }
 
       const settingsRow = settingsByIntegrationId.get(integration.id);
-      const metadata =
-        settingsRow?.metadata && typeof settingsRow.metadata === "object"
-          ? settingsRow.metadata
-          : null;
+      const fallbackSettingsRow =
+        typedSettingsRows.find(
+          (settings) =>
+            settings.project_id === integration.project_id &&
+            settings.provider === "discord"
+        ) ?? settingsRow;
 
       return {
-        integrationId: integration.id,
-        projectId: integration.project_id,
-        projectName: projectNameById.get(integration.project_id) ?? "VYNTRO",
-        chatId,
-        settings: {
-          commandsEnabled: settingsRow?.commands_enabled === true,
-          missionCommandsEnabled:
-            metadata ? metadata.missionCommandsEnabled !== false : true,
-          captainCommandsEnabled:
-            metadata ? metadata.captainCommandsEnabled !== false : true,
-          commandDeepLinksEnabled:
-            metadata ? metadata.commandDeepLinksEnabled !== false : true,
-          captainsEnabled: metadata ? metadata.captainsEnabled === true : false,
-          leaderboardEnabled: settingsRow?.leaderboard_enabled !== false,
-          raidOpsEnabled: settingsRow?.raid_ops_enabled === true,
-        },
-      } satisfies TelegramCommunityContext;
+        context: {
+          integrationId: integration.id,
+          projectId: integration.project_id,
+          projectName: projectNameById.get(integration.project_id) ?? "VYNTRO",
+          chatId,
+          settings: buildTelegramSettings(settingsRow, fallbackSettingsRow),
+        } satisfies TelegramCommunityContext,
+        updatedAt: settingsRow?.updated_at ?? fallbackSettingsRow?.updated_at ?? null,
+      } satisfies TelegramContextCandidate;
     })
-    .filter((context): context is TelegramCommunityContext => Boolean(context));
+    .filter((candidate): candidate is TelegramContextCandidate => Boolean(candidate));
+
+  const bestCandidateByChatId = new Map<string, TelegramContextCandidate>();
+  for (const candidate of candidates) {
+    const current = bestCandidateByChatId.get(candidate.context.chatId);
+    if (!current || compareTelegramContextCandidates(candidate, current) < 0) {
+      bestCandidateByChatId.set(candidate.context.chatId, candidate);
+    }
+  }
+
+  return Array.from(bestCandidateByChatId.values()).map((candidate) => candidate.context);
 }
 
 export async function loadTelegramIdentitySnapshot(
