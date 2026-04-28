@@ -5,6 +5,7 @@ export type CommunityCommandKey =
   | "missions"
   | "leaderboard"
   | "raid"
+  | "newraid"
   | "captain";
 
 export type CommunityCommandPlatform = "discord" | "telegram";
@@ -36,7 +37,7 @@ export function isCommunityCommandEnabled(params: {
     return params.settings.leaderboardEnabled !== false;
   }
 
-  if (params.command === "raid") {
+  if (params.command === "raid" || params.command === "newraid") {
     return params.settings.raidOpsEnabled === true;
   }
 
@@ -69,7 +70,7 @@ export function buildDisabledCommandMessage(command: CommunityCommandKey) {
     return "Leaderboards are disabled for this community right now. Enable them in the VYNTRO portal first.";
   }
 
-  if (command === "raid") {
+  if (command === "raid" || command === "newraid") {
     return "Raid ops are disabled for this community right now. Enable them in the VYNTRO portal first.";
   }
 

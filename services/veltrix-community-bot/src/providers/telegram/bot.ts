@@ -8,8 +8,13 @@ import {
   type CommunityCommandKey,
   isCommunityCommandEnabled,
 } from "../../core/community/command-scopes.js";
+import {
+  formatManualRaidCommandResult,
+  parseTelegramNewRaidCommand,
+} from "../../core/raids/manual-raid-command.js";
 import { loadCommunityJourneyPrompt } from "../../core/community/journeys.js";
 import { loadProjectCommunityOutcomeSummary } from "../../core/community/outcomes.js";
+import { createManualLiveRaidFromXPost } from "../../jobs/create-manual-live-raid.js";
 import {
   loadTelegramIdentitySnapshot,
   loadTelegramIntegrationContextByChatId,
@@ -52,7 +57,10 @@ function buildTelegramCommandPayload(settings: {
       ? [{ command: "leaderboard", description: "Show the current weekly leaderboard" }]
       : []),
     ...(settings.raidOpsEnabled
-      ? [{ command: "raid", description: "Show the live raid rail" }]
+      ? [
+          { command: "raid", description: "Show the live raid rail" },
+          { command: "newraid", description: "Create a live raid from an X post URL" },
+        ]
       : []),
     ...(settings.captainsEnabled && settings.captainCommandsEnabled
       ? [{ command: "captain", description: "Open your project captain workspace" }]
@@ -80,7 +88,7 @@ function listEnabledTelegramCommands(settings: {
     commands.push("/leaderboard");
   }
   if (settings.raidOpsEnabled) {
-    commands.push("/raid");
+    commands.push("/raid", "/newraid");
   }
   if (settings.captainsEnabled && settings.captainCommandsEnabled) {
     commands.push("/captain");
@@ -361,6 +369,38 @@ function registerTelegramCommandHandlers(bot: Telegraf) {
     );
   });
 
+  bot.command("newraid", async (ctx) => {
+    const context = await resolveCommunityContext(ctx, "newraid");
+    if (!context) return;
+
+    const parsed = parseTelegramNewRaidCommand(ctx.message?.text ?? "");
+    if (!parsed.ok) {
+      await ctx.reply("Usage: /newraid https://x.com/project/status/123 xp=50 duration=24h");
+      return;
+    }
+
+    const providerUserId = String(ctx.from?.id ?? "");
+    const result = await createManualLiveRaidFromXPost({
+      projectId: context.projectId,
+      xUrl: parsed.url,
+      actorProvider: "telegram",
+      actorProviderUserId: providerUserId,
+      overrides: parsed.overrides,
+    });
+
+    if (result.status === "skipped") {
+      await ctx.reply("That X post is already linked to a VYNTRO raid for this project.");
+      return;
+    }
+
+    await ctx.reply(
+      formatManualRaidCommandResult({
+        raidUrl: result.raidUrl,
+        deliveries: result.deliveries,
+      })
+    );
+  });
+
   bot.command("captain", async (ctx) => {
     const context = await resolveCommunityContext(ctx, "captain");
     if (!context) return;
@@ -439,6 +479,7 @@ export async function launchTelegramBot() {
     { command: "missions", description: "Show the live project mission board" },
     { command: "leaderboard", description: "Show the current weekly leaderboard" },
     { command: "raid", description: "Show the live raid rail" },
+    { command: "newraid", description: "Create a live raid from an X post URL" },
     { command: "captain", description: "Open your project captain workspace" },
   ]);
 
