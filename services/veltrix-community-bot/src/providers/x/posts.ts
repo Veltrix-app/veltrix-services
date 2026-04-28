@@ -73,6 +73,24 @@ function getXApiError(payload: unknown, fallback: string) {
   return firstError?.detail || firstError?.title || fallback;
 }
 
+export function formatXApiRequestError(params: {
+  status: number;
+  payload: unknown;
+  fallback?: string;
+}) {
+  const statusFallbacks: Record<number, string> = {
+    401: "X API request failed with 401. Regenerate X_API_BEARER_TOKEN for the connected X app.",
+    402:
+      "X API request failed with 402. Add X API credits or enable pay-per-use billing for the app that owns X_API_BEARER_TOKEN.",
+    403:
+      "X API request failed with 403. Enable the required X API read permissions for the app that owns X_API_BEARER_TOKEN.",
+  };
+  const fallback =
+    statusFallbacks[params.status] ?? params.fallback ?? `X API request failed with ${params.status}.`;
+
+  return getXApiError(params.payload, fallback);
+}
+
 async function fetchXJson<T>(url: URL, options: FetchJsonOptions): Promise<T> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? 12_000);
@@ -85,7 +103,7 @@ async function fetchXJson<T>(url: URL, options: FetchJsonOptions): Promise<T> {
     const payload = (await response.json().catch(() => null)) as T | null;
 
     if (!response.ok) {
-      throw new Error(getXApiError(payload, `X API request failed with ${response.status}.`));
+      throw new Error(formatXApiRequestError({ status: response.status, payload }));
     }
 
     if (!payload) {

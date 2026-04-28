@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { mapXTimelineResponseToRaidPosts } from "./posts.js";
+import { formatXApiRequestError, mapXTimelineResponseToRaidPosts } from "./posts.js";
 
 test("maps X timeline responses into tweet-to-raid posts with media and source URLs", () => {
   const posts = mapXTimelineResponseToRaidPosts(
@@ -72,4 +72,15 @@ test("marks replies and reposts from X referenced tweets", () => {
   assert.equal(posts[1]?.isReply, false);
   assert.equal(posts[1]?.replyToPostId, null);
   assert.equal(posts[1]?.isRepost, true);
+});
+
+test("formats X API payment errors into an operator action", () => {
+  assert.equal(
+    formatXApiRequestError({
+      status: 402,
+      payload: null,
+      fallback: "X API request failed.",
+    }),
+    "X API request failed with 402. Add X API credits or enable pay-per-use billing for the app that owns X_API_BEARER_TOKEN."
+  );
 });
