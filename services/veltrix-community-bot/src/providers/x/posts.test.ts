@@ -1,7 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { formatXApiRequestError, mapXTimelineResponseToRaidPosts } from "./posts.js";
+import {
+  formatXApiRequestError,
+  mapXSingleTweetResponseToRaidPost,
+  mapXTimelineResponseToRaidPosts,
+} from "./posts.js";
 
 test("maps X timeline responses into tweet-to-raid posts with media and source URLs", () => {
   const posts = mapXTimelineResponseToRaidPosts(
@@ -83,4 +87,36 @@ test("formats X API payment errors into an operator action", () => {
     }),
     "X API request failed with 402. Add X API credits or enable pay-per-use billing for the app that owns X_API_BEARER_TOKEN."
   );
+});
+
+test("maps a single X tweet response into a raid post", () => {
+  const post = mapXSingleTweetResponseToRaidPost(
+    {
+      data: {
+        id: "123",
+        author_id: "42",
+        text: "Raid this launch #vyntro",
+        created_at: "2026-04-28T10:00:00.000Z",
+        attachments: { media_keys: ["3_abc"] },
+      },
+      includes: {
+        users: [{ id: "42", username: "VYNTRO_" }],
+        media: [{ media_key: "3_abc", type: "photo", url: "https://cdn.example/raid.png" }],
+      },
+    },
+    "fallback"
+  );
+
+  assert.deepEqual(post, {
+    id: "123",
+    authorId: "42",
+    username: "vyntro_",
+    text: "Raid this launch #vyntro",
+    url: "https://x.com/vyntro_/status/123",
+    mediaUrls: ["https://cdn.example/raid.png"],
+    createdAt: "2026-04-28T10:00:00.000Z",
+    isReply: false,
+    isRepost: false,
+    replyToPostId: null,
+  });
 });

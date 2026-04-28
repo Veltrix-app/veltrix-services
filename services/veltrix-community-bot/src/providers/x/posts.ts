@@ -43,9 +43,23 @@ type XApiMedia = {
   preview_image_url?: string;
 };
 
+type XApiUser = {
+  id?: string;
+  username?: string;
+};
+
 export type XTimelineResponse = {
   data?: XApiTweet[];
   includes?: {
+    media?: XApiMedia[];
+  };
+  errors?: Array<{ detail?: string; title?: string }>;
+};
+
+export type XSingleTweetResponse = {
+  data?: XApiTweet;
+  includes?: {
+    users?: XApiUser[];
     media?: XApiMedia[];
   };
   errors?: Array<{ detail?: string; title?: string }>;
@@ -153,6 +167,34 @@ export function mapXTimelineResponseToRaidPosts(
     });
 }
 
+export function mapXSingleTweetResponseToRaidPost(
+  response: XSingleTweetResponse,
+  fallbackUsername: string
+): XRaidPost {
+  const tweet = response.data;
+  if (!tweet?.id || !tweet.text) {
+    throw new Error(getXApiError(response, "X post could not be found."));
+  }
+
+  const author = (response.includes?.users ?? []).find((user) => user.id === tweet.author_id);
+  const username = normalizeXUsername(author?.username ?? fallbackUsername);
+  const mapped = mapXTimelineResponseToRaidPosts(
+    {
+      data: [tweet],
+      includes: {
+        media: response.includes?.media ?? [],
+      },
+    },
+    username
+  )[0];
+
+  if (!mapped) {
+    throw new Error("X post could not be mapped into a raid.");
+  }
+
+  return mapped;
+}
+
 export async function fetchXUserByUsername(params: {
   username: string;
   bearerToken: string;
@@ -206,6 +248,28 @@ export async function fetchRecentXUserPosts(params: {
   });
 
   return mapXTimelineResponseToRaidPosts(payload, params.username);
+}
+
+export async function fetchXPostById(params: {
+  postId: string;
+  fallbackUsername: string;
+  bearerToken: string;
+  apiBaseUrl?: string;
+}) {
+  const url = new URL(
+    `/2/tweets/${encodeURIComponent(params.postId)}`,
+    params.apiBaseUrl ?? "https://api.x.com"
+  );
+  url.searchParams.set("tweet.fields", "attachments,author_id,conversation_id,created_at,referenced_tweets");
+  url.searchParams.set("expansions", "author_id,attachments.media_keys");
+  url.searchParams.set("media.fields", "preview_image_url,type,url");
+  url.searchParams.set("user.fields", "id,username,name,verified");
+
+  const payload = await fetchXJson<XSingleTweetResponse>(url, {
+    bearerToken: params.bearerToken,
+  });
+
+  return mapXSingleTweetResponseToRaidPost(payload, params.fallbackUsername);
 }
 
 export async function fetchRecentPostsForXUsername(params: {
