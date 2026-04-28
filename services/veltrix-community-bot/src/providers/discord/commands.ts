@@ -28,6 +28,7 @@ import {
   type CommunityCommandKey,
   isCommunityCommandEnabled,
 } from "../../core/community/command-scopes.js";
+import { formatManualRaidCommandResult } from "../../core/raids/manual-raid-command.js";
 import {
   buildDiscordCommunityButtons,
   buildDiscordMissionFields,
@@ -44,6 +45,7 @@ import {
   getMatchedDiscordRankRules,
   sortDiscordRankRulesForDisplay,
 } from "./ranks.js";
+import { createManualLiveRaidFromXPost } from "../../jobs/create-manual-live-raid.js";
 
 function buildRankSnapshot(snapshot: DiscordIdentitySnapshot) {
   return {
@@ -660,6 +662,64 @@ async function handleRaidCommand(interaction: ChatInputCommandInteraction) {
   });
 }
 
+async function handleNewRaidCommand(interaction: ChatInputCommandInteraction) {
+  const guildId = interaction.guildId;
+  if (!guildId) {
+    await interaction.reply({
+      ephemeral: true,
+      content: "This command only works inside a Discord server.",
+    });
+    return;
+  }
+
+  const context = await loadDiscordIntegrationContextByGuildId(guildId);
+  if (!context) {
+    await interaction.reply({
+      ephemeral: true,
+      content:
+        "This Discord server is not mapped to a VYNTRO project yet. Connect it in the portal first.",
+    });
+    return;
+  }
+
+  if (
+    !isCommunityCommandEnabled({
+      command: "newraid",
+      platform: "discord",
+      settings: context.settings,
+    })
+  ) {
+    await replyCommandDisabled(interaction, "newraid");
+    return;
+  }
+
+  await interaction.deferReply({ ephemeral: true });
+  const result = await createManualLiveRaidFromXPost({
+    projectId: context.projectId,
+    xUrl: interaction.options.getString("url", true),
+    actorProvider: "discord",
+    actorProviderUserId: interaction.user.id,
+    overrides: {
+      xp: interaction.options.getInteger("xp")?.toString(),
+      duration: interaction.options.getString("duration") ?? undefined,
+      campaign: interaction.options.getString("campaign") ?? undefined,
+      button: interaction.options.getString("button") ?? undefined,
+    },
+  });
+
+  if (result.status === "skipped") {
+    await interaction.editReply("That X post is already linked to a VYNTRO raid for this project.");
+    return;
+  }
+
+  await interaction.editReply(
+    formatManualRaidCommandResult({
+      raidUrl: result.raidUrl,
+      deliveries: result.deliveries,
+    })
+  );
+}
+
 async function handleCaptainCommand(interaction: ChatInputCommandInteraction) {
   const guildId = interaction.guildId;
   if (!guildId) {
@@ -781,6 +841,11 @@ async function handleChatCommand(interaction: ChatInputCommandInteraction) {
     return;
   }
 
+  if (interaction.commandName === "newraid") {
+    await handleNewRaidCommand(interaction);
+    return;
+  }
+
   if (interaction.commandName === "captain") {
     await handleCaptainCommand(interaction);
   }
@@ -867,6 +932,37 @@ export async function syncDiscordGuildCommands(
                 new SlashCommandBuilder()
                   .setName("raid")
                   .setDescription("Show the live raid rail for this project community."),
+                new SlashCommandBuilder()
+                  .setName("newraid")
+                  .setDescription("Create a live VYNTRO raid from an X post URL.")
+                  .addStringOption((option) =>
+                    option
+                      .setName("url")
+                      .setDescription("The X post URL to turn into a live raid.")
+                      .setRequired(true)
+                  )
+                  .addIntegerOption((option) =>
+                    option
+                      .setName("xp")
+                      .setDescription("Optional XP override, capped by VYNTRO policy.")
+                      .setMinValue(10)
+                      .setMaxValue(100)
+                  )
+                  .addStringOption((option) =>
+                    option
+                      .setName("duration")
+                      .setDescription("Optional duration such as 30m, 2h or 1d.")
+                  )
+                  .addStringOption((option) =>
+                    option
+                      .setName("campaign")
+                      .setDescription("Optional campaign slug or id.")
+                  )
+                  .addStringOption((option) =>
+                    option
+                      .setName("button")
+                      .setDescription("Optional CTA label.")
+                  ),
               ]
             : []),
           ...(context.settings.captainsEnabled && context.settings.captainCommandsEnabled
