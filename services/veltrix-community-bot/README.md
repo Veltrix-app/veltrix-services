@@ -138,6 +138,30 @@ The next real implementation step after deployment is:
 
 Tweet-to-Raid Autopilot turns an approved project X post event into a VYNTRO raid. The production-safe path has two rails: manual ingest for smoke tests and source polling for real automation. The poller reads active `x_raid_sources`, fetches recent X posts with `X_API_BEARER_TOKEN`, then creates either a review candidate or an active raid based on `x_raid_sources.mode`.
 
+## Manual Live Raid Commands
+
+Project captains with the `raid_alert` permission can create live raids directly from Telegram or Discord. These commands are for trusted project admins only: they bypass review mode, create an active raid immediately, publish it to the web app and attempt Telegram/Discord delivery through the configured project targets.
+
+Telegram:
+
+```text
+/newraid https://x.com/project/status/123 xp=50 duration=24h campaign=starter
+```
+
+Discord:
+
+```text
+/newraid url:https://x.com/project/status/123 xp:50 duration:24h campaign:starter
+```
+
+The command uses VYNTRO's configured `X_API_BEARER_TOKEN`, so projects do not need to create their own X app for the standard managed flow. XP and duration overrides are capped by VYNTRO policy, duplicate X posts are skipped per project, and the default campaign/artwork/button values come from the project's Tweet-to-Raid source settings unless overridden by the command.
+
+Operational notes:
+- `raidOpsEnabled` must be enabled for the community integration.
+- Discord slash commands must be synced after enabling `newraid`.
+- Telegram commands are registered by the long-lived bot service.
+- X API usage is centralized on the VYNTRO bearer token; monitor provider limits and package this as a managed automation feature.
+
 ### Endpoint
 
 `POST /jobs/ingest-x-raid-post`
