@@ -5,10 +5,7 @@ import {
   type TweetToRaidPost,
   type TweetToRaidSource,
 } from "../core/raids/tweet-to-raid.js";
-import {
-  appUrl,
-  dispatchProjectCommunityMessageWithResults,
-} from "../core/community/delivery.js";
+import { createLiveRaidAndDeliver } from "./live-raid-publisher.js";
 
 export type IngestXRaidPostInput = {
   projectId: string;
@@ -272,72 +269,25 @@ export async function ingestXRaidPost(input: IngestXRaidPostInput) {
       };
     }
 
-    const { data: raid, error: raidError } = await supabaseAdmin
-      .from("raids")
-      .insert({
-        project_id: source.projectId,
-        campaign_id: decision.draft.campaignId,
-        title: decision.draft.title,
-        short_description: decision.draft.shortDescription,
-        community: source.projectName,
-        timer: "Live",
-        reward: decision.draft.rewardXp,
-        reward_xp: decision.draft.rewardXp,
-        participants: 0,
-        progress: 0,
-        target: decision.draft.target,
-        banner: decision.draft.banner,
-        instructions: decision.draft.instructions,
-        status: "active",
-        source_provider: "x",
-        source_url: decision.draft.sourceUrl,
-        source_external_id: decision.draft.sourceExternalId,
-        source_event_id: event.id,
-        ends_at: decision.draft.endsAt,
-        generated_by: "tweet_to_raid",
-      })
-      .select("id")
-      .single();
-
-    if (raidError) throw raidError;
-
-    const raidUrl = `${appUrl}/raids/${raid.id}`;
-    const deliveries = await dispatchProjectCommunityMessageWithResults({
+    const liveRaid = await createLiveRaidAndDeliver({
       projectId: source.projectId,
-      providerScope: "both",
-      title: `LIVE RAID: ${decision.draft.title}`,
-      body: `${decision.draft.shortDescription}\n\nOpen the raid, engage with the source post, then confirm it in VYNTRO.`,
-      eyebrow: "LIVE RAID",
       projectName: source.projectName,
-      imageUrl: decision.draft.banner,
-      fallbackImageUrl: decision.draft.banner,
-      meta: [
-        { label: "Reward", value: `+${decision.draft.rewardXp} XP` },
-        { label: "Source", value: "X" },
-      ],
-      url: raidUrl,
-      buttonLabel: decision.draft.buttonLabel,
+      draft: decision.draft,
+      sourceEventId: event.id,
+      sourceProvider: "x",
+      generatedBy: "tweet_to_raid",
+      sourceLabel: "X",
     });
-
-    const deliveryMetadata = {
-      deliveries,
-      deliveredAt: new Date().toISOString(),
-      sourceUrl: decision.draft.sourceUrl,
-    };
 
     await Promise.all([
       supabaseAdmin
         .from("x_raid_ingest_events")
         .update({
-          raid_id: raid.id,
-          delivery_metadata: deliveryMetadata,
+          raid_id: liveRaid.raidId,
+          delivery_metadata: liveRaid.deliveryMetadata,
           updated_at: new Date().toISOString(),
         })
         .eq("id", event.id),
-      supabaseAdmin
-        .from("raids")
-        .update({ delivery_metadata: deliveryMetadata })
-        .eq("id", raid.id),
       supabaseAdmin
         .from("x_raid_sources")
         .update({
@@ -352,8 +302,8 @@ export async function ingestXRaidPost(input: IngestXRaidPostInput) {
       ok: true,
       status: "created_raid" as const,
       eventId: event.id,
-      raidId: raid.id,
-      deliveries,
+      raidId: liveRaid.raidId,
+      deliveries: liveRaid.deliveries,
     };
   } catch (error) {
     const reason = error instanceof Error ? error.message : "X raid ingest failed.";
