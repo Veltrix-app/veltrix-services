@@ -29,6 +29,20 @@ type ExistingManualRaidEvent = {
   decision: string | null;
 };
 
+type ManualRaidSourceDefaultsRow = {
+  default_reward_xp: number | null;
+  default_duration_minutes: number | null;
+  default_campaign_id: string | null;
+  default_button_label: string | null;
+  default_artwork_url: string | null;
+};
+
+type CampaignLookupRow = {
+  id: string;
+  status: string | null;
+  created_at: string | null;
+};
+
 function addMinutes(date: Date, minutes: number) {
   return new Date(date.getTime() + minutes * 60_000);
 }
@@ -78,13 +92,25 @@ export function isManualRaidDuplicateReason(reason: string) {
   return reason === "duplicate_post";
 }
 
-export function buildFallbackXPostForManualRaid(params: { postId: string; username: string }) {
+export function buildFallbackXPostForManualRaid(params: {
+  postId: string;
+  username: string;
+  projectName?: string;
+  requestedUrl?: string;
+}) {
+  const isGenericXStatusUrl = params.username === "i";
+  const label = isGenericXStatusUrl
+    ? `${params.projectName ?? "the project"} X post`
+    : `@${params.username}'s X post`;
+  const url =
+    params.requestedUrl?.trim() || `https://x.com/${params.username}/status/${params.postId}`;
+
   return {
     id: params.postId,
     authorId: null,
     username: params.username,
-    text: `Raid @${params.username}'s X post.`,
-    url: `https://x.com/${params.username}/status/${params.postId}`,
+    text: `Raid ${label}.`,
+    url,
     mediaUrls: [],
     createdAt: null,
     isReply: false,
@@ -135,6 +161,29 @@ export function shouldSkipExistingManualRaidEvent(event: ExistingManualRaidEvent
   return Boolean(event?.raid_id);
 }
 
+export function pickManualRaidCampaignId(params: {
+  campaignOverrideId?: string | null;
+  sourceDefaultCampaignId?: string | null;
+  fallbackCampaignId?: string | null;
+}) {
+  return (
+    params.campaignOverrideId?.trim() ||
+    params.sourceDefaultCampaignId?.trim() ||
+    params.fallbackCampaignId?.trim() ||
+    null
+  );
+}
+
+function sortProjectCampaignsForManualRaid(left: CampaignLookupRow, right: CampaignLookupRow) {
+  const leftActive = left.status === "active" ? 1 : 0;
+  const rightActive = right.status === "active" ? 1 : 0;
+  if (leftActive !== rightActive) {
+    return rightActive - leftActive;
+  }
+
+  return Date.parse(left.created_at ?? "") - Date.parse(right.created_at ?? "");
+}
+
 async function loadProject(projectId: string) {
   const { data, error } = await supabaseAdmin
     .from("projects")
@@ -162,12 +211,24 @@ async function loadCampaignOverrideId(projectId: string, campaignRef?: string) {
   return data.id as string;
 }
 
+async function loadProjectFallbackCampaignId(projectId: string) {
+  const { data, error } = await supabaseAdmin
+    .from("campaigns")
+    .select("id, status, created_at")
+    .eq("project_id", projectId);
+
+  if (error) throw error;
+
+  const campaigns = ((data ?? []) as CampaignLookupRow[]).sort(sortProjectCampaignsForManualRaid);
+  return campaigns[0]?.id ?? null;
+}
+
 async function loadDefaults(params: {
   projectId: string;
   username: string;
   campaignRef?: string;
 }): Promise<ManualRaidDefaults> {
-  const [{ data, error }, campaignOverrideId] = await Promise.all([
+  const [{ data: matchedSource, error: matchedSourceError }, { data: fallbackSource, error: fallbackSourceError }, campaignOverrideId, fallbackCampaignId] = await Promise.all([
     supabaseAdmin
       .from("x_raid_sources")
       .select(
@@ -177,17 +238,42 @@ async function loadDefaults(params: {
       .ilike("x_username", params.username)
       .limit(1)
       .maybeSingle(),
+    supabaseAdmin
+      .from("x_raid_sources")
+      .select(
+        "default_reward_xp, default_duration_minutes, default_campaign_id, default_button_label, default_artwork_url"
+      )
+      .eq("project_id", params.projectId)
+      .eq("status", "active")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
     loadCampaignOverrideId(params.projectId, params.campaignRef),
+    loadProjectFallbackCampaignId(params.projectId),
   ]);
 
-  if (error) throw error;
+  if (matchedSourceError) throw matchedSourceError;
+  if (fallbackSourceError) throw fallbackSourceError;
+
+  const source = (matchedSource ?? fallbackSource ?? null) as ManualRaidSourceDefaultsRow | null;
+  const campaignId = pickManualRaidCampaignId({
+    campaignOverrideId,
+    sourceDefaultCampaignId: source?.default_campaign_id,
+    fallbackCampaignId,
+  });
+
+  if (!campaignId) {
+    throw new Error(
+      "Live raids need a campaign. Create a campaign or select a default campaign in the VYNTRO portal first."
+    );
+  }
 
   return {
-    rewardXp: data?.default_reward_xp ?? 50,
-    durationMinutes: data?.default_duration_minutes ?? 1440,
-    campaignId: campaignOverrideId ?? data?.default_campaign_id ?? null,
-    buttonLabel: data?.default_button_label ?? "Open raid",
-    artworkUrl: data?.default_artwork_url ?? null,
+    rewardXp: source?.default_reward_xp ?? 50,
+    durationMinutes: source?.default_duration_minutes ?? 1440,
+    campaignId,
+    buttonLabel: source?.default_button_label ?? "Open raid",
+    artworkUrl: source?.default_artwork_url ?? null,
   };
 }
 
@@ -337,12 +423,20 @@ export async function createManualLiveRaidFromXPost(params: {
           bearerToken: env.X_API_BEARER_TOKEN,
         }).catch((error) => {
           if (params.allowUnfetchedFallback && shouldUseManualXPostFallback(error)) {
-            return buildFallbackXPostForManualRaid(parsed);
+            return buildFallbackXPostForManualRaid({
+              ...parsed,
+              projectName: project.name ?? "Project",
+              requestedUrl: params.xUrl,
+            });
           }
 
           throw error;
         })
-      : buildFallbackXPostForManualRaid(parsed);
+      : buildFallbackXPostForManualRaid({
+          ...parsed,
+          projectName: project.name ?? "Project",
+          requestedUrl: params.xUrl,
+        });
 
   const draft = buildManualLiveRaidDraft({
     projectName: project.name ?? "Project",

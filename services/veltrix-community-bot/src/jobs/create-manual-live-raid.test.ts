@@ -6,6 +6,7 @@ import {
   buildManualLiveRaidDraft,
   getManualRaidErrorMessage,
   isManualRaidDuplicateReason,
+  pickManualRaidCampaignId,
   shouldUseManualXPostFallback,
   shouldRetryExistingManualRaidEvent,
   shouldSkipExistingManualRaidEvent,
@@ -69,9 +70,51 @@ test("builds a fallback X post for manual raids when API reads are unavailable",
   );
 });
 
+test("does not present canonical x.com/i status links as the @i account", () => {
+  assert.deepEqual(
+    buildFallbackXPostForManualRaid({
+      username: "i",
+      postId: "2049320983190810800",
+      projectName: "VYNTRO",
+      requestedUrl: "https://x.com/i/status/2049320983190810800",
+    }),
+    {
+      id: "2049320983190810800",
+      authorId: null,
+      username: "i",
+      text: "Raid VYNTRO X post.",
+      url: "https://x.com/i/status/2049320983190810800",
+      mediaUrls: [],
+      createdAt: null,
+      isReply: false,
+      isRepost: false,
+      replyToPostId: null,
+    }
+  );
+});
+
 test("manual raids can fall back on X API billing or permission failures", () => {
   assert.equal(shouldUseManualXPostFallback(new Error("X API request failed with 402.")), true);
   assert.equal(shouldUseManualXPostFallback(new Error("X post could not be found.")), false);
+});
+
+test("manual raid campaign selection falls back from source defaults to any project campaign", () => {
+  assert.equal(
+    pickManualRaidCampaignId({
+      campaignOverrideId: null,
+      sourceDefaultCampaignId: "source-campaign",
+      fallbackCampaignId: "fallback-campaign",
+    }),
+    "source-campaign"
+  );
+  assert.equal(
+    pickManualRaidCampaignId({
+      campaignOverrideId: null,
+      sourceDefaultCampaignId: null,
+      fallbackCampaignId: "fallback-campaign",
+    }),
+    "fallback-campaign"
+  );
 });
 
 test("failed manual ingest events stay retryable until a raid exists", () => {
