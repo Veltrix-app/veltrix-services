@@ -108,7 +108,7 @@ function TopNavLink({
   return (
     <Link
       href={href}
-      className={`inline-flex items-center gap-2 rounded-full px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.16em] transition 2xl:px-4 ${
+      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-2.5 text-[10px] font-bold uppercase tracking-[0.13em] transition min-[1720px]:px-2.5 min-[1720px]:text-[11px] ${
         active
           ? "border border-white/10 bg-white/[0.09] text-white shadow-[0_12px_40px_rgba(0,0,0,0.28)]"
           : "border border-transparent text-slate-400 hover:border-white/8 hover:bg-white/[0.04] hover:text-white"
@@ -153,7 +153,7 @@ function TopNavItem({
     <div className="group relative">
       <Link
         href={item.href}
-        className={`inline-flex items-center gap-2 rounded-full px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.16em] transition 2xl:px-4 ${
+        className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-2.5 text-[10px] font-bold uppercase tracking-[0.13em] transition min-[1720px]:px-2.5 min-[1720px]:text-[11px] ${
           active
             ? "border border-white/10 bg-white/[0.09] text-white shadow-[0_12px_40px_rgba(0,0,0,0.28)]"
             : "border border-transparent text-slate-400 hover:border-white/8 hover:bg-white/[0.04] hover:text-white"
@@ -476,35 +476,33 @@ export function AppShell({
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(148,98,255,0.12),transparent_18%),linear-gradient(180deg,#050608_0%,#040507_36%,#020304_100%)] text-white">
       <header className="sticky top-0 z-40 border-b border-white/6 bg-[#030406]/86 backdrop-blur-2xl">
         <div className="mx-auto max-w-[1720px] px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4">
-            <div className="flex min-w-0 flex-1 items-center gap-5">
-              <Link href="/home" className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-[linear-gradient(135deg,rgba(111,249,182,0.16),rgba(116,244,255,0.12))] shadow-[0_16px_50px_rgba(0,0,0,0.3)]">
-                  <span className="text-sm font-black uppercase tracking-[0.2em] text-white">V</span>
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-500">VYNTRO</p>
-                  <p className="mt-1 text-sm font-semibold text-white">Member OS</p>
-                </div>
-              </Link>
+          <div className="flex items-center gap-3 2xl:gap-4">
+            <Link href="/home" className="flex shrink-0 items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-[linear-gradient(135deg,rgba(111,249,182,0.16),rgba(116,244,255,0.12))] shadow-[0_16px_50px_rgba(0,0,0,0.3)]">
+                <span className="text-sm font-black uppercase tracking-[0.2em] text-white">V</span>
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-500">VYNTRO</p>
+                <p className="mt-1 text-sm font-semibold text-white">Member OS</p>
+              </div>
+            </Link>
 
-              <nav className="hidden items-center gap-2 2xl:flex">
-                {primaryNavItems.map((item) => (
-                  <TopNavItem key={item.href} pathname={pathname} item={item} />
-                ))}
-              </nav>
-            </div>
+            <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 overflow-hidden 2xl:flex min-[1720px]:gap-1">
+              {primaryNavItems.map((item) => (
+                <TopNavItem key={item.href} pathname={pathname} item={item} />
+              ))}
+            </nav>
 
-            <label className="ml-auto hidden w-[min(24vw,360px)] max-w-[360px] items-center gap-3 rounded-full border border-white/8 bg-white/[0.03] px-4 py-3 2xl:flex">
+            <label className="hidden min-w-[180px] w-[min(16vw,230px)] shrink items-center gap-2.5 rounded-full border border-white/8 bg-white/[0.03] px-3.5 py-3 2xl:flex">
               <Search className="h-4 w-4 text-slate-500" />
               <input
                 type="search"
-                placeholder="Search spaces, quests, raids and rewards..."
+                placeholder="Search..."
                 className="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
               />
             </label>
 
-            <div className="ml-auto flex shrink-0 items-center justify-end gap-1.5 2xl:gap-2">
+            <div className="flex shrink-0 items-center justify-end gap-1.5 2xl:gap-2">
               <div className="hidden items-center gap-1.5 sm:flex 2xl:gap-2">
                 {utilityNavItems.map((item) => {
                   if (item.requiresAccount && !accountReady) {
