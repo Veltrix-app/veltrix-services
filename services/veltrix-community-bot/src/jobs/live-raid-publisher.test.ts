@@ -1,7 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { buildLiveRaidInsertPayload, buildLiveRaidDeliveryMessage } from "./live-raid-publisher.js";
+import {
+  buildLiveRaidDeliveryMessage,
+  buildLiveRaidInsertPayload,
+  resolveLiveRaidBanner,
+} from "./live-raid-publisher.js";
 
 test("builds a live raid insert payload from a generated draft", () => {
   assert.deepEqual(
@@ -62,4 +66,36 @@ test("builds a delivery message for a live raid", () => {
     }).body,
     "Raid this launch #vyntro\n\nOpen the raid, engage with the source post, then confirm it in VYNTRO."
   );
+});
+
+test("uses the default raid artwork when generated raids have no media", () => {
+  assert.equal(
+    resolveLiveRaidBanner(null),
+    "https://veltrix-web.vercel.app/community-push/defaults/raid.png"
+  );
+
+  const payload = buildLiveRaidInsertPayload({
+    projectId: "project-1",
+    projectName: "VYNTRO",
+    campaignId: "campaign-1",
+    draft: {
+      title: "Raid VYNTRO X post.",
+      shortDescription: "Raid VYNTRO X post.",
+      target: "Open the source post, engage with it, then confirm the raid in VYNTRO.",
+      instructions: ["Open the source post."],
+      sourceUrl: "https://x.com/i/status/123",
+      sourceExternalId: "123",
+      banner: null,
+      rewardXp: 50,
+      startsAt: "2026-04-29T10:00:00.000Z",
+      endsAt: "2026-04-30T10:00:00.000Z",
+      campaignId: "campaign-1",
+      buttonLabel: "Open raid",
+    },
+    sourceEventId: "event-1",
+    sourceProvider: "x_manual_command",
+    generatedBy: "manual_raid_command",
+  });
+
+  assert.equal(payload.banner, "https://veltrix-web.vercel.app/community-push/defaults/raid.png");
 });

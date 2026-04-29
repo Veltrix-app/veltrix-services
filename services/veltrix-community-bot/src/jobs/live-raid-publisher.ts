@@ -1,6 +1,15 @@
-import { type ProviderScope, appUrl, dispatchProjectCommunityMessageWithResults } from "../core/community/delivery.js";
+import {
+  type ProviderScope,
+  appUrl,
+  dispatchProjectCommunityMessageWithResults,
+  getDefaultCommunityArtwork,
+} from "../core/community/delivery.js";
 import { type TweetToRaidDraft } from "../core/raids/tweet-to-raid.js";
 import { supabaseAdmin } from "../lib/supabase.js";
+
+export function resolveLiveRaidBanner(banner: string | null | undefined) {
+  return banner?.trim() || getDefaultCommunityArtwork("raid");
+}
 
 export function buildLiveRaidInsertPayload(params: {
   projectId: string;
@@ -23,7 +32,7 @@ export function buildLiveRaidInsertPayload(params: {
     participants: 0,
     progress: 0,
     target: params.draft.target,
-    banner: params.draft.banner,
+    banner: resolveLiveRaidBanner(params.draft.banner),
     instructions: params.draft.instructions,
     status: "active",
     source_provider: params.sourceProvider,
@@ -83,6 +92,7 @@ export async function createLiveRaidAndDeliver(params: {
   providerScope?: ProviderScope;
   sourceLabel: string;
 }) {
+  const banner = resolveLiveRaidBanner(params.draft.banner);
   const { data: raid, error: raidError } = await supabaseAdmin
     .from("raids")
     .insert(
@@ -117,8 +127,8 @@ export async function createLiveRaidAndDeliver(params: {
     body: message.body,
     eyebrow: "LIVE RAID",
     projectName: params.projectName,
-    imageUrl: params.draft.banner,
-    fallbackImageUrl: params.draft.banner,
+    imageUrl: banner,
+    fallbackImageUrl: banner,
     meta: message.meta,
     url: raidUrl,
     buttonLabel: params.draft.buttonLabel,
