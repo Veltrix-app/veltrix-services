@@ -1,7 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { buildManualLiveRaidDraft, isManualRaidDuplicateReason } from "./create-manual-live-raid.js";
+import {
+  buildFallbackXPostForManualRaid,
+  buildManualLiveRaidDraft,
+  isManualRaidDuplicateReason,
+  shouldUseManualXPostFallback,
+} from "./create-manual-live-raid.js";
 
 test("builds a manual live raid draft from a fetched X post", () => {
   const draft = buildManualLiveRaidDraft({
@@ -41,4 +46,27 @@ test("builds a manual live raid draft from a fetched X post", () => {
 test("marks duplicate reasons as safe command replies", () => {
   assert.equal(isManualRaidDuplicateReason("duplicate_post"), true);
   assert.equal(isManualRaidDuplicateReason("x_api_failed"), false);
+});
+
+test("builds a fallback X post for manual raids when API reads are unavailable", () => {
+  assert.deepEqual(
+    buildFallbackXPostForManualRaid({ username: "vyntro_", postId: "2049196117066215893" }),
+    {
+      id: "2049196117066215893",
+      authorId: null,
+      username: "vyntro_",
+      text: "Raid @vyntro_'s X post.",
+      url: "https://x.com/vyntro_/status/2049196117066215893",
+      mediaUrls: [],
+      createdAt: null,
+      isReply: false,
+      isRepost: false,
+      replyToPostId: null,
+    }
+  );
+});
+
+test("manual raids can fall back on X API billing or permission failures", () => {
+  assert.equal(shouldUseManualXPostFallback(new Error("X API request failed with 402.")), true);
+  assert.equal(shouldUseManualXPostFallback(new Error("X post could not be found.")), false);
 });

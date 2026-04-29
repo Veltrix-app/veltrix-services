@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  formatManualRaidCommandError,
   parseTelegramNewRaidCommand,
   normalizeManualRaidOverrides,
   formatManualRaidCommandResult,
@@ -49,5 +50,14 @@ test("formats delivery status for command replies", () => {
       ],
     }),
     "Live raid created: https://veltrix-web.vercel.app/raids/raid-1\nDelivery: telegram ok, discord failed (Missing channel)"
+  );
+});
+
+test("formats manual raid authorization failures as actionable Telegram replies", () => {
+  assert.match(
+    formatManualRaidCommandError(
+      new Error("Only project captains with raid alert permission can create live raids.")
+    ),
+    /Telegram group admin or a VYNTRO captain/
   );
 });

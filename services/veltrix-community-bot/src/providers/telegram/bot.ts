@@ -9,6 +9,7 @@ import {
   isCommunityCommandEnabled,
 } from "../../core/community/command-scopes.js";
 import {
+  formatManualRaidCommandError,
   formatManualRaidCommandResult,
   parseTelegramNewRaidCommand,
 } from "../../core/raids/manual-raid-command.js";
@@ -70,6 +71,30 @@ function buildTelegramCommandPayload(settings: {
 
 function getChatId(ctx: { chat?: { id?: number | string } }) {
   return ctx.chat?.id ? String(ctx.chat.id) : "";
+}
+
+function isTelegramAdminStatus(status: string | undefined) {
+  return status === "creator" || status === "administrator";
+}
+
+async function isTelegramGroupAdmin(
+  ctx: {
+    chat?: { id?: number | string };
+    telegram?: {
+      getChatMember: (chatId: string, userId: number) => Promise<{ status?: string }>;
+    };
+  },
+  providerUserId: string
+) {
+  const chatId = getChatId(ctx);
+  const userId = Number(providerUserId);
+
+  if (!chatId || !Number.isFinite(userId) || !ctx.telegram?.getChatMember) {
+    return false;
+  }
+
+  const chatMember = await ctx.telegram.getChatMember(chatId, userId).catch(() => null);
+  return isTelegramAdminStatus(chatMember?.status);
 }
 
 function listEnabledTelegramCommands(settings: {
@@ -380,25 +405,37 @@ function registerTelegramCommandHandlers(bot: Telegraf) {
     }
 
     const providerUserId = String(ctx.from?.id ?? "");
-    const result = await createManualLiveRaidFromXPost({
-      projectId: context.projectId,
-      xUrl: parsed.url,
-      actorProvider: "telegram",
-      actorProviderUserId: providerUserId,
-      overrides: parsed.overrides,
-    });
-
-    if (result.status === "skipped") {
-      await ctx.reply("That X post is already linked to a VYNTRO raid for this project.");
-      return;
-    }
+    const isGroupAdmin = await isTelegramGroupAdmin(ctx, providerUserId);
 
     await ctx.reply(
-      formatManualRaidCommandResult({
-        raidUrl: result.raidUrl,
-        deliveries: result.deliveries,
-      })
+      "Creating a live VYNTRO raid from this X post. I will reply here when it is ready."
     );
+
+    try {
+      const result = await createManualLiveRaidFromXPost({
+        projectId: context.projectId,
+        xUrl: parsed.url,
+        actorProvider: "telegram",
+        actorProviderUserId: providerUserId,
+        overrides: parsed.overrides,
+        skipCaptainAuthorization: isGroupAdmin,
+        allowUnfetchedFallback: true,
+      });
+
+      if (result.status === "skipped") {
+        await ctx.reply("That X post is already linked to a VYNTRO raid for this project.");
+        return;
+      }
+
+      await ctx.reply(
+        formatManualRaidCommandResult({
+          raidUrl: result.raidUrl,
+          deliveries: result.deliveries,
+        })
+      );
+    } catch (error) {
+      await ctx.reply(formatManualRaidCommandError(error));
+    }
   });
 
   bot.command("captain", async (ctx) => {
@@ -445,8 +482,13 @@ function registerTelegramCommandHandlers(bot: Telegraf) {
     );
   });
 
-  bot.catch((error) => {
+  bot.catch(async (error, ctx) => {
     console.error("[telegram] command handler failed", error);
+    await ctx
+      .reply(
+        "VYNTRO hit a command error. Please try again, or check the portal if this keeps happening."
+      )
+      .catch(() => null);
   });
 
   handlersRegistered = true;

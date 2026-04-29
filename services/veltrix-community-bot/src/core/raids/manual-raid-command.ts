@@ -78,3 +78,18 @@ export function formatManualRaidCommandResult(params: {
 
   return `Live raid created: ${params.raidUrl}\nDelivery: ${deliveryLabel}`;
 }
+
+export function formatManualRaidCommandError(error: unknown) {
+  const message =
+    error instanceof Error ? error.message : "Manual live raid creation failed unexpectedly.";
+
+  if (message.includes("Only project captains")) {
+    return [
+      "I couldn't create that raid yet.",
+      "You need to be a Telegram group admin or a VYNTRO captain with raid-alert permission.",
+      "If you are already an admin, make sure the bot can read group admin status and try again.",
+    ].join("\n");
+  }
+
+  return `I couldn't create that raid yet: ${message}`;
+}

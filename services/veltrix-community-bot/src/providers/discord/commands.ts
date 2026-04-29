@@ -705,6 +705,7 @@ async function handleNewRaidCommand(interaction: ChatInputCommandInteraction) {
       campaign: interaction.options.getString("campaign") ?? undefined,
       button: interaction.options.getString("button") ?? undefined,
     },
+    allowUnfetchedFallback: true,
   });
 
   if (result.status === "skipped") {

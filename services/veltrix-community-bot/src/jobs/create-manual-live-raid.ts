@@ -72,6 +72,31 @@ export function isManualRaidDuplicateReason(reason: string) {
   return reason === "duplicate_post";
 }
 
+export function buildFallbackXPostForManualRaid(params: { postId: string; username: string }) {
+  return {
+    id: params.postId,
+    authorId: null,
+    username: params.username,
+    text: `Raid @${params.username}'s X post.`,
+    url: `https://x.com/${params.username}/status/${params.postId}`,
+    mediaUrls: [],
+    createdAt: null,
+    isReply: false,
+    isRepost: false,
+    replyToPostId: null,
+  } satisfies XRaidPost;
+}
+
+export function shouldUseManualXPostFallback(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+
+  return (
+    message.includes("X_API_BEARER_TOKEN") ||
+    /X API request failed with (401|402|403|429)/i.test(message) ||
+    /fetch failed|aborted|network|timeout/i.test(message)
+  );
+}
+
 async function loadProject(projectId: string) {
   const { data, error } = await supabaseAdmin
     .from("projects")
@@ -132,7 +157,12 @@ async function assertAuthorizedCaptain(params: {
   projectId: string;
   provider: "telegram" | "discord";
   providerUserId: string;
+  skipCaptainAuthorization?: boolean;
 }) {
+  if (params.skipCaptainAuthorization) {
+    return;
+  }
+
   const captain = await loadCaptainByProviderIdentity(params);
   if (!captainHasPermission(captain, "raid_alert", "community_only")) {
     throw new Error("Only project captains with raid alert permission can create live raids.");
@@ -156,14 +186,17 @@ export async function createManualLiveRaidFromXPost(params: {
   actorProvider: "telegram" | "discord";
   actorProviderUserId: string;
   overrides?: ManualRaidCommandOverrides;
+  skipCaptainAuthorization?: boolean;
+  allowUnfetchedFallback?: boolean;
 }) {
   await assertAuthorizedCaptain({
     projectId: params.projectId,
     provider: params.actorProvider,
     providerUserId: params.actorProviderUserId,
+    skipCaptainAuthorization: params.skipCaptainAuthorization,
   });
 
-  if (!env.X_API_BEARER_TOKEN) {
+  if (!env.X_API_BEARER_TOKEN && !params.allowUnfetchedFallback) {
     throw new Error("X_API_BEARER_TOKEN is missing on the community bot deployment.");
   }
 
@@ -191,19 +224,28 @@ export async function createManualLiveRaidFromXPost(params: {
   }
 
   const normalizedOverrides = normalizeManualRaidOverrides(params.overrides ?? {});
-  const [project, defaults, post] = await Promise.all([
+  const [project, defaults] = await Promise.all([
     loadProject(params.projectId),
     loadDefaults({
       projectId: params.projectId,
       username: parsed.username,
       campaignRef: normalizedOverrides.campaignRef,
     }),
-    fetchXPostById({
-      postId: parsed.postId,
-      fallbackUsername: parsed.username,
-      bearerToken: env.X_API_BEARER_TOKEN,
-    }),
   ]);
+  const post =
+    env.X_API_BEARER_TOKEN
+      ? await fetchXPostById({
+          postId: parsed.postId,
+          fallbackUsername: parsed.username,
+          bearerToken: env.X_API_BEARER_TOKEN,
+        }).catch((error) => {
+          if (params.allowUnfetchedFallback && shouldUseManualXPostFallback(error)) {
+            return buildFallbackXPostForManualRaid(parsed);
+          }
+
+          throw error;
+        })
+      : buildFallbackXPostForManualRaid(parsed);
 
   const draft = buildManualLiveRaidDraft({
     projectName: project.name ?? "Project",
@@ -230,6 +272,9 @@ export async function createManualLiveRaidFromXPost(params: {
         manual: true,
         commandSource: params.actorProvider,
         commandActorProviderUserId: params.actorProviderUserId,
+        commandAuthorization: params.skipCaptainAuthorization
+          ? `${params.actorProvider}_admin`
+          : "captain",
         commandOverrides: normalizedOverrides,
         requestedUrl: params.xUrl,
       },
