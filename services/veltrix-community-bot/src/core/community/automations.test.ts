@@ -5,6 +5,7 @@ import {
   resolveCommunityAutomationDeepLink,
   resolveCommunityAutomationJourneyLane,
 } from "./automation-links.js";
+import { buildActivationBoardCandidate } from "./activation-board.js";
 import {
   getProjectRewardVisibilityFilter,
   PROJECT_REWARD_SELECT_COLUMNS,
@@ -29,6 +30,34 @@ test("project reward state filters use the live rewards visibility contract", ()
 
   assert.deepEqual(filter, { column: "visible", value: true });
   assert.notEqual(filter.column, "status");
+});
+
+test("activation board can use a draft campaign once live surfaces are attached", () => {
+  const candidate = buildActivationBoardCandidate({
+    campaigns: [
+      {
+        id: "campaign-draft",
+        title: "Community Starter",
+        featured: true,
+        status: "draft",
+        created_at: "2026-04-29T08:00:00.000Z",
+      },
+    ],
+    quests: [],
+    raids: [{ campaign_id: "campaign-draft" }],
+    rewards: [],
+    segmentSummary: {
+      newcomers: 3,
+      reactivation: 0,
+      core: 0,
+      commandReady: 2,
+    },
+  });
+
+  assert.equal(candidate?.campaignId, "campaign-draft");
+  assert.equal(candidate?.campaignStatus, "draft");
+  assert.equal(candidate?.activationReadiness, "content_ready");
+  assert.match(candidate?.recommendedCopy ?? "", /live surfaces/i);
 });
 
 test("resolveCommunityAutomationJourneyLane maps pulse automations onto the right journey lane", () => {

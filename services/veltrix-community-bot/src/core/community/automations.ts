@@ -22,6 +22,11 @@ import {
   resolveCommunityAutomationDeepLink,
 } from "./automation-links.js";
 import {
+  buildActivationBoardCandidate,
+  type ActivationBoardCandidate,
+  type ActivationBoardCampaign,
+} from "./activation-board.js";
+import {
   getProjectRewardVisibilityFilter,
   PROJECT_REWARD_SELECT_COLUMNS,
 } from "./project-state-selects.js";
@@ -51,6 +56,7 @@ type ProjectState = {
     featured: boolean | null;
     xp_budget: number | null;
     status: string;
+    created_at: string | null;
   }>;
   quests: Array<{
     id: string;
@@ -86,21 +92,6 @@ type ContributorSegmentSummary = {
   watchlist: number;
   starterNames: string[];
   comebackNames: string[];
-};
-
-type ActivationBoardCandidate = {
-  campaignId: string;
-  title: string;
-  featured: boolean;
-  questCount: number;
-  raidCount: number;
-  rewardCount: number;
-  newcomerCandidates: number;
-  reactivationCandidates: number;
-  coreCandidates: number;
-  readyContributors: number;
-  recommendedLane: "newcomer" | "reactivation" | "core";
-  recommendedCopy: string;
 };
 
 type CommunityAutomationRow = {
@@ -321,7 +312,7 @@ async function loadProjectCommunityState(projectId: string): Promise<ProjectStat
     supabaseAdmin
       .from("campaigns")
       .select(
-        "id, title, short_description, banner_url, thumbnail_url, featured, xp_budget, status"
+        "id, title, short_description, banner_url, thumbnail_url, featured, xp_budget, status, created_at"
       )
       .eq("project_id", projectId)
       .eq("status", "active")
@@ -612,45 +603,36 @@ async function loadContributorSegmentSummary(projectId: string): Promise<Contrib
   };
 }
 
-async function loadActivationBoardCandidate(projectId: string): Promise<ActivationBoardCandidate | null> {
-  const state = await loadProjectCommunityState(projectId);
-  if (state.campaigns.length === 0) {
-    return null;
+async function loadActivationBoardCampaigns(projectId: string): Promise<ActivationBoardCampaign[]> {
+  const { data, error } = await supabaseAdmin
+    .from("campaigns")
+    .select("id, title, featured, status, created_at")
+    .eq("project_id", projectId)
+    .in("status", ["active", "draft"])
+    .order("featured", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(8);
+
+  if (error) {
+    throw new Error(error.message || "Failed to load activation board campaigns.");
   }
 
+  return (data ?? []) as ActivationBoardCampaign[];
+}
+
+async function loadActivationBoardCandidate(projectId: string): Promise<ActivationBoardCandidate | null> {
+  const state = await loadProjectCommunityState(projectId);
+  const campaigns =
+    state.campaigns.length > 0 ? state.campaigns : await loadActivationBoardCampaigns(projectId);
   const segmentSummary = await loadContributorSegmentSummary(projectId);
-  const featuredCampaign = state.campaigns[0];
-  const questCount = state.quests.filter((quest) => quest.campaign_id === featuredCampaign.id).length;
-  const raidCount = state.raids.filter((raid) => raid.campaign_id === featuredCampaign.id).length;
-  const rewardCount = state.rewards.filter((reward) => reward.campaign_id === featuredCampaign.id).length;
 
-  const recommendedLane =
-    segmentSummary.reactivation > segmentSummary.newcomers &&
-    segmentSummary.reactivation >= segmentSummary.core
-      ? "reactivation"
-      : segmentSummary.core > segmentSummary.newcomers
-        ? "core"
-        : "newcomer";
-
-  return {
-    campaignId: featuredCampaign.id,
-    title: featuredCampaign.title,
-    featured: featuredCampaign.featured === true,
-    questCount,
-    raidCount,
-    rewardCount,
-    newcomerCandidates: segmentSummary.newcomers,
-    reactivationCandidates: segmentSummary.reactivation,
-    coreCandidates: segmentSummary.core,
-    readyContributors: segmentSummary.commandReady,
-    recommendedLane,
-    recommendedCopy:
-      recommendedLane === "reactivation"
-        ? "Re-ignite dormant contributors with a comeback wave around this campaign."
-        : recommendedLane === "core"
-          ? "Lean into your core journey and raise pressure with raids and leaderboard visibility."
-          : "Use a newcomer starter push to move fresh contributors into this campaign.",
-  };
+  return buildActivationBoardCandidate({
+    campaigns,
+    quests: state.quests,
+    raids: state.raids,
+    rewards: state.rewards,
+    segmentSummary,
+  });
 }
 
 async function createAutomationRun(params: {
