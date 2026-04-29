@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
   ArrowRight,
+  BarChart3,
   BookOpenCheck,
   History,
   Layers3,
@@ -38,6 +39,15 @@ const defiRoutes = [
     description:
       "Supply, enable collateral, borrow, repay and monitor positions with explicit safety gates.",
     stats: ["Live Base reads", "Collateral gate", "Repay first posture"],
+  },
+  {
+    href: "/trading-arena",
+    label: "Trading Arena",
+    eyebrow: "Competition layer",
+    icon: BarChart3,
+    description:
+      "Launch or join snapshot and live-tracked trading competitions with cost caps, rewards and leaderboards.",
+    stats: ["Snapshot mode", "Live tracking", "Rewards"],
   },
   {
     href: "/defi/risk-guide",
@@ -98,7 +108,7 @@ export function DefiLandingScreen() {
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
         {defiRoutes.map((route) => {
           const Icon = route.icon;
 

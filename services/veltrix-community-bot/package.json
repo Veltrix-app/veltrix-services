@@ -9,6 +9,7 @@
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
     "poll:x-raid-sources": "node dist/scripts/poll-x-raid-sources.js",
+    "run:trading-arena-jobs": "node dist/scripts/run-trading-arena-jobs.js",
     "seed:showcase": "tsx src/scripts/seed-showcase.ts"
   },
   "dependencies": {

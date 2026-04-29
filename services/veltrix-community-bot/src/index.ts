@@ -5,6 +5,7 @@ import { communityJourneysRouter } from "./http/community-journeys.js";
 import { communityOpsRouter } from "./http/community-ops.js";
 import { healthRouter } from "./http/health.js";
 import { jobsRouter } from "./http/jobs.js";
+import { tradingRouter } from "./http/trading.js";
 import { webhookRouter } from "./http/webhooks.js";
 import { createDiscordClient } from "./providers/discord/client.js";
 import {
@@ -23,6 +24,7 @@ async function bootstrap() {
   app.use("/community/journeys", communityJourneysRouter);
   app.use("/webhooks", webhookRouter);
   app.use("/aesp", aespRouter);
+  app.use("/trading", tradingRouter);
 
   const discordClient = createDiscordClient();
   if (discordClient && env.DISCORD_BOT_TOKEN) {
