@@ -64,6 +64,8 @@ const utilityNavItems: ReadonlyArray<{
   { href: "/profile", label: "Profile", icon: UserRound },
 ];
 
+const RAID_HERO_IMAGE_SRC = "/brand/heroes/vyntro-raids-hero.png";
+
 function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
@@ -316,6 +318,50 @@ function MainPageSignalBannerCard({ banner }: { banner: MainPageSignalBanner }) 
   );
 }
 
+function RaidPageHero({
+  eyebrow,
+  title,
+  description,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <section className="relative isolate -mt-px overflow-hidden bg-[#020304]">
+      <div className="relative min-h-[430px] sm:min-h-[500px] lg:min-h-[620px] 2xl:min-h-[680px]">
+        <Image
+          src={RAID_HERO_IMAGE_SRC}
+          alt="VYNTRO raids world"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center opacity-[0.92] saturate-125"
+        />
+
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,rgba(255,38,52,0.1),transparent_30%),linear-gradient(90deg,#020304_0%,rgba(2,3,4,0.68)_18%,rgba(2,3,4,0.12)_50%,rgba(2,3,4,0.62)_100%)]" />
+        <div className="absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-[#030406] via-[#030406]/62 to-transparent" />
+        <div className="absolute inset-x-0 bottom-[-1px] h-56 bg-[linear-gradient(180deg,transparent_0%,rgba(2,3,4,0.58)_42%,#020304_100%)] sm:h-64 lg:h-72" />
+        <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-[#020304]/85 to-transparent" />
+
+        <div className="relative mx-auto flex min-h-[430px] max-w-[1720px] items-end px-4 pb-32 pt-20 sm:min-h-[500px] sm:px-6 lg:min-h-[620px] lg:px-8 lg:pb-40 2xl:min-h-[680px]">
+          <div className="max-w-2xl pb-8 [text-shadow:0_18px_60px_rgba(0,0,0,0.75)]">
+            <p className="text-[10px] font-black uppercase tracking-[0.32em] text-rose-200/90">
+              {eyebrow}
+            </p>
+            <h1 className="mt-4 max-w-3xl text-balance text-[clamp(2.1rem,4vw,4.9rem)] font-black leading-[0.9] tracking-[-0.055em] text-white">
+              {title}
+            </h1>
+            <p className="mt-5 max-w-2xl text-sm leading-7 text-rose-50/78 sm:text-[0.98rem]">
+              {description}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function SessionMenu({
   accountReady,
   authConfigured,
@@ -471,6 +517,7 @@ export function AppShell({
   const accountReady = Boolean(session);
   const walletReady = Boolean(profile?.wallet);
   const mainPageSignalBanner = getMainPageSignalBanner(pathname);
+  const hasRaidHero = pathname === "/raids";
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(148,98,255,0.12),transparent_18%),linear-gradient(180deg,#050608_0%,#040507_36%,#020304_100%)] text-white">
@@ -548,24 +595,32 @@ export function AppShell({
         </div>
       </header>
 
-      <div className="mx-auto max-w-[1720px] px-4 py-6 sm:px-6 lg:px-8 lg:py-7">
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start">
-          <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-lime-300">{eyebrow}</p>
-            <h1 className="mt-4 max-w-4xl text-balance text-[clamp(2rem,3vw,3.3rem)] font-black leading-[0.96] tracking-[-0.04em] text-white">
-              {title}
-            </h1>
-            <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-400 sm:text-[0.95rem]">
-              {description}
-            </p>
+      {hasRaidHero ? <RaidPageHero eyebrow={eyebrow} title={title} description={description} /> : null}
+
+      <div
+        className={`mx-auto max-w-[1720px] px-4 sm:px-6 lg:px-8 ${
+          hasRaidHero ? "relative z-10 -mt-24 pb-6 lg:-mt-32 lg:pb-7" : "py-6 lg:py-7"
+        }`}
+      >
+        {!hasRaidHero ? (
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start">
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-lime-300">{eyebrow}</p>
+              <h1 className="mt-4 max-w-4xl text-balance text-[clamp(2rem,3vw,3.3rem)] font-black leading-[0.96] tracking-[-0.04em] text-white">
+                {title}
+              </h1>
+              <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-400 sm:text-[0.95rem]">
+                {description}
+              </p>
+            </div>
+
+            {mainPageSignalBanner ? (
+              <MainPageSignalBannerCard key={mainPageSignalBanner.route} banner={mainPageSignalBanner} />
+            ) : null}
           </div>
+        ) : null}
 
-          {mainPageSignalBanner ? (
-            <MainPageSignalBannerCard key={mainPageSignalBanner.route} banner={mainPageSignalBanner} />
-          ) : null}
-        </div>
-
-        <main className="mt-8 lg:mt-10">{children}</main>
+        <main className={hasRaidHero ? "" : "mt-8 lg:mt-10"}>{children}</main>
       </div>
     </div>
   );
