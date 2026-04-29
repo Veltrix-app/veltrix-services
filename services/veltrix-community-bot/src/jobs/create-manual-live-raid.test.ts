@@ -4,8 +4,11 @@ import assert from "node:assert/strict";
 import {
   buildFallbackXPostForManualRaid,
   buildManualLiveRaidDraft,
+  getManualRaidErrorMessage,
   isManualRaidDuplicateReason,
   shouldUseManualXPostFallback,
+  shouldRetryExistingManualRaidEvent,
+  shouldSkipExistingManualRaidEvent,
 } from "./create-manual-live-raid.js";
 
 test("builds a manual live raid draft from a fetched X post", () => {
@@ -69,4 +72,37 @@ test("builds a fallback X post for manual raids when API reads are unavailable",
 test("manual raids can fall back on X API billing or permission failures", () => {
   assert.equal(shouldUseManualXPostFallback(new Error("X API request failed with 402.")), true);
   assert.equal(shouldUseManualXPostFallback(new Error("X post could not be found.")), false);
+});
+
+test("failed manual ingest events stay retryable until a raid exists", () => {
+  assert.equal(
+    shouldRetryExistingManualRaidEvent({
+      id: "event-1",
+      raid_id: null,
+      decision: "failed",
+    }),
+    true
+  );
+  assert.equal(
+    shouldSkipExistingManualRaidEvent({
+      id: "event-1",
+      raid_id: "raid-1",
+      decision: "created_raid",
+    }),
+    true
+  );
+});
+
+test("extracts useful messages from Supabase-style error objects", () => {
+  assert.equal(
+    getManualRaidErrorMessage(
+      {
+        message: "new row violates row-level capacity",
+        details: "Account has reached max live raids.",
+        code: "P0001",
+      },
+      "fallback"
+    ),
+    "new row violates row-level capacity Account has reached max live raids. code P0001"
+  );
 });

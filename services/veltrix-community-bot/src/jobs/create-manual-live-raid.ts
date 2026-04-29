@@ -23,6 +23,12 @@ export type ManualRaidDefaults = {
   artworkUrl: string | null;
 };
 
+type ExistingManualRaidEvent = {
+  id: string;
+  raid_id: string | null;
+  decision: string | null;
+};
+
 function addMinutes(date: Date, minutes: number) {
   return new Date(date.getTime() + minutes * 60_000);
 }
@@ -88,13 +94,45 @@ export function buildFallbackXPostForManualRaid(params: { postId: string; userna
 }
 
 export function shouldUseManualXPostFallback(error: unknown) {
-  const message = error instanceof Error ? error.message : String(error ?? "");
+  const message = getManualRaidErrorMessage(error, "");
 
   return (
     message.includes("X_API_BEARER_TOKEN") ||
     /X API request failed with (401|402|403|429)/i.test(message) ||
     /fetch failed|aborted|network|timeout/i.test(message)
   );
+}
+
+export function getManualRaidErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (error && typeof error === "object") {
+    const record = error as Record<string, unknown>;
+    const parts = [
+      record.message,
+      record.details,
+      record.hint,
+      record.code ? `code ${String(record.code)}` : null,
+    ]
+      .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
+      .map((part) => part.trim());
+
+    if (parts.length > 0) {
+      return parts.join(" ");
+    }
+  }
+
+  return fallback;
+}
+
+export function shouldRetryExistingManualRaidEvent(event: ExistingManualRaidEvent | null) {
+  return Boolean(event && !event.raid_id);
+}
+
+export function shouldSkipExistingManualRaidEvent(event: ExistingManualRaidEvent | null) {
+  return Boolean(event?.raid_id);
 }
 
 async function loadProject(projectId: string) {
@@ -180,6 +218,64 @@ async function markEventFailed(eventId: string, reason: string) {
     .eq("id", eventId);
 }
 
+async function persistManualRaidEvent(params: {
+  eventId?: string;
+  projectId: string;
+  post: XRaidPost;
+  actorProvider: "telegram" | "discord";
+  actorProviderUserId: string;
+  skipCaptainAuthorization?: boolean;
+  normalizedOverrides: NormalizedManualRaidOverrides;
+  requestedUrl: string;
+}) {
+  const payload = {
+    project_id: params.projectId,
+    source_id: null,
+    x_post_id: params.post.id,
+    x_author_id: params.post.authorId,
+    x_username: params.post.username,
+    post_url: params.post.url,
+    text: params.post.text,
+    media_urls: params.post.mediaUrls,
+    decision: "created_raid",
+    decision_reason: params.eventId ? "manual_command_retry" : "manual_command",
+    raid_id: null,
+    delivery_metadata: {},
+    raw_payload: {
+      manual: true,
+      commandSource: params.actorProvider,
+      commandActorProviderUserId: params.actorProviderUserId,
+      commandAuthorization: params.skipCaptainAuthorization
+        ? `${params.actorProvider}_admin`
+        : "captain",
+      commandOverrides: params.normalizedOverrides,
+      requestedUrl: params.requestedUrl,
+    },
+    updated_at: new Date().toISOString(),
+  };
+
+  if (params.eventId) {
+    const { data, error } = await supabaseAdmin
+      .from("x_raid_ingest_events")
+      .update(payload)
+      .eq("id", params.eventId)
+      .select("id")
+      .single();
+
+    if (error) throw error;
+    return data as { id: string };
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("x_raid_ingest_events")
+    .insert(payload)
+    .select("id")
+    .single();
+
+  if (error) throw error;
+  return data as { id: string };
+}
+
 export async function createManualLiveRaidFromXPost(params: {
   projectId: string;
   xUrl: string;
@@ -207,19 +303,20 @@ export async function createManualLiveRaidFromXPost(params: {
 
   const { data: existing, error: existingError } = await supabaseAdmin
     .from("x_raid_ingest_events")
-    .select("id, raid_id")
+    .select("id, raid_id, decision")
     .eq("project_id", params.projectId)
     .eq("x_post_id", parsed.postId)
     .maybeSingle();
 
   if (existingError) throw existingError;
-  if (existing) {
+  const existingEvent = existing as ExistingManualRaidEvent | null;
+  if (existingEvent?.raid_id) {
     return {
       ok: true as const,
       status: "skipped" as const,
       reason: "duplicate_post" as const,
-      eventId: existing.id as string,
-      raidId: (existing.raid_id as string | null) ?? null,
+      eventId: existingEvent.id,
+      raidId: existingEvent.raid_id,
     };
   }
 
@@ -255,34 +352,16 @@ export async function createManualLiveRaidFromXPost(params: {
     now: new Date(),
   });
 
-  const { data: event, error: eventError } = await supabaseAdmin
-    .from("x_raid_ingest_events")
-    .insert({
-      project_id: params.projectId,
-      source_id: null,
-      x_post_id: post.id,
-      x_author_id: post.authorId,
-      x_username: post.username,
-      post_url: post.url,
-      text: post.text,
-      media_urls: post.mediaUrls,
-      decision: "created_raid",
-      decision_reason: "manual_command",
-      raw_payload: {
-        manual: true,
-        commandSource: params.actorProvider,
-        commandActorProviderUserId: params.actorProviderUserId,
-        commandAuthorization: params.skipCaptainAuthorization
-          ? `${params.actorProvider}_admin`
-          : "captain",
-        commandOverrides: normalizedOverrides,
-        requestedUrl: params.xUrl,
-      },
-    })
-    .select("id")
-    .single();
-
-  if (eventError) throw eventError;
+  const event = await persistManualRaidEvent({
+    eventId: shouldRetryExistingManualRaidEvent(existingEvent) ? existingEvent?.id : undefined,
+    projectId: params.projectId,
+    post,
+    actorProvider: params.actorProvider,
+    actorProviderUserId: params.actorProviderUserId,
+    skipCaptainAuthorization: params.skipCaptainAuthorization,
+    normalizedOverrides,
+    requestedUrl: params.xUrl,
+  });
 
   try {
     const liveRaid = await createLiveRaidAndDeliver({
@@ -313,7 +392,7 @@ export async function createManualLiveRaidFromXPost(params: {
       deliveries: liveRaid.deliveries,
     };
   } catch (error) {
-    const reason = error instanceof Error ? error.message : "Manual live raid creation failed.";
+    const reason = getManualRaidErrorMessage(error, "Manual live raid creation failed.");
     await markEventFailed(event.id, reason);
     throw error;
   }

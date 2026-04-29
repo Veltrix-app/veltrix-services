@@ -79,9 +79,32 @@ export function formatManualRaidCommandResult(params: {
   return `Live raid created: ${params.raidUrl}\nDelivery: ${deliveryLabel}`;
 }
 
+function getCommandErrorMessage(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (error && typeof error === "object") {
+    const record = error as Record<string, unknown>;
+    const parts = [
+      record.message,
+      record.details,
+      record.hint,
+      record.code ? `code ${String(record.code)}` : null,
+    ]
+      .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
+      .map((part) => part.trim());
+
+    if (parts.length > 0) {
+      return parts.join(" ");
+    }
+  }
+
+  return "Manual live raid creation failed unexpectedly.";
+}
+
 export function formatManualRaidCommandError(error: unknown) {
-  const message =
-    error instanceof Error ? error.message : "Manual live raid creation failed unexpectedly.";
+  const message = getCommandErrorMessage(error);
 
   if (message.includes("Only project captains")) {
     return [

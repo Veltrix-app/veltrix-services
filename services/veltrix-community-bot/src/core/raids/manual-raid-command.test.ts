@@ -61,3 +61,13 @@ test("formats manual raid authorization failures as actionable Telegram replies"
     /Telegram group admin or a VYNTRO captain/
   );
 });
+
+test("formats non-Error manual raid failures with useful database details", () => {
+  assert.equal(
+    formatManualRaidCommandError({
+      message: "Live raid capacity reached.",
+      hint: "Upgrade the workspace plan.",
+    }),
+    "I couldn't create that raid yet: Live raid capacity reached. Upgrade the workspace plan."
+  );
+});

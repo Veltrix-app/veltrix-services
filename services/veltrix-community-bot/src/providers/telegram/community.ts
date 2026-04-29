@@ -65,6 +65,13 @@ type TelegramContextCandidate = {
   updatedAt: string | null;
 };
 
+type TelegramIntegrationRow = {
+  id: string;
+  project_id: string;
+  config: Record<string, unknown> | null;
+  updated_at: string | null;
+};
+
 function chunkArray<T>(values: T[], size: number) {
   const chunks: T[][] = [];
   for (let index = 0; index < values.length; index += size) {
@@ -123,7 +130,7 @@ function getCandidateRank(candidate: TelegramContextCandidate) {
   };
 }
 
-function compareTelegramContextCandidates(
+export function compareTelegramContextCandidates(
   left: TelegramContextCandidate,
   right: TelegramContextCandidate
 ) {
@@ -141,14 +148,14 @@ function compareTelegramContextCandidates(
   return rightRank.timestamp - leftRank.timestamp;
 }
 
-function pickBestTelegramContextCandidate(candidates: TelegramContextCandidate[]) {
+export function pickBestTelegramContextCandidate(candidates: TelegramContextCandidate[]) {
   return [...candidates].sort(compareTelegramContextCandidates)[0] ?? null;
 }
 
 export async function loadTelegramIntegrationContextByChatId(chatId: string) {
   const { data: integrations, error: integrationError } = await supabaseAdmin
     .from("project_integrations")
-    .select("id, project_id, status, config")
+    .select("id, project_id, status, config, updated_at")
     .eq("provider", "telegram")
     .in("status", ["connected", "needs_attention"]);
 
@@ -156,11 +163,9 @@ export async function loadTelegramIntegrationContextByChatId(chatId: string) {
     throw new Error(integrationError.message || "Failed to load Telegram integrations.");
   }
 
-  const matchedIntegrations = ((integrations ?? []) as Array<{
-    id: string;
-    project_id: string;
-    config: Record<string, unknown> | null;
-  }>).filter((integration) => readTelegramChatId(integration.config) === chatId.trim());
+  const matchedIntegrations = ((integrations ?? []) as TelegramIntegrationRow[]).filter(
+    (integration) => readTelegramChatId(integration.config) === chatId.trim()
+  );
 
   if (matchedIntegrations.length === 0) {
     return null;
@@ -218,7 +223,8 @@ export async function loadTelegramIntegrationContextByChatId(chatId: string) {
           chatId: chatId.trim(),
           settings: buildTelegramSettings(settingsRow, fallbackSettingsRow),
         } satisfies TelegramCommunityContext,
-        updatedAt: settingsRow?.updated_at ?? fallbackSettingsRow?.updated_at ?? null,
+        updatedAt:
+          integration.updated_at ?? settingsRow?.updated_at ?? fallbackSettingsRow?.updated_at ?? null,
       };
     })
   );
@@ -229,7 +235,7 @@ export async function loadTelegramIntegrationContextByChatId(chatId: string) {
 export async function loadTelegramIntegrationContexts() {
   const { data: integrations, error: integrationError } = await supabaseAdmin
     .from("project_integrations")
-    .select("id, project_id, status, config")
+    .select("id, project_id, status, config, updated_at")
     .eq("provider", "telegram")
     .in("status", ["connected", "needs_attention"]);
 
@@ -237,11 +243,7 @@ export async function loadTelegramIntegrationContexts() {
     throw new Error(integrationError.message || "Failed to load Telegram integrations.");
   }
 
-  const typedIntegrations = (integrations ?? []) as Array<{
-    id: string;
-    project_id: string;
-    config: Record<string, unknown> | null;
-  }>;
+  const typedIntegrations = (integrations ?? []) as TelegramIntegrationRow[];
   const integrationIds = typedIntegrations.map((integration) => integration.id);
   const projectIds = Array.from(
     new Set(typedIntegrations.map((integration) => integration.project_id).filter(Boolean))
@@ -304,7 +306,8 @@ export async function loadTelegramIntegrationContexts() {
           chatId,
           settings: buildTelegramSettings(settingsRow, fallbackSettingsRow),
         } satisfies TelegramCommunityContext,
-        updatedAt: settingsRow?.updated_at ?? fallbackSettingsRow?.updated_at ?? null,
+        updatedAt:
+          integration.updated_at ?? settingsRow?.updated_at ?? fallbackSettingsRow?.updated_at ?? null,
       } satisfies TelegramContextCandidate;
     })
     .filter((candidate): candidate is TelegramContextCandidate => Boolean(candidate));

@@ -51,6 +51,28 @@ export function buildLiveRaidDeliveryMessage(params: {
   };
 }
 
+function normalizeSupabaseError(error: unknown, fallback: string) {
+  if (error instanceof Error) {
+    return error;
+  }
+
+  if (error && typeof error === "object") {
+    const record = error as Record<string, unknown>;
+    const parts = [
+      record.message,
+      record.details,
+      record.hint,
+      record.code ? `code ${String(record.code)}` : null,
+    ]
+      .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
+      .map((part) => part.trim());
+
+    return new Error(parts.length > 0 ? parts.join(" ") : fallback);
+  }
+
+  return new Error(fallback);
+}
+
 export async function createLiveRaidAndDeliver(params: {
   projectId: string;
   projectName: string;
@@ -77,7 +99,9 @@ export async function createLiveRaidAndDeliver(params: {
     .select("id")
     .single();
 
-  if (raidError) throw raidError;
+  if (raidError) {
+    throw normalizeSupabaseError(raidError, "Failed to create live raid.");
+  }
 
   const raidUrl = `${appUrl}/raids/${raid.id}`;
   const message = buildLiveRaidDeliveryMessage({
