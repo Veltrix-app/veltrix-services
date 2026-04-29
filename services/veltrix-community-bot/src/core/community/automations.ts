@@ -21,6 +21,7 @@ import {
   buildCommunityJourneyDeepLinks,
   resolveCommunityAutomationDeepLink,
 } from "./automation-links.js";
+import { PROJECT_REWARD_SELECT_COLUMNS } from "./project-state-selects.js";
 import {
   appUrl,
   dispatchProjectCommunityMessage,
@@ -58,7 +59,6 @@ type ProjectState = {
   rewards: Array<{
     id: string;
     title: string;
-    description: string | null;
     cost: number | null;
     rarity: string | null;
     image_url: string | null;
@@ -333,7 +333,7 @@ async function loadProjectCommunityState(projectId: string): Promise<ProjectStat
       .limit(10),
     supabaseAdmin
       .from("rewards")
-      .select("id, title, description, cost, rarity, image_url, campaign_id")
+      .select(PROJECT_REWARD_SELECT_COLUMNS)
       .eq("project_id", projectId)
       .eq("status", "active")
       .eq("visible", true)
