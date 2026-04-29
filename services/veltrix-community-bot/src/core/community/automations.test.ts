@@ -5,7 +5,10 @@ import {
   resolveCommunityAutomationDeepLink,
   resolveCommunityAutomationJourneyLane,
 } from "./automation-links.js";
-import { PROJECT_REWARD_SELECT_COLUMNS } from "./project-state-selects.js";
+import {
+  getProjectRewardVisibilityFilter,
+  PROJECT_REWARD_SELECT_COLUMNS,
+} from "./project-state-selects.js";
 
 test("project reward state select only uses live rewards columns", () => {
   const selectedColumns = PROJECT_REWARD_SELECT_COLUMNS.split(",").map((column) => column.trim());
@@ -19,6 +22,13 @@ test("project reward state select only uses live rewards columns", () => {
     "campaign_id",
   ]);
   assert.equal(selectedColumns.includes("description"), false);
+});
+
+test("project reward state filters use the live rewards visibility contract", () => {
+  const filter = getProjectRewardVisibilityFilter();
+
+  assert.deepEqual(filter, { column: "visible", value: true });
+  assert.notEqual(filter.column, "status");
 });
 
 test("resolveCommunityAutomationJourneyLane maps pulse automations onto the right journey lane", () => {

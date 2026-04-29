@@ -1,4 +1,8 @@
 import { supabaseAdmin } from "../../lib/supabase.js";
+import {
+  getProjectRewardVisibilityFilter,
+  PROJECT_REWARD_SUMMARY_SELECT_COLUMNS,
+} from "../../core/community/project-state-selects.js";
 
 export type TelegramCommunityContext = {
   integrationId: string;
@@ -601,6 +605,7 @@ export async function loadTelegramLeaderboard(params: {
 }
 
 export async function loadTelegramMissionBoard(projectId: string) {
+  const rewardVisibilityFilter = getProjectRewardVisibilityFilter();
   const [{ data: campaigns, error: campaignsError }, { data: quests, error: questsError }, { data: rewards, error: rewardsError }] =
     await Promise.all([
       supabaseAdmin
@@ -619,10 +624,9 @@ export async function loadTelegramMissionBoard(projectId: string) {
         .limit(4),
       supabaseAdmin
         .from("rewards")
-        .select("id, title, cost")
+        .select(PROJECT_REWARD_SUMMARY_SELECT_COLUMNS)
         .eq("project_id", projectId)
-        .eq("status", "active")
-        .eq("visible", true)
+        .eq(rewardVisibilityFilter.column, rewardVisibilityFilter.value)
         .limit(3),
     ]);
 

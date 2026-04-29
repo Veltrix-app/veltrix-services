@@ -1,4 +1,8 @@
 import { supabaseAdmin } from "../../lib/supabase.js";
+import {
+  getProjectRewardVisibilityFilter,
+  PROJECT_REWARD_SUMMARY_SELECT_COLUMNS,
+} from "../../core/community/project-state-selects.js";
 
 export type DiscordRankSource = "project_xp" | "global_xp" | "trust" | "wallet_verified";
 export type DiscordLeaderboardScope = "project" | "global";
@@ -806,6 +810,7 @@ export async function loadDiscordRaidRail(projectId: string) {
 }
 
 export async function loadDiscordMissionBoard(projectId: string): Promise<DiscordMissionBoard> {
+  const rewardVisibilityFilter = getProjectRewardVisibilityFilter();
   const [
     { data: campaigns, error: campaignsError },
     { data: quests, error: questsError },
@@ -827,10 +832,9 @@ export async function loadDiscordMissionBoard(projectId: string): Promise<Discor
       .limit(4),
     supabaseAdmin
       .from("rewards")
-      .select("id, title, cost")
+      .select(PROJECT_REWARD_SUMMARY_SELECT_COLUMNS)
       .eq("project_id", projectId)
-      .eq("status", "active")
-      .eq("visible", true)
+      .eq(rewardVisibilityFilter.column, rewardVisibilityFilter.value)
       .limit(3),
   ]);
 

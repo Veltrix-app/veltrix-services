@@ -21,7 +21,10 @@ import {
   buildCommunityJourneyDeepLinks,
   resolveCommunityAutomationDeepLink,
 } from "./automation-links.js";
-import { PROJECT_REWARD_SELECT_COLUMNS } from "./project-state-selects.js";
+import {
+  getProjectRewardVisibilityFilter,
+  PROJECT_REWARD_SELECT_COLUMNS,
+} from "./project-state-selects.js";
 import {
   appUrl,
   dispatchProjectCommunityMessage,
@@ -302,6 +305,7 @@ async function dispatchJourneyNudgesForLane(params: {
 }
 
 async function loadProjectCommunityState(projectId: string): Promise<ProjectState> {
+  const rewardVisibilityFilter = getProjectRewardVisibilityFilter();
   const [
     { data: project, error: projectError },
     { data: campaigns, error: campaignError },
@@ -335,8 +339,7 @@ async function loadProjectCommunityState(projectId: string): Promise<ProjectStat
       .from("rewards")
       .select(PROJECT_REWARD_SELECT_COLUMNS)
       .eq("project_id", projectId)
-      .eq("status", "active")
-      .eq("visible", true)
+      .eq(rewardVisibilityFilter.column, rewardVisibilityFilter.value)
       .limit(8),
     supabaseAdmin
       .from("raids")
