@@ -13,7 +13,7 @@ export type SwapProviderRequestContext = {
   config: SwapConfig;
 };
 
-export const UNISWAP_TRADING_API_BASE_URL = "https://trading-api.gateway.uniswap.org/v1";
+export const UNISWAP_TRADING_API_BASE_URL = "https://trade-api.gateway.uniswap.org/v1";
 export const UNISWAP_PROXY_APPROVAL_ADDRESS =
   "0x02e5be68d2060ebb00c8d16e4dc2f3a0d3c4fdb9" as const;
 
@@ -212,7 +212,13 @@ export async function fetchZeroXQuote(input: SwapProviderRequestContext & {
       "0x-version": "v2",
     },
     cache: "no-store",
+  }).catch(() => {
+    return null;
   });
+
+  if (!response) {
+    return createErrorQuote("0x", "0x request failed before a provider response.");
+  }
 
   if (!response.ok) {
     return createErrorQuote(
@@ -239,7 +245,13 @@ export async function fetchUniswapQuote(input: SwapProviderRequestContext & {
     headers,
     body: JSON.stringify(buildUniswapQuoteBody(input)),
     cache: "no-store",
+  }).catch(() => {
+    return null;
   });
+
+  if (!quoteResponse) {
+    return createErrorQuote("uniswap", "Uniswap quote request failed before a provider response.");
+  }
 
   if (!quoteResponse.ok) {
     return createErrorQuote(
@@ -254,7 +266,13 @@ export async function fetchUniswapQuote(input: SwapProviderRequestContext & {
     headers,
     body: JSON.stringify(buildUniswapSwapBody(quotePayload)),
     cache: "no-store",
+  }).catch(() => {
+    return null;
   });
+
+  if (!swapResponse) {
+    return createErrorQuote("uniswap", "Uniswap swap request failed before a provider response.");
+  }
 
   if (!swapResponse.ok) {
     return createErrorQuote(
