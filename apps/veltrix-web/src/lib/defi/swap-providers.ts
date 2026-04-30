@@ -100,7 +100,7 @@ export function buildUniswapQuoteBody(input: SwapProviderRequestContext) {
 export function buildUniswapSwapBody(quotePayload: unknown) {
   return {
     quote: asRecord(quotePayload).quote ?? quotePayload,
-    simulateTransaction: true,
+    simulateTransaction: false,
   };
 }
 

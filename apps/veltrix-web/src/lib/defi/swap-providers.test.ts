@@ -65,7 +65,7 @@ test("Uniswap swap body reuses the returned quote for calldata generation", () =
   const body = buildUniswapSwapBody(quotePayload);
 
   assert.deepEqual(body.quote, quotePayload.quote);
-  assert.equal(body.simulateTransaction, true);
+  assert.equal(body.simulateTransaction, false);
 });
 
 test("0x quote normalization returns transaction payload and allowance target for wallet signing", () => {
