@@ -16,6 +16,7 @@ import {
   getQuoteExpiryLabel,
   type SwapToken,
 } from "@/lib/defi/vyntro-swap";
+import { DefiRouteNav } from "@/components/defi/defi-route-nav";
 
 const accentStyles: Record<SwapToken["accent"], string> = {
   cyan: "border-cyan-300/14 bg-cyan-300/10 text-cyan-100",
@@ -75,6 +76,8 @@ export function SwapScreen() {
 
   return (
     <div className="space-y-5">
+      <DefiRouteNav compact />
+
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
         <div className="relative overflow-hidden rounded-[30px] border border-white/6 bg-[radial-gradient(circle_at_14%_0%,rgba(74,217,255,0.17),transparent_30%),radial-gradient(circle_at_88%_10%,rgba(190,255,74,0.1),transparent_24%),linear-gradient(180deg,rgba(13,15,20,0.99),rgba(6,7,10,0.995))] p-5 sm:p-6">
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.04),transparent_38%)]" />
