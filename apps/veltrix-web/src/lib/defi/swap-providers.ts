@@ -13,6 +13,10 @@ export type SwapProviderRequestContext = {
   config: SwapConfig;
 };
 
+export const UNISWAP_TRADING_API_BASE_URL = "https://trading-api.gateway.uniswap.org/v1";
+export const UNISWAP_PROXY_APPROVAL_ADDRESS =
+  "0x02e5be68d2060ebb00c8d16e4dc2f3a0d3c4fdb9" as const;
+
 type FetchLike = (
   input: string | URL,
   init?: RequestInit
@@ -88,8 +92,27 @@ export function buildUniswapQuoteBody(input: SwapProviderRequestContext) {
     tokenOut: getProviderTokenAddress(input.request.buyToken, "uniswap"),
     amount: input.request.sellAmountRaw,
     swapper: input.request.wallet,
-    slippageTolerance: input.request.slippageBps,
+    slippageTolerance: input.request.slippageBps / 100,
+    protocols: ["V4", "V3", "V2"],
   };
+}
+
+export function buildUniswapSwapBody(quotePayload: unknown) {
+  return {
+    quote: asRecord(quotePayload).quote ?? quotePayload,
+    simulateTransaction: true,
+  };
+}
+
+function getProviderErrorPayload(payload: unknown) {
+  const value = asRecord(payload);
+  const detail =
+    asString(value.detail) ||
+    asString(value.message) ||
+    asString(value.error) ||
+    asString(asRecord(value.error).message);
+
+  return detail ? `: ${detail}` : "";
 }
 
 export function normalizeZeroXQuote(payload: unknown): NormalizedSwapQuote {
@@ -135,8 +158,10 @@ export function normalizeZeroXQuote(payload: unknown): NormalizedSwapQuote {
 
 export function normalizeUniswapQuote(payload: unknown): NormalizedSwapQuote {
   const value = asRecord(payload);
-  const quote = asRecord(value.quote);
-  const tx = asRecord(value.transaction ?? value.swap ?? quote.transaction ?? quote.tx);
+  const quotePayload = asRecord(value.quotePayload ?? value.quoteResponse ?? value);
+  const swapPayload = asRecord(value.swapPayload ?? value.swapResponse ?? value);
+  const quote = asRecord(quotePayload.quote ?? value.quote);
+  const tx = asRecord(swapPayload.swap ?? value.transaction ?? value.swap ?? quote.transaction ?? quote.tx);
   const output = asRecord(quote.output);
   const to = asString(tx.to);
   const data = asString(tx.data);
@@ -158,7 +183,9 @@ export function normalizeUniswapQuote(payload: unknown): NormalizedSwapQuote {
     status: "ok",
     buyAmountRaw,
     estimatedGas:
+      asOptionalString(tx.gasLimit) ||
       asOptionalString(value.gasFee) ||
+      asOptionalString(swapPayload.gasFee) ||
       asOptionalString(quote.gasUseEstimate) ||
       asOptionalString(value.gas),
     priceImpactBps: asNumber(quote.priceImpactBps ?? value.priceImpactBps),
@@ -169,7 +196,7 @@ export function normalizeUniswapQuote(payload: unknown): NormalizedSwapQuote {
     },
     routeSummary: asString(quote.routeString) || asString(value.routeString) || "Uniswap route",
     expiresAt: new Date(Date.now() + 45_000).toISOString(),
-    allowanceTarget: isEvmAddress(approvalTarget) ? approvalTarget : null,
+    allowanceTarget: isEvmAddress(approvalTarget) ? approvalTarget : UNISWAP_PROXY_APPROVAL_ADDRESS,
     raw: payload,
   };
 }
@@ -188,7 +215,10 @@ export async function fetchZeroXQuote(input: SwapProviderRequestContext & {
   });
 
   if (!response.ok) {
-    return createErrorQuote("0x", `0x request failed with ${response.status}.`);
+    return createErrorQuote(
+      "0x",
+      `0x request failed with ${response.status}${getProviderErrorPayload(await response.json().catch(() => null))}.`
+    );
   }
 
   return normalizeZeroXQuote(await response.json());
@@ -199,19 +229,42 @@ export async function fetchUniswapQuote(input: SwapProviderRequestContext & {
   fetcher?: FetchLike;
 }) {
   const fetcher = input.fetcher ?? fetch;
-  const response = await fetcher("https://trading-api-labs.interface.gateway.uniswap.org/v1/quote", {
+  const headers = {
+    "Content-Type": "application/json",
+    "x-api-key": input.apiKey,
+    "x-permit2-disabled": "true",
+  };
+  const quoteResponse = await fetcher(`${UNISWAP_TRADING_API_BASE_URL}/quote`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": input.apiKey,
-    },
+    headers,
     body: JSON.stringify(buildUniswapQuoteBody(input)),
     cache: "no-store",
   });
 
-  if (!response.ok) {
-    return createErrorQuote("uniswap", `Uniswap request failed with ${response.status}.`);
+  if (!quoteResponse.ok) {
+    return createErrorQuote(
+      "uniswap",
+      `Uniswap quote failed with ${quoteResponse.status}${getProviderErrorPayload(await quoteResponse.json().catch(() => null))}.`
+    );
   }
 
-  return normalizeUniswapQuote(await response.json());
+  const quotePayload = await quoteResponse.json();
+  const swapResponse = await fetcher(`${UNISWAP_TRADING_API_BASE_URL}/swap`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(buildUniswapSwapBody(quotePayload)),
+    cache: "no-store",
+  });
+
+  if (!swapResponse.ok) {
+    return createErrorQuote(
+      "uniswap",
+      `Uniswap swap failed with ${swapResponse.status}${getProviderErrorPayload(await swapResponse.json().catch(() => null))}.`
+    );
+  }
+
+  return normalizeUniswapQuote({
+    quotePayload,
+    swapPayload: await swapResponse.json(),
+  });
 }
