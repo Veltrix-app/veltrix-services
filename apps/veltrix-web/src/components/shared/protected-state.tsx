@@ -10,16 +10,22 @@ export function ProtectedState({
   allowPreview = false,
   previewLabel = "Product preview",
   previewCopy = "Browse the current experience first. Sign in when you want to save progress, claim rewards or unlock community actions.",
+  showPreviewBanner = true,
 }: {
   children: React.ReactNode;
   allowPreview?: boolean;
   previewLabel?: string;
   previewCopy?: string;
+  showPreviewBanner?: boolean;
 }) {
   const { initialized, session, authConfigured } = useAuth();
 
   if (!initialized) {
     if (allowPreview) {
+      if (!showPreviewBanner) {
+        return <>{children}</>;
+      }
+
       return (
         <PreviewShell previewLabel={previewLabel} previewCopy={previewCopy} isHydrating>
           {children}
@@ -36,6 +42,10 @@ export function ProtectedState({
 
   if (!authConfigured || !session) {
     if (allowPreview) {
+      if (!showPreviewBanner) {
+        return <>{children}</>;
+      }
+
       return (
         <PreviewShell previewLabel={previewLabel} previewCopy={previewCopy}>
           {children}

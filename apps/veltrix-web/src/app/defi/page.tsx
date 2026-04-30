@@ -8,8 +8,9 @@ export default function DefiPage() {
       eyebrow="DeFi"
       title="DeFi command center"
       description="A clear entry point for VYNTRO's non-custodial DeFi routes: choose vaults for simple yield missions or borrow/lending for advanced collateral flows."
+      hidePageHeader
     >
-      <ProtectedState allowPreview previewLabel="DeFi preview">
+      <ProtectedState allowPreview previewLabel="DeFi preview" showPreviewBanner={false}>
         <DefiLandingScreen />
       </ProtectedState>
     </AppShell>

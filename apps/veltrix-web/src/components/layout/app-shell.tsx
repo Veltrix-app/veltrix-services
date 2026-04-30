@@ -508,11 +508,13 @@ export function AppShell({
   eyebrow,
   description,
   children,
+  hidePageHeader = false,
 }: {
   title: string;
   eyebrow: string;
   description: string;
   children: ReactNode;
+  hidePageHeader?: boolean;
 }) {
   const pathname = usePathname();
   const { authConfigured, session, profile, signOut } = useAuth();
@@ -604,7 +606,7 @@ export function AppShell({
           hasRaidHero ? "relative z-10 -mt-24 pb-6 lg:-mt-32 lg:pb-7" : "py-6 lg:py-7"
         }`}
       >
-        {!hasRaidHero ? (
+        {!hasRaidHero && !hidePageHeader ? (
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start">
             <div className="min-w-0">
               <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-lime-300">{eyebrow}</p>
@@ -622,7 +624,7 @@ export function AppShell({
           </div>
         ) : null}
 
-        <main className={hasRaidHero ? "" : "mt-8 lg:mt-10"}>{children}</main>
+        <main className={hasRaidHero || hidePageHeader ? "" : "mt-8 lg:mt-10"}>{children}</main>
       </div>
     </div>
   );
