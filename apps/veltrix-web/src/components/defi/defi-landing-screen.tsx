@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
   ArrowRight,
+  ArrowRightLeft,
   BarChart3,
   BookOpenCheck,
   History,
@@ -21,6 +22,15 @@ const defiRoutes = [
     description:
       "Read vaults, supplied markets, borrowed markets, claimable XP and the next safe action in one place.",
     stats: ["Vaults", "Borrow risk", "Claimable XP"],
+  },
+  {
+    href: "/defi/swap",
+    label: "Swap",
+    eyebrow: "Asset route",
+    icon: ArrowRightLeft,
+    description:
+      "Move into the right asset before vaults, lending or trading missions with a VYNTRO-native route finder.",
+    stats: ["0x first", "Uniswap fallback", "No custody"],
   },
   {
     href: "/defi/vaults",

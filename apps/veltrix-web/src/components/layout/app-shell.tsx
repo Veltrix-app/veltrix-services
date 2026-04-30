@@ -42,6 +42,7 @@ const primaryNavItems = [
     children: [
       { href: "/defi", label: "Overview" },
       { href: "/defi/portfolio", label: "Portfolio" },
+      { href: "/defi/swap", label: "Swap" },
       { href: "/defi/vaults", label: "Vaults" },
       { href: "/defi/borrow-lending", label: "Borrow / lending" },
       { href: "/trading-arena", label: "Trading Arena" },
