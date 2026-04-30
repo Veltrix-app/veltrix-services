@@ -14,6 +14,7 @@ const filters: Array<{ value: FilterValue; label: string }> = [
   { value: "all", label: "All proof" },
   { value: "vault", label: "Vaults" },
   { value: "market", label: "Borrow / lending" },
+  { value: "swap", label: "Swaps" },
   { value: "xp", label: "XP claims" },
 ];
 
@@ -113,9 +114,10 @@ export function DefiActivityScreen() {
         </div>
       </section>
 
-      <section className="grid gap-3 md:grid-cols-4">
+      <section className="grid gap-3 md:grid-cols-5">
         <ActivityMetric label="Vault tx" value={String(summary.vaultTransactions)} />
         <ActivityMetric label="Market tx" value={String(summary.marketTransactions)} />
+        <ActivityMetric label="Swap tx" value={String(summary.swapTransactions)} />
         <ActivityMetric label="Pending" value={String(summary.pendingTransactions)} />
         <ActivityMetric label="Failed" value={String(summary.failedTransactions)} />
       </section>

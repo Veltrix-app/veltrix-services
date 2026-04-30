@@ -2,6 +2,7 @@ import { isAddress } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
 import {
   buildDefiActivityTimeline,
+  type DefiActivitySwapTransactionRow,
   type DefiActivityTransactionRow,
   type DefiActivityXpEventRow,
 } from "@/lib/defi/defi-activity";
@@ -68,6 +69,36 @@ function normalizeXpRows(rows: unknown): DefiActivityXpEventRow[] {
         typeof value.metadata === "object" && value.metadata
           ? (value.metadata as Record<string, unknown>)
           : null,
+    };
+  });
+}
+
+function normalizeSwapRows(rows: unknown): DefiActivitySwapTransactionRow[] {
+  if (!Array.isArray(rows)) {
+    return [];
+  }
+
+  return rows.map((row) => {
+    const value = row as Record<string, unknown>;
+
+    return {
+      status: typeof value.status === "string" ? value.status : null,
+      sell_token_symbol:
+        typeof value.sell_token_symbol === "string" ? value.sell_token_symbol : null,
+      buy_token_symbol: typeof value.buy_token_symbol === "string" ? value.buy_token_symbol : null,
+      sell_amount_raw: typeof value.sell_amount_raw === "string" ? value.sell_amount_raw : null,
+      expected_buy_amount_raw:
+        typeof value.expected_buy_amount_raw === "string"
+          ? value.expected_buy_amount_raw
+          : null,
+      provider: typeof value.provider === "string" ? value.provider : null,
+      route_summary: typeof value.route_summary === "string" ? value.route_summary : null,
+      tx_hash: typeof value.tx_hash === "string" ? value.tx_hash : null,
+      submitted_at: typeof value.submitted_at === "string" ? value.submitted_at : null,
+      confirmed_at: typeof value.confirmed_at === "string" ? value.confirmed_at : null,
+      failed_at: typeof value.failed_at === "string" ? value.failed_at : null,
+      created_at: typeof value.created_at === "string" ? value.created_at : null,
+      error_message: typeof value.error_message === "string" ? value.error_message : null,
     };
   });
 }
@@ -157,7 +188,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const [vaultRead, marketRead, xpRead] = await Promise.all([
+    const [vaultRead, marketRead, swapRead, xpRead] = await Promise.all([
       context.serviceSupabase
         .from("defi_vault_transactions")
         .select(
@@ -177,6 +208,15 @@ export async function GET(request: NextRequest) {
         .order("created_at", { ascending: false })
         .limit(100),
       context.serviceSupabase
+        .from("defi_swap_intents")
+        .select(
+          "status, sell_token_symbol, buy_token_symbol, sell_amount_raw, expected_buy_amount_raw, provider, route_summary, tx_hash, submitted_at, confirmed_at, failed_at, created_at, error_message"
+        )
+        .eq("auth_user_id", context.user.id)
+        .eq("wallet_address", context.wallet)
+        .order("created_at", { ascending: false })
+        .limit(100),
+      context.serviceSupabase
         .from("xp_events")
         .select("source_type, source_ref, effective_xp, created_at, metadata")
         .eq("auth_user_id", context.user.id)
@@ -184,7 +224,12 @@ export async function GET(request: NextRequest) {
         .order("created_at", { ascending: false })
         .limit(100),
     ]);
-    const warnings = [vaultRead.error?.message, marketRead.error?.message, xpRead.error?.message]
+    const warnings = [
+      vaultRead.error?.message,
+      marketRead.error?.message,
+      swapRead.error?.message,
+      xpRead.error?.message,
+    ]
       .filter(Boolean)
       .join(" / ");
 
@@ -195,6 +240,7 @@ export async function GET(request: NextRequest) {
         activity: buildDefiActivityTimeline({
           vaultTransactions: normalizeTransactionRows(vaultRead.data),
           marketTransactions: normalizeTransactionRows(marketRead.data),
+          swapTransactions: normalizeSwapRows(swapRead.data),
           xpEvents: normalizeXpRows(xpRead.data),
         }),
         warning: warnings || null,

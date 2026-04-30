@@ -1,5 +1,5 @@
 export type DefiActivityStatus = "submitted" | "confirmed" | "failed";
-export type DefiActivityCategory = "vault" | "market" | "xp";
+export type DefiActivityCategory = "vault" | "market" | "swap" | "xp";
 export type DefiActivityTone = "default" | "positive" | "warning" | "danger" | "info";
 
 export type DefiActivityTransactionRow = {
@@ -25,6 +25,22 @@ export type DefiActivityXpEventRow = {
   metadata?: Record<string, unknown> | null;
 };
 
+export type DefiActivitySwapTransactionRow = {
+  status: DefiActivityStatus | string | null;
+  sell_token_symbol: string | null;
+  buy_token_symbol: string | null;
+  sell_amount_raw: string | null;
+  expected_buy_amount_raw: string | null;
+  provider: string | null;
+  route_summary: string | null;
+  tx_hash: string | null;
+  submitted_at: string | null;
+  confirmed_at: string | null;
+  failed_at: string | null;
+  created_at: string | null;
+  error_message: string | null;
+};
+
 export type DefiActivityItem = {
   id: string;
   category: DefiActivityCategory;
@@ -48,6 +64,7 @@ export type DefiActivitySummary = {
   failedTransactions: number;
   vaultTransactions: number;
   marketTransactions: number;
+  swapTransactions: number;
   xpClaims: number;
   borrowActions: number;
   latestAt: string | null;
@@ -76,6 +93,10 @@ function safeStatus(value: string | null | undefined): DefiActivityStatus {
 }
 
 function getTransactionTimestamp(row: DefiActivityTransactionRow) {
+  return row.confirmed_at || row.failed_at || row.submitted_at || row.created_at || "";
+}
+
+function getSwapTimestamp(row: DefiActivitySwapTransactionRow) {
   return row.confirmed_at || row.failed_at || row.submitted_at || row.created_at || "";
 }
 
@@ -145,6 +166,36 @@ function transactionToItem(
   };
 }
 
+function swapTransactionToItem(row: DefiActivitySwapTransactionRow): DefiActivityItem {
+  const status = safeStatus(row.status);
+  const txHash = row.tx_hash?.trim() || null;
+  const timestamp = getSwapTimestamp(row);
+  const sellToken = row.sell_token_symbol || "token";
+  const buyToken = row.buy_token_symbol || "token";
+  const provider = row.provider || "swap route";
+  const errorText = row.error_message?.trim();
+
+  return {
+    id: txHash ? `swap:${txHash}` : `swap:${sellToken}:${buyToken}:${timestamp}`,
+    category: "swap",
+    routeLabel: "Swap",
+    actionLabel: "Swap",
+    title: `Swap ${sellToken} to ${buyToken}`,
+    description: errorText
+      ? `${provider} / ${errorText}`
+      : `${row.route_summary || provider} / ${
+          status === "confirmed" ? "confirmed on Base" : status
+        }`,
+    status,
+    tone: getTone({ status, action: "swap" }),
+    assetSymbol: buyToken,
+    amountRaw: row.expected_buy_amount_raw,
+    txHash,
+    href: txHash ? `https://basescan.org/tx/${txHash}` : null,
+    timestamp,
+  };
+}
+
 function xpEventToItem(row: DefiActivityXpEventRow): DefiActivityItem {
   const sourceRef = row.source_ref?.trim() || "unknown";
   const timestamp = row.created_at || "";
@@ -169,17 +220,19 @@ function xpEventToItem(row: DefiActivityXpEventRow): DefiActivityItem {
 export function buildDefiActivityTimeline(input: {
   vaultTransactions: DefiActivityTransactionRow[];
   marketTransactions: DefiActivityTransactionRow[];
+  swapTransactions?: DefiActivitySwapTransactionRow[];
   xpEvents: DefiActivityXpEventRow[];
 }): DefiActivityTimeline {
   const vaultItems = input.vaultTransactions.map((row) => transactionToItem("vault", row));
   const marketItems = input.marketTransactions.map((row) => transactionToItem("market", row));
+  const swapItems = (input.swapTransactions ?? []).map(swapTransactionToItem);
   const xpItems = input.xpEvents
     .filter((row) => row.source_type === "defi_mission")
     .map(xpEventToItem);
-  const items = [...vaultItems, ...marketItems, ...xpItems].sort(
+  const items = [...vaultItems, ...marketItems, ...swapItems, ...xpItems].sort(
     (left, right) => Date.parse(right.timestamp || "0") - Date.parse(left.timestamp || "0")
   );
-  const transactionItems = [...vaultItems, ...marketItems];
+  const transactionItems = [...vaultItems, ...marketItems, ...swapItems];
 
   return {
     summary: {
@@ -189,6 +242,7 @@ export function buildDefiActivityTimeline(input: {
       failedTransactions: transactionItems.filter((item) => item.status === "failed").length,
       vaultTransactions: vaultItems.length,
       marketTransactions: marketItems.length,
+      swapTransactions: swapItems.length,
       xpClaims: xpItems.length,
       borrowActions: marketItems.filter((item) => item.actionLabel === "Borrow").length,
       latestAt: items[0]?.timestamp || null,

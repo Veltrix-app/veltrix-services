@@ -102,3 +102,38 @@ test("defi activity summary separates pending, failed and risk actions", () => {
   assert.equal(activity.items[0].tone, "warning");
   assert.match(activity.items[1].description, /User rejected/);
 });
+
+test("swap transactions appear as DeFi activity items", () => {
+  const activity = buildDefiActivityTimeline({
+    vaultTransactions: [],
+    marketTransactions: [],
+    swapTransactions: [
+      {
+        status: "confirmed",
+        sell_token_symbol: "USDC",
+        buy_token_symbol: "ETH",
+        sell_amount_raw: "25000000",
+        expected_buy_amount_raw: "10000000000000000",
+        provider: "0x",
+        route_summary: "0x best route",
+        tx_hash: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        submitted_at: null,
+        confirmed_at: "2026-04-30T12:00:00.000Z",
+        failed_at: null,
+        created_at: "2026-04-30T11:59:00.000Z",
+        error_message: null,
+      },
+    ],
+    xpEvents: [],
+  });
+
+  assert.equal(activity.summary.totalItems, 1);
+  assert.equal(activity.summary.swapTransactions, 1);
+  assert.equal(activity.summary.confirmedTransactions, 1);
+  assert.equal(activity.items[0].category, "swap");
+  assert.equal(activity.items[0].title, "Swap USDC to ETH");
+  assert.equal(
+    activity.items[0].href,
+    "https://basescan.org/tx/0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+  );
+});
