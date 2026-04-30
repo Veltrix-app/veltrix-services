@@ -2,10 +2,13 @@ node_modules/
 dist/
 .env
 .env.local
+.vercel/
+apps/**/.vercel/
 .worktrees/
+.superpowers/
 .next/
 *.tsbuildinfo
+test-results/
+playwright-report/
 .DS_Store
 Thumbs.db
-
-.vercel
