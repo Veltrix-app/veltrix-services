@@ -88,9 +88,10 @@ test("quest xp award builds one canonical event and increments quest counters", 
   assert.equal(plan.ok, true);
   assert.equal(plan.ok ? plan.event.source_type : "", "quest_completion");
   assert.equal(plan.ok ? plan.event.source_ref : "", "quest_completion:quest-1");
-  assert.equal(plan.ok ? plan.event.effective_xp : 0, 120);
-  assert.equal(plan.ok ? plan.reputation.total_xp : 0, 600);
-  assert.equal(plan.ok ? plan.reputation.active_xp : 0, 550);
+  assert.equal(plan.ok ? plan.event.trust_multiplier : 0, 1.2);
+  assert.equal(plan.ok ? plan.event.effective_xp : 0, 144);
+  assert.equal(plan.ok ? plan.reputation.total_xp : 0, 624);
+  assert.equal(plan.ok ? plan.reputation.active_xp : 0, 574);
   assert.equal(plan.ok ? plan.reputation.level : 0, 2);
   assert.equal(plan.ok ? plan.reputation.quests_completed : 0, 4);
   assert.equal(plan.ok ? plan.reputation.raids_completed : 0, 1);
@@ -139,4 +140,21 @@ test("user xp award rejects duplicate and high sybil requests before writing", (
   assert.equal(duplicate.ok ? "" : duplicate.reason, "duplicate");
   assert.equal(sybil.ok, false);
   assert.equal(sybil.ok ? "" : sybil.reason, "sybil-risk");
+});
+
+test("user xp award pauses accounts in trust review lifecycle statuses", () => {
+  for (const status of ["review_required", "xp_suspended", "reward_hold", "banned", "suspended", "flagged"]) {
+    const plan = buildUserXpAwardPlan({
+      sourceType: "quest_completion",
+      sourceId: `quest-${status}`,
+      baseXp: 50,
+      reputation: {
+        status,
+        sybil_score: 10,
+      },
+    });
+
+    assert.equal(plan.ok, false, status);
+    assert.equal(plan.ok ? "" : plan.reason, "account-review", status);
+  }
 });

@@ -23,7 +23,13 @@ export type AppliedUserXpAward =
   | {
       ok: false;
       error: string;
-      reason: "duplicate" | "sybil-risk" | "invalid-source" | "invalid-xp" | "daily-cap";
+      reason:
+        | "duplicate"
+        | "sybil-risk"
+        | "account-review"
+        | "invalid-source"
+        | "invalid-xp"
+        | "daily-cap";
       sourceRef?: string;
     };
 

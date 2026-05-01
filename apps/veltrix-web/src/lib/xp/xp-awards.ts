@@ -66,9 +66,24 @@ export type UserXpAwardPlan =
     }
   | {
       ok: false;
-      reason: "duplicate" | "sybil-risk" | "invalid-source" | "invalid-xp" | "daily-cap";
+      reason:
+        | "duplicate"
+        | "sybil-risk"
+        | "account-review"
+        | "invalid-source"
+        | "invalid-xp"
+        | "daily-cap";
       message: string;
     };
+
+const XP_BLOCKED_REPUTATION_STATUSES = new Set([
+  "review_required",
+  "xp_suspended",
+  "reward_hold",
+  "banned",
+  "suspended",
+  "flagged",
+]);
 
 export const XP_USER_AWARD_SOURCE_TYPES = [
   XP_SOURCE_TYPES.quest,
@@ -99,6 +114,15 @@ export function buildUserXpAwardPlan(input: {
   metadata?: Record<string, unknown>;
 }): UserXpAwardPlan {
   const reputation = input.reputation ?? {};
+  const status = typeof reputation.status === "string" ? reputation.status : "active";
+  if (XP_BLOCKED_REPUTATION_STATUSES.has(status)) {
+    return {
+      ok: false,
+      reason: "account-review",
+      message: "This account is in trust review before more XP can be issued.",
+    };
+  }
+
   const awardPlan = buildXpAwardPlan({
     sourceType: input.sourceType,
     sourceId: input.sourceId,
@@ -106,7 +130,7 @@ export function buildUserXpAwardPlan(input: {
     claimedSourceRefs: input.claimedSourceRefs,
     recentSourceXp: input.recentSourceXp,
     sybilScore: safeNumber(reputation.sybil_score),
-    trustScore: 50,
+    trustScore: safeNumber(reputation.trust_score, 50),
     streakDays: input.sourceType === XP_SOURCE_TYPES.streak ? safeNumber(reputation.streak) : 0,
   });
 
@@ -162,7 +186,7 @@ export function buildUserXpAwardPlan(input: {
       quests_completed: safeNumber(reputation.quests_completed) + questIncrement,
       raids_completed: safeNumber(reputation.raids_completed) + raidIncrement,
       rewards_claimed: safeNumber(reputation.rewards_claimed),
-      status: typeof reputation.status === "string" ? reputation.status : "active",
+      status,
       metadata,
     },
   };

@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "../../lib/supabase.js";
 import type { SuspiciousSignal } from "../aesp/trust.js";
+import { deriveTrustRiskPatch } from "./risk-score.js";
 
 export type TrustCaseType =
   | "sybil_suspicion"
@@ -217,5 +218,105 @@ export async function upsertTrustCasesFromSignals(input: {
     });
   }
 
+  if (input.signals.length > 0) {
+    await applyGlobalTrustRiskPatch({
+      authUserId: input.authUserId,
+      projectId: input.projectId,
+      sourceType: input.sourceType,
+      sourceId: input.sourceId,
+      signals: input.signals,
+      signalPayload: input.signalPayload,
+    });
+  }
+
   return results;
+}
+
+async function applyGlobalTrustRiskPatch(input: {
+  authUserId: string;
+  projectId: string;
+  sourceType: TrustCaseSourceType;
+  sourceId: string;
+  signals: SuspiciousSignal[];
+  signalPayload?: Record<string, unknown>;
+}) {
+  const { data: currentReputation, error: reputationError } = await supabaseAdmin
+    .from("user_global_reputation")
+    .select(
+      "total_xp, active_xp, level, streak, trust_score, sybil_score, contribution_tier, reputation_rank, quests_completed, raids_completed, rewards_claimed, status"
+    )
+    .eq("auth_user_id", input.authUserId)
+    .maybeSingle();
+
+  if (reputationError) {
+    throw reputationError;
+  }
+
+  const riskPatch = deriveTrustRiskPatch({
+    currentTrustScore: safeNumber(currentReputation?.trust_score, 50),
+    currentSybilScore: safeNumber(currentReputation?.sybil_score),
+    currentStatus: typeof currentReputation?.status === "string" ? currentReputation.status : "active",
+    signals: input.signals,
+  });
+  const timestamp = new Date().toISOString();
+  const totalXp = safeNumber(currentReputation?.total_xp);
+
+  const { error: upsertError } = await supabaseAdmin.from("user_global_reputation").upsert(
+    {
+      auth_user_id: input.authUserId,
+      total_xp: totalXp,
+      active_xp: safeNumber(currentReputation?.active_xp, totalXp),
+      level: safeNumber(currentReputation?.level, 1),
+      streak: safeNumber(currentReputation?.streak),
+      trust_score: riskPatch.trustScore,
+      sybil_score: riskPatch.sybilScore,
+      contribution_tier:
+        typeof currentReputation?.contribution_tier === "string"
+          ? currentReputation.contribution_tier
+          : "explorer",
+      reputation_rank: safeNumber(currentReputation?.reputation_rank),
+      quests_completed: safeNumber(currentReputation?.quests_completed),
+      raids_completed: safeNumber(currentReputation?.raids_completed),
+      rewards_claimed: safeNumber(currentReputation?.rewards_claimed),
+      status: riskPatch.status,
+      updated_at: timestamp,
+    },
+    { onConflict: "auth_user_id" }
+  );
+
+  if (upsertError) {
+    throw upsertError;
+  }
+
+  const { error: snapshotError } = await supabaseAdmin.from("trust_snapshots").insert({
+    auth_user_id: input.authUserId,
+    score: riskPatch.trustScore,
+    reasons: {
+      ...riskPatch.metadata,
+      projectId: input.projectId,
+      sourceType: input.sourceType,
+      sourceId: input.sourceId,
+      sybilScore: riskPatch.sybilScore,
+      status: riskPatch.status,
+      reviewRequired: riskPatch.reviewRequired,
+      hardBlocked: riskPatch.hardBlocked,
+      signalPayload: input.signalPayload ?? {},
+      signals: input.signals.map((signal) => ({
+        flagType: signal.flagType,
+        severity: signal.severity,
+        reason: signal.reason,
+        metadata: signal.metadata ?? {},
+      })),
+    },
+    updated_at: timestamp,
+  });
+
+  if (snapshotError) {
+    throw snapshotError;
+  }
+}
+
+function safeNumber(value: unknown, fallback = 0) {
+  const nextValue = Number(value);
+  return Number.isFinite(nextValue) ? nextValue : fallback;
 }
