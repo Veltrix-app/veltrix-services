@@ -5,6 +5,7 @@ import {
   buildXpReputationPatch,
   type XpSourceType,
 } from "./xp-economy";
+import { deriveTrustDecision, isXpBlockedByTrust } from "../trust/trust-engine";
 
 export type PublicUserXpAwardSourceType =
   | typeof XP_SOURCE_TYPES.quest
@@ -76,15 +77,6 @@ export type UserXpAwardPlan =
       message: string;
     };
 
-const XP_BLOCKED_REPUTATION_STATUSES = new Set([
-  "review_required",
-  "xp_suspended",
-  "reward_hold",
-  "banned",
-  "suspended",
-  "flagged",
-]);
-
 export const XP_USER_AWARD_SOURCE_TYPES = [
   XP_SOURCE_TYPES.quest,
   XP_SOURCE_TYPES.raid,
@@ -114,11 +106,18 @@ export function buildUserXpAwardPlan(input: {
   metadata?: Record<string, unknown>;
 }): UserXpAwardPlan {
   const reputation = input.reputation ?? {};
-  const status = typeof reputation.status === "string" ? reputation.status : "active";
-  if (XP_BLOCKED_REPUTATION_STATUSES.has(status)) {
+  const trustDecision = deriveTrustDecision({
+    trustScore: reputation.trust_score,
+    sybilScore: reputation.sybil_score,
+    status: reputation.status,
+  });
+
+  if (isXpBlockedByTrust(trustDecision)) {
     return {
       ok: false,
-      reason: "account-review",
+      reason: trustDecision.reasonCodes.includes("sybil_xp_suspension_threshold")
+        ? "sybil-risk"
+        : "account-review",
       message: "This account is in trust review before more XP can be issued.",
     };
   }
@@ -158,6 +157,7 @@ export function buildUserXpAwardPlan(input: {
     antiAbuseStatus: awardPlan.event.antiAbuseStatus,
     streakMultiplier: awardPlan.event.streakMultiplier,
     ...(input.metadata ?? {}),
+    trustDecision,
   };
 
   return {
@@ -186,7 +186,7 @@ export function buildUserXpAwardPlan(input: {
       quests_completed: safeNumber(reputation.quests_completed) + questIncrement,
       raids_completed: safeNumber(reputation.raids_completed) + raidIncrement,
       rewards_claimed: safeNumber(reputation.rewards_claimed),
-      status,
+      status: trustDecision.status,
       metadata,
     },
   };

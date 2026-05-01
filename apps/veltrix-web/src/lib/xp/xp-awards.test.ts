@@ -142,6 +142,42 @@ test("user xp award rejects duplicate and high sybil requests before writing", (
   assert.equal(sybil.ok ? "" : sybil.reason, "sybil-risk");
 });
 
+test("user xp award blocks review-threshold sybil accounts before issuing XP", () => {
+  const plan = buildUserXpAwardPlan({
+    sourceType: "raid_completion",
+    sourceId: "raid-review-threshold",
+    baseXp: 120,
+    reputation: {
+      status: "active",
+      trust_score: 48,
+      sybil_score: 74,
+    },
+  });
+
+  assert.equal(plan.ok, false);
+  assert.equal(plan.ok ? "" : plan.reason, "account-review");
+});
+
+test("user xp award keeps watch accounts eligible but records the trust decision", () => {
+  const plan = buildUserXpAwardPlan({
+    sourceType: "quest_completion",
+    sourceId: "quest-watch-threshold",
+    baseXp: 100,
+    reputation: {
+      status: "active",
+      trust_score: 34,
+      sybil_score: 52,
+      total_xp: 100,
+      active_xp: 100,
+    },
+  });
+
+  assert.equal(plan.ok, true);
+  assert.equal(plan.ok ? plan.event.effective_xp : 0, 89);
+  assert.equal(plan.ok ? (plan.event.metadata.trustDecision as { status?: string }).status : "", "watch");
+  assert.equal(plan.ok ? (plan.reputation.metadata?.trustDecision as { recommendedAction?: string }).recommendedAction : "", "watch");
+});
+
 test("user xp award pauses accounts in trust review lifecycle statuses", () => {
   for (const status of ["review_required", "xp_suspended", "reward_hold", "banned", "suspended", "flagged"]) {
     const plan = buildUserXpAwardPlan({

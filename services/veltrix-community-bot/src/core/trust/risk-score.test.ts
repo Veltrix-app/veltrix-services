@@ -50,6 +50,28 @@ test("deriveTrustRiskPatch hard suspends high severity farming signals", () => {
   assert.equal(patch.hardBlocked, true);
 });
 
+test("deriveTrustRiskPatch treats critical signals as immediate XP suspension pressure", () => {
+  const patch = deriveTrustRiskPatch({
+    currentTrustScore: 60,
+    currentSybilScore: 20,
+    currentStatus: "active",
+    signals: [
+      {
+        flagType: "reward_trust_risk",
+        severity: "critical",
+        reason: "Confirmed reward farming ring.",
+      },
+    ],
+  });
+
+  assert.equal(patch.sybilScore, 90);
+  assert.equal(patch.trustScore, 30);
+  assert.equal(patch.status, "xp_suspended");
+  assert.equal(patch.riskLevel, "critical");
+  assert.equal(patch.recommendedAction, "xp_suspended");
+  assert.equal(patch.metadata.criticalSeverityCount, 1);
+});
+
 test("deriveTrustRiskPatch never downgrades terminal enforcement statuses", () => {
   const patch = deriveTrustRiskPatch({
     currentTrustScore: 20,

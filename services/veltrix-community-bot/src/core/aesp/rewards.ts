@@ -5,6 +5,10 @@ import {
   resolvePayoutCaseByDedupeKey,
   upsertPayoutCase,
 } from "../payout/payout-cases.js";
+import {
+  buildRewardDistributionTrustPatch,
+  buildRewardDistributionTrustPatchMap,
+} from "../trust/reward-eligibility.js";
 import { getStakeWeight } from "./staking.js";
 
 function asNumber(value: unknown, fallback = 0) {
@@ -90,10 +94,12 @@ export async function finalizeCampaignRewards(input: { campaignId: string }) {
       throw new Error("The stake pool does not currently produce a positive reward weight.");
     }
 
+    const trustPatchMap = await loadRewardTrustPatchMap(weightedStakes.map((stake) => stake.authUserId));
     const timestamp = new Date().toISOString();
     const distributions = weightedStakes.map((stake) => {
       const share = stake.weight / totalWeight;
       const rewardAmount = roundAmount(rewardPoolAmount * share);
+      const trustPatch = trustPatchMap.get(stake.authUserId) ?? buildRewardDistributionTrustPatch(null);
 
       return {
         campaign_id: input.campaignId,
@@ -112,8 +118,9 @@ export async function finalizeCampaignRewards(input: { campaignId: string }) {
           state: stake.state,
           finalizedAt: timestamp,
           campaignMode: asTrimmedString(campaign.campaign_mode) || "offchain",
+          trustGate: trustPatch.metadata,
         },
-        status: "claimable",
+        status: trustPatch.status,
         updated_at: timestamp,
       };
     });
@@ -234,4 +241,22 @@ export async function finalizeCampaignRewards(input: { campaignId: string }) {
     }
     throw error;
   }
+}
+
+async function loadRewardTrustPatchMap(authUserIds: string[]) {
+  const uniqueAuthUserIds = Array.from(new Set(authUserIds.filter((authUserId) => authUserId.length > 0)));
+  if (uniqueAuthUserIds.length === 0) {
+    return new Map();
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("user_global_reputation")
+    .select("auth_user_id, trust_score, sybil_score, status")
+    .in("auth_user_id", uniqueAuthUserIds);
+
+  if (error) {
+    throw error;
+  }
+
+  return buildRewardDistributionTrustPatchMap(data ?? []);
 }

@@ -1,6 +1,6 @@
 import type { OnchainIngressEvent, SupportedOnchainEventType } from "../../types/aesp.js";
 
-type SuspiciousSeverity = "low" | "medium" | "high";
+type SuspiciousSeverity = "low" | "medium" | "high" | "critical";
 
 export type SuspiciousSignal = {
   flagType: string;

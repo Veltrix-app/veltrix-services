@@ -1,4 +1,8 @@
 import { supabaseAdmin } from "../../lib/supabase.js";
+import {
+  buildRewardDistributionTrustPatch,
+  buildRewardDistributionTrustPatchMap,
+} from "../trust/reward-eligibility.js";
 import { getTradingCompetition, getTradingCompetitionLeaderboard, setTradingCompetitionStatus } from "./repository.js";
 import { rebuildLiveTradingLeaderboard } from "./live-tracking.js";
 import { rebuildSnapshotTradingLeaderboard } from "./snapshots.js";
@@ -46,6 +50,7 @@ export async function settleTradingCompetition(input: {
   }
 
   const timestamp = new Date().toISOString();
+  const trustPatchMap = await loadRewardTrustPatchMap(leaderboard.items.map((entry) => entry.authUserId));
   const distributions = leaderboard.items.flatMap((entry) =>
     eligibleRewards
       .filter((reward) => {
@@ -53,27 +58,32 @@ export async function settleTradingCompetition(input: {
         const rankTo = reward.rankTo ?? rankFrom;
         return entry.rank >= rankFrom && entry.rank <= rankTo;
       })
-      .map((reward) => ({
-        campaign_id: competition.campaignId,
-        auth_user_id: entry.authUserId,
-        reward_asset: `trading:${competition.id}:${reward.rewardAsset}:${entry.rank}`,
-        reward_amount: reward.rewardAmount,
-        calculation_snapshot: {
-          source: "trading_arena",
-          competitionId: competition.id,
-          competitionTitle: competition.title,
-          rank: entry.rank,
-          score: entry.score,
-          volumeUsd: entry.volumeUsd,
-          roiPercent: entry.roiPercent,
-          rewardAsset: reward.rewardAsset,
-          rewardType: reward.rewardType,
-          triggeredByAuthUserId: input.triggeredByAuthUserId ?? null,
-          settledAt: timestamp,
-        },
-        status: "claimable",
-        updated_at: timestamp,
-      }))
+      .map((reward) => {
+        const trustPatch = trustPatchMap.get(entry.authUserId) ?? buildRewardDistributionTrustPatch(null);
+
+        return {
+          campaign_id: competition.campaignId,
+          auth_user_id: entry.authUserId,
+          reward_asset: `trading:${competition.id}:${reward.rewardAsset}:${entry.rank}`,
+          reward_amount: reward.rewardAmount,
+          calculation_snapshot: {
+            source: "trading_arena",
+            competitionId: competition.id,
+            competitionTitle: competition.title,
+            rank: entry.rank,
+            score: entry.score,
+            volumeUsd: entry.volumeUsd,
+            roiPercent: entry.roiPercent,
+            rewardAsset: reward.rewardAsset,
+            rewardType: reward.rewardType,
+            triggeredByAuthUserId: input.triggeredByAuthUserId ?? null,
+            settledAt: timestamp,
+            trustGate: trustPatch.metadata,
+          },
+          status: trustPatch.status,
+          updated_at: timestamp,
+        };
+      })
   );
 
   if (distributions.length > 0) {
@@ -110,4 +120,22 @@ export async function settleTradingCompetition(input: {
       0
     ),
   };
+}
+
+async function loadRewardTrustPatchMap(authUserIds: string[]) {
+  const uniqueAuthUserIds = Array.from(new Set(authUserIds.filter((authUserId) => authUserId.length > 0)));
+  if (uniqueAuthUserIds.length === 0) {
+    return new Map();
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("user_global_reputation")
+    .select("auth_user_id, trust_score, sybil_score, status")
+    .in("auth_user_id", uniqueAuthUserIds);
+
+  if (error) {
+    throw error;
+  }
+
+  return buildRewardDistributionTrustPatchMap(data ?? []);
 }

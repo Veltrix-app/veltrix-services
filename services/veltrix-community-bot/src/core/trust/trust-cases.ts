@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "../../lib/supabase.js";
 import type { SuspiciousSignal } from "../aesp/trust.js";
+import { recordRiskEventsFromSignals } from "./risk-events.js";
 import { deriveTrustRiskPatch } from "./risk-score.js";
 
 export type TrustCaseType =
@@ -110,6 +111,10 @@ export async function upsertTrustCasesFromSignals(input: {
   signalPayload?: Record<string, unknown>;
 }) {
   const results: Array<{ id: string; caseType: TrustCaseType; flagType: string }> = [];
+
+  if (input.signals.length > 0) {
+    await recordRiskEventsFromSignals(input);
+  }
 
   for (const signal of input.signals) {
     const caseType = mapSignalToTrustCaseType(signal);
@@ -298,8 +303,12 @@ async function applyGlobalTrustRiskPatch(input: {
       sourceId: input.sourceId,
       sybilScore: riskPatch.sybilScore,
       status: riskPatch.status,
+      riskLevel: riskPatch.riskLevel,
+      recommendedAction: riskPatch.recommendedAction,
       reviewRequired: riskPatch.reviewRequired,
+      rewardHoldRequired: riskPatch.rewardHoldRequired,
       hardBlocked: riskPatch.hardBlocked,
+      reasonCodes: riskPatch.reasonCodes,
       signalPayload: input.signalPayload ?? {},
       signals: input.signals.map((signal) => ({
         flagType: signal.flagType,
