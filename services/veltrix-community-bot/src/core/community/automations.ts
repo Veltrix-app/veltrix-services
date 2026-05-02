@@ -32,11 +32,22 @@ import {
 } from "./project-state-selects.js";
 import {
   appUrl,
-  dispatchProjectCommunityMessage,
+  dispatchProjectCommunityMessageWithResults,
   getDefaultCommunityArtwork,
   type CommunityProvider,
+  type ProjectCommunityMessage,
   type ProviderScope,
 } from "./delivery.js";
+import {
+  AUTOMATION_STALE_RUN_MINUTES,
+  buildAutomationFailureReliabilityState,
+  classifyAutomationError,
+  clearAutomationReliabilityState,
+  getAutomationRunLockDecision,
+  getReadableAutomationError,
+  isAutomationRetryDue,
+  resolveAutomationCompletionStatus,
+} from "./automation-reliability.js";
 
 type ProjectState = {
   project: {
@@ -201,6 +212,7 @@ function buildAutomationPlanningPatch(input: {
   nextRunAt: string | null;
   lastResult?: "success" | "failed" | "skipped" | null;
   lastResultSummary?: string;
+  lastErrorCode?: string | null;
   running?: boolean;
 }) {
   const nowIso = new Date().toISOString();
@@ -234,8 +246,11 @@ function buildAutomationPlanningPatch(input: {
     patch.last_success_at = nowIso;
     patch.last_error_code = null;
     patch.last_error_at = null;
+  } else if (input.lastResult === "skipped") {
+    patch.last_error_code = null;
+    patch.last_error_at = null;
   } else if (input.lastResult === "failed") {
-    patch.last_error_code = `${input.automationType}_failed`;
+    patch.last_error_code = input.lastErrorCode ?? `${input.automationType}_failed`;
     patch.last_error_at = nowIso;
   }
 
@@ -635,6 +650,18 @@ async function loadActivationBoardCandidate(projectId: string): Promise<Activati
   });
 }
 
+async function dispatchAutomationCommunityMessage(params: ProjectCommunityMessage) {
+  const results = await dispatchProjectCommunityMessageWithResults(params);
+  const delivered = results.filter((result) => result.ok).length;
+
+  return {
+    delivered,
+    failed: results.length - delivered,
+    targets: results.length,
+    results,
+  };
+}
+
 async function createAutomationRun(params: {
   projectId: string;
   automationId: string | null;
@@ -642,6 +669,29 @@ async function createAutomationRun(params: {
   triggerSource: "manual" | "schedule" | "playbook" | "captain";
   triggeredByAuthUserId?: string | null;
 }) {
+  const nowIso = new Date().toISOString();
+
+  if (params.automationId) {
+    await expireStaleAutomationRunLock({
+      automationId: params.automationId,
+      nowIso,
+    });
+
+    const activeLock = await loadActiveAutomationRunLock(params.automationId);
+    const lockDecision = getAutomationRunLockDecision({
+      runningStartedAt: activeLock?.started_at ?? null,
+      nowIso,
+    });
+
+    if (activeLock && lockDecision.status === "locked") {
+      return {
+        status: "locked" as const,
+        runId: activeLock.id,
+        summary: "Automation is already running; this duplicate trigger was skipped.",
+      };
+    }
+  }
+
   const { data, error } = await supabaseAdmin
     .from("community_automation_runs")
     .insert({
@@ -652,16 +702,77 @@ async function createAutomationRun(params: {
       trigger_source: params.triggerSource,
       triggered_by_auth_user_id: params.triggeredByAuthUserId ?? null,
       summary: `Running ${params.automationType}.`,
-      started_at: new Date().toISOString(),
+      started_at: nowIso,
     })
     .select("id")
     .single();
 
   if (error) {
+    if (getSupabaseErrorCode(error) === "23505") {
+      return {
+        status: "locked" as const,
+        runId: null,
+        summary: "Automation is already running; this duplicate trigger was skipped.",
+      };
+    }
+
     throw new Error(error.message || "Failed to create automation run.");
   }
 
-  return data.id as string;
+  return { status: "started" as const, runId: data.id as string };
+}
+
+function getSupabaseErrorCode(error: unknown) {
+  return error && typeof error === "object" && "code" in error
+    ? String((error as { code?: unknown }).code ?? "")
+    : "";
+}
+
+async function loadActiveAutomationRunLock(automationId: string) {
+  const { data, error } = await supabaseAdmin
+    .from("community_automation_runs")
+    .select("id, started_at")
+    .eq("automation_id", automationId)
+    .eq("status", "running")
+    .order("started_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message || "Failed to inspect automation run lock.");
+  }
+
+  return (data ?? null) as { id: string; started_at: string | null } | null;
+}
+
+async function expireStaleAutomationRunLock(params: {
+  automationId: string;
+  nowIso: string;
+}) {
+  const staleBefore = new Date(
+    new Date(params.nowIso).getTime() - AUTOMATION_STALE_RUN_MINUTES * 60_000
+  ).toISOString();
+
+  const { error } = await supabaseAdmin
+    .from("community_automation_runs")
+    .update({
+      status: "failed",
+      summary: "Automation run expired because it stayed running beyond the reliability lock window.",
+      metadata: {
+        reliability: {
+          code: "stale_run_expired",
+          staleAfterMinutes: AUTOMATION_STALE_RUN_MINUTES,
+        },
+      },
+      completed_at: params.nowIso,
+    })
+    .eq("automation_id", params.automationId)
+    .eq("status", "running")
+    .lt("started_at", staleBefore);
+
+  if (error) {
+    throw new Error(error.message || "Failed to expire stale automation run lock.");
+  }
 }
 
 async function finishAutomationRun(params: {
@@ -693,6 +804,9 @@ async function updateAutomationRow(
     status: CommunityAutomationStatus;
     lastResult: "success" | "failed" | "skipped";
     lastResultSummary: string;
+    config?: Record<string, unknown>;
+    nextRunAtOverride?: string | null;
+    lastErrorCode?: string | null;
   }
 ) {
   if (!automationId) {
@@ -700,7 +814,9 @@ async function updateAutomationRow(
   }
 
   const nextRunAt =
-    input.status === "active"
+    input.nextRunAtOverride !== undefined
+      ? input.nextRunAtOverride
+      : input.status === "active"
       ? computeNextCommunityAutomationRunAt({
           cadence: input.cadence,
           fromIso: new Date().toISOString(),
@@ -714,6 +830,7 @@ async function updateAutomationRow(
       next_run_at: nextRunAt,
       last_result: input.lastResult,
       last_result_summary: input.lastResultSummary,
+      ...(input.config ? { config: input.config } : {}),
       ...buildAutomationPlanningPatch({
         automationType: input.automationType,
         cadence: input.cadence,
@@ -721,6 +838,7 @@ async function updateAutomationRow(
         nextRunAt,
         lastResult: input.lastResult,
         lastResultSummary: input.lastResultSummary,
+        lastErrorCode: input.lastErrorCode,
       }),
     })
     .eq("id", automationId);
@@ -789,7 +907,7 @@ async function runMissionDigest(projectId: string, providerScope: ProviderScope)
     projectId,
     automationType: "mission_digest",
   });
-  const deliveries = await dispatchProjectCommunityMessage({
+  const delivery = await dispatchAutomationCommunityMessage({
     projectId,
     providerScope,
     title: `${state.project.name} mission board`,
@@ -830,17 +948,18 @@ async function runMissionDigest(projectId: string, providerScope: ProviderScope)
     sourceId: projectId,
     action: "community_mission_digest_posted",
     summary: `Posted mission digest for ${state.project.name}.`,
-    metadata: { deliveries, providerScope, deepLink },
+    metadata: { deliveries: delivery.delivered, providerScope, deepLink, delivery },
   });
 
   return {
-    deliveries,
+    deliveries: delivery.delivered,
     summary:
-      deliveries > 0
-        ? `Mission digest delivered to ${deliveries} target(s).`
+      delivery.delivered > 0
+        ? `Mission digest delivered to ${delivery.delivered} target(s).`
         : "Mission digest skipped because no targets were configured.",
     metadata: {
       deepLink,
+      delivery,
     },
   };
 }
@@ -859,7 +978,7 @@ async function runRaidReminder(projectId: string, providerScope: ProviderScope) 
     };
   }
 
-  const deliveries = await dispatchProjectCommunityMessage({
+  const delivery = await dispatchAutomationCommunityMessage({
     projectId,
     providerScope,
     title: raid.title,
@@ -892,18 +1011,19 @@ async function runRaidReminder(projectId: string, providerScope: ProviderScope) 
     sourceId: raid.id,
     action: "community_raid_reminder_posted",
     summary: `Posted raid reminder for ${raid.title}.`,
-    metadata: { deliveries, providerScope, raidId: raid.id, deepLink },
+    metadata: { deliveries: delivery.delivered, providerScope, raidId: raid.id, deepLink, delivery },
   });
 
   return {
-    deliveries,
+    deliveries: delivery.delivered,
     summary:
-      deliveries > 0
-        ? `Raid reminder delivered to ${deliveries} target(s).`
+      delivery.delivered > 0
+        ? `Raid reminder delivered to ${delivery.delivered} target(s).`
         : "Raid reminder skipped because no targets were configured.",
     metadata: {
       raidId: raid.id,
       deepLink,
+      delivery,
     },
   };
 }
@@ -919,7 +1039,7 @@ async function runNewcomerPulse(projectId: string, providerScope: ProviderScope)
     };
   }
 
-  const deliveries = await dispatchProjectCommunityMessage({
+  const delivery = await dispatchAutomationCommunityMessage({
     projectId,
     providerScope,
     title: `${state.project.name} starter journey`,
@@ -944,7 +1064,7 @@ async function runNewcomerPulse(projectId: string, providerScope: ProviderScope)
     buttonLabel: "Open onboarding path",
   });
   const nudgeSummary =
-    deliveries > 0
+    delivery.delivered > 0
       ? await dispatchJourneyNudgesForLane({
           projectId,
           lane: "onboarding",
@@ -964,7 +1084,8 @@ async function runNewcomerPulse(projectId: string, providerScope: ProviderScope)
     action: "community_newcomer_wave_posted",
     summary: `Posted newcomer starter journey for ${state.project.name}.`,
     metadata: {
-      deliveries,
+      deliveries: delivery.delivered,
+      delivery,
       providerScope,
       newcomers: summary.newcomers,
       nudgeSummary,
@@ -973,15 +1094,16 @@ async function runNewcomerPulse(projectId: string, providerScope: ProviderScope)
   });
 
   return {
-    deliveries,
+    deliveries: delivery.delivered,
     summary:
-      deliveries > 0
-        ? `Newcomer wave delivered to ${deliveries} target(s).`
+      delivery.delivered > 0
+        ? `Newcomer wave delivered to ${delivery.delivered} target(s).`
         : "Newcomer wave skipped because no targets were configured.",
     metadata: {
       newcomerCount: summary.newcomers,
       nudgeSummary,
       deepLink: journeyLinks.onboardingUrl,
+      delivery,
     },
   };
 }
@@ -997,7 +1119,7 @@ async function runReactivationPulse(projectId: string, providerScope: ProviderSc
     };
   }
 
-  const deliveries = await dispatchProjectCommunityMessage({
+  const delivery = await dispatchAutomationCommunityMessage({
     projectId,
     providerScope,
     title: `${state.project.name} comeback path`,
@@ -1022,7 +1144,7 @@ async function runReactivationPulse(projectId: string, providerScope: ProviderSc
     buttonLabel: "Open comeback path",
   });
   const nudgeSummary =
-    deliveries > 0
+    delivery.delivered > 0
       ? await dispatchJourneyNudgesForLane({
           projectId,
           lane: "comeback",
@@ -1042,7 +1164,8 @@ async function runReactivationPulse(projectId: string, providerScope: ProviderSc
     action: "community_reactivation_wave_posted",
     summary: `Posted comeback wave for ${state.project.name}.`,
     metadata: {
-      deliveries,
+      deliveries: delivery.delivered,
+      delivery,
       providerScope,
       reactivation: summary.reactivation,
       nudgeSummary,
@@ -1051,15 +1174,16 @@ async function runReactivationPulse(projectId: string, providerScope: ProviderSc
   });
 
   return {
-    deliveries,
+    deliveries: delivery.delivered,
     summary:
-      deliveries > 0
-        ? `Comeback wave delivered to ${deliveries} target(s).`
+      delivery.delivered > 0
+        ? `Comeback wave delivered to ${delivery.delivered} target(s).`
         : "Comeback wave skipped because no targets were configured.",
     metadata: {
       reactivationCount: summary.reactivation,
       nudgeSummary,
       deepLink: journeyLinks.comebackUrl,
+      delivery,
     },
   };
 }
@@ -1079,7 +1203,7 @@ async function runActivationBoard(projectId: string, providerScope: ProviderScop
     };
   }
 
-  const deliveries = await dispatchProjectCommunityMessage({
+  const delivery = await dispatchAutomationCommunityMessage({
     projectId,
     providerScope,
     title: `${board.title} activation board`,
@@ -1115,18 +1239,19 @@ async function runActivationBoard(projectId: string, providerScope: ProviderScop
     sourceId: board.campaignId,
     action: "community_activation_board_posted",
     summary: `Posted activation board for ${board.title}.`,
-    metadata: { deliveries, providerScope, board, deepLink },
+    metadata: { deliveries: delivery.delivered, providerScope, board, deepLink, delivery },
   });
 
   return {
-    deliveries,
+    deliveries: delivery.delivered,
     summary:
-      deliveries > 0
-        ? `Activation board delivered to ${deliveries} target(s).`
+      delivery.delivered > 0
+        ? `Activation board delivered to ${delivery.delivered} target(s).`
         : "Activation board skipped because no targets were configured.",
     metadata: {
       board,
       deepLink,
+      delivery,
     },
   };
 }
@@ -1202,11 +1327,16 @@ export async function runCommunityAutomation(params: {
   const automationType = automationRow.automation_type as CommunityAutomationType;
   const cadence = normalizeCadence(automationRow.cadence);
   const status = normalizeStatus(automationRow.status);
-
-  if (params.triggerSource === "schedule" && !isCommunityAutomationDue({
+  const scheduleDue = isCommunityAutomationDue({
     status,
     nextRunAt: automationRow.next_run_at,
-  })) {
+  });
+  const retryDue = isAutomationRetryDue({
+    config: automationRow.config,
+    lastResult: automationRow.last_result,
+  });
+
+  if (params.triggerSource === "schedule" && !scheduleDue && !retryDue) {
     return {
       ok: true,
       automationId: automationRow.id,
@@ -1217,7 +1347,7 @@ export async function runCommunityAutomation(params: {
     } satisfies CommunityAutomationRunResult;
   }
 
-  if (params.triggerSource === "schedule" && automationRow.last_result === "failed") {
+  if (params.triggerSource === "schedule" && automationRow.last_result === "failed" && !retryDue) {
     return {
       ok: true,
       automationId: automationRow.id,
@@ -1232,13 +1362,30 @@ export async function runCommunityAutomation(params: {
   const providerScope = normalizeProviderScope(
     automationRow.target_provider || automationRow.provider_scope
   );
-  const runId = await createAutomationRun({
+  const runStart = await createAutomationRun({
     projectId: params.projectId,
     automationId: automationRow.id,
     automationType,
     triggerSource: params.triggerSource,
     triggeredByAuthUserId: params.triggeredByAuthUserId,
   });
+  if (runStart.status === "locked") {
+    return {
+      ok: true,
+      automationId: automationRow.id,
+      automationType,
+      status: "skipped",
+      triggerSource: params.triggerSource,
+      summary: runStart.summary,
+      metadata: {
+        reliability: {
+          code: "run_locked",
+          activeRunId: runStart.runId,
+        },
+      },
+    } satisfies CommunityAutomationRunResult;
+  }
+
   await markAutomationRunning({
     automationId: automationRow.id,
     automationType,
@@ -1258,10 +1405,14 @@ export async function runCommunityAutomation(params: {
       ok: false,
       error: error instanceof Error ? error.message : "Captain queue refresh failed.",
     }));
+    const completionStatus = resolveAutomationCompletionStatus({
+      deliveries: result.deliveries,
+      summary,
+    });
 
     await finishAutomationRun({
-      runId,
-      status: "success",
+      runId: runStart.runId,
+      status: completionStatus,
       summary,
       metadata: {
         ...(result.metadata ?? {}),
@@ -1273,15 +1424,16 @@ export async function runCommunityAutomation(params: {
       automationType,
       cadence,
       status,
-      lastResult: "success",
+      lastResult: completionStatus,
       lastResultSummary: summary,
+      config: clearAutomationReliabilityState(automationRow.config),
     });
     await maybeRecordCaptainAutomationAction({
       projectId: params.projectId,
       authUserId: params.triggeredByAuthUserId,
       automationType,
       targetId: automationRow.id,
-      status: "success",
+      status: completionStatus,
       summary,
       metadata: {
         ...(result.metadata ?? {}),
@@ -1294,7 +1446,7 @@ export async function runCommunityAutomation(params: {
       ok: true,
       automationId: automationRow.id,
       automationType,
-      status: "success",
+      status: completionStatus,
       triggerSource: params.triggerSource,
       summary,
       deliveries: result.deliveries ?? 0,
@@ -1304,18 +1456,33 @@ export async function runCommunityAutomation(params: {
       },
     } satisfies CommunityAutomationRunResult;
   } catch (error) {
-    const summary =
-      error instanceof Error ? error.message : "Community automation execution failed.";
+    const summary = getReadableAutomationError(error);
+    const failure = classifyAutomationError(error);
+    const reliabilityState = buildAutomationFailureReliabilityState({
+      config: automationRow.config,
+      failure,
+      nowIso: new Date().toISOString(),
+      summary,
+    });
+    const reliabilitySummary = reliabilityState.nextRunAt
+      ? `${summary} Retry scheduled for ${new Date(reliabilityState.nextRunAt).toISOString()}.`
+      : `${summary} ${failure.ownerSummary}`;
     const queueRefresh = await refreshProjectCommunityCaptainQueue(params.projectId).catch((queueError) => ({
       ok: false,
       error:
         queueError instanceof Error ? queueError.message : "Captain queue refresh failed.",
     }));
     await finishAutomationRun({
-      runId,
+      runId: runStart.runId,
       status: "failed",
-      summary,
+      summary: reliabilitySummary,
       metadata: {
+        reliability: {
+          code: failure.code,
+          retryable: failure.retryable,
+          ownerSummary: failure.ownerSummary,
+          nextRetryAt: reliabilityState.nextRunAt,
+        },
         queueRefresh,
       },
     });
@@ -1324,7 +1491,10 @@ export async function runCommunityAutomation(params: {
       cadence,
       status,
       lastResult: "failed",
-      lastResultSummary: summary,
+      lastResultSummary: reliabilitySummary,
+      config: reliabilityState.config,
+      nextRunAtOverride: reliabilityState.nextRunAt,
+      lastErrorCode: reliabilityState.errorCode,
     });
     await maybeRecordCaptainAutomationAction({
       projectId: params.projectId,
@@ -1332,8 +1502,14 @@ export async function runCommunityAutomation(params: {
       automationType,
       targetId: automationRow.id,
       status: "failed",
-      summary,
+      summary: reliabilitySummary,
       metadata: {
+        reliability: {
+          code: failure.code,
+          retryable: failure.retryable,
+          ownerSummary: failure.ownerSummary,
+          nextRetryAt: reliabilityState.nextRunAt,
+        },
         queueRefresh,
       },
     });
@@ -1345,6 +1521,7 @@ export async function loadDueCommunityAutomations(params?: {
   projectId?: string;
   limit?: number;
 }) {
+  const nowIso = new Date().toISOString();
   const query = supabaseAdmin
     .from("community_automations")
     .select(
@@ -1367,10 +1544,15 @@ export async function loadDueCommunityAutomations(params?: {
   return ((data ?? []) as CommunityAutomationRow[])
     .filter(
       (row) =>
-        row.last_result !== "failed" &&
         isCommunityAutomationDue({
           status: normalizeStatus(row.status),
           nextRunAt: row.next_run_at,
+          nowIso,
+        }) ||
+        isAutomationRetryDue({
+          config: row.config,
+          lastResult: row.last_result,
+          nowIso,
         })
     )
     .sort((left, right) => {

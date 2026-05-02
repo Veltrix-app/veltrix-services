@@ -1,5 +1,10 @@
 import { Router } from "express";
 import { env } from "../config/env.js";
+import {
+  AUTOMATION_RETRY_BACKOFF_MINUTES,
+  AUTOMATION_RUN_LOCK_MINUTES,
+  AUTOMATION_STALE_RUN_MINUTES,
+} from "../core/community/automation-reliability.js";
 
 export const healthRouter = Router();
 
@@ -40,6 +45,12 @@ healthRouter.get("/", (_req, res) => {
       pollerEnabled: Boolean(env.X_API_BEARER_TOKEN && env.X_RAID_SOURCE_POLL_INTERVAL_SECONDS > 0),
       pollerIntervalSeconds: env.X_RAID_SOURCE_POLL_INTERVAL_SECONDS,
       pollLimit: env.X_RAID_SOURCE_POLL_LIMIT
+    },
+    automations: {
+      runLockMinutes: AUTOMATION_RUN_LOCK_MINUTES,
+      staleRunMinutes: AUTOMATION_STALE_RUN_MINUTES,
+      retryBackoffMinutes: AUTOMATION_RETRY_BACKOFF_MINUTES,
+      partialDelivery: true
     }
   });
 });
