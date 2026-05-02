@@ -7,9 +7,9 @@ import {
   Gem,
   RefreshCw,
   ShieldAlert,
-  ShieldCheck,
   WalletCards,
 } from "lucide-react";
+import { DefiSafetyPanel } from "@/components/defi/defi-safety-panel";
 import { useAuth } from "@/components/providers/auth-provider";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useDefiXpEligibility } from "@/hooks/use-defi-xp-eligibility";
@@ -171,28 +171,22 @@ export function DefiPortfolioScreen() {
         </section>
       ) : null}
 
-      <section className="rounded-[24px] border border-white/6 bg-white/[0.025] p-4">
-        <div className="flex items-start gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-lime-300/14 bg-lime-300/10 text-lime-200">
-            <ShieldCheck className="h-4 w-4" />
-          </span>
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-lime-300">
-              Safety copy
-            </p>
-            <div className="mt-3 grid gap-2 md:grid-cols-3">
-              {portfolio.complianceNotes.map((note) => (
-                <p
-                  key={note}
-                  className="rounded-[16px] border border-white/6 bg-black/20 p-3 text-[11px] leading-5 text-slate-400"
-                >
-                  {note}
-                </p>
-              ))}
-            </div>
+      <DefiSafetyPanel
+        route="portfolio"
+        showGlobalContract
+        actionSlot={
+          <div className="grid gap-2 md:grid-cols-3">
+            {portfolio.complianceNotes.map((note) => (
+              <p
+                key={note}
+                className="rounded-[16px] border border-white/6 bg-black/20 p-3 text-[11px] leading-5 text-slate-400"
+              >
+                {note}
+              </p>
+            ))}
           </div>
-        </div>
-      </section>
+        }
+      />
     </div>
   );
 }

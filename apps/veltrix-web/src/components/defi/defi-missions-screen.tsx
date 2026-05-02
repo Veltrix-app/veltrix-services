@@ -32,6 +32,7 @@ import {
   type MoonwellVaultPositionRead,
   type MoonwellVaultTransactionKind,
 } from "@/lib/defi/moonwell-vaults";
+import { DefiSafetyPanel } from "@/components/defi/defi-safety-panel";
 import { useAuth } from "@/components/providers/auth-provider";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useDefiXpEligibility } from "@/hooks/use-defi-xp-eligibility";
@@ -423,6 +424,8 @@ export function DefiMissionsScreen() {
         </div>
 
         <aside id="risk-notes" className="space-y-4">
+          <DefiSafetyPanel compact route="vaults" />
+
           <div className="rounded-[24px] border border-white/6 bg-[linear-gradient(180deg,rgba(13,15,18,0.99),rgba(7,9,12,0.99))] p-4">
             <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-lime-300">
               Reward layer

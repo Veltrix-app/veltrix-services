@@ -5,9 +5,9 @@ import {
   ArrowDownUp,
   BadgeDollarSign,
   RefreshCw,
-  ShieldCheck,
   Sparkles,
 } from "lucide-react";
+import { DefiSafetyPanel } from "@/components/defi/defi-safety-panel";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useVyntroSwap } from "@/hooks/use-vyntro-swap";
 import {
@@ -95,30 +95,22 @@ export function SwapScreen() {
           </div>
         </div>
 
-        <aside className="rounded-[28px] border border-lime-300/10 bg-[radial-gradient(circle_at_100%_0%,rgba(190,255,74,0.12),transparent_34%),linear-gradient(180deg,rgba(13,16,18,0.98),rgba(7,9,12,0.995))] p-5">
-          <ShieldCheck className="h-6 w-6 text-lime-200" />
-          <p className="mt-4 text-[10px] font-black uppercase tracking-[0.22em] text-lime-300">
-            Safety read
-          </p>
-          <p className="mt-2 text-[1.2rem] font-black tracking-[-0.04em] text-white">
-            No custody. Review route. Sign only what you expect.
-          </p>
-          <p className="mt-3 text-[12px] leading-6 text-slate-400">
-            Output can change before confirmation. Start with small swaps while platform fees are
-            disabled for launch testing.
-          </p>
-          <div className="mt-4 grid gap-2">
-            <SafetyLine label="Wallet" value={walletReady ? "Verified" : "Connect first"} />
-            <SafetyLine
-              label="Provider"
-              value={recommended ? recommended.provider : "0x first / Uniswap fallback"}
-            />
-            <SafetyLine
-              label="Fee"
-              value={`${swap.quotePayload?.config.platformFeeBps ?? 0} bps`}
-            />
-          </div>
-        </aside>
+        <DefiSafetyPanel
+          route="swap"
+          actionSlot={
+            <div className="grid gap-2">
+              <SafetyLine label="Wallet" value={walletReady ? "Verified" : "Connect first"} />
+              <SafetyLine
+                label="Provider"
+                value={recommended ? recommended.provider : "0x first / Uniswap fallback"}
+              />
+              <SafetyLine
+                label="Fee"
+                value={`${swap.quotePayload?.config.platformFeeBps ?? 0} bps`}
+              />
+            </div>
+          }
+        />
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_390px]">

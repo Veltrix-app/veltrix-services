@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, ExternalLink, History, RefreshCw, ShieldCheck } from "lucide-react";
+import { ArrowRight, ExternalLink, History, RefreshCw } from "lucide-react";
+import { DefiSafetyPanel } from "@/components/defi/defi-safety-panel";
 import { useAuth } from "@/components/providers/auth-provider";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useDefiActivity } from "@/hooks/use-defi-activity";
@@ -88,30 +89,19 @@ export function DefiActivityScreen() {
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-lime-300/10 bg-lime-300/[0.055] p-5">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full border border-lime-300/14 bg-lime-300/10 text-lime-200">
-            <ShieldCheck className="h-5 w-5" />
-          </div>
-          <p className="mt-4 text-[10px] font-black uppercase tracking-[0.24em] text-lime-300">
-            Proof posture
-          </p>
-          <h3 className="mt-2 text-[1.15rem] font-black tracking-[-0.04em] text-white">
-            {walletReady ? "Verified wallet history" : "Connect wallet first"}
-          </h3>
-          <p className="mt-2 text-[12px] leading-6 text-slate-400">
-            {walletReady
-              ? "The timeline is scoped to your verified wallet and account."
-              : "Preview is visible, but proof history needs a signed-in account with a verified wallet."}
-          </p>
-          <button
-            type="button"
-            onClick={activity.refresh}
-            className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.035] px-3.5 py-2.5 text-[10px] font-black uppercase tracking-[0.14em] text-slate-300 transition hover:border-white/12 hover:text-white"
-          >
-            <RefreshCw className="h-3.5 w-3.5" />
-            Refresh proof
-          </button>
-        </div>
+        <DefiSafetyPanel
+          route="activity"
+          actionSlot={
+            <button
+              type="button"
+              onClick={activity.refresh}
+              className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.035] px-3.5 py-2.5 text-[10px] font-black uppercase tracking-[0.14em] text-slate-300 transition hover:border-white/12 hover:text-white"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              Refresh proof
+            </button>
+          }
+        />
       </section>
 
       <section className="grid gap-3 md:grid-cols-5">

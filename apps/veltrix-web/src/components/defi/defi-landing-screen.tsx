@@ -9,11 +9,11 @@ import {
   BookOpenCheck,
   History,
   Layers3,
-  ShieldCheck,
   Wallet,
   WalletCards,
 } from "lucide-react";
 import { DefiRouteNav } from "@/components/defi/defi-route-nav";
+import { DefiSafetyPanel } from "@/components/defi/defi-safety-panel";
 
 const defiShowcaseRoutes = [
   {
@@ -150,23 +150,7 @@ export function DefiLandingScreen() {
           );
         })}
 
-        <aside className="rounded-[22px] border border-lime-300/10 bg-[radial-gradient(circle_at_100%_0%,rgba(190,255,74,0.1),transparent_34%),linear-gradient(180deg,rgba(10,13,17,0.78),rgba(6,7,10,0.86))] p-3.5">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-lime-300/12 bg-lime-300/8 text-lime-200">
-              <ShieldCheck className="h-4 w-4" />
-            </div>
-          </div>
-          <p className="mt-3.5 text-[9px] font-black uppercase tracking-[0.22em] text-lime-300">
-            Safety posture
-          </p>
-          <h3 className="mt-1.5 text-[0.98rem] font-black tracking-[-0.04em] text-white">
-            Discovery first, transactions second.
-          </h3>
-          <p className="mt-1.5 text-[11px] leading-5 text-slate-400">
-            No custody or guaranteed yield. Borrowing stays behind explicit liquidation-risk
-            gates.
-          </p>
-        </aside>
+        <DefiSafetyPanel compact route="overview" showGlobalContract />
       </div>
 
       <div className="relative mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">

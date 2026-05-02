@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { AlertTriangle, ArrowRight, BookOpenCheck, ShieldCheck, WalletCards } from "lucide-react";
+import { DefiSafetyPanel } from "@/components/defi/defi-safety-panel";
 import {
   borrowLendingRiskTopics,
   getBorrowLendingRiskSummary,
@@ -128,6 +129,8 @@ export function DefiRiskEducationScreen() {
           </div>
         </div>
       </section>
+
+      <DefiSafetyPanel compact route="risk-guide" showGlobalContract />
 
       <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
         {borrowLendingRiskTopics.map((topic) => {

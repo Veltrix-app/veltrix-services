@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { AlertTriangle, ArrowRight, Layers3, RefreshCw, ShieldCheck } from "lucide-react";
+import { DefiSafetyPanel } from "@/components/defi/defi-safety-panel";
 import { BorrowRiskMiniPanel } from "@/components/defi/risk-education-screen";
 import { useAuth } from "@/components/providers/auth-provider";
 import { StatusChip } from "@/components/ui/status-chip";
@@ -404,6 +405,7 @@ export function BorrowLendingScreen() {
           </div>
 
           <aside className="space-y-4">
+            <DefiSafetyPanel compact route="borrow-lending" />
             <BorrowRiskMiniPanel />
             <RiskCard selectedMarket={selectedMarket} />
             <MarketXpPanel
