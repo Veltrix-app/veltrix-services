@@ -142,7 +142,7 @@ function deriveStatusFromScores(input: {
 
   if (input.sybilScore >= 90) return "xp_suspended";
   if (input.sybilScore >= 80 || input.trustScore <= 20) return "reward_hold";
-  if (input.sybilScore >= 70) return "review_required";
+  if (input.sybilScore >= 70 || input.trustScore <= 25) return "review_required";
   if (input.sybilScore >= 50 || input.trustScore < 35) return "watch";
   return "active";
 }

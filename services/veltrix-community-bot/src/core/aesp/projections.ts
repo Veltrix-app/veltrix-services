@@ -1,13 +1,18 @@
 import { supabaseAdmin } from "../../lib/supabase.js";
 
 const ACTIVE_XP_WINDOW_DAYS = 30;
+const LEVEL_THRESHOLDS = [0, 500, 1250, 2250, 3500, 5000, 7000, 9500, 12500, 16000];
 
-function computeLevelFromXp(totalXp: number) {
-  if (totalXp <= 0) {
-    return 1;
+export function computeAespLevelFromXp(totalXpInput: number) {
+  const totalXp = Math.max(0, Math.floor(Number.isFinite(totalXpInput) ? totalXpInput : 0));
+  let thresholdIndex = 0;
+  for (let index = 0; index < LEVEL_THRESHOLDS.length; index += 1) {
+    if (totalXp >= LEVEL_THRESHOLDS[index]) {
+      thresholdIndex = index;
+    }
   }
 
-  return Math.max(1, Math.floor(Math.sqrt(totalXp / 100)) + 1);
+  return Math.max(1, thresholdIndex + 1);
 }
 
 export async function rebuildUserReputationProjection(authUserId: string) {
@@ -45,7 +50,7 @@ export async function rebuildUserReputationProjection(authUserId: string) {
       row.created_at >= activeXpCutoff ? sum + Number(row.effective_xp ?? 0) : sum,
     0
   );
-  const level = computeLevelFromXp(totalXp);
+  const level = computeAespLevelFromXp(totalXp);
   const groupedProjectXp = new Map<string, { totalXp: number; activeXp: number }>();
 
   for (const row of xpEvents ?? []) {
@@ -91,7 +96,7 @@ export async function rebuildUserReputationProjection(authUserId: string) {
       project_id: projectId,
       xp: values.totalXp,
       active_xp: values.activeXp,
-      level: computeLevelFromXp(values.totalXp),
+      level: computeAespLevelFromXp(values.totalXp),
       updated_at: timestamp,
     }));
 

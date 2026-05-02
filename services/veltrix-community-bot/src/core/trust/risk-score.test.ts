@@ -72,6 +72,19 @@ test("deriveTrustRiskPatch treats critical signals as immediate XP suspension pr
   assert.equal(patch.metadata.criticalSeverityCount, 1);
 });
 
+test("deriveTrustRiskPatch escalates very low trust into review pressure", () => {
+  const patch = deriveTrustRiskPatch({
+    currentTrustScore: 24,
+    currentSybilScore: 10,
+    currentStatus: "active",
+    signals: [],
+  });
+
+  assert.equal(patch.status, "review_required");
+  assert.equal(patch.reviewRequired, true);
+  assert.equal(patch.reasonCodes.includes("trust_review_threshold"), true);
+});
+
 test("deriveTrustRiskPatch never downgrades terminal enforcement statuses", () => {
   const patch = deriveTrustRiskPatch({
     currentTrustScore: 20,
