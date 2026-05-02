@@ -3284,6 +3284,418 @@ const docsGuidePages: DocsGuideDefinition[] = [
       ],
     },
   },
+  {
+    track: "project-docs",
+    slug: "defi-products",
+    eyebrow: "Project Docs",
+    title: "DeFi Products explains the VYNTRO finance layer without hiding custody, risk or provider boundaries.",
+    description:
+      "This page documents the DeFi hub across Swap, Vault missions, Borrow/Lending and Trading Arena. It explains how the product presents a VYNTRO-native experience while wallet execution, risk language and proof tracking stay explicit.",
+    surfaceTitle: "DeFi Products",
+    chips: ["DeFi hub", "Swap", "Vaults", "Borrow/Lending", "Trading Arena"],
+    actions: [
+      { href: "/project-docs", label: "Back to Project Docs" },
+      { href: "/reference/defi-product-model", label: "DeFi Product Model" },
+      { href: "/reference/xp-economy-enforcement", label: "XP Enforcement" },
+    ],
+    relatedHrefs: [
+      "/project-docs",
+      "/reference/defi-product-model",
+      "/reference/defi-provider-integrations",
+      "/reference/xp-economy-enforcement",
+      "/reference/premium-anti-fraud-model",
+    ],
+    rail: {
+      eyebrow: "Primary users",
+      title: "Members, DeFi-curious users and project growth teams.",
+      body: "The DeFi docs should make it clear what VYNTRO builds on top of providers, what users sign themselves and where XP proof begins.",
+    },
+    whatItIs: {
+      description:
+        "DeFi Products is the member-facing finance layer. It combines route discovery, vault participation, lending actions and trading competitions into one wallet-scoped experience.",
+      bullets: [
+        "Swap helps users move into the right asset before vault, lending or competition actions.",
+        "Vaults and Borrow/Lending expose curated provider actions without VYNTRO taking custody.",
+        "Trading Arena turns eligible pair activity into competitions, rewards and leaderboard proof.",
+      ],
+      asideTitle: "Why it exists",
+      asideBody:
+        "The goal is not to pretend VYNTRO is the underlying protocol. The goal is to package safe discovery, clear education and proof tracking around actions users already sign from their own wallet.",
+    },
+    whereToFind: {
+      title: "Where to find it",
+      description: "The DeFi layer is exposed from the member webapp and should remain clearly separated from project-only portal configuration.",
+      items: [
+        {
+          label: "Primary route",
+          meta: "/defi",
+          summary: "The overview hub where members choose between portfolio, swap, vaults, borrow/lending, trading, risk and activity.",
+        },
+        {
+          label: "Product routes",
+          meta: "/defi/swap, /defi/vaults, /defi/borrow, /defi/trading",
+          summary: "Each product has its own focused route so the main hub stays discoverable instead of becoming one oversized canvas.",
+        },
+        {
+          label: "Portal setup",
+          summary: "Projects configure trading competitions, reward posture and campaign context from the portal, while members execute in the webapp.",
+        },
+      ],
+    },
+    surfaceAnatomy: {
+      title: "Surface anatomy",
+      items: [
+        {
+          label: "Swap",
+          meta: "Asset route",
+          summary: "A VYNTRO UI around route quotes, approvals and wallet-signed swaps through provider infrastructure.",
+        },
+        {
+          label: "Vault missions",
+          meta: "Lower complexity",
+          summary: "Deposit and withdraw flows for curated vault routes where VYNTRO tracks proof but never controls funds.",
+        },
+        {
+          label: "Borrow/Lending",
+          meta: "Advanced route",
+          summary: "Supply, collateral, borrow and repay flows with explicit safety gates around liquidation and debt posture.",
+        },
+        {
+          label: "Trading Arena",
+          meta: "Competition layer",
+          summary: "Snapshot and live-tracked competitions with cost caps, eligible pairs, reward pools and leaderboard output.",
+        },
+      ],
+    },
+    howItWorks: {
+      title: "DeFi flow",
+      states: [
+        {
+          label: "Discover the route",
+          summary: "The member starts in the DeFi hub and chooses the safest product lane for their intent.",
+          bullets: [
+            "Overview keeps product choice separate from transaction execution.",
+            "Portfolio and activity views explain current posture before pushing action.",
+            "Risk education should be visible before advanced borrow or competition flows.",
+          ],
+        },
+        {
+          label: "Connect and review",
+          summary: "The wallet connection identifies balances, positions and whether the action is eligible for proof.",
+          bullets: [
+            "The interface should show provider context without making it the primary brand story.",
+            "Users must understand that every on-chain action is wallet-signed.",
+            "VYNTRO never promises yield and never holds user funds.",
+          ],
+        },
+        {
+          label: "Execute with safety gates",
+          summary: "The user signs the swap, deposit, withdraw, supply, borrow, repay or competition action from their own wallet.",
+          bullets: [
+            "Approvals and transaction previews belong close to the action.",
+            "Borrowing requires extra safety copy around liquidation risk and repay responsibility.",
+            "Trading competitions should show duration, eligible pairs, reward posture and cost model before entry.",
+          ],
+        },
+        {
+          label: "Record proof and XP posture",
+          summary: "After execution, VYNTRO records eligible proof for portfolio, XP review and anti-abuse checks.",
+          bullets: [
+            "Proof does not mean immediate XP if anti-fraud or cap checks require review.",
+            "The activity timeline should show what was detected and what is still pending.",
+            "Projects can use aggregate posture, but user trust data stays bounded by visibility rules.",
+          ],
+        },
+      ],
+    },
+    keyRules: {
+      title: "Key rules",
+      items: [
+        {
+          label: "No custody",
+          meta: "Safety rule",
+          summary: "VYNTRO never holds user assets; wallet actions are signed directly by the user through provider-backed routes.",
+        },
+        {
+          label: "Provider disclosure stays present",
+          meta: "Compliance rule",
+          summary: "Provider names can stay minimal in the UI, but docs and risk copy must make the underlying route source clear.",
+        },
+        {
+          label: "XP is earned through eligible proof",
+          meta: "Economy rule",
+          summary: "DeFi actions can feed XP, but only through standardized caps, review gates and anti-abuse enforcement.",
+        },
+      ],
+    },
+    controlAtlas: {
+      title: "DeFi product controls explain action, risk and proof without making the hub feel like a protocol dashboard.",
+      description:
+        "The important controls are the route selector, wallet transaction surface, risk gate and proof timeline. Everything else should support those four jobs.",
+      sections: [
+        {
+          title: "Route and provider controls",
+          items: [
+            { label: "Product cards", meta: "Discovery", summary: "Help the user choose between swap, vaults, borrow/lending and trading before showing transaction depth." },
+            { label: "Quote and provider labels", meta: "Execution", summary: "Show route source and relevant quote details without turning the page into a raw provider UI." },
+            { label: "Fallback messaging", meta: "Reliability", summary: "If a provider quote or RPC fails, the page should explain the temporary dependency instead of implying funds moved." },
+          ],
+        },
+        {
+          title: "Risk and education controls",
+          items: [
+            { label: "Borrow warnings", meta: "Advanced actions", summary: "Liquidation, collateral and repay language must appear before a user can treat borrow as routine." },
+            { label: "Vault disclaimers", meta: "Yield posture", summary: "Vaults can describe variable yield but should not guarantee returns or hide protocol risk." },
+            { label: "Competition cost model", meta: "Premium tracking", summary: "Trading competitions should explain snapshot versus live tracking and who pays provider or indexing costs." },
+          ],
+        },
+        {
+          title: "Proof and XP controls",
+          items: [
+            { label: "Eligibility status", meta: "After action", summary: "Shows whether a transaction is detected, pending review, eligible, capped or rejected." },
+            { label: "Portfolio summary", meta: "User overview", summary: "Aggregates vault, supplied, borrowed, claimable XP and next safe action in one wallet-scoped view." },
+            { label: "Anti-abuse gates", meta: "Economy protection", summary: "Velocity, duplicate wallet and suspicious activity rules can hold proof before XP becomes claimable." },
+          ],
+        },
+      ],
+    },
+    deepDive: {
+      title: "Why the DeFi layer is documented as a product shell over provider execution.",
+      description:
+        "VYNTRO should feel like one product, but it should not blur the line between interface, proof tracking and the underlying protocol or route provider.",
+      sections: [
+        {
+          title: "VYNTRO owns discovery and proof",
+          items: [
+            { label: "Product packaging", meta: "UX layer", summary: "The platform curates which DeFi routes matter for members and projects instead of exposing every protocol primitive." },
+            { label: "XP and activity timeline", meta: "Proof layer", summary: "VYNTRO records eligible transaction posture for future XP and review logic, not custody or guaranteed yield." },
+            { label: "Portfolio overview", meta: "Command read", summary: "The portfolio page should answer what exists, what is borrowed or supplied and what the next safe action is." },
+          ],
+        },
+        {
+          title: "Providers own execution",
+          items: [
+            { label: "0x and Uniswap routes", meta: "Swap", summary: "Swap quotes and calldata come from route providers while users still sign from their own wallet." },
+            { label: "Moonwell routes", meta: "Vaults and lending", summary: "Vault, supply, borrow and repay actions use Moonwell-style market infrastructure where configured." },
+            { label: "RPC and API dependencies", meta: "Reliability", summary: "Provider outages, rate limits or API keys can affect quote and detection behavior." },
+          ],
+        },
+        {
+          title: "Risk copy is part of the product",
+          items: [
+            { label: "No hidden leverage", meta: "Borrow/lending", summary: "Borrow actions require stronger education because liquidation and repay responsibility are user-owned." },
+            { label: "No guaranteed yield", meta: "Vaults", summary: "Vault copy should explain variable yield and protocol risk without turning the page into legal fog." },
+            { label: "Competition costs stay visible", meta: "Trading Arena", summary: "Premium tracking should disclose whether VYNTRO snapshots or continuously indexes eligible pair activity." },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    track: "project-docs",
+    slug: "tweet-to-raid",
+    eyebrow: "Project Docs",
+    title: "Tweet-to-Raid explains how projects turn X posts into live raids through autopilot or /newraid.",
+    description:
+      "This page documents the community automation layer that watches configured X sources and lets authorized Telegram or Discord admins create a live raid from a post link.",
+    surfaceTitle: "Tweet-to-Raid",
+    chips: ["Automation", "/newraid", "Telegram", "Discord", "Live raids"],
+    actions: [
+      { href: "/project-docs", label: "Back to Project Docs" },
+      { href: "/reference/tweet-to-raid-command-flow", label: "Command Flow" },
+      { href: "/reference/bot-commands", label: "Bot Commands" },
+    ],
+    relatedHrefs: [
+      "/project-docs/community-os",
+      "/project-docs/bot-commands",
+      "/reference/tweet-to-raid-command-flow",
+      "/reference/command-and-automation-controls",
+      "/reference/bot-commands",
+      "/reference/xp-economy-enforcement",
+    ],
+    rail: {
+      eyebrow: "Primary users",
+      title: "Project admins, captains and community operators.",
+      body: "Tweet-to-Raid exists so projects can turn social momentum into live VYNTRO raids without manually recreating the same setup every time.",
+    },
+    whatItIs: {
+      description:
+        "Tweet-to-Raid is the bridge between a project's X activity, community bot commands and the live raid surface in the member webapp.",
+      bullets: [
+        "Autopilot can watch an approved X source and create review-first or auto-live raids from matching posts.",
+        "/newraid lets authorized admins submit a specific X URL from Telegram or Discord and create a live raid immediately.",
+        "The same raid should appear in the portal, member webapp and configured delivery channels with dedupe and audit history.",
+      ],
+      asideTitle: "Why it exists",
+      asideBody:
+        "Projects want speed, but speed without defaults creates messy raids. Tweet-to-Raid turns one command or one watched source into a controlled live activation.",
+    },
+    whereToFind: {
+      title: "Where to find it",
+      description: "Configuration lives in the project community/automation context. Execution happens through X, Telegram, Discord and the webapp.",
+      items: [
+        {
+          label: "Portal configuration",
+          meta: "/projects/<id>/community",
+          summary: "Owners enable command surfaces, default campaign routing, XP, duration, cooldown, max-per-day and fallback artwork.",
+        },
+        {
+          label: "Manual command",
+          meta: "/newraid <x-url>",
+          summary: "Authorized Telegram or Discord admins submit a post URL and the bot creates a live raid with the project's defaults.",
+        },
+        {
+          label: "Member surface",
+          meta: "/raids",
+          summary: "Created raids should become visible to members as live activation objects with source link, image and completion instructions.",
+        },
+      ],
+    },
+    surfaceAnatomy: {
+      title: "Surface anatomy",
+      items: [
+        {
+          label: "Source control",
+          meta: "Autopilot",
+          summary: "Defines X username, required hashtags, mode, status, cooldown, poll limit and campaign fallback.",
+        },
+        {
+          label: "Command defaults",
+          meta: "/newraid",
+          summary: "Defines XP, duration, fallback banner, post instructions and whether the command goes live immediately.",
+        },
+        {
+          label: "Delivery rail",
+          meta: "Telegram and Discord",
+          summary: "Posts the raid to configured channels and links members back to the webapp context.",
+        },
+        {
+          label: "Dedupe and audit",
+          meta: "Reliability",
+          summary: "Prevents duplicate raids for the same X post and preserves source URL, source ID and command origin.",
+        },
+      ],
+    },
+    howItWorks: {
+      title: "Creation flow",
+      states: [
+        {
+          label: "Configure defaults",
+          summary: "The project owner enables commands and sets the safe defaults the bot will use.",
+          bullets: [
+            "Default campaign is required because live raids must belong to a campaign context.",
+            "Fallback artwork is used when the X post has no usable image.",
+            "Auto-live should only be enabled once source, hashtag gate and delivery rail are proven.",
+          ],
+        },
+        {
+          label: "Submit a source post",
+          summary: "A watched X post or /newraid command provides the source URL that should become a raid.",
+          bullets: [
+            "Manual commands should be permissioned to project admins or configured operators.",
+            "Autopilot checks source, hashtags, replies, reposts, cooldown and max-per-day.",
+            "The system should reject duplicates instead of creating multiple raids from one post.",
+          ],
+        },
+        {
+          label: "Create the live raid",
+          summary: "The runtime inserts a campaign-linked active raid with title, source URL, banner, XP and instructions.",
+          bullets: [
+            "Campaign and banner fallbacks protect against database null failures.",
+            "The live raid should be visible in portal and webapp immediately after creation.",
+            "The origin should be recorded as autopilot or manual command for later debugging.",
+          ],
+        },
+        {
+          label: "Deliver and track",
+          summary: "The bot posts to Telegram and Discord where enabled, then completion proof follows the normal raid and XP rules.",
+          bullets: [
+            "Channel delivery is a product outcome, not just a bot side effect.",
+            "Members should land on the exact raid instead of a generic home page.",
+            "XP still goes through standardized economy and anti-abuse checks.",
+          ],
+        },
+      ],
+    },
+    keyRules: {
+      title: "Key rules",
+      items: [
+        {
+          label: "Live command means live object",
+          meta: "Command rule",
+          summary: "/newraid should create an active campaign-linked raid, not a hidden draft, when the project has enabled that command surface.",
+        },
+        {
+          label: "Defaults prevent broken raids",
+          meta: "Reliability rule",
+          summary: "Default campaign, fallback banner, XP and duration are required so command-created raids never fail on missing campaign or image fields.",
+        },
+        {
+          label: "Dedupe is mandatory",
+          meta: "Safety rule",
+          summary: "The same X post should not create multiple raids for the same project, even if the command is retried.",
+        },
+      ],
+    },
+    controlAtlas: {
+      title: "Tweet-to-Raid controls should explain what can go live, who can trigger it and where it lands.",
+      sections: [
+        {
+          title: "Project setup controls",
+          items: [
+            { label: "Enable slash commands", meta: "Surface toggle", summary: "Controls whether the project allows command-created actions at all." },
+            { label: "Enable Telegram and Discord commands", meta: "Channel toggle", summary: "Separates channel availability so a project can roll out safely." },
+            { label: "Default campaign", meta: "Required fallback", summary: "Ensures every created raid belongs to a valid campaign and can render in member surfaces." },
+          ],
+        },
+        {
+          title: "Autopilot controls",
+          items: [
+            { label: "Review-first versus auto-live", meta: "Safety mode", summary: "Review mode is safer for new sources; auto-live is only appropriate after delivery has proven stable." },
+            { label: "Hashtag gate", meta: "Source filter", summary: "Required hashtags help ensure only intentional posts become raids." },
+            { label: "Cooldown and max-per-day", meta: "Cost and spam control", summary: "Protects the project and platform from unbounded polling output." },
+          ],
+        },
+        {
+          title: "Command execution controls",
+          items: [
+            { label: "/newraid source URL", meta: "Manual creation", summary: "Turns a specific X post into one live VYNTRO raid with the current project defaults." },
+            { label: "Fallback banner", meta: "Renderable default", summary: "Guarantees a usable raid image even when the source post has no media." },
+            { label: "Delivery result", meta: "Channel proof", summary: "Shows whether Telegram and Discord posting succeeded after the live raid was created." },
+          ],
+        },
+      ],
+    },
+    deepDive: {
+      title: "Why Tweet-to-Raid is documented as an automation system instead of a bot trick.",
+      sections: [
+        {
+          title: "Creation is database-backed",
+          items: [
+            { label: "Campaign-linked raid", meta: "Object rule", summary: "A command should create the same kind of live raid object the webapp expects, including campaign_id and banner." },
+            { label: "Source identity", meta: "Dedupe rule", summary: "Source URL and source post ID are stored so retries can explain that the post is already linked." },
+            { label: "Audit origin", meta: "Debugging", summary: "Manual command and autopilot origins help operators understand how a raid appeared." },
+          ],
+        },
+        {
+          title: "Delivery is multi-surface",
+          items: [
+            { label: "Portal visibility", meta: "Project confirmation", summary: "Projects should see the created raid from their project workspace, not only in chat." },
+            { label: "Webapp visibility", meta: "Member activation", summary: "Members need the live raid in the product so completion and XP can be tracked consistently." },
+            { label: "Chat visibility", meta: "Distribution", summary: "Telegram and Discord messages are distribution rails that point back to the product context." },
+          ],
+        },
+        {
+          title: "Reliability beats magic",
+          items: [
+            { label: "Clear error copy", meta: "Operator trust", summary: "Missing tokens, provider failures and config gaps should explain the exact missing dependency." },
+            { label: "Safe retries", meta: "Recovery", summary: "Retries should not create duplicates and should tell the admin when a source is already linked." },
+            { label: "Cost control", meta: "Commercial model", summary: "Autopilot polling and premium delivery can be priced around API usage, polling frequency and tracking depth." },
+          ],
+        },
+      ],
+    },
+  },
 ];
 
 const docsGuidePlaybookExamples: Record<

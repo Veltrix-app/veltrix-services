@@ -16,14 +16,14 @@ export default function ProjectDocsPage() {
   return (
     <DocsPageFrame
       eyebrow="Project Docs"
-      title="Public docs for teams running launches, growth and community execution."
-      description="This track explains the project-facing parts of VYNTRO: how launches are set up, how campaigns and missions are built, how communities are operated and how members move through the product."
+      title="Public docs for teams running launches, growth, DeFi and community execution."
+      description="This track explains the project-facing parts of VYNTRO: how launches are set up, how campaigns and missions are built, how communities are operated, how DeFi products are positioned and how members move through the product."
       actions={[
         { href: "/reference", label: "Open Reference" },
         { href: "/reference/control-atlas", label: "Open Control Atlas" },
         { href: "/release-notes", label: "Open Release Notes" },
       ]}
-      chips={["Launch setup", "Studios", "Community OS", "Member Journey"]}
+      chips={["Launch setup", "Studios", "Community OS", "DeFi", "Member Journey"]}
       relatedHrefs={[
         "/",
         "/operator-docs",
@@ -33,6 +33,8 @@ export default function ProjectDocsPage() {
         "/project-docs/campaign-studio",
         "/project-docs/quest-studio",
         "/project-docs/community-os",
+        "/project-docs/defi-products",
+        "/project-docs/tweet-to-raid",
       ]}
       rail={
         <div className="space-y-4">

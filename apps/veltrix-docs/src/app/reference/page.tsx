@@ -20,7 +20,7 @@ export default function ReferencePage() {
         { href: "/project-docs", label: "Project Docs" },
         { href: "/operator-docs", label: "Operator Docs" },
       ]}
-      chips={["Exact states", "Permissions", "Cases", "Commands"]}
+      chips={["Exact states", "Permissions", "Cases", "Commands", "DeFi", "XP"]}
       relatedHrefs={[
         "/",
         "/project-docs",
@@ -28,6 +28,8 @@ export default function ReferencePage() {
         "/reference/lifecycle-states",
         "/reference/permissions",
         "/reference/status-labels",
+        "/reference/defi-product-model",
+        "/reference/xp-economy-enforcement",
       ]}
       rail={
         <div className="space-y-4">

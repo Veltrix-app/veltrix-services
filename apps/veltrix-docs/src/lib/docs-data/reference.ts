@@ -11,6 +11,8 @@ const docsReferenceDatasets: DocsReferenceDataset[] = [
       { label: "Safety consoles", meta: "Deep operator coverage", summary: "Trust, payout and on-chain each have flagship console docs, workflows and reference pages for scoring, cases, states and bounded visibility." },
       { label: "Observability and support", meta: "Operator and reference coverage", summary: "Overview, analytics, escalations, runbooks and incident handling are documented as a connected operating layer rather than isolated pages." },
       { label: "Bots and delivery rails", meta: "Project and reference coverage", summary: "Bot commands and automation rails are documented through project usage, reference dictionaries and workflow context." },
+      { label: "DeFi products and economy", meta: "Product and reference coverage", summary: "Swap, Vaults, Borrow/Lending, Trading Arena, provider integrations and XP enforcement are documented as one wallet-safe finance layer." },
+      { label: "Premium trust and anti-fraud", meta: "Safety coverage", summary: "Wallet graph, device/session reputation, velocity, duplicate social detection, suspicious claim patterns and appeals now have explicit public reference language." },
       { label: "Public launch and legal surfaces", meta: "Supporting coverage", summary: "The public site, privacy, terms, support and reward disclaimer exist in the product and are part of the docs-aware launch posture even if they need fewer deep reference pages." },
     ],
     matrix: {
@@ -37,6 +39,16 @@ const docsReferenceDatasets: DocsReferenceDataset[] = [
           label: "Observability and support domain",
           values: ["Strong", "Strong", "Medium to strong"],
           summary: "Overview, analytics, escalations, runbooks and incident handling have good operating coverage, with room for future ultra-granular playbook references if needed.",
+        },
+        {
+          label: "DeFi and economy domain",
+          values: ["Strong", "Medium", "Strong"],
+          summary: "DeFi now has a product surface guide and exact reference pages for providers, XP enforcement, proof posture and anti-abuse boundaries.",
+        },
+        {
+          label: "Automation and bot domain",
+          values: ["Strong", "Strong", "Strong"],
+          summary: "Tweet-to-Raid, /newraid, command defaults, source polling, fallback banners and delivery rails are covered as live product behavior.",
         },
         {
           label: "Public site and support domain",
@@ -2018,6 +2030,265 @@ const docsReferenceDatasets: DocsReferenceDataset[] = [
     },
   },
   {
+    slug: "defi-product-model",
+    title: "DeFi Product Model",
+    summary: "The exact model for Swap, Vaults, Borrow/Lending and Trading Arena as a wallet-safe VYNTRO product layer.",
+    entries: [
+      { label: "Swap", meta: "Asset route", summary: "A VYNTRO UI for route quotes, approvals and wallet-signed swaps before deeper DeFi actions." },
+      { label: "Vaults", meta: "Lower-complexity yield", summary: "Curated deposit and withdraw missions where VYNTRO records proof but never controls user funds." },
+      { label: "Borrow/Lending", meta: "Advanced route", summary: "Supply, collateral, borrow and repay actions with explicit liquidation, collateral and repay education." },
+      { label: "Trading Arena", meta: "Competition layer", summary: "Snapshot or live-tracked trading competitions with eligible pairs, cost caps, rewards and leaderboards." },
+      { label: "Portfolio dashboard", meta: "Command read", summary: "One wallet-scoped overview of vaults, supplied value, borrowed value, claimable XP and the next safe action." },
+    ],
+    matrix: {
+      title: "DeFi product matrix",
+      description: "Each product has a different risk and proof posture, so the docs should not describe them as one generic finance feature.",
+      columns: ["Primary action", "Main risk", "Proof and XP posture"],
+      rows: [
+        { label: "Swap", values: ["Quote, approve and swap", "Price impact, route failure, token approval", "Transaction proof can feed activity, but XP depends on the campaign or DeFi rule attached to it"] },
+        { label: "Vaults", values: ["Deposit and withdraw", "Variable yield, protocol risk, withdrawal liquidity", "Deposit or withdrawal proof can become eligible after anti-abuse and cap checks"] },
+        { label: "Borrow/Lending", values: ["Supply, collateral, borrow, repay", "Liquidation, debt, collateral movement", "Actions need stronger risk acknowledgement before proof can become economy signal"] },
+        { label: "Trading Arena", values: ["Trade eligible pairs during a competition", "Cost, slippage, volatility and tracking model", "Leaderboard and reward posture depend on snapshot or live tracking rules"] },
+      ],
+    },
+    deepDive: {
+      title: "How the DeFi layer should be explained",
+      sections: [
+        {
+          title: "VYNTRO owns the interface and proof layer",
+          items: [
+            { label: "Discovery", meta: "Product shell", summary: "The DeFi hub helps members choose the right route before they face transaction depth." },
+            { label: "Proof tracking", meta: "XP bridge", summary: "Eligible transactions can feed portfolio, XP review and anti-fraud signals after execution." },
+            { label: "Education", meta: "Safety copy", summary: "Risk language is part of the product, especially for borrow, collateral and competitions." },
+          ],
+        },
+        {
+          title: "Providers own execution routes",
+          items: [
+            { label: "Swaps", meta: "0x and Uniswap", summary: "Quotes and calldata can come from route providers while users still sign in their own wallet." },
+            { label: "Vaults and markets", meta: "Moonwell-style routes", summary: "Vault, supply, borrow and repay actions use configured protocol infrastructure." },
+            { label: "RPC and API dependencies", meta: "Reliability", summary: "Provider outages or missing keys affect discovery and tracking but should never imply VYNTRO custody." },
+          ],
+        },
+        {
+          title: "Risk posture stays visible",
+          items: [
+            { label: "No guaranteed yield", meta: "Vault rule", summary: "Vault copy must describe yield as variable and protocol-dependent." },
+            { label: "No hidden leverage", meta: "Borrow rule", summary: "Borrow actions require explicit collateral, liquidation and repay language." },
+            { label: "Cost-aware competitions", meta: "Trading rule", summary: "Projects should understand whether a competition uses snapshots or premium live tracking and what costs that creates." },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    slug: "defi-provider-integrations",
+    title: "DeFi Provider Integrations",
+    summary: "How VYNTRO uses 0x, Uniswap and Moonwell behind its own UI without hiding provider, custody or risk boundaries.",
+    entries: [
+      { label: "0x", meta: "Swap route provider", summary: "Used for swap quotes and route execution where configured by environment keys and supported chains." },
+      { label: "Uniswap", meta: "Swap fallback or route source", summary: "Used as an additional swap route source where API access and route coverage are available." },
+      { label: "Moonwell", meta: "Vaults and lending", summary: "Used for Base-oriented vault, supply, borrow, repay and market posture where the product enables those routes." },
+      { label: "Base RPC", meta: "Chain read/write dependency", summary: "Required for balance reads, transaction state, position detection and proof tracking on Base." },
+      { label: "VYNTRO proof layer", meta: "Product-owned", summary: "Records detected actions, eligibility and XP review status without taking custody or replacing protocol risk." },
+    ],
+    matrix: {
+      title: "Provider responsibility map",
+      columns: ["Provider", "What it supplies", "What VYNTRO adds"],
+      rows: [
+        { label: "0x", values: ["Quotes, route calldata, supported token paths", "UI, risk framing, wallet flow, proof tracking and XP eligibility"] },
+        { label: "Uniswap", values: ["Swap route data where supported", "Fallback routing, comparison posture and consistent VYNTRO member experience"] },
+        { label: "Moonwell", values: ["Vault and market execution primitives", "Curated product routes, education, position readouts and eligibility tracking"] },
+        { label: "RPC provider", values: ["Chain state and transaction reads", "Portfolio timeline, status handling and retry-friendly copy"] },
+      ],
+    },
+    deepDive: {
+      title: "Integration boundaries",
+      sections: [
+        {
+          title: "Branding and disclosure",
+          items: [
+            { label: "VYNTRO-native UI", meta: "Experience", summary: "The member sees one product language instead of being thrown into multiple external protocol dashboards." },
+            { label: "Provider names stay available", meta: "Disclosure", summary: "Docs and risk copy should identify providers so users understand who executes the underlying route." },
+            { label: "No white-label custody claim", meta: "Boundary", summary: "The docs should never imply VYNTRO owns the protocol or custodies funds." },
+          ],
+        },
+        {
+          title: "Operational dependencies",
+          items: [
+            { label: "API keys", meta: "Production requirement", summary: "0x and Uniswap routes need valid API keys where those providers require them." },
+            { label: "RPCs", meta: "Chain requirement", summary: "Base RPC configuration is required for reads, writes and transaction confirmation behavior." },
+            { label: "Fallbacks", meta: "Reliability", summary: "If a provider is unavailable, the UI should explain the temporary dependency rather than failing silently." },
+          ],
+        },
+        {
+          title: "Proof and XP boundaries",
+          items: [
+            { label: "Executed transaction", meta: "User-signed", summary: "The wallet signs the action; VYNTRO only reads and records the resulting proof posture." },
+            { label: "Eligibility review", meta: "Economy", summary: "Detection does not guarantee immediate XP because caps and anti-abuse checks still apply." },
+            { label: "Project visibility", meta: "Privacy", summary: "Projects should see relevant aggregate or project-scoped posture, not broad wallet intelligence outside their context." },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    slug: "xp-economy-enforcement",
+    title: "XP Economy Enforcement",
+    summary: "The central rule layer that standardizes XP across quests, raids, DeFi, streaks and review flows so projects cannot inflate the economy with easy actions.",
+    entries: [
+      { label: "Standardized XP bands", meta: "Economy base", summary: "Action types receive expected XP ranges so simple tasks, complex proofs and DeFi actions do not compete unfairly." },
+      { label: "Project override caps", meta: "Anti-inflation", summary: "Projects can configure incentives inside allowed bands, but excessive values should be capped or routed to review." },
+      { label: "Action difficulty", meta: "Quest and raid context", summary: "XP should reflect action depth, proof complexity, time cost, risk and whether the action is repeatable." },
+      { label: "DeFi proof gating", meta: "Wallet actions", summary: "DeFi XP requires eligible proof plus anti-abuse checks around velocity, value, duplicate wallets and suspicious patterns." },
+      { label: "Manual review and appeals", meta: "Safety valve", summary: "Suspicious or capped activity can be held for review, explained to the user and appealed through a bounded flow." },
+    ],
+    matrix: {
+      title: "XP enforcement matrix",
+      columns: ["Source", "Normal control", "Review trigger"],
+      rows: [
+        { label: "Simple quests", values: ["Low XP band", "Excessive project value, repeated easy completions, duplicate social proof"] },
+        { label: "Raids", values: ["Moderate XP band with cooldowns", "High velocity, repeated source abuse, suspicious engagement patterns"] },
+        { label: "DeFi actions", values: ["Proof-based XP with value and risk context", "Wash-like flow, duplicate wallets, cap breach, low-value spam"] },
+        { label: "Streaks", values: ["Bonus layer, not primary XP source", "Unnatural cadence, device/session repetition, bot-like timing"] },
+      ],
+    },
+    deepDive: {
+      title: "How XP stays trustworthy",
+      sections: [
+        {
+          title: "Projects get flexibility, not unlimited control",
+          items: [
+            { label: "Allowed ranges", meta: "Design rule", summary: "The portal should let projects choose within safe bands instead of typing any XP number without consequence." },
+            { label: "Caps and review", meta: "Enforcement", summary: "Values outside the safe range should cap, warn or move into review depending on severity." },
+            { label: "Difficulty matters", meta: "Fairness", summary: "A wallet-risk DeFi action and a one-click social task should not be rewarded as if they were equivalent." },
+          ],
+        },
+        {
+          title: "Proof goes through trust checks",
+          items: [
+            { label: "Detection first", meta: "Event state", summary: "The system first records that an action happened or was submitted." },
+            { label: "Eligibility second", meta: "Review state", summary: "The action becomes eligible only after caps, trust and anti-abuse checks pass." },
+            { label: "Claimable last", meta: "Member state", summary: "XP becomes claimable only when the economy layer is satisfied that the action is valid." },
+          ],
+        },
+        {
+          title: "Economy signals remain explainable",
+          items: [
+            { label: "Reason codes", meta: "User copy", summary: "Capped or held XP should explain the reason without exposing raw anti-fraud internals." },
+            { label: "Project summaries", meta: "Portal", summary: "Projects should see why their campaign is being capped or reviewed without seeing unrelated user data." },
+            { label: "Appeals", meta: "Governance", summary: "Manual review and appeals prevent a strict economy from becoming opaque or unfair." },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    slug: "tweet-to-raid-command-flow",
+    title: "Tweet-to-Raid Command Flow",
+    summary: "The exact behavior behind watched X sources, /newraid commands, fallback defaults, dedupe and Telegram/Discord delivery.",
+    entries: [
+      { label: "Autopilot source", meta: "X polling", summary: "A configured X username and hashtag gate can create review-first or auto-live raids from matching posts." },
+      { label: "/newraid", meta: "Manual command", summary: "An authorized Telegram or Discord admin can submit an X URL and create a live raid from project defaults." },
+      { label: "Default campaign", meta: "Required object link", summary: "Live raids must attach to a campaign, so the command flow needs a default campaign when no explicit one is supplied." },
+      { label: "Fallback banner", meta: "Renderable default", summary: "If the X post has no image, the system uses the configured default raid artwork so the raid can render everywhere." },
+      { label: "Dedupe", meta: "Reliability", summary: "A source post should map to one project raid and retries should explain that the post is already linked." },
+    ],
+    matrix: {
+      title: "Command outcome map",
+      columns: ["Input", "System action", "Expected output"],
+      rows: [
+        { label: "/newraid valid X URL", values: ["Create active campaign-linked raid", "Raid appears in portal, webapp and enabled chat channels"] },
+        { label: "Watched X post", values: ["Poll source, apply hashtag/cooldown checks", "Review or auto-live raid depending on project mode"] },
+        { label: "Missing campaign", values: ["Use default campaign or reject with clear copy", "No null campaign_id failure"] },
+        { label: "Missing media", values: ["Use fallback banner", "No null banner failure"] },
+        { label: "Duplicate source", values: ["Return already-linked message", "No duplicate raid object"] },
+      ],
+    },
+    deepDive: {
+      title: "What makes the command production-ready",
+      sections: [
+        {
+          title: "Creation defaults",
+          items: [
+            { label: "Campaign fallback", meta: "Database safety", summary: "Protects the required campaign link for the raids table." },
+            { label: "Banner fallback", meta: "Render safety", summary: "Protects webapp, portal and chat rendering when source media is missing." },
+            { label: "XP and duration defaults", meta: "Product consistency", summary: "Ensures a command-created raid has the same economy posture as a portal-created raid." },
+          ],
+        },
+        {
+          title: "Channel delivery",
+          items: [
+            { label: "Telegram", meta: "Fast access", summary: "Telegram delivery should acknowledge creation and link members into the exact raid." },
+            { label: "Discord", meta: "Richer surface", summary: "Discord can carry richer embeds and community context while pointing back to the same live object." },
+            { label: "Webapp", meta: "Source of truth", summary: "The webapp remains the member completion surface even when chat starts the action." },
+          ],
+        },
+        {
+          title: "Operational guardrails",
+          items: [
+            { label: "Permission gate", meta: "Admin-only", summary: "Only configured admins or operators should be able to create live raids through commands." },
+            { label: "Cooldown and limits", meta: "Cost control", summary: "Autopilot should respect cooldown and max-per-day settings to avoid spam and API waste." },
+            { label: "Traceable origin", meta: "Audit", summary: "Every command-created raid should preserve source URL, source ID and creation origin." },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    slug: "premium-anti-fraud-model",
+    title: "Premium Anti-Fraud Model",
+    summary: "The premium trust layer that combines wallet graph, device/session reputation, velocity, duplicate social detection, suspicious claims, manual review and appeals.",
+    entries: [
+      { label: "Wallet graph", meta: "Identity graph", summary: "Links wallet clusters, funding patterns and repeated activity paths to detect coordinated farming." },
+      { label: "Device/session reputation", meta: "Behavior layer", summary: "Uses session posture, browser/device repetition and login behavior to identify suspicious clusters." },
+      { label: "Velocity checks", meta: "Timing layer", summary: "Flags unnatural action speed, repeated completion cadence and automation-like bursts." },
+      { label: "Duplicate social detection", meta: "Social proof layer", summary: "Prevents the same social identity or suspiciously related accounts from farming across wallets." },
+      { label: "Suspicious claim patterns", meta: "Reward layer", summary: "Detects repeated low-quality claims, reward farming, coordinated accounts and payout-pressure anomalies." },
+      { label: "Manual review and appeal", meta: "Human layer", summary: "Gives the system a bounded path to review or reverse decisions without exposing raw fraud internals." },
+    ],
+    matrix: {
+      title: "Anti-fraud action map",
+      columns: ["Signal family", "Possible outcome", "Who can see it"],
+      rows: [
+        { label: "Wallet graph", values: ["Watch, hold, reject or review", "Internal operators; project sees scoped trust summary where relevant"] },
+        { label: "Device/session reputation", values: ["Watch or manual review", "Internal operators; project sees bounded risk posture only"] },
+        { label: "Velocity checks", values: ["Cooldown, cap or review", "Project and user can see reason-coded outcome where safe"] },
+        { label: "Duplicate social detection", values: ["Reject duplicate proof or hold XP", "Project sees campaign-scoped issue; raw links stay protected"] },
+        { label: "Suspicious claims", values: ["Hold reward, open case, request review", "Trust and payout operators with project-safe summaries"] },
+      ],
+    },
+    deepDive: {
+      title: "What premium means in practice",
+      sections: [
+        {
+          title: "Signals combine, they do not act alone",
+          items: [
+            { label: "Graph plus behavior", meta: "Correlation", summary: "A single weak signal should usually create watch posture, while repeated correlated signals can hold or reject activity." },
+            { label: "Campaign context", meta: "Scope", summary: "The same user can be evaluated inside the relevant project and campaign context instead of exposing a global dossier to every project." },
+            { label: "Reason codes", meta: "Explainability", summary: "Users and projects get safe explanations without revealing the full detection recipe." },
+          ],
+        },
+        {
+          title: "Visibility is bounded",
+          items: [
+            { label: "Project-scoped summaries", meta: "Privacy", summary: "Projects should see users relevant to their project, followers or campaigns, not unrelated platform-wide behavior." },
+            { label: "Internal evidence stays internal", meta: "Safety", summary: "Raw device, graph and fraud evidence should remain operator-only." },
+            { label: "Appeals preserve fairness", meta: "Governance", summary: "A premium system needs a path for legitimate users to recover from false positives." },
+          ],
+        },
+        {
+          title: "Outcomes are graduated",
+          items: [
+            { label: "Watch", meta: "Low pressure", summary: "The account remains active but is watched or capped more carefully." },
+            { label: "Hold", meta: "Medium pressure", summary: "XP or rewards can be held while evidence is reviewed." },
+            { label: "Reject or exclude", meta: "High pressure", summary: "Severe or repeated fraud patterns can exclude the proof, claim or user from the reward path." },
+          ],
+        },
+      ],
+    },
+  },
+  {
     slug: "automation-types",
     title: "Automation Types",
     summary: "The common automation rails used for community execution and follow-through.",
@@ -2025,6 +2296,8 @@ const docsReferenceDatasets: DocsReferenceDataset[] = [
       { label: "Scheduled automations", summary: "Time-driven rails that post, remind or refresh at a planned cadence." },
       { label: "State-driven automations", summary: "Automations that fire because a system posture or workflow state changed." },
       { label: "Recovery automations", summary: "Follow-through rails that attempt retries, refreshes or bounded system recovery." },
+      { label: "Tweet-to-Raid autopilot", summary: "Source-driven automation that polls configured X accounts and creates review-first or auto-live raids from matching posts." },
+      { label: "Daily and weekly activation digests", summary: "Notification automations that summarize raids, quests, rewards and campaign posture for project teams." },
     ],
   },
   {
@@ -2036,6 +2309,7 @@ const docsReferenceDatasets: DocsReferenceDataset[] = [
       { label: "/missions", summary: "Routes a member into their active mission or quest rail." },
       { label: "/leaderboard", summary: "Shows standings and competitive status inside the active community context." },
       { label: "/raid", summary: "Surfaces the current raid context, status or entry posture." },
+      { label: "/newraid", summary: "Lets an authorized project admin create a live raid from an X post URL using the project's command defaults." },
       { label: "/captain", summary: "Project-safe command rail for captain follow-through and assigned responsibilities." },
     ],
     matrix: {
@@ -2046,6 +2320,7 @@ const docsReferenceDatasets: DocsReferenceDataset[] = [
         { label: "/missions", values: ["Member", "Active mission route", "Quest and campaign structure"], summary: "Routes members toward the next best mission action." },
         { label: "/leaderboard", values: ["Member or community", "Competitive standing", "Community OS and recognition"], summary: "Surfaces relative status inside the live community context." },
         { label: "/raid", values: ["Member or operator", "Current raid posture", "Raid execution"], summary: "Explains the activation context around an active raid moment." },
+        { label: "/newraid", values: ["Project admin", "Live raid creation from X URL", "Tweet-to-Raid and campaign defaults"], summary: "Creates a live campaign-linked raid when the project has enabled the command surface." },
         { label: "/captain", values: ["Captain", "Assigned work and controls", "Community operations"], summary: "Supports bounded captain execution rather than deep operator control." },
       ],
     },

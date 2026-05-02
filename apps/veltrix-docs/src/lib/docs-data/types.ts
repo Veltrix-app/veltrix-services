@@ -33,6 +33,11 @@ export type DocsReferenceSlug =
   | "payout-risk-and-resolution-model"
   | "onchain-case-types"
   | "onchain-signal-and-recovery-model"
+  | "defi-product-model"
+  | "defi-provider-integrations"
+  | "xp-economy-enforcement"
+  | "tweet-to-raid-command-flow"
+  | "premium-anti-fraud-model"
   | "automation-types"
   | "bot-commands"
   | "status-labels";
@@ -57,7 +62,12 @@ export type DocsStateExplorerSlug =
   | "payout-flow"
   | "payout-risk"
   | "onchain-flow"
-  | "onchain-signals";
+  | "onchain-signals"
+  | "defi-product-flow"
+  | "provider-integration-flow"
+  | "xp-economy-flow"
+  | "tweet-to-raid-flow"
+  | "premium-anti-fraud-flow";
 
 export type DocsSnapshotStat = {
   label: string;

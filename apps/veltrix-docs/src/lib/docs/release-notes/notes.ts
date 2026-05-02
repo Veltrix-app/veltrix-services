@@ -34,6 +34,25 @@ export const docsReleaseNotes: DocsReleaseNote[] = [
     ],
     relatedHrefs: ["/operator-docs", "/project-docs", "/reference", "/release-notes"],
   },
+  {
+    slug: "defi-automation-economy",
+    title: "DeFi, automation and economy expansion",
+    dateLabel: "May 2026",
+    summary:
+      "The docs now cover the newer VYNTRO product layers: DeFi routes, provider integrations, Tweet-to-Raid command creation, XP economy enforcement and premium anti-fraud posture.",
+    highlights: [
+      "Project Docs now include DeFi Products and Tweet-to-Raid as first-class operating surfaces instead of hidden implementation notes.",
+      "Reference now defines provider boundaries for 0x, Uniswap and Moonwell, plus the exact XP enforcement model behind quests, raids and DeFi proof.",
+      "Premium anti-fraud documentation now explains wallet graph, device/session reputation, velocity, duplicate social detection, claim patterns and appeal posture.",
+    ],
+    relatedHrefs: [
+      "/project-docs/defi-products",
+      "/project-docs/tweet-to-raid",
+      "/reference/defi-product-model",
+      "/reference/xp-economy-enforcement",
+      "/reference/premium-anti-fraud-model",
+    ],
+  },
 ];
 
 export function listDocsReleaseNotes() {

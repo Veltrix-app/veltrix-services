@@ -677,6 +677,176 @@ const docsStateExplorerDatasets: DocsStateExplorerDataset[] = [
       },
     ],
   },
+  {
+    slug: "defi-product-flow",
+    title: "DeFi product flow",
+    summary: "DeFi actions move from route discovery into wallet signing, proof detection, economy review and portfolio posture.",
+    states: [
+      {
+        label: "Route discovery",
+        summary: "The user chooses swap, vaults, borrow/lending or trading from the DeFi hub.",
+        bullets: [
+          "The product should explain intent before opening transaction depth.",
+          "Provider context stays visible without dominating the page.",
+          "Risk copy becomes stronger as the product moves into borrow or competition actions.",
+        ],
+      },
+      {
+        label: "Wallet execution",
+        summary: "The user signs the actual on-chain action directly with their own wallet.",
+        bullets: [
+          "VYNTRO does not custody assets.",
+          "Approvals, quotes, collateral and repay obligations should be clear before signing.",
+          "Provider or RPC errors should read as route issues, not completed transactions.",
+        ],
+      },
+      {
+        label: "Proof and portfolio",
+        summary: "After execution, VYNTRO detects eligible activity and updates portfolio, activity and XP review posture.",
+        bullets: [
+          "Detection does not guarantee immediate XP.",
+          "Anti-abuse gates can cap, hold or reject suspicious proof.",
+          "The portfolio dashboard should show the next safe action rather than only raw balances.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "provider-integration-flow",
+    title: "Provider integration flow",
+    summary: "Provider APIs and RPCs supply execution data while VYNTRO supplies UX, education, proof tracking and safety posture.",
+    states: [
+      {
+        label: "Provider configured",
+        summary: "0x, Uniswap, Moonwell and Base RPC keys are configured for the production route where needed.",
+        bullets: [
+          "API keys unlock quote or market data where providers require them.",
+          "RPC URLs support balance, position and transaction confirmation reads.",
+          "Missing keys should produce explicit setup or route unavailable copy.",
+        ],
+      },
+      {
+        label: "User signs action",
+        summary: "The provider returns route data or protocol context, but the user wallet performs the final action.",
+        bullets: [
+          "The UI can be VYNTRO-native while the route remains provider-backed.",
+          "Execution failures should stay recoverable and explainable.",
+          "Provider names remain visible in docs and risk posture.",
+        ],
+      },
+      {
+        label: "VYNTRO records posture",
+        summary: "The platform records activity, proof eligibility and review state after the wallet action settles.",
+        bullets: [
+          "The product records posture, not custody.",
+          "XP and trust checks still run after detection.",
+          "Project visibility remains scoped to relevant project and campaign context.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "xp-economy-flow",
+    title: "XP economy flow",
+    summary: "XP moves from detected action to eligible proof to claimable outcome through caps, standards and anti-abuse checks.",
+    states: [
+      {
+        label: "Action detected",
+        summary: "A quest, raid, DeFi action, streak or social proof reaches the economy layer.",
+        bullets: [
+          "Detection can come from the webapp, bot, provider callback or chain event.",
+          "The action type determines the expected XP band.",
+          "Project-configured values are compared against safe limits.",
+        ],
+      },
+      {
+        label: "Eligibility reviewed",
+        summary: "The system applies caps, velocity checks, trust posture and duplicate proof detection.",
+        bullets: [
+          "Easy actions cannot earn inflated XP simply because a project typed a high value.",
+          "Suspicious patterns can hold or reject XP before it becomes claimable.",
+          "Reason codes should explain safe outcomes without revealing the fraud recipe.",
+        ],
+      },
+      {
+        label: "XP becomes claimable",
+        summary: "Eligible activity moves into the member economy once enforcement gates are satisfied.",
+        bullets: [
+          "Claimable status is the final state, not the first state.",
+          "Manual review and appeals can change the outcome when needed.",
+          "Projects see campaign-scoped summaries rather than unrelated platform-wide user intelligence.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "tweet-to-raid-flow",
+    title: "Tweet-to-Raid flow",
+    summary: "X sources and /newraid commands become live campaign-linked raids through defaults, dedupe and delivery checks.",
+    states: [
+      {
+        label: "Project enables the surface",
+        summary: "The owner turns on command or autopilot behavior and supplies defaults.",
+        bullets: [
+          "Default campaign, XP, duration and banner protect command-created raids from broken state.",
+          "Telegram and Discord toggles decide where commands and delivery are active.",
+          "Review-first mode is the safer starting posture for new X sources.",
+        ],
+      },
+      {
+        label: "Source post enters",
+        summary: "A watched X post or /newraid URL enters the creation pipeline.",
+        bullets: [
+          "The source is checked against username, hashtag, repost, reply, cooldown and dedupe rules.",
+          "Manual commands require authorized project admins or operators.",
+          "The same source post should only create one raid for a project.",
+        ],
+      },
+      {
+        label: "Raid goes live",
+        summary: "The runtime creates a campaign-linked active raid and posts it to the configured surfaces.",
+        bullets: [
+          "The raid should appear in portal and webapp, not only in chat.",
+          "Telegram and Discord delivery should link back to the exact raid.",
+          "Completion and XP follow the normal raid economy rules.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "premium-anti-fraud-flow",
+    title: "Premium anti-fraud flow",
+    summary: "Signals from wallet graph, sessions, socials, velocity and claims combine into graduated outcomes and bounded visibility.",
+    states: [
+      {
+        label: "Signals collect",
+        summary: "The system watches graph, device/session, timing, social and claim behavior in the relevant project context.",
+        bullets: [
+          "Signals are stronger when several families correlate.",
+          "A weak single signal should usually watch rather than exclude.",
+          "Raw evidence stays internal and project summaries remain scoped.",
+        ],
+      },
+      {
+        label: "Outcome is selected",
+        summary: "The account or proof can be watched, capped, held, rejected or moved to manual review.",
+        bullets: [
+          "Velocity checks can throttle or cap activity.",
+          "Duplicate social or suspicious claim patterns can hold rewards or XP.",
+          "Severe repeated patterns can exclude proof or users from a reward path.",
+        ],
+      },
+      {
+        label: "Review and appeal",
+        summary: "Operators can review suspicious posture and users can appeal where the product supports it.",
+        bullets: [
+          "Manual review prevents false positives from becoming permanent unfairness.",
+          "Reason codes explain outcomes without exposing the full detection model.",
+          "Project-visible trust summaries should only include users relevant to that project.",
+        ],
+      },
+    ],
+  },
 ];
 
 export function listDocsStateExplorerDatasets() {
