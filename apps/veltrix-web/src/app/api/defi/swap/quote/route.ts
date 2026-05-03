@@ -3,6 +3,7 @@ import {
   fetchUniswapQuote,
   fetchZeroXQuote,
 } from "@/lib/defi/swap-providers";
+import { loadProjectSwapTokenRegistry } from "@/lib/defi/project-token-registry";
 import {
   buildSwapQuoteRequest,
   chooseRecommendedSwapQuote,
@@ -43,12 +44,14 @@ function createProviderError(
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json().catch(() => null)) as SwapQuoteBody | null;
+    const projectTokens = await loadProjectSwapTokenRegistry().catch(() => []);
     const quoteRequest = buildSwapQuoteRequest({
       wallet: body?.wallet,
       sellTokenSymbol: body?.sellTokenSymbol ?? "",
       buyTokenSymbol: body?.buyTokenSymbol ?? "",
       sellAmount: body?.sellAmount ?? "",
       slippageBps: body?.slippageBps ?? 50,
+      projectTokens,
     });
 
     if (!quoteRequest.ok) {

@@ -4,16 +4,33 @@ import assert from "node:assert/strict";
 import {
   BASE_SWAP_TOKENS,
   VYNTRO_SWAP_CHAIN_ID,
+  buildProjectSwapTokenRegistryFromAssets,
+  buildProjectSwapTokens,
   buildSwapQuoteRequest,
   chooseRecommendedSwapQuote,
   classifySwapQuoteSafety,
   formatSwapTokenAmount,
+  getAllSwapTokens,
   getProviderTokenAddress,
   getSwapTokenByAddress,
   getSwapTokenBySymbol,
   normalizeSwapConfig,
   parseSwapAmount,
+  type ProjectSwapTokenRegistryEntry,
 } from "./vyntro-swap";
+
+const projectTokenRegistry: ProjectSwapTokenRegistryEntry[] = [
+  {
+    projectId: "project-1",
+    symbol: "VYN",
+    label: "VYNTRO Labs Token",
+    address: "0x1111111111111111111111111111111111111111",
+    decimals: 18,
+    chainId: VYNTRO_SWAP_CHAIN_ID,
+    accent: "violet",
+    priceId: "dexscreener:base:0x1111111111111111111111111111111111111111",
+  },
+];
 
 test("base swap token list includes the launch assets used by VYNTRO DeFi", () => {
   assert.equal(VYNTRO_SWAP_CHAIN_ID, 8453);
@@ -23,6 +40,148 @@ test("base swap token list includes the launch assets used by VYNTRO DeFi", () =
   );
   assert.equal(getSwapTokenBySymbol("usdc")?.address, "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913");
   assert.equal(getSwapTokenByAddress("native")?.symbol, "ETH");
+});
+
+test("project swap token registry adds valid Base project tokens beside launch assets", () => {
+  const projectTokens = buildProjectSwapTokens(projectTokenRegistry);
+
+  assert.equal(projectTokens.length, 1);
+  assert.equal(projectTokens[0].symbol, "VYN");
+  assert.equal(projectTokens[0].source, "project");
+  assert.equal(projectTokens[0].projectId, "project-1");
+  assert.equal(projectTokens[0].priceId, "dexscreener:base:0x1111111111111111111111111111111111111111");
+
+  assert.equal(
+    getSwapTokenByAddress("0x1111111111111111111111111111111111111111", {
+      projectTokens: projectTokenRegistry,
+    })?.symbol,
+    "VYN"
+  );
+  assert.equal(
+    getSwapTokenBySymbol("vyn", {
+      projectTokens: projectTokenRegistry,
+    })?.address,
+    "0x1111111111111111111111111111111111111111"
+  );
+  assert.deepEqual(
+    getAllSwapTokens({ projectTokens: projectTokenRegistry }).map((token) => token.symbol),
+    ["ETH", "USDC", "EURC", "cbBTC", "WELL", "VYN"]
+  );
+});
+
+test("project asset rows can feed the project swap token registry", () => {
+  const registry = buildProjectSwapTokenRegistryFromAssets([
+    {
+      id: "asset-1",
+      project_id: "project-1",
+      chain: "base",
+      contract_address: "0x1111111111111111111111111111111111111111",
+      asset_type: "token",
+      symbol: "vyn",
+      decimals: 18,
+      is_active: true,
+      metadata: {
+        label: "VYNTRO Utility Token",
+        accent: "blue",
+        swapEnabled: true,
+        priceId: "dexscreener:base:0x1111111111111111111111111111111111111111",
+      },
+      project: {
+        id: "project-1",
+        name: "VYNTRO Labs",
+        status: "active",
+        is_public: true,
+        token_contract_address: "0x1111111111111111111111111111111111111111",
+      },
+    },
+  ]);
+
+  assert.equal(registry.length, 1);
+  assert.equal(registry[0].projectId, "project-1");
+  assert.equal(registry[0].symbol, "VYN");
+  assert.equal(registry[0].label, "VYNTRO Utility Token");
+  assert.equal(registry[0].chainId, VYNTRO_SWAP_CHAIN_ID);
+  assert.equal(registry[0].chain, "base");
+  assert.equal(registry[0].address, "0x1111111111111111111111111111111111111111");
+  assert.equal(registry[0].accent, "blue");
+});
+
+test("project asset registry builder rejects inactive, private or non-token rows", () => {
+  assert.deepEqual(
+    buildProjectSwapTokenRegistryFromAssets([
+      {
+        id: "asset-inactive",
+        project_id: "project-1",
+        chain: "base",
+        contract_address: "0x1111111111111111111111111111111111111111",
+        asset_type: "token",
+        symbol: "VYN",
+        decimals: 18,
+        is_active: false,
+        metadata: {},
+        project: { id: "project-1", name: "VYNTRO Labs", status: "active", is_public: true },
+      },
+      {
+        id: "asset-nft",
+        project_id: "project-1",
+        chain: "base",
+        contract_address: "0x2222222222222222222222222222222222222222",
+        asset_type: "nft",
+        symbol: "VYN",
+        decimals: 18,
+        is_active: true,
+        metadata: {},
+        project: { id: "project-1", name: "VYNTRO Labs", status: "active", is_public: true },
+      },
+      {
+        id: "asset-private",
+        project_id: "project-1",
+        chain: "base",
+        contract_address: "0x3333333333333333333333333333333333333333",
+        asset_type: "token",
+        symbol: "VYN",
+        decimals: 18,
+        is_active: true,
+        metadata: {},
+        project: { id: "project-1", name: "VYNTRO Labs", status: "active", is_public: false },
+      },
+      {
+        id: "asset-disabled",
+        project_id: "project-1",
+        chain: "base",
+        contract_address: "0x4444444444444444444444444444444444444444",
+        asset_type: "token",
+        symbol: "VYN",
+        decimals: 18,
+        is_active: true,
+        metadata: { swapEnabled: false },
+        project: { id: "project-1", name: "VYNTRO Labs", status: "active", is_public: true },
+      },
+    ]),
+    []
+  );
+});
+
+test("project swap token registry ignores unsafe project token entries", () => {
+  assert.deepEqual(
+    buildProjectSwapTokens([
+      {
+        ...projectTokenRegistry[0],
+        address: "not-an-address",
+      },
+      {
+        ...projectTokenRegistry[0],
+        address: "0x2222222222222222222222222222222222222222",
+        chainId: 1,
+      },
+      {
+        ...projectTokenRegistry[0],
+        address: "0x3333333333333333333333333333333333333333",
+        decimals: -1,
+      },
+    ]),
+    []
+  );
 });
 
 test("provider token address normalizes native token conventions", () => {
@@ -92,6 +251,24 @@ test("swap quote request validates wallet, tokens, amount and slippage", () => {
     }).ok,
     false
   );
+});
+
+test("swap quote request can target a registered project token", () => {
+  const request = buildSwapQuoteRequest({
+    wallet: "0x1234567890abcdef1234567890abcdef12345678",
+    sellTokenSymbol: "USDC",
+    buyTokenSymbol: "VYN",
+    sellAmount: "25.5",
+    slippageBps: 50,
+    projectTokens: projectTokenRegistry,
+  });
+
+  assert.equal(request.ok, true);
+  if (request.ok) {
+    assert.equal(request.buyToken.symbol, "VYN");
+    assert.equal(request.buyToken.source, "project");
+    assert.equal(request.buyToken.projectId, "project-1");
+  }
 });
 
 test("swap config defaults to fee-off and clamps unsafe fee bps", () => {

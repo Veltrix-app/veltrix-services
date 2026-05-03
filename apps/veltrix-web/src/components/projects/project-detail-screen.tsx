@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useParams } from "next/navigation";
 import {
@@ -19,9 +19,21 @@ import { StatusChip } from "@/components/ui/status-chip";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 import {
   buildProjectShowcase,
+  type ProjectShowcaseContractScanEnrichment,
+  type ProjectShowcasePremiumModule,
+  type ProjectShowcaseScanSeverity,
   type ProjectShowcaseModule,
   type ProjectShowcaseStatus,
 } from "@/lib/projects/project-showcase";
+import type { ProjectSwapTokenRegistryEntry } from "@/lib/defi/vyntro-swap";
+import type { ProjectTokenPriceSnapshot } from "@/lib/defi/vyntro-prices";
+
+type ProjectShowcaseMarketPayload = {
+  ok?: boolean;
+  projectSwapTokens?: ProjectSwapTokenRegistryEntry[];
+  tokenPrice?: ProjectTokenPriceSnapshot | null;
+  contractScanEnrichment?: ProjectShowcaseContractScanEnrichment | null;
+};
 
 function getStatusTone(status: ProjectShowcaseStatus) {
   if (status === "live") return "positive" as const;
@@ -33,6 +45,32 @@ function getStatusLabel(status: ProjectShowcaseStatus) {
   if (status === "live") return "Live";
   if (status === "ready") return "Ready";
   return "Setup";
+}
+
+function getScanSeverityTone(severity: ProjectShowcaseScanSeverity) {
+  if (severity === "positive") return "positive" as const;
+  if (severity === "info") return "info" as const;
+  return "warning" as const;
+}
+
+function getScanSeverityLabel(severity: ProjectShowcaseScanSeverity) {
+  if (severity === "positive") return "Pass";
+  if (severity === "info") return "Info";
+  if (severity === "danger") return "Risk";
+  return "Watch";
+}
+
+function getScanRiskTone(riskLevel: string) {
+  if (riskLevel === "low") return "positive" as const;
+  if (riskLevel === "medium") return "info" as const;
+  return "warning" as const;
+}
+
+function getScanRiskLabel(riskLevel: string) {
+  if (riskLevel === "low") return "Low risk";
+  if (riskLevel === "medium") return "Medium risk";
+  if (riskLevel === "high") return "High risk";
+  return "Unknown";
 }
 
 export function ProjectDetailScreen() {
@@ -50,8 +88,35 @@ export function ProjectDetailScreen() {
   } = useLiveUserData({
     datasets: ["projects", "campaigns", "quests", "rewards", "raids", "projectReputation"],
   });
+  const [marketPayload, setMarketPayload] = useState<ProjectShowcaseMarketPayload | null>(null);
 
   const project = projects.find((item) => item.id === projectId);
+  useEffect(() => {
+    if (!project?.id) {
+      setMarketPayload(null);
+      return;
+    }
+
+    const currentProjectId = project.id;
+    let cancelled = false;
+
+    async function loadMarketPayload() {
+      const response = await fetch(`/api/projects/${encodeURIComponent(currentProjectId)}/showcase-market`);
+      const payload = (await response.json().catch(() => null)) as ProjectShowcaseMarketPayload | null;
+
+      if (!cancelled && response.ok && payload?.ok) {
+        setMarketPayload(payload);
+      }
+    }
+
+    setMarketPayload(null);
+    void loadMarketPayload().catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [project?.id]);
+
   const showcase = useMemo(() => {
     if (!project) return null;
 
@@ -61,8 +126,11 @@ export function ProjectDetailScreen() {
       quests,
       rewards,
       raids,
+      projectSwapTokens: marketPayload?.projectSwapTokens,
+      tokenPrice: marketPayload?.tokenPrice,
+      contractScanEnrichment: marketPayload?.contractScanEnrichment,
     });
-  }, [campaigns, project, quests, raids, rewards]);
+  }, [campaigns, marketPayload, project, quests, raids, rewards]);
   const reputation = projectReputation.find((item) => item.projectId === projectId);
 
   if (loading) return <Notice tone="default" text="Loading project..." />;
@@ -175,6 +243,12 @@ export function ProjectDetailScreen() {
         ))}
       </section>
 
+      <section className="grid gap-3 xl:grid-cols-4">
+        {showcase.premiumModules.map((module) => (
+          <PremiumModuleCard key={module.key} module={module} />
+        ))}
+      </section>
+
       <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
         <Surface
           eyebrow="Showcase modules"
@@ -211,6 +285,21 @@ export function ProjectDetailScreen() {
               value={showcase.token.knownSwapToken ? "Launch route ready" : "Route registry needed"}
               href={showcase.token.swapHref}
             />
+            <InfoTile
+              icon={<Coins className="h-4 w-4" />}
+              label="Price"
+              value={showcase.token.price?.formattedPrice ?? "Price pending"}
+              href={showcase.token.price?.pairUrl}
+            />
+            <InfoTile
+              icon={<ShieldCheck className="h-4 w-4" />}
+              label="24h"
+              value={
+                typeof showcase.token.price?.priceChange24hPercent === "number"
+                  ? `${showcase.token.price.priceChange24hPercent > 0 ? "+" : ""}${showcase.token.price.priceChange24hPercent.toFixed(2)}%`
+                  : "Pending"
+              }
+            />
           </div>
         </Surface>
       </section>
@@ -221,9 +310,53 @@ export function ProjectDetailScreen() {
         <Surface
           eyebrow="AI security scan"
           title="Transparent safety read before users engage"
-          description="This is the first public scan layer. Later we can connect explorer source, ABI reads and deeper AI findings."
+          description="A deterministic public scan layer that weighs contract, registry, market and wallet signals before deeper ABI reads."
         >
-          <div className="grid gap-3">
+          <div className="space-y-3">
+            <div className="rounded-[24px] border border-lime-300/10 bg-lime-300/[0.035] p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-lime-300">
+                    AI contract scan
+                  </p>
+                  <p className="mt-3 text-4xl font-black tracking-[-0.06em] text-white">
+                    {showcase.contractScan.score}%
+                  </p>
+                </div>
+                <StatusChip
+                  label={getScanRiskLabel(showcase.contractScan.riskLevel)}
+                  tone={getScanRiskTone(showcase.contractScan.riskLevel)}
+                />
+              </div>
+              <p className="mt-3 text-[13px] leading-6 text-slate-300">
+                {showcase.contractScan.summary}
+              </p>
+              <p className="mt-3 rounded-[18px] border border-white/6 bg-black/24 px-3 py-2 text-[12px] font-semibold leading-5 text-slate-300">
+                {showcase.contractScan.nextAction}
+              </p>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              {showcase.contractScan.findings.map((finding) => (
+                <div
+                  key={`${finding.label}-${finding.evidence}`}
+                  className="rounded-[20px] border border-white/6 bg-black/20 p-4"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-sm font-black text-white">{finding.label}</p>
+                    <StatusChip
+                      label={getScanSeverityLabel(finding.severity)}
+                      tone={getScanSeverityTone(finding.severity)}
+                    />
+                  </div>
+                  <p className="mt-2 text-[13px] leading-6 text-slate-400">{finding.detail}</p>
+                  <p className="mt-3 break-words text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                    {finding.evidence}
+                  </p>
+                </div>
+              ))}
+            </div>
+
             {showcase.checks.map((check) => (
               <div
                 key={check.label}
@@ -334,6 +467,56 @@ function ModuleCard({ module }: { module: ProjectShowcaseModule }) {
   }
 
   return <Link href={module.href}>{content}</Link>;
+}
+
+function PremiumModuleCard({ module }: { module: ProjectShowcasePremiumModule }) {
+  const body = (
+    <div className="group flex h-full flex-col rounded-[24px] border border-white/6 bg-white/[0.03] p-4 transition hover:border-cyan-300/18 hover:bg-white/[0.045]">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-200">
+            {module.eyebrow}
+          </p>
+          <h2 className="mt-3 text-lg font-black tracking-[-0.04em] text-white">{module.title}</h2>
+        </div>
+        <StatusChip label={getStatusLabel(module.status)} tone={getStatusTone(module.status)} />
+      </div>
+      <p className="mt-3 text-[13px] leading-6 text-slate-400">{module.description}</p>
+      <div className="mt-4 grid grid-cols-2 gap-3 border-y border-white/6 py-3">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Signal</p>
+          <p className="mt-1 text-lg font-black text-white">{module.primaryMetric}</p>
+        </div>
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Posture</p>
+          <p className="mt-1 text-lg font-black text-white">{module.secondaryMetric}</p>
+        </div>
+      </div>
+      <div className="mt-4 space-y-2">
+        {module.highlights.map((highlight) => (
+          <p
+            key={highlight}
+            className="rounded-[16px] border border-white/6 bg-black/20 px-3 py-2 text-[12px] font-semibold leading-5 text-slate-300"
+          >
+            {highlight}
+          </p>
+        ))}
+      </div>
+      <span className="mt-auto inline-flex pt-4 text-[11px] font-black uppercase tracking-[0.14em] text-lime-300">
+        {module.ctaLabel}
+      </span>
+    </div>
+  );
+
+  if (module.href.startsWith("http")) {
+    return (
+      <a href={module.href} target="_blank" rel="noreferrer">
+        {body}
+      </a>
+    );
+  }
+
+  return <Link href={module.href}>{body}</Link>;
 }
 
 function ActivationColumn({

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   ArrowDownUp,
@@ -12,13 +12,15 @@ import { DefiSafetyPanel } from "@/components/defi/defi-safety-panel";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useVyntroSwap } from "@/hooks/use-vyntro-swap";
 import {
-  BASE_SWAP_TOKENS,
   formatSwapTokenAmount,
   getQuoteExpiryLabel,
+  getAllSwapTokens,
   getSwapTokenByAddress,
   type SwapToken,
 } from "@/lib/defi/vyntro-swap";
 import { DefiRouteNav } from "@/components/defi/defi-route-nav";
+
+const DEFAULT_SWAP_TOKENS = getAllSwapTokens();
 
 const accentStyles: Record<SwapToken["accent"], string> = {
   cyan: "border-cyan-300/14 bg-cyan-300/10 text-cyan-100",
@@ -28,20 +30,35 @@ const accentStyles: Record<SwapToken["accent"], string> = {
   blue: "border-blue-300/14 bg-blue-300/10 text-blue-100",
 };
 
-function getToken(symbol: string) {
-  return BASE_SWAP_TOKENS.find((token) => token.symbol === symbol) ?? BASE_SWAP_TOKENS[0];
+function getToken(symbol: string, tokens: SwapToken[]) {
+  return tokens.find((token) => token.symbol === symbol) ?? tokens[0] ?? DEFAULT_SWAP_TOKENS[0];
 }
 
-function resolveInitialTokenSymbol(value: string | null, fallback: string) {
+function getTokenByAddressFromList(address: string | null, tokens: SwapToken[]) {
+  const normalized = (address ?? "").trim().toLowerCase();
+  if (!normalized) return null;
+
+  if (normalized === "native") {
+    return tokens.find((token) => token.symbol === "ETH") ?? null;
+  }
+
+  return (
+    tokens.find(
+      (token) => token.address !== "native" && token.address.toLowerCase() === normalized
+    ) ?? null
+  );
+}
+
+function resolveInitialTokenSymbol(value: string | null, fallback: string, tokens: SwapToken[]) {
   if (!value) return fallback;
 
-  const bySymbol = BASE_SWAP_TOKENS.find(
+  const bySymbol = tokens.find(
     (token) => token.symbol.toLowerCase() === value.trim().toLowerCase()
   );
 
   if (bySymbol) return bySymbol.symbol;
 
-  return getSwapTokenByAddress(value)?.symbol ?? fallback;
+  return getTokenByAddressFromList(value, tokens)?.symbol ?? getSwapTokenByAddress(value)?.symbol ?? fallback;
 }
 
 function formatBps(value: number | null | undefined) {
@@ -53,14 +70,16 @@ export function SwapScreen() {
   const searchParams = useSearchParams();
   const { session, profile } = useAuth();
   const projectTokenAddress = searchParams.get("projectToken");
+  const initialBuyValue = searchParams.get("buy") ?? projectTokenAddress;
+  const [swapTokens, setSwapTokens] = useState(DEFAULT_SWAP_TOKENS);
   const unsupportedProjectToken = Boolean(
-    projectTokenAddress && !getSwapTokenByAddress(projectTokenAddress)
+    projectTokenAddress && !getTokenByAddressFromList(projectTokenAddress, swapTokens)
   );
   const [sellTokenSymbol, setSellTokenSymbol] = useState(() =>
-    resolveInitialTokenSymbol(searchParams.get("sell"), "USDC")
+    resolveInitialTokenSymbol(searchParams.get("sell"), "USDC", DEFAULT_SWAP_TOKENS)
   );
   const [buyTokenSymbol, setBuyTokenSymbol] = useState(() =>
-    resolveInitialTokenSymbol(searchParams.get("buy") ?? projectTokenAddress, "ETH")
+    resolveInitialTokenSymbol(initialBuyValue, "ETH", DEFAULT_SWAP_TOKENS)
   );
   const [sellAmount, setSellAmount] = useState("");
   const [slippageBps, setSlippageBps] = useState(50);
@@ -69,8 +88,41 @@ export function SwapScreen() {
     wallet: profile?.wallet,
   });
   const walletReady = Boolean(profile?.wallet);
-  const sellToken = getToken(sellTokenSymbol);
-  const buyToken = getToken(buyTokenSymbol);
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadTokens() {
+      const response = await fetch("/api/defi/swap/tokens");
+      const payload = (await response.json().catch(() => null)) as
+        | {
+            ok?: boolean;
+            tokens?: SwapToken[];
+          }
+        | null;
+
+      if (cancelled || !response.ok || !Array.isArray(payload?.tokens)) return;
+
+      setSwapTokens(payload.tokens);
+
+      const nextBuySymbol = resolveInitialTokenSymbol(
+        initialBuyValue,
+        buyTokenSymbol,
+        payload.tokens
+      );
+      if (nextBuySymbol !== buyTokenSymbol) {
+        setBuyTokenSymbol(nextBuySymbol);
+      }
+    }
+
+    void loadTokens().catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [buyTokenSymbol, initialBuyValue]);
+
+  const sellToken = getToken(sellTokenSymbol, swapTokens);
+  const buyToken = getToken(buyTokenSymbol, swapTokens);
   const recommended = swap.quotePayload?.recommended ?? null;
   const quotedBuyAmount = recommended
     ? formatSwapTokenAmount(recommended.buyAmountRaw, buyToken.decimals, buyToken.symbol)
@@ -145,6 +197,7 @@ export function SwapScreen() {
               onAmountChange={setSellAmount}
               onTokenChange={setSellTokenSymbol}
               token={sellToken}
+              tokens={swapTokens}
             />
             <button
               type="button"
@@ -159,6 +212,7 @@ export function SwapScreen() {
               onTokenChange={setBuyTokenSymbol}
               readOnly
               token={buyToken}
+              tokens={swapTokens}
             />
           </div>
 
@@ -272,6 +326,7 @@ function SwapTokenField({
   onTokenChange,
   readOnly,
   token,
+  tokens,
 }: {
   amount: string;
   label: string;
@@ -279,6 +334,7 @@ function SwapTokenField({
   onTokenChange: (value: string) => void;
   readOnly?: boolean;
   token: SwapToken;
+  tokens: SwapToken[];
 }) {
   return (
     <label className="rounded-[26px] border border-white/6 bg-black/25 p-4">
@@ -298,7 +354,7 @@ function SwapTokenField({
           onChange={(event) => onTokenChange(event.target.value)}
           className="rounded-full border border-white/8 bg-[#080a0e] px-3 py-2 text-xs font-bold text-white outline-none"
         >
-          {BASE_SWAP_TOKENS.map((item) => (
+          {tokens.map((item) => (
             <option key={item.symbol} value={item.symbol}>
               {item.symbol}
             </option>

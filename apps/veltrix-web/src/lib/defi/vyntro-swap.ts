@@ -15,6 +15,45 @@ export type SwapToken = {
   decimals: number;
   chainId: typeof VYNTRO_SWAP_CHAIN_ID;
   accent: "cyan" | "lime" | "amber" | "violet" | "blue";
+  source?: "base" | "project";
+  projectId?: string;
+  priceId?: string | null;
+};
+
+export type ProjectSwapTokenRegistryEntry = {
+  projectId: string;
+  symbol: string;
+  label: string;
+  address: string;
+  decimals: number;
+  chainId?: number | null;
+  chain?: string | null;
+  accent?: SwapToken["accent"] | null;
+  priceId?: string | null;
+  enabled?: boolean | null;
+};
+
+export type ProjectSwapTokenAssetRegistryRow = {
+  id?: string | null;
+  project_id?: string | null;
+  chain?: string | null;
+  contract_address?: string | null;
+  asset_type?: string | null;
+  symbol?: string | null;
+  decimals?: number | null;
+  is_active?: boolean | null;
+  metadata?: Record<string, unknown> | null;
+  project?: {
+    id?: string | null;
+    name?: string | null;
+    status?: string | null;
+    is_public?: boolean | null;
+    token_contract_address?: string | null;
+  } | null;
+};
+
+type SwapTokenRegistryOptions = {
+  projectTokens?: ProjectSwapTokenRegistryEntry[];
 };
 
 export type SwapAmountParseResult =
@@ -126,6 +165,8 @@ export const BASE_SWAP_TOKENS: SwapToken[] = [
   },
 ];
 
+export const PROJECT_SWAP_TOKEN_REGISTRY: ProjectSwapTokenRegistryEntry[] = [];
+
 export function isEvmAddress(value: string | null | undefined): value is `0x${string}` {
   return typeof value === "string" && isAddress(value);
 }
@@ -134,15 +175,207 @@ export function normalizeAddress(value: string) {
   return value.trim().toLowerCase() as `0x${string}`;
 }
 
-export function getSwapTokenBySymbol(symbol: string | null | undefined) {
+function normalizeTokenSymbol(value: string | null | undefined) {
+  return (value ?? "").trim().toUpperCase();
+}
+
+function cleanString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function isTokenAccent(value: unknown): value is SwapToken["accent"] {
   return (
-    BASE_SWAP_TOKENS.find(
+    value === "cyan" ||
+    value === "lime" ||
+    value === "amber" ||
+    value === "violet" ||
+    value === "blue"
+  );
+}
+
+function metadataString(metadata: Record<string, unknown> | null | undefined, key: string) {
+  return cleanString(metadata?.[key]);
+}
+
+function metadataFlag(metadata: Record<string, unknown> | null | undefined, key: string) {
+  const value = metadata?.[key];
+  return typeof value === "boolean" ? value : null;
+}
+
+function getProjectTokenChainId(entry: ProjectSwapTokenRegistryEntry) {
+  if (typeof entry.chainId === "number") return entry.chainId;
+
+  const chain = (entry.chain ?? "").trim().toLowerCase();
+  if (chain.includes("base")) return VYNTRO_SWAP_CHAIN_ID;
+
+  return null;
+}
+
+function getProjectAssetChainId(entry: ProjectSwapTokenAssetRegistryRow) {
+  const chain = cleanString(entry.chain).toLowerCase();
+
+  if (chain === String(VYNTRO_SWAP_CHAIN_ID) || chain.includes("base")) {
+    return VYNTRO_SWAP_CHAIN_ID;
+  }
+
+  return null;
+}
+
+function isProjectTokenAssetType(value: string | null | undefined) {
+  const normalized = (value ?? "").trim().toLowerCase();
+
+  return (
+    normalized === "token" ||
+    normalized === "erc20" ||
+    normalized === "project_token" ||
+    normalized === "utility_token" ||
+    normalized === "governance_token"
+  );
+}
+
+function isRegistryProjectPublic(project: ProjectSwapTokenAssetRegistryRow["project"]) {
+  if (!project) return true;
+  if (project.is_public === false) return false;
+
+  const status = cleanString(project.status).toLowerCase();
+  return !status || status === "active";
+}
+
+export function buildProjectSwapTokenRegistryFromAssets(
+  assets: ProjectSwapTokenAssetRegistryRow[] = []
+): ProjectSwapTokenRegistryEntry[] {
+  return assets.flatMap((asset): ProjectSwapTokenRegistryEntry[] => {
+    const metadata = asset.metadata ?? {};
+
+    if (asset.is_active === false) return [];
+    if (!isRegistryProjectPublic(asset.project)) return [];
+    if (!isProjectTokenAssetType(asset.asset_type)) return [];
+    if (metadataFlag(metadata, "swapEnabled") === false) return [];
+    if (metadataFlag(metadata, "showcaseSwapEnabled") === false) return [];
+    if (getProjectAssetChainId(asset) !== VYNTRO_SWAP_CHAIN_ID) return [];
+
+    const projectId = cleanString(asset.project_id) || cleanString(asset.project?.id);
+    const symbol = normalizeTokenSymbol(asset.symbol);
+    const decimals =
+      typeof asset.decimals === "number" && Number.isInteger(asset.decimals)
+        ? asset.decimals
+        : null;
+    const contractAddress = cleanString(asset.contract_address);
+
+    if (!projectId || !symbol || !isEvmAddress(contractAddress)) return [];
+    if (decimals === null || decimals < 0 || decimals > 36) return [];
+
+    const address = normalizeAddress(contractAddress);
+    const projectTokenAddress = cleanString(asset.project?.token_contract_address);
+    const explicitlyEnabled =
+      metadataFlag(metadata, "swapEnabled") === true ||
+      metadataFlag(metadata, "showcaseSwapEnabled") === true;
+
+    if (
+      projectTokenAddress &&
+      isEvmAddress(projectTokenAddress) &&
+      normalizeAddress(projectTokenAddress) !== address &&
+      !explicitlyEnabled
+    ) {
+      return [];
+    }
+
+    const metadataLabel = metadataString(metadata, "label");
+    const projectName = cleanString(asset.project?.name);
+    const label = metadataLabel || (projectName ? `${projectName} Token` : `${symbol} Token`);
+    const metadataAccent = metadata?.accent;
+
+    return [
+      {
+        projectId,
+        symbol,
+        label,
+        address,
+        decimals,
+        chainId: VYNTRO_SWAP_CHAIN_ID,
+        chain: "base",
+        accent: isTokenAccent(metadataAccent) ? metadataAccent : "violet",
+        priceId:
+          metadataString(metadata, "priceId") ||
+          `dexscreener:base:${address}`,
+        enabled: true,
+      },
+    ];
+  });
+}
+
+export function buildProjectSwapTokens(
+  entries: ProjectSwapTokenRegistryEntry[] = PROJECT_SWAP_TOKEN_REGISTRY
+) {
+  const baseSymbols = new Set(BASE_SWAP_TOKENS.map((token) => token.symbol.toLowerCase()));
+  const baseAddresses = new Set(
+    BASE_SWAP_TOKENS.map((token) =>
+      token.address === "native" ? "native" : token.address.toLowerCase()
+    )
+  );
+  const seenSymbols = new Set<string>();
+  const seenAddresses = new Set<string>();
+
+  return entries.flatMap((entry): SwapToken[] => {
+    if (entry.enabled === false) return [];
+
+    const symbol = normalizeTokenSymbol(entry.symbol);
+    const label = entry.label.trim();
+    const chainId = getProjectTokenChainId(entry);
+
+    if (!symbol || !label || !entry.projectId.trim()) return [];
+    if (chainId !== VYNTRO_SWAP_CHAIN_ID) return [];
+    if (!isEvmAddress(entry.address)) return [];
+    if (!Number.isInteger(entry.decimals) || entry.decimals < 0 || entry.decimals > 36) return [];
+
+    const address = normalizeAddress(entry.address);
+    const symbolKey = symbol.toLowerCase();
+    const addressKey = address.toLowerCase();
+
+    if (baseSymbols.has(symbolKey) || baseAddresses.has(addressKey)) return [];
+    if (seenSymbols.has(symbolKey) || seenAddresses.has(addressKey)) return [];
+
+    seenSymbols.add(symbolKey);
+    seenAddresses.add(addressKey);
+
+    return [
+      {
+        symbol,
+        label,
+        address,
+        decimals: entry.decimals,
+        chainId: VYNTRO_SWAP_CHAIN_ID,
+        accent: entry.accent ?? "violet",
+        source: "project",
+        projectId: entry.projectId.trim(),
+        priceId: entry.priceId?.trim() || null,
+      },
+    ];
+  });
+}
+
+export function getAllSwapTokens(options?: SwapTokenRegistryOptions) {
+  return [
+    ...BASE_SWAP_TOKENS,
+    ...buildProjectSwapTokens(options?.projectTokens ?? PROJECT_SWAP_TOKEN_REGISTRY),
+  ];
+}
+
+export function getSwapTokenBySymbol(
+  symbol: string | null | undefined,
+  options?: SwapTokenRegistryOptions
+) {
+  return (
+    getAllSwapTokens(options).find(
       (token) => token.symbol.toLowerCase() === (symbol ?? "").trim().toLowerCase()
     ) ?? null
   );
 }
 
-export function getSwapTokenByAddress(address: string | null | undefined) {
+export function getSwapTokenByAddress(
+  address: string | null | undefined,
+  options?: SwapTokenRegistryOptions
+) {
   const normalized = (address ?? "").trim().toLowerCase();
 
   if (normalized === "native" || normalized === VYNTRO_SWAP_NATIVE_TOKEN_ADDRESS) {
@@ -150,7 +383,7 @@ export function getSwapTokenByAddress(address: string | null | undefined) {
   }
 
   return (
-    BASE_SWAP_TOKENS.find(
+    getAllSwapTokens(options).find(
       (token) => token.address !== "native" && token.address.toLowerCase() === normalized
     ) ?? null
   );
@@ -269,13 +502,15 @@ export function buildSwapQuoteRequest(input: {
   buyTokenSymbol: string;
   sellAmount: string;
   slippageBps: number;
+  projectTokens?: ProjectSwapTokenRegistryEntry[];
 }): SwapQuoteRequest {
   if (!isEvmAddress(input.wallet)) {
     return { ok: false, error: "Connect a verified wallet first." };
   }
 
-  const sellToken = getSwapTokenBySymbol(input.sellTokenSymbol);
-  const buyToken = getSwapTokenBySymbol(input.buyTokenSymbol);
+  const registryOptions = { projectTokens: input.projectTokens };
+  const sellToken = getSwapTokenBySymbol(input.sellTokenSymbol, registryOptions);
+  const buyToken = getSwapTokenBySymbol(input.buyTokenSymbol, registryOptions);
 
   if (!sellToken || !buyToken) {
     return { ok: false, error: "Unsupported token pair." };
