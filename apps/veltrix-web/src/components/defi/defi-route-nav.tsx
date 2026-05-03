@@ -34,7 +34,7 @@ export function DefiRouteNav({ compact = false }: { compact?: boolean }) {
   return (
     <nav
       aria-label="DeFi routes"
-      className={`flex gap-2 overflow-x-auto rounded-[22px] border border-white/7 bg-black/24 p-2 backdrop-blur-xl ${
+      className={`flex gap-2 overflow-x-auto rounded-[24px] border border-white/8 bg-[linear-gradient(90deg,rgba(255,255,255,0.045),rgba(255,255,255,0.018)_48%,rgba(190,255,74,0.035))] p-2 shadow-[0_18px_70px_rgba(0,0,0,0.22)] backdrop-blur-xl ${
         compact ? "" : "mt-5"
       }`}
     >
@@ -48,8 +48,8 @@ export function DefiRouteNav({ compact = false }: { compact?: boolean }) {
             href={item.href}
             className={`inline-flex shrink-0 items-center gap-2 rounded-full px-3.5 py-2.5 text-[10px] font-black uppercase tracking-[0.14em] transition ${
               active
-                ? "bg-lime-300 text-black shadow-[0_12px_34px_rgba(190,255,74,0.18)]"
-                : "border border-white/7 bg-white/[0.035] text-slate-300 hover:border-white/12 hover:bg-white/[0.06] hover:text-white"
+                ? "bg-[linear-gradient(135deg,#BEFF4A,#7DFFB2)] text-black shadow-[0_12px_34px_rgba(190,255,74,0.2)]"
+                : "border border-white/7 bg-black/20 text-slate-300 hover:border-lime-300/18 hover:bg-white/[0.055] hover:text-white"
             }`}
           >
             <Icon className="h-3.5 w-3.5" />

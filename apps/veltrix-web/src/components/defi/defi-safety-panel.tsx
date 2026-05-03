@@ -67,39 +67,47 @@ export function DefiSafetyPanel({
   const globalContract = getDefiGlobalSafetyContract();
   const tone = toneStyles[surface.tone];
   const checks = compact ? surface.checks.slice(0, 3) : surface.checks;
+  const iconSize = compact ? "h-9 w-9" : "h-10 w-10";
 
   return (
-    <section className={`rounded-[26px] border p-4 sm:p-5 ${tone.shell} ${className}`}>
+    <section
+      className={`relative overflow-hidden rounded-[26px] border shadow-[0_22px_74px_rgba(0,0,0,0.26)] ${
+        compact ? "p-4" : "p-4 sm:p-5"
+      } ${tone.shell} ${className}`}
+    >
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-lime-300/45 via-cyan-200/16 to-transparent" />
       <div className="flex items-start gap-3">
-        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border ${tone.icon}`}>
+        <div className={`flex ${iconSize} shrink-0 items-center justify-center rounded-full border ${tone.icon}`}>
           <ToneIcon tone={surface.tone} />
         </div>
         <div className="min-w-0">
           <p className={`text-[10px] font-black uppercase tracking-[0.24em] ${tone.eyebrow}`}>
             {surface.eyebrow}
           </p>
-          <h3 className="mt-2 text-[1.05rem] font-black tracking-[-0.04em] text-white">
+          <h3 className="mt-2 text-[1.05rem] font-black tracking-normal text-white">
             {surface.headline}
           </h3>
         </div>
       </div>
 
-      <p className="mt-4 text-[12px] leading-6 text-slate-400">{surface.copy}</p>
+      <p className={`${compact ? "mt-3" : "mt-4"} text-[12px] leading-6 text-slate-400`}>
+        {surface.copy}
+      </p>
 
       {showGlobalContract ? (
-        <p className="mt-3 rounded-[17px] border border-white/6 bg-black/18 px-3 py-2 text-[11px] leading-5 text-slate-300">
+        <p className="mt-3 rounded-[17px] border border-white/6 bg-black/18 px-3 py-2 text-[11px] leading-5 text-slate-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
           {globalContract.copy}
         </p>
       ) : null}
 
-      <div className="mt-4 grid gap-2">
+      <div className={`${compact ? "mt-3" : "mt-4"} grid gap-2`}>
         {checks.map((check) => {
           const checkTone = toneStyles[check.tone];
 
           return (
             <div
               key={check.label}
-              className={`rounded-[16px] border px-3 py-2.5 ${checkTone.chip}`}
+              className={`rounded-[15px] border px-3 ${compact ? "py-2" : "py-2.5"} ${checkTone.chip}`}
             >
               <div className="flex items-start gap-2.5">
                 <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
@@ -115,7 +123,7 @@ export function DefiSafetyPanel({
         })}
       </div>
 
-      <div className="mt-4 rounded-[17px] border border-white/6 bg-black/20 px-3 py-2.5">
+      <div className={`${compact ? "mt-3" : "mt-4"} rounded-[17px] border border-white/6 bg-black/20 px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]`}>
         <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">
           Next safe move
         </p>
