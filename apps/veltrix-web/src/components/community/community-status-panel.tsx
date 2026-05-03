@@ -120,7 +120,7 @@ export function CommunityStatusPanel({
 
   if (loading) {
     return (
-      <div className={`rounded-[22px] border border-white/8 bg-black/20 px-4 py-5 text-sm text-slate-300 ${className}`}>
+      <div className={`rounded-[24px] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.014),rgba(0,0,0,0.18))] px-4 py-5 text-sm text-slate-300 shadow-[0_18px_64px_rgba(0,0,0,0.22)] ${className}`}>
         Loading your community journey...
       </div>
     );
@@ -138,7 +138,8 @@ export function CommunityStatusPanel({
 
   return (
     <div className={`space-y-4 ${className}`}>
-      <div className="rounded-[22px] border border-white/10 bg-black/20 p-4">
+      <div className="relative overflow-hidden rounded-[26px] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.014)_58%,rgba(0,0,0,0.18))] p-4 shadow-[0_20px_72px_rgba(0,0,0,0.24)]">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-lime-300/42 via-cyan-200/14 to-transparent" />
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="max-w-3xl">
             <div className="flex flex-wrap items-center gap-2">
@@ -147,12 +148,12 @@ export function CommunityStatusPanel({
               {snapshot.projectChain ? <StatusChip label={snapshot.projectChain} tone="info" /> : null}
               {refreshing ? <StatusChip label="Refreshing" tone="info" /> : null}
             </div>
-      <h3 className={`mt-3 text-[1.1rem] font-black text-white ${mode === "compact" ? "max-w-[20ch]" : "max-w-[18ch]"}`}>
+            <h3 className={`mt-3 text-[1.1rem] font-black tracking-normal text-white ${mode === "compact" ? "max-w-[20ch]" : "max-w-[18ch]"}`}>
               {snapshot.headline}
             </h3>
             <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300">{snapshot.supportingCopy}</p>
           </div>
-          <div className="rounded-[22px] border border-white/8 bg-white/[0.04] px-4 py-3">
+          <div className="rounded-[20px] border border-white/8 bg-black/20 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">Project</p>
             <p className="mt-2 text-sm font-semibold text-white">{snapshot.projectName}</p>
           </div>
@@ -194,7 +195,7 @@ export function CommunityStatusPanel({
           )}
         </div>
 
-        <div className="mt-5 rounded-[24px] border border-white/8 bg-white/[0.03] p-4">
+        <div className="mt-5 rounded-[22px] border border-white/8 bg-black/20 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">Next unlock</p>
           <p className="mt-3 text-base font-semibold text-white">{snapshot.nextUnlockLabel}</p>
           <p className={`mt-2 text-sm leading-6 ${getLaneAccent(snapshot.lane)}`}>{snapshot.contributionStatus}</p>
@@ -203,7 +204,7 @@ export function CommunityStatusPanel({
             <div className="mt-4 flex flex-wrap gap-3">
               <Link
                 href={snapshot.nextBestAction.route}
-                className="inline-flex items-center gap-2 rounded-full bg-cyan-300 px-4 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
+                className="inline-flex items-center gap-2 rounded-full bg-[linear-gradient(135deg,#BEFF4A,#7DFFB2)] px-4 py-3 text-sm font-black text-slate-950 transition hover:brightness-105"
               >
                 {snapshot.nextBestAction.ctaLabel}
                 <ArrowRight className="h-4 w-4" />
@@ -217,7 +218,7 @@ export function CommunityStatusPanel({
                     })
                   }
                   disabled={isPending || activeActionKey === snapshot.nextBestAction.key}
-                  className="glass-button inline-flex items-center gap-2 rounded-full px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.035] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isPending && activeActionKey === snapshot.nextBestAction.key ? (
                     <LoaderCircle className="h-4 w-4 animate-spin" />
@@ -247,7 +248,8 @@ export function CommunityStatusPanel({
       {actions.length > 0 ? (
         <div className={`grid gap-4 ${mode === "compact" ? "lg:grid-cols-2" : "xl:grid-cols-2"}`}>
           {actions.map((action) => (
-            <article key={action.key} className="rounded-[26px] border border-white/8 bg-black/20 p-4">
+            <article key={action.key} className="relative overflow-hidden rounded-[24px] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.014)_58%,rgba(0,0,0,0.18))] p-4 shadow-[0_18px_64px_rgba(0,0,0,0.22)]">
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-cyan-300/38 via-lime-300/12 to-transparent" />
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
@@ -256,7 +258,7 @@ export function CommunityStatusPanel({
                       {snapshot.projectName}
                     </span>
                   </div>
-                  <p className="mt-3 text-lg font-black text-white">{action.label}</p>
+                  <p className="mt-3 text-lg font-black tracking-normal text-white">{action.label}</p>
                   <p className="mt-2 text-sm leading-6 text-slate-300">{action.description}</p>
                 </div>
                 {action.completed ? (
@@ -267,7 +269,7 @@ export function CommunityStatusPanel({
               <div className="mt-4 flex flex-wrap gap-3">
                 <Link
                   href={action.route}
-                  className="glass-button inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.035] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
                 >
                   {action.ctaLabel}
                   <ArrowRight className="h-4 w-4" />
@@ -307,7 +309,7 @@ function MetricTile({
   accent: string;
 }) {
   return (
-    <div className="metric-card rounded-[22px] px-4 py-3">
+    <div className="rounded-[18px] border border-white/7 bg-black/20 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
       <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
         <Icon className="h-3.5 w-3.5" />
         <span>{label}</span>

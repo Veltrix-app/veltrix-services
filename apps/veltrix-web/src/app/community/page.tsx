@@ -8,8 +8,9 @@ export default function CommunityPage() {
       eyebrow="Community"
       title="Your next community move"
       description="Use Community as the member command surface for momentum, recognition, next unlocks and the cleanest route through the journey."
+      hidePageHeader
     >
-      <ProtectedState>
+      <ProtectedState allowPreview showPreviewBanner={false}>
         <CommunityHomeScreen />
       </ProtectedState>
     </AppShell>
