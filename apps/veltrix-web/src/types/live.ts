@@ -2,14 +2,26 @@ export type LiveProject = {
   id: string;
   name: string;
   description: string;
+  longDescription?: string | null;
   category: string | null;
   chain: string | null;
   logo: string | null;
   bannerUrl: string | null;
   members: number;
   website: string | null;
+  xUrl?: string | null;
   telegramUrl?: string | null;
   discordUrl?: string | null;
+  docsUrl?: string | null;
+  waitlistUrl?: string | null;
+  launchPostUrl?: string | null;
+  tokenContractAddress?: string | null;
+  nftContractAddress?: string | null;
+  primaryWallet?: string | null;
+  brandAccent?: string | null;
+  brandMood?: string | null;
+  isFeatured?: boolean;
+  isPublic?: boolean;
 };
 
 export type LiveCampaign = {
@@ -33,6 +45,7 @@ export type LiveCampaign = {
 
 export type LiveReward = {
   id: string;
+  projectId?: string | null;
   campaignId: string | null;
   title: string;
   description: string;
@@ -89,6 +102,7 @@ export type LiveLeaderboardUser = {
 
 export type LiveRaid = {
   id: string;
+  projectId?: string | null;
   campaignId: string | null;
   title: string;
   community: string;

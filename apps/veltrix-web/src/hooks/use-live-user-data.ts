@@ -516,14 +516,26 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
         id: row.id,
         name: row.name ?? "Project",
         description: row.description ?? "No description yet.",
+        longDescription: row.long_description ?? null,
         category: row.category ?? null,
         chain: row.chain ?? null,
         logo: row.logo ?? null,
         bannerUrl: row.banner_url ?? null,
         members: row.members ?? 0,
         website: row.website ?? null,
+        xUrl: row.x_url ?? null,
         telegramUrl: row.telegram_url ?? null,
         discordUrl: row.discord_url ?? null,
+        docsUrl: row.docs_url ?? null,
+        waitlistUrl: row.waitlist_url ?? null,
+        launchPostUrl: row.launch_post_url ?? null,
+        tokenContractAddress: row.token_contract_address ?? null,
+        nftContractAddress: row.nft_contract_address ?? null,
+        primaryWallet: row.primary_wallet ?? null,
+        brandAccent: row.brand_accent ?? null,
+        brandMood: row.brand_mood ?? null,
+        isFeatured: row.is_featured ?? false,
+        isPublic: row.is_public ?? true,
       }));
     if (shouldLoadProjects) {
       setProjects(nextProjects);
@@ -554,6 +566,7 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
 
     const nextRewards = (rewardsResult.data ?? []).map((row) => ({
         id: row.id,
+        projectId: row.project_id ?? null,
         campaignId: row.campaign_id ?? null,
         title: row.title ?? "Reward",
         description: row.description ?? "Reward from backend.",
@@ -680,6 +693,7 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
       })
       .map((row) => ({
         id: row.id,
+        projectId: row.project_id ?? null,
         campaignId: row.campaign_id ?? null,
         title: row.title ?? "Raid",
         community: row.community ?? "Community",

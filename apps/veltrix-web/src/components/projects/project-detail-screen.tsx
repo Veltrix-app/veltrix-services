@@ -1,319 +1,427 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo } from "react";
+import type { ReactNode } from "react";
 import { useParams } from "next/navigation";
+import {
+  ArrowRight,
+  Coins,
+  ExternalLink,
+  Globe2,
+  ShieldCheck,
+  WalletCards,
+} from "lucide-react";
 import { ProjectBenchmarkCard } from "@/components/analytics/project-benchmark-card";
 import { ArtworkImage } from "@/components/ui/artwork-image";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
+import {
+  buildProjectShowcase,
+  type ProjectShowcaseModule,
+  type ProjectShowcaseStatus,
+} from "@/lib/projects/project-showcase";
+
+function getStatusTone(status: ProjectShowcaseStatus) {
+  if (status === "live") return "positive" as const;
+  if (status === "ready") return "info" as const;
+  return "warning" as const;
+}
+
+function getStatusLabel(status: ProjectShowcaseStatus) {
+  if (status === "live") return "Live";
+  if (status === "ready") return "Ready";
+  return "Setup";
+}
 
 export function ProjectDetailScreen() {
   const params = useParams<{ id: string }>();
   const projectId = Array.isArray(params.id) ? params.id[0] : params.id;
-  const { loading, error, projects, campaigns, rewards, projectReputation } = useLiveUserData({
-    datasets: ["projects", "campaigns", "rewards", "projectReputation"],
+  const {
+    loading,
+    error,
+    projects,
+    campaigns,
+    quests,
+    rewards,
+    raids,
+    projectReputation,
+  } = useLiveUserData({
+    datasets: ["projects", "campaigns", "quests", "rewards", "raids", "projectReputation"],
   });
 
   const project = projects.find((item) => item.id === projectId);
-  const projectCampaigns = campaigns.filter((item) => item.projectId === projectId);
-  const projectRewards = rewards.filter((reward) =>
-    projectCampaigns.some((campaign) => campaign.id === reward.campaignId)
-  );
+  const showcase = useMemo(() => {
+    if (!project) return null;
+
+    return buildProjectShowcase({
+      project,
+      campaigns,
+      quests,
+      rewards,
+      raids,
+    });
+  }, [campaigns, project, quests, raids, rewards]);
   const reputation = projectReputation.find((item) => item.projectId === projectId);
 
   if (loading) return <Notice tone="default" text="Loading project..." />;
   if (error) return <Notice tone="error" text={error} />;
-  if (!project) return <Notice tone="default" text="Project not found." />;
+  if (!project || !showcase) return <Notice tone="default" text="Project not found." />;
+
+  const projectCampaignIds = new Set(
+    campaigns.filter((campaign) => campaign.projectId === project.id).map((campaign) => campaign.id)
+  );
+  const projectQuests = quests.filter((quest) => quest.projectId === project.id).slice(0, 4);
+  const projectRewards = rewards
+    .filter(
+      (reward) =>
+        reward.projectId === project.id ||
+        (reward.campaignId ? projectCampaignIds.has(reward.campaignId) : false)
+    )
+    .slice(0, 4);
 
   return (
-    <div className="space-y-6">
-      <section className="overflow-hidden rounded-[22px] border border-white/10 bg-[linear-gradient(135deg,rgba(0,204,255,0.12),rgba(0,0,0,0)_28%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] shadow-[0_18px_44px_rgba(0,0,0,0.18)]">
-        {project.bannerUrl ? (
-          <div className="relative h-64 bg-[linear-gradient(135deg,rgba(0,204,255,0.14),rgba(0,0,0,0.18))]">
-            <ArtworkImage
-              src={project.bannerUrl}
-              alt={project.name}
-              tone="cyan"
-              fallbackLabel="Project art offline"
-              imgClassName="h-full w-full object-cover opacity-80"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-          </div>
+    <div className="space-y-5">
+      <section className="relative overflow-hidden rounded-[32px] border border-white/6 bg-black shadow-[0_28px_90px_rgba(0,0,0,0.32)]">
+        {showcase.heroImageUrl ? (
+          <ArtworkImage
+            src={showcase.heroImageUrl}
+            alt={project.name}
+            tone="cyan"
+            fallbackLabel="Project showcase art offline"
+            className="absolute inset-0"
+            imgClassName="h-full w-full object-cover opacity-54"
+          />
         ) : null}
-
-        <div className="p-6 sm:p-8">
-          <p className="text-[11px] font-bold uppercase tracking-[0.34em] text-cyan-300">Project Detail</p>
-          <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
-            <div className="max-w-[14ch]">
-              <h2 className="font-display text-balance text-[clamp(2.2rem,4vw,4.5rem)] font-black leading-[0.92] tracking-[0.04em] text-white">
-                {project.name}
-              </h2>
-              <p className="mt-3 text-sm text-cyan-200">
-                {project.chain ?? "Chain not set"} - {project.category ?? "General"}
-              </p>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_16%_10%,rgba(190,255,74,0.12),transparent_26%),linear-gradient(90deg,rgba(0,0,0,0.94),rgba(0,0,0,0.7)_46%,rgba(0,0,0,0.35)),linear-gradient(180deg,rgba(4,6,10,0.1),rgba(4,6,10,0.94))]" />
+        <div className="relative z-10 grid min-h-[460px] gap-6 p-5 sm:p-7 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-end">
+          <div className="max-w-4xl self-end">
+            <div className="flex flex-wrap items-center gap-2">
+              <LogoMark project={project} />
+              {showcase.badges.map((badge) => (
+                <StatusChip key={badge} label={badge} tone="info" />
+              ))}
             </div>
-            <StatusChip
-              label={projectCampaigns.length > 0 ? "Live ecosystem" : "Public project"}
-              tone={projectCampaigns.length > 0 ? "positive" : "info"}
-            />
+            <p className="mt-6 text-[10px] font-black uppercase tracking-[0.3em] text-lime-300">
+              Premium project showcase
+            </p>
+            <h1 className="mt-3 max-w-[12ch] text-[clamp(3rem,7vw,6.4rem)] font-black leading-[0.86] tracking-[-0.075em] text-white">
+              {showcase.headline}
+            </h1>
+            <p className="mt-5 max-w-3xl text-[15px] leading-7 text-slate-300 sm:text-base">
+              {showcase.story}
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link
+                href={`/communities/${project.id}`}
+                className="inline-flex items-center gap-2 rounded-full bg-lime-300 px-5 py-3 text-[11px] font-black uppercase tracking-[0.16em] text-black transition hover:bg-lime-200"
+              >
+                Join community
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href={showcase.token.swapHref}
+                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.055] px-5 py-3 text-[11px] font-black uppercase tracking-[0.16em] text-white transition hover:border-cyan-300/20 hover:bg-cyan-300/10"
+              >
+                Open swap
+                <Coins className="h-4 w-4" />
+              </Link>
+              {showcase.socialLinks[0] ? (
+                <a
+                  href={showcase.socialLinks[0].href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/24 px-5 py-3 text-[11px] font-black uppercase tracking-[0.16em] text-white transition hover:border-white/16"
+                >
+                  {showcase.socialLinks[0].label}
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              ) : null}
+            </div>
           </div>
-          <p className="mt-5 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
-            {project.description}
-          </p>
 
-          <div className="mt-8 grid gap-4 sm:grid-cols-4">
-            <MetricTile label="Members" value={project.members.toLocaleString()} />
-            <MetricTile label="Campaigns" value={String(projectCampaigns.length)} />
-            <MetricTile label="Rewards" value={String(projectRewards.length)} />
-            <MetricTile label="Website" value={project.website ? "Linked" : "Missing"} />
+          <div className="self-end rounded-[28px] border border-white/8 bg-black/46 p-4 backdrop-blur-2xl">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-lime-300">
+                  Showcase score
+                </p>
+                <p className="mt-2 text-4xl font-black tracking-[-0.06em] text-white">
+                  {showcase.readinessScore}%
+                </p>
+              </div>
+              <ShieldCheck className="h-8 w-8 text-lime-200" />
+            </div>
+            <p className="mt-4 text-[13px] leading-6 text-slate-300">{showcase.nextAction}</p>
+            <div className="mt-4 grid gap-2">
+              {showcase.metrics.map((metric) => (
+                <MetricLine key={metric.label} label={metric.label} value={metric.value} />
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.04fr)_minmax(0,0.96fr)]">
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {showcase.metrics.map((metric) => (
+          <div key={metric.label} className="rounded-[24px] border border-white/6 bg-white/[0.03] p-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">
+              {metric.label}
+            </p>
+            <p className="mt-3 text-3xl font-black tracking-[-0.06em] text-white">{metric.value}</p>
+            <p className="mt-2 text-[12px] leading-5 text-slate-400">{metric.sub}</p>
+          </div>
+        ))}
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
         <Surface
-          eyebrow="Command read"
-          title="What this project means right now"
-          description="Project detail should open with ecosystem pressure first: what is active, what deserves attention and where your next move should go."
-          className="bg-[radial-gradient(circle_at_top_left,rgba(74,217,255,0.08),transparent_28%),linear-gradient(180deg,rgba(16,22,34,0.96),rgba(9,13,22,0.96))]"
+          eyebrow="Showcase modules"
+          title="Everything a listed project should expose"
+          description="The public page stays premium and compact, while the portal remains the source of truth for every field."
         >
-          <div className="grid gap-3 md:grid-cols-3">
-            <ReadTile
-              label="Now"
-              value={
-                projectCampaigns.length > 0
-                  ? `${projectCampaigns[0].title} is the lead live campaign inside ${project.name}.`
-                  : `${project.name} is visible, but no live campaigns are currently shaping it.`
-              }
-            />
-            <ReadTile
-              label="Next"
-              value={
-                projectCampaigns.length > 0
-                  ? "Open the campaign lane first if you want the fastest route into active quests and reward pressure."
-                  : "The project story is visible first because the campaign lane has not gone live yet."
-              }
-            />
-            <ReadTile
-              label="Watch"
-              value={
-                reputation
-                  ? `Your contribution tier is ${reputation.contributionTier}, with ${reputation.xp.toLocaleString()} project XP already attached to this ecosystem.`
-                  : "Your project-specific reputation has not started building here yet."
-              }
-            />
+          <div className="grid gap-3 lg:grid-cols-2">
+            {showcase.modules.map((module) => (
+              <ModuleCard key={module.key} module={module} />
+            ))}
           </div>
         </Surface>
 
         <Surface
-          eyebrow="Fast routes"
-          title="Move through the ecosystem"
-          description="The best project pages stay compact and route you into the community, website or live campaign lane without making you scan a dense side rail."
+          eyebrow="Market + safety"
+          title={showcase.token.configured ? `${showcase.token.label} route` : "Token route pending"}
+          description="Project token context, explorer links and swap entry stay visible before users take action."
         >
-          <div className="grid gap-3">
-            <RouteTile
-              href={`/communities/${project.id}`}
-              label="Open community"
-              body="Go to the community surface for missions, member pressure and the current journey lane."
+          <div className="space-y-3">
+            <InfoTile
+              icon={<WalletCards className="h-4 w-4" />}
+              label="Contract"
+              value={showcase.token.contractAddress ?? "Not connected yet"}
             />
-            {projectCampaigns[0] ? (
-              <RouteTile
-                href={`/campaigns/${projectCampaigns[0].id}`}
-                label="Open lead campaign"
-                body="Jump straight into the strongest active launch surface inside this project."
-              />
-            ) : null}
-            {project.website ? (
-              <a
-                href={project.website}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-[22px] border border-white/8 bg-black/20 px-4 py-4 transition hover:border-cyan-300/20"
-              >
-                <p className="text-sm font-semibold text-white">Visit website</p>
-                <p className="mt-2 text-sm leading-7 text-slate-300">
-                  Open the public project site without leaving the product context.
-                </p>
-              </a>
-            ) : null}
+            <InfoTile
+              icon={<Globe2 className="h-4 w-4" />}
+              label="Explorer"
+              value={showcase.token.explorerUrl ? "Available" : "Pending chain route"}
+              href={showcase.token.explorerUrl}
+            />
+            <InfoTile
+              icon={<Coins className="h-4 w-4" />}
+              label="Swap"
+              value={showcase.token.knownSwapToken ? "Launch route ready" : "Route registry needed"}
+              href={showcase.token.swapHref}
+            />
           </div>
         </Surface>
       </section>
 
       <ProjectBenchmarkCard projectId={project.id} />
 
-      <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+      <section id="security" className="grid gap-5 xl:grid-cols-[0.92fr_1.08fr]">
         <Surface
-          eyebrow="Project Story"
-          title="Ecosystem posture"
-          description="This project should feel alive, connected and worth entering."
+          eyebrow="AI security scan"
+          title="Transparent safety read before users engage"
+          description="This is the first public scan layer. Later we can connect explorer source, ABI reads and deeper AI findings."
         >
-          <div className="space-y-4">
-            <div className="metric-card rounded-[24px] p-4">
-              <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-500">Website</p>
-              <p className="mt-3 text-sm leading-7 text-slate-300">
-                {project.website
-                  ? project.website
-                  : "No website linked yet. This project is still visible through its live campaign surface."}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href={`/communities/${project.id}`}
-                className="rounded-full bg-cyan-300 px-5 py-3 text-sm font-black text-black transition hover:scale-[0.99]"
+          <div className="grid gap-3">
+            {showcase.checks.map((check) => (
+              <div
+                key={check.label}
+                className="rounded-[20px] border border-white/6 bg-black/20 p-4"
               >
-                Open community
-              </Link>
-              {project.website ? (
-                <a
-                  href={project.website}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
-                >
-                  Visit website
-                </a>
-              ) : null}
-            </div>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-black text-white">{check.label}</p>
+                    <p className="mt-2 text-[13px] leading-6 text-slate-400">{check.detail}</p>
+                  </div>
+                  <StatusChip label={getStatusLabel(check.status)} tone={getStatusTone(check.status)} />
+                </div>
+              </div>
+            ))}
           </div>
         </Surface>
 
         <Surface
-          eyebrow="Your Standing"
-          title="Project reputation"
-          description="Your momentum compounds separately inside each project."
+          eyebrow="Activation"
+          title="Daily quests and rewards"
+          description="Show users what they can do immediately, then route them into the existing quest and reward economy."
         >
-          <div className="grid gap-4 sm:grid-cols-2">
-            <MetricTile label="Tier" value={reputation ? reputation.contributionTier.toUpperCase() : "NOT STARTED"} />
-            <MetricTile label="Rank" value={reputation?.rank ? `#${reputation.rank}` : "-"} />
-            <MetricTile label="Project XP" value={reputation ? reputation.xp.toLocaleString() : "0"} />
-            <MetricTile label="Trust" value={String(reputation?.trustScore ?? 50)} />
+          <div className="grid gap-3 lg:grid-cols-2">
+            <ActivationColumn
+              title="Daily quests"
+              emptyText="No project quests are live yet."
+              items={projectQuests.map((quest) => ({
+                id: quest.id,
+                href: `/quests/${quest.id}`,
+                title: quest.title,
+                meta: `${quest.xp} XP`,
+              }))}
+            />
+            <ActivationColumn
+              title="Rewards"
+              emptyText="No project rewards are visible yet."
+              items={projectRewards.map((reward) => ({
+                id: reward.id,
+                href: `/rewards/${reward.id}`,
+                title: reward.title,
+                meta: `${reward.cost} XP`,
+              }))}
+            />
           </div>
         </Surface>
+      </section>
+
+      <Surface
+        eyebrow="Your standing"
+        title="Project reputation"
+        description="User reputation stays separate per project, so contribution history can become part of the showcase experience."
+      >
+        <div className="grid gap-3 sm:grid-cols-4">
+          <SmallStat label="Tier" value={reputation ? reputation.contributionTier.toUpperCase() : "NOT STARTED"} />
+          <SmallStat label="Rank" value={reputation?.rank ? `#${reputation.rank}` : "-"} />
+          <SmallStat label="Project XP" value={reputation ? reputation.xp.toLocaleString() : "0"} />
+          <SmallStat label="Trust" value={String(reputation?.trustScore ?? 50)} />
+        </div>
+      </Surface>
+    </div>
+  );
+}
+
+function LogoMark({ project }: { project: { logo: string | null; name: string } }) {
+  return (
+    <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.055]">
+      {project.logo ? (
+        <ArtworkImage
+          src={project.logo}
+          alt={`${project.name} logo`}
+          tone="cyan"
+          fallbackLabel={project.name.slice(0, 1)}
+          imgClassName="h-full w-full object-cover"
+        />
+      ) : (
+        <span className="text-sm font-black text-white">{project.name.slice(0, 1)}</span>
+      )}
+    </div>
+  );
+}
+
+function ModuleCard({ module }: { module: ProjectShowcaseModule }) {
+  const content = (
+    <div className="group rounded-[24px] border border-white/6 bg-black/20 p-4 transition hover:border-lime-300/16 hover:bg-white/[0.04]">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-lime-300">
+            {module.label}
+          </p>
+          <p className="mt-3 text-lg font-black tracking-[-0.04em] text-white">{module.title}</p>
+        </div>
+        <StatusChip label={getStatusLabel(module.status)} tone={getStatusTone(module.status)} />
       </div>
-
-      <Surface
-        eyebrow="Live Campaigns"
-        title="Campaigns in this project"
-        description="Campaigns currently active inside this project."
-      >
-        {projectCampaigns.length > 0 ? (
-          <div className="grid gap-4 xl:grid-cols-2">
-            {projectCampaigns.map((campaign) => (
-              <Link
-                key={campaign.id}
-                href={`/campaigns/${campaign.id}`}
-                className="panel-card rounded-[30px] p-5 transition hover:border-cyan-300/30 hover:bg-black/25"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-lg font-black text-white">{campaign.title}</p>
-                    <p className="mt-2 text-sm text-slate-300">{campaign.description}</p>
-                  </div>
-                  <StatusChip
-                    label={campaign.featured ? "Featured" : `${campaign.completionRate}% live`}
-                    tone={campaign.featured ? "positive" : "info"}
-                  />
-                </div>
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                  <MiniStat label="XP budget" value={String(campaign.xpBudget)} />
-                  <MiniStat
-                    label="Ends"
-                    value={campaign.endsAt ? new Date(campaign.endsAt).toLocaleDateString("nl-NL") : "Open"}
-                  />
-                </div>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <Notice tone="default" text="No live campaigns are tied to this project yet." />
-        )}
-      </Surface>
-
-      <Surface
-        eyebrow="Rewards"
-        title="Rewards in this project"
-        description="Rewards currently linked through this project's active campaigns."
-      >
-        {projectRewards.length > 0 ? (
-          <div className="grid gap-4 xl:grid-cols-2">
-            {projectRewards.map((reward) => (
-              <Link
-                key={reward.id}
-                href={`/rewards/${reward.id}`}
-                className="panel-card rounded-[30px] p-5 transition hover:border-cyan-300/30 hover:bg-black/25"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-lg font-black text-white">{reward.title}</p>
-                    <p className="mt-2 text-sm text-slate-300">{reward.description}</p>
-                  </div>
-                  <StatusChip
-                    label={reward.claimable ? "Claimable" : "Locked"}
-                    tone={reward.claimable ? "positive" : "default"}
-                  />
-                </div>
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                  <MiniStat label="Cost" value={`${reward.cost} XP`} />
-                  <MiniStat label="Rarity" value={reward.rarity} />
-                </div>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <Notice tone="default" text="No rewards are linked to this project yet." />
-        )}
-      </Surface>
+      <p className="mt-3 text-[13px] leading-6 text-slate-400">{module.description}</p>
+      <span className="mt-4 inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.14em] text-cyan-200">
+        Open
+        <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+      </span>
     </div>
   );
+
+  if (module.href.startsWith("http")) {
+    return (
+      <a href={module.href} target="_blank" rel="noreferrer">
+        {content}
+      </a>
+    );
+  }
+
+  return <Link href={module.href}>{content}</Link>;
 }
 
-function MetricTile({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="metric-card rounded-[24px] p-4">
-      <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">{label}</p>
-      <p className="mt-3 text-3xl font-black text-white">{value}</p>
-    </div>
-  );
-}
-
-function MiniStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="metric-card rounded-[20px] px-4 py-3">
-      <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
-      <p className="mt-2 text-sm font-semibold text-white">{value}</p>
-    </div>
-  );
-}
-
-function ReadTile({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-[22px] border border-white/8 bg-black/20 px-4 py-4">
-      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
-      <p className="mt-2 text-sm leading-7 text-slate-200">{value}</p>
-    </div>
-  );
-}
-
-function RouteTile({
-  href,
-  label,
-  body,
+function ActivationColumn({
+  title,
+  emptyText,
+  items,
 }: {
-  href: string;
-  label: string;
-  body: string;
+  title: string;
+  emptyText: string;
+  items: Array<{ id: string; href: string; title: string; meta: string }>;
 }) {
   return (
-    <Link
-      href={href}
-      className="rounded-[22px] border border-white/8 bg-black/20 px-4 py-4 transition hover:border-cyan-300/20"
-    >
-      <p className="text-sm font-semibold text-white">{label}</p>
-      <p className="mt-2 text-sm leading-7 text-slate-300">{body}</p>
-    </Link>
+    <div className="rounded-[24px] border border-white/6 bg-black/20 p-4">
+      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">{title}</p>
+      <div className="mt-3 space-y-2">
+        {items.length > 0 ? (
+          items.map((item) => (
+            <Link
+              key={item.id}
+              href={item.href}
+              className="flex items-center justify-between gap-3 rounded-[18px] border border-white/6 bg-white/[0.03] px-3 py-3 transition hover:border-cyan-300/18"
+            >
+              <span className="text-sm font-semibold text-white">{item.title}</span>
+              <span className="text-[11px] font-black uppercase tracking-[0.14em] text-lime-300">
+                {item.meta}
+              </span>
+            </Link>
+          ))
+        ) : (
+          <p className="rounded-[18px] border border-white/6 bg-white/[0.03] px-3 py-4 text-[13px] text-slate-400">
+            {emptyText}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function InfoTile({
+  icon,
+  label,
+  value,
+  href,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+  href?: string | null;
+}) {
+  const body = (
+    <div className="rounded-[20px] border border-white/6 bg-black/20 p-4">
+      <div className="flex items-start gap-3">
+        <span className="mt-0.5 text-cyan-200">{icon}</span>
+        <div className="min-w-0">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">{label}</p>
+          <p className="mt-2 break-words text-sm font-semibold leading-6 text-white">{value}</p>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (!href) return body;
+  if (href.startsWith("http")) {
+    return (
+      <a href={href} target="_blank" rel="noreferrer">
+        {body}
+      </a>
+    );
+  }
+
+  return <Link href={href}>{body}</Link>;
+}
+
+function MetricLine({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-[16px] border border-white/6 bg-white/[0.035] px-3 py-2">
+      <span className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">{label}</span>
+      <span className="text-sm font-black text-white">{value}</span>
+    </div>
+  );
+}
+
+function SmallStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[20px] border border-white/6 bg-black/20 px-4 py-3">
+      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">{label}</p>
+      <p className="mt-2 text-lg font-black text-white">{value}</p>
+    </div>
   );
 }
 

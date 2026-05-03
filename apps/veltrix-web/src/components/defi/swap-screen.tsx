@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   ArrowDownUp,
   BadgeDollarSign,
@@ -14,6 +15,7 @@ import {
   BASE_SWAP_TOKENS,
   formatSwapTokenAmount,
   getQuoteExpiryLabel,
+  getSwapTokenByAddress,
   type SwapToken,
 } from "@/lib/defi/vyntro-swap";
 import { DefiRouteNav } from "@/components/defi/defi-route-nav";
@@ -30,15 +32,36 @@ function getToken(symbol: string) {
   return BASE_SWAP_TOKENS.find((token) => token.symbol === symbol) ?? BASE_SWAP_TOKENS[0];
 }
 
+function resolveInitialTokenSymbol(value: string | null, fallback: string) {
+  if (!value) return fallback;
+
+  const bySymbol = BASE_SWAP_TOKENS.find(
+    (token) => token.symbol.toLowerCase() === value.trim().toLowerCase()
+  );
+
+  if (bySymbol) return bySymbol.symbol;
+
+  return getSwapTokenByAddress(value)?.symbol ?? fallback;
+}
+
 function formatBps(value: number | null | undefined) {
   if (typeof value !== "number" || !Number.isFinite(value)) return "Unknown";
   return `${(value / 100).toFixed(2)}%`;
 }
 
 export function SwapScreen() {
+  const searchParams = useSearchParams();
   const { session, profile } = useAuth();
-  const [sellTokenSymbol, setSellTokenSymbol] = useState("USDC");
-  const [buyTokenSymbol, setBuyTokenSymbol] = useState("ETH");
+  const projectTokenAddress = searchParams.get("projectToken");
+  const unsupportedProjectToken = Boolean(
+    projectTokenAddress && !getSwapTokenByAddress(projectTokenAddress)
+  );
+  const [sellTokenSymbol, setSellTokenSymbol] = useState(() =>
+    resolveInitialTokenSymbol(searchParams.get("sell"), "USDC")
+  );
+  const [buyTokenSymbol, setBuyTokenSymbol] = useState(() =>
+    resolveInitialTokenSymbol(searchParams.get("buy") ?? projectTokenAddress, "ETH")
+  );
   const [sellAmount, setSellAmount] = useState("");
   const [slippageBps, setSlippageBps] = useState(50);
   const swap = useVyntroSwap({
@@ -208,6 +231,12 @@ export function SwapScreen() {
             <p className="mt-3 text-sm leading-6 text-slate-400">
               {recommended?.routeSummary ?? "Enter an amount to compare configured routes."}
             </p>
+            {unsupportedProjectToken ? (
+              <div className="mt-4 rounded-[18px] border border-amber-300/14 bg-amber-300/[0.055] p-3 text-[12px] font-semibold leading-5 text-amber-100">
+                This project token is known on the showcase, but it is not in the launch swap
+                token list yet. Add it to the route registry before enabling one-click swaps.
+              </div>
+            ) : null}
             <div className="mt-4 grid gap-2">
               <RouteMetric label="Estimated receive" value={recommended ? quotedBuyAmount : "-"} />
               <RouteMetric label="Price impact" value={formatBps(recommended?.priceImpactBps)} />
