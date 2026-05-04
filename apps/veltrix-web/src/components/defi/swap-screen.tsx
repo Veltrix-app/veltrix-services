@@ -159,7 +159,7 @@ export function SwapScreen() {
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.04),transparent_38%)]" />
           <FeatureBadgeMark
             badge="swap"
-            className="absolute right-5 top-8 h-32 w-32 opacity-[0.085] mix-blend-screen sm:h-40 sm:w-40"
+            className="absolute right-5 top-8 h-32 w-32 opacity-[0.24] mix-blend-screen sm:h-40 sm:w-40"
             imageClassName="rotate-[8deg]"
             sizes="160px"
           />

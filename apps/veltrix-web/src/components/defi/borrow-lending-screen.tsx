@@ -173,7 +173,7 @@ export function BorrowLendingScreen() {
         <div className="relative overflow-hidden rounded-[28px] border border-white/6 bg-[radial-gradient(circle_at_18%_6%,rgba(190,255,74,0.12),transparent_26%),linear-gradient(180deg,rgba(13,15,19,0.99),rgba(7,9,12,0.995))] p-5">
           <FeatureBadgeMark
             badge="lending"
-            className="absolute right-5 top-8 h-32 w-32 opacity-[0.075] mix-blend-screen sm:h-40 sm:w-40"
+            className="absolute right-5 top-8 h-32 w-32 opacity-[0.24] mix-blend-screen sm:h-40 sm:w-40"
             imageClassName="rotate-[8deg]"
             sizes="160px"
           />

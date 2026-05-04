@@ -134,7 +134,7 @@ export function RaidDetailScreen() {
     <div className="space-y-5">
       <section className="relative overflow-hidden rounded-[22px] border border-white/8 bg-[radial-gradient(circle_at_top_left,rgba(251,113,133,0.14),transparent_26%),radial-gradient(circle_at_78%_18%,rgba(255,196,0,0.08),transparent_22%),linear-gradient(180deg,rgba(12,14,18,0.99),rgba(7,9,11,0.99))] p-4 shadow-[0_20px_54px_rgba(0,0,0,0.24)]">
         <RaidBadgeMark
-          className="absolute right-[22rem] top-8 hidden h-24 w-24 opacity-[0.12] xl:inline-flex"
+          className="absolute right-[22rem] top-8 hidden h-24 w-24 opacity-[0.34] xl:inline-flex"
           imageClassName="rotate-[8deg]"
         />
         <div className="relative grid gap-4 xl:grid-cols-[minmax(0,1.16fr)_300px]">

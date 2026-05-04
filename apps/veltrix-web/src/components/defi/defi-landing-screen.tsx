@@ -252,7 +252,7 @@ export function DefiLandingScreen() {
                   <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,3,7,0.04)_0%,transparent_30%,rgba(2,3,7,0.9)_100%)]" />
                   <FeatureBadgeMark
                     badge={route.badge}
-                    className="absolute right-5 top-12 z-[1] h-28 w-28 opacity-[0.13] mix-blend-screen transition duration-500 group-hover:scale-105 group-hover:opacity-[0.22]"
+                    className="absolute right-5 top-12 z-[1] h-28 w-28 opacity-[0.32] mix-blend-screen transition duration-500 group-hover:scale-105 group-hover:opacity-[0.48]"
                     imageClassName="rotate-[9deg]"
                     sizes="128px"
                   />

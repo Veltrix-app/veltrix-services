@@ -106,7 +106,7 @@ export function LeaderboardScreen() {
         <div className="relative min-w-0 overflow-hidden rounded-[30px] border border-amber-300/10 bg-[radial-gradient(circle_at_top_left,rgba(255,196,0,0.16),transparent_28%),radial-gradient(circle_at_86%_10%,rgba(139,92,246,0.12),transparent_20%),linear-gradient(145deg,rgba(9,12,18,0.98),rgba(3,6,10,0.96))] p-3 shadow-[0_28px_90px_rgba(0,0,0,0.38)] sm:p-4">
           <FeatureBadgeMark
             badge="leaderboard"
-            className="absolute right-4 top-12 h-36 w-36 opacity-[0.085] mix-blend-screen sm:h-44 sm:w-44"
+            className="absolute right-4 top-12 h-36 w-36 opacity-[0.24] mix-blend-screen sm:h-44 sm:w-44"
             imageClassName="rotate-[8deg]"
             sizes="176px"
           />
@@ -266,7 +266,7 @@ function FeaturedMemberCard({ user, rank }: { user: LiveLeaderboardUser; rank: n
     <article className="relative min-w-0 overflow-hidden rounded-[26px] border border-amber-300/16 bg-[linear-gradient(180deg,rgba(255,255,255,0.055),rgba(255,255,255,0.025))] p-2.5">
       <FeatureBadgeMark
         badge="leaderboard"
-        className="absolute right-5 top-16 z-[1] h-28 w-28 opacity-[0.075] mix-blend-screen transition duration-300"
+        className="absolute right-5 top-16 z-[1] h-28 w-28 opacity-[0.24] mix-blend-screen transition duration-300"
         imageClassName="rotate-[10deg]"
         sizes="128px"
       />

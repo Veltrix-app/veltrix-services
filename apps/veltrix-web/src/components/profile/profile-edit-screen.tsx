@@ -159,7 +159,7 @@ export function ProfileEditScreen() {
       <section className="relative overflow-hidden rounded-[20px] border border-white/10 bg-[linear-gradient(135deg,rgba(0,204,255,0.12),rgba(0,0,0,0)_28%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-4 shadow-[0_16px_42px_rgba(0,0,0,0.24)] sm:p-5">
         <FeatureBadgeMark
           badge="profile"
-          className="absolute right-4 top-3 h-28 w-28 opacity-[0.075] mix-blend-screen sm:h-36 sm:w-36"
+          className="absolute right-4 top-3 h-28 w-28 opacity-[0.24] mix-blend-screen sm:h-36 sm:w-36"
           imageClassName="rotate-[8deg]"
           sizes="144px"
         />

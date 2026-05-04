@@ -160,7 +160,7 @@ export function DefiMissionsScreen() {
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.025),transparent_34%)]" />
           <FeatureBadgeMark
             badge="vaults"
-            className="absolute right-5 top-8 h-32 w-32 opacity-[0.08] mix-blend-screen sm:h-40 sm:w-40"
+            className="absolute right-5 top-8 h-32 w-32 opacity-[0.24] mix-blend-screen sm:h-40 sm:w-40"
             imageClassName="rotate-[8deg]"
             sizes="160px"
           />

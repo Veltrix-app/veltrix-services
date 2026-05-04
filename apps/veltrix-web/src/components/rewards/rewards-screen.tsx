@@ -139,7 +139,7 @@ export function RewardsScreen() {
         <div className="relative overflow-hidden rounded-[22px] border border-white/6 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.12),transparent_26%),linear-gradient(180deg,rgba(13,15,18,0.99),rgba(6,8,11,0.99))] p-4 shadow-[0_20px_54px_rgba(0,0,0,0.24)]">
         <FeatureBadgeMark
           badge="reward"
-          className="absolute right-4 top-3 h-32 w-32 opacity-[0.08] mix-blend-screen sm:h-40 sm:w-40"
+          className="absolute right-4 top-3 h-32 w-32 opacity-[0.24] mix-blend-screen sm:h-40 sm:w-40"
           imageClassName="rotate-[8deg]"
           sizes="160px"
         />
@@ -219,7 +219,7 @@ export function RewardsScreen() {
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.14),transparent_35%),linear-gradient(180deg,rgba(10,12,15,0.08),rgba(10,12,15,0.88))]" />
                 <FeatureBadgeMark
                   badge="reward"
-                  className={`absolute right-3 top-12 h-20 w-20 opacity-[0.08] mix-blend-screen transition duration-300 group-hover:scale-105 group-hover:opacity-[0.15] ${
+                  className={`absolute right-3 top-12 h-20 w-20 opacity-[0.24] mix-blend-screen transition duration-300 group-hover:scale-105 group-hover:opacity-[0.4] ${
                     index === 0 ? "sm:h-28 sm:w-28" : ""
                   }`}
                   imageClassName="rotate-[10deg]"
@@ -291,7 +291,7 @@ export function RewardsScreen() {
               >
                 <FeatureBadgeMark
                   badge="reward"
-                  className="absolute -right-2 top-10 h-16 w-16 opacity-[0.055] mix-blend-screen transition duration-300 group-hover:opacity-[0.11]"
+                  className="absolute -right-2 top-10 h-16 w-16 opacity-[0.18] mix-blend-screen transition duration-300 group-hover:opacity-[0.32]"
                   imageClassName="rotate-[12deg]"
                   sizes="72px"
                 />

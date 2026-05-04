@@ -39,7 +39,7 @@ export function FeatureBadgeMark({
         fill
         priority={priority}
         sizes={sizes}
-        className={`object-contain drop-shadow-[0_0_22px_rgba(168,85,247,0.32)] ${imageClassName}`}
+        className={`object-contain brightness-110 saturate-125 drop-shadow-[0_0_30px_rgba(168,85,247,0.42)] ${imageClassName}`}
       />
     </span>
   );

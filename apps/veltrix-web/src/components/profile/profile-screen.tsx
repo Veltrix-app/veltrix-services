@@ -377,7 +377,7 @@ export function ProfileScreen() {
         <div className="relative overflow-hidden rounded-[30px] border border-cyan-300/12 bg-[radial-gradient(circle_at_top_left,rgba(0,204,255,0.18),transparent_26%),radial-gradient(circle_at_86%_10%,rgba(192,255,0,0.12),transparent_18%),linear-gradient(145deg,rgba(7,18,24,0.98),rgba(4,9,13,0.95))] p-5 shadow-[0_28px_90px_rgba(0,0,0,0.38)] sm:p-6">
           <FeatureBadgeMark
             badge="profile"
-            className="absolute right-5 top-12 h-36 w-36 opacity-[0.08] mix-blend-screen sm:h-44 sm:w-44"
+            className="absolute right-5 top-12 h-36 w-36 opacity-[0.24] mix-blend-screen sm:h-44 sm:w-44"
             imageClassName="rotate-[8deg]"
             sizes="176px"
           />
@@ -738,7 +738,7 @@ export function ProfileScreen() {
               <div key={item.projectId} className="panel-card relative overflow-hidden rounded-[22px] p-4">
                 <FeatureBadgeMark
                   badge="reputation"
-                  className="absolute -right-2 top-8 h-20 w-20 opacity-[0.07] mix-blend-screen"
+                  className="absolute -right-2 top-8 h-20 w-20 opacity-[0.22] mix-blend-screen"
                   imageClassName="rotate-[10deg]"
                   sizes="96px"
                 />
@@ -782,7 +782,7 @@ export function ProfileScreen() {
           <div className="relative space-y-2.5 overflow-hidden rounded-[20px] border border-white/10 bg-black/20 p-3.5">
             <FeatureBadgeMark
               badge="staking"
-              className="absolute right-2 top-8 h-20 w-20 opacity-[0.06] mix-blend-screen"
+              className="absolute right-2 top-8 h-20 w-20 opacity-[0.2] mix-blend-screen"
               imageClassName="rotate-[10deg]"
               sizes="96px"
             />
