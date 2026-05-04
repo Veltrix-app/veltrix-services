@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 import { ArtworkImage } from "@/components/ui/artwork-image";
+import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 
@@ -81,8 +82,14 @@ export function QuestsScreen() {
   return (
     <div className="space-y-7">
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1.42fr)_300px]">
-        <div className="rounded-[22px] border border-white/6 bg-[radial-gradient(circle_at_top_left,rgba(74,217,255,0.12),transparent_26%),linear-gradient(180deg,rgba(13,15,18,0.99),rgba(6,8,11,0.99))] p-4 shadow-[0_20px_54px_rgba(0,0,0,0.24)]">
-        <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="relative overflow-hidden rounded-[22px] border border-white/6 bg-[radial-gradient(circle_at_top_left,rgba(74,217,255,0.12),transparent_26%),linear-gradient(180deg,rgba(13,15,18,0.99),rgba(6,8,11,0.99))] p-4 shadow-[0_20px_54px_rgba(0,0,0,0.24)]">
+        <FeatureBadgeMark
+          badge="quest"
+          className="absolute right-4 top-3 h-32 w-32 opacity-[0.08] mix-blend-screen sm:h-40 sm:w-40"
+          imageClassName="rotate-[8deg]"
+          sizes="160px"
+        />
+        <div className="relative z-10 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-cyan-300">Quest lanes</p>
             <h2 className="mt-2.5 text-[1rem] font-semibold tracking-[-0.03em] text-white sm:text-[1.12rem]">
@@ -100,7 +107,7 @@ export function QuestsScreen() {
           </div>
         </div>
 
-        <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+        <div className="relative z-10 mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
           <label className="flex items-center gap-3 rounded-full border border-white/8 bg-white/[0.03] px-4 py-2">
             <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">Find</span>
             <input
@@ -154,7 +161,15 @@ export function QuestsScreen() {
                 className={`group relative overflow-hidden rounded-[26px] border border-white/6 bg-[linear-gradient(180deg,rgba(18,20,24,0.98),rgba(9,11,15,0.98))] shadow-[0_20px_56px_rgba(0,0,0,0.32)] transition hover:border-cyan-300/18 ${
                   index === 0 ? "min-h-[248px] p-4.5 sm:p-5" : "min-h-[208px] p-3.5 sm:p-4"
                 }`}
-              >
+                >
+                <FeatureBadgeMark
+                  badge="quest"
+                  className={`absolute right-3 top-12 h-20 w-20 opacity-[0.08] mix-blend-screen transition duration-300 group-hover:scale-105 group-hover:opacity-[0.15] ${
+                    index === 0 ? "sm:h-28 sm:w-28" : ""
+                  }`}
+                  imageClassName="rotate-[10deg]"
+                  sizes="112px"
+                />
                 {quest.campaignFeatured && quest.imageUrl ? (
                   <>
                     <ArtworkImage
@@ -232,9 +247,15 @@ export function QuestsScreen() {
                 key={quest.id}
                 href={`/quests/${quest.id}`}
                 prefetch={false}
-                className="group rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(7,9,12,0.98))] p-3.5 transition hover:border-cyan-300/16 hover:bg-[linear-gradient(180deg,rgba(15,19,22,0.98),rgba(8,10,13,0.98))]"
+                className="group relative overflow-hidden rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(7,9,12,0.98))] p-3.5 transition hover:border-cyan-300/16 hover:bg-[linear-gradient(180deg,rgba(15,19,22,0.98),rgba(8,10,13,0.98))]"
               >
-                <div className="flex items-start justify-between gap-3">
+                <FeatureBadgeMark
+                  badge="quest"
+                  className="absolute -right-2 top-10 h-16 w-16 opacity-[0.055] mix-blend-screen transition duration-300 group-hover:opacity-[0.11]"
+                  imageClassName="rotate-[12deg]"
+                  sizes="72px"
+                />
+                <div className="relative z-10 flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="truncate text-[0.94rem] font-semibold text-white">{quest.title}</p>
                     <p className="mt-2 truncate text-[10px] uppercase tracking-[0.16em] text-slate-500">
@@ -244,17 +265,17 @@ export function QuestsScreen() {
                   <StatusChip label={quest.status} tone={getQuestTone(quest.status)} />
                 </div>
 
-                <div className="mt-3 flex items-center justify-between gap-3 text-[11px] text-slate-500">
+                <div className="relative z-10 mt-3 flex items-center justify-between gap-3 text-[11px] text-slate-500">
                   <span className="truncate">{quest.campaignTitle}</span>
                   <span>{quest.rewardCount} rewards</span>
                 </div>
 
-                <div className="mt-4 flex flex-wrap gap-1.5">
+                <div className="relative z-10 mt-4 flex flex-wrap gap-1.5">
                   <MetricPill label="XP" value={String(quest.xp)} />
                   <MetricPill label="Mode" value={quest.completionMode ?? "manual"} />
                 </div>
 
-                <div className="mt-4 flex items-center justify-between border-t border-white/6 pt-3">
+                <div className="relative z-10 mt-4 flex items-center justify-between border-t border-white/6 pt-3">
                   <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
                     Open mission
                   </span>

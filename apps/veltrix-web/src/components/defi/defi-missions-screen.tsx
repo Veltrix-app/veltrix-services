@@ -34,6 +34,7 @@ import {
 } from "@/lib/defi/moonwell-vaults";
 import { DefiSafetyPanel } from "@/components/defi/defi-safety-panel";
 import { useAuth } from "@/components/providers/auth-provider";
+import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useDefiXpEligibility } from "@/hooks/use-defi-xp-eligibility";
 import { useMoonwellMarkets } from "@/hooks/use-moonwell-markets";
@@ -157,6 +158,12 @@ export function DefiMissionsScreen() {
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1.42fr)_320px]">
         <div className="relative overflow-hidden rounded-[28px] border border-white/6 bg-[radial-gradient(circle_at_12%_4%,rgba(190,255,74,0.13),transparent_22%),radial-gradient(circle_at_84%_12%,rgba(74,217,255,0.12),transparent_24%),linear-gradient(180deg,rgba(13,15,19,0.995),rgba(6,7,10,0.995))] p-4 shadow-[0_22px_72px_rgba(0,0,0,0.36)] sm:p-5">
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.025),transparent_34%)]" />
+          <FeatureBadgeMark
+            badge="vaults"
+            className="absolute right-5 top-8 h-32 w-32 opacity-[0.08] mix-blend-screen sm:h-40 sm:w-40"
+            imageClassName="rotate-[8deg]"
+            sizes="160px"
+          />
 
           <div className="relative z-10 flex flex-wrap items-start justify-between gap-4">
             <div className="max-w-3xl">

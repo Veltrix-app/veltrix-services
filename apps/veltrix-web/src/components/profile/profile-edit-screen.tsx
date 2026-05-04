@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ImagePlus, Upload, Wallet } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
+import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 import { useCommunityJourney } from "@/hooks/use-community-journey";
 import { useWalletIdentityActions } from "@/hooks/use-wallet-identity-actions";
 
@@ -155,14 +156,20 @@ export function ProfileEditScreen() {
         </div>
       ) : null}
 
-      <section className="rounded-[20px] border border-white/10 bg-[linear-gradient(135deg,rgba(0,204,255,0.12),rgba(0,0,0,0)_28%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-4 shadow-[0_16px_42px_rgba(0,0,0,0.24)] sm:p-5">
-        <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-cyan-300">
+      <section className="relative overflow-hidden rounded-[20px] border border-white/10 bg-[linear-gradient(135deg,rgba(0,204,255,0.12),rgba(0,0,0,0)_28%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-4 shadow-[0_16px_42px_rgba(0,0,0,0.24)] sm:p-5">
+        <FeatureBadgeMark
+          badge="profile"
+          className="absolute right-4 top-3 h-28 w-28 opacity-[0.075] mix-blend-screen sm:h-36 sm:w-36"
+          imageClassName="rotate-[8deg]"
+          sizes="144px"
+        />
+        <p className="relative z-10 text-[9px] font-bold uppercase tracking-[0.18em] text-cyan-300">
           Edit Profile
         </p>
-        <h3 className="mt-2.5 text-[1.1rem] font-semibold tracking-[-0.03em] text-white sm:text-[1.32rem]">
+        <h3 className="relative z-10 mt-2.5 text-[1.1rem] font-semibold tracking-[-0.03em] text-white sm:text-[1.32rem]">
           Identity loadout
         </h3>
-        <p className="mt-2 max-w-2xl text-[12px] leading-5 text-slate-300">
+        <p className="relative z-10 mt-2 max-w-2xl text-[12px] leading-5 text-slate-300">
           Avatar, banner, wallet and profile fields now live in one guided edit flow instead of
           manual URL plumbing, so the journey can treat identity as a real member profile instead of setup debt.
         </p>

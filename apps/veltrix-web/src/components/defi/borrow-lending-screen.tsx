@@ -5,6 +5,7 @@ import { AlertTriangle, ArrowRight, Layers3, RefreshCw, ShieldCheck } from "luci
 import { DefiSafetyPanel } from "@/components/defi/defi-safety-panel";
 import { BorrowRiskMiniPanel } from "@/components/defi/risk-education-screen";
 import { useAuth } from "@/components/providers/auth-provider";
+import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useDefiXpEligibility } from "@/hooks/use-defi-xp-eligibility";
 import { useMoonwellMarketTransactions } from "@/hooks/use-moonwell-market-transactions";
@@ -169,8 +170,14 @@ export function BorrowLendingScreen() {
   return (
     <div className="space-y-5">
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_360px]">
-        <div className="rounded-[28px] border border-white/6 bg-[radial-gradient(circle_at_18%_6%,rgba(190,255,74,0.12),transparent_26%),linear-gradient(180deg,rgba(13,15,19,0.99),rgba(7,9,12,0.995))] p-5">
-          <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="relative overflow-hidden rounded-[28px] border border-white/6 bg-[radial-gradient(circle_at_18%_6%,rgba(190,255,74,0.12),transparent_26%),linear-gradient(180deg,rgba(13,15,19,0.99),rgba(7,9,12,0.995))] p-5">
+          <FeatureBadgeMark
+            badge="lending"
+            className="absolute right-5 top-8 h-32 w-32 opacity-[0.075] mix-blend-screen sm:h-40 sm:w-40"
+            imageClassName="rotate-[8deg]"
+            sizes="160px"
+          />
+          <div className="relative z-10 flex flex-wrap items-start justify-between gap-4">
             <div className="max-w-3xl">
               <p className="text-[10px] font-black uppercase tracking-[0.26em] text-lime-300">
                 Borrow / lending
@@ -195,7 +202,7 @@ export function BorrowLendingScreen() {
             </button>
           </div>
 
-          <div className="mt-6 grid gap-3 md:grid-cols-3">
+          <div className="relative z-10 mt-6 grid gap-3 md:grid-cols-3">
             <MarketMetric
               label="Read mode"
               value={marketsRead.status === "loading" ? "Reading Base" : "Live markets"}

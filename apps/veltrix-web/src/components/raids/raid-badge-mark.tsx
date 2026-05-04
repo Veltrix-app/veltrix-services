@@ -1,6 +1,4 @@
-import Image from "next/image";
-
-const RAID_BADGE_SRC = "/brand/raids/raid-badge.png";
+import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 
 export function RaidBadgeMark({
   className = "",
@@ -12,18 +10,11 @@ export function RaidBadgeMark({
   priority?: boolean;
 }) {
   return (
-    <span
-      aria-hidden="true"
-      className={`pointer-events-none relative inline-flex shrink-0 ${className}`}
-    >
-      <Image
-        src={RAID_BADGE_SRC}
-        alt=""
-        fill
-        priority={priority}
-        sizes="96px"
-        className={`object-contain drop-shadow-[0_0_22px_rgba(168,85,247,0.34)] ${imageClassName}`}
-      />
-    </span>
+    <FeatureBadgeMark
+      badge="raid"
+      className={className}
+      imageClassName={imageClassName}
+      priority={priority}
+    />
   );
 }

@@ -13,6 +13,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Surface } from "@/components/ui/surface";
+import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
@@ -102,7 +103,13 @@ export function LeaderboardScreen() {
   return (
     <div className="min-w-0 space-y-5">
       <section className="grid min-w-0 gap-5 2xl:grid-cols-[minmax(0,1.2fr)_360px]">
-        <div className="min-w-0 overflow-hidden rounded-[30px] border border-amber-300/10 bg-[radial-gradient(circle_at_top_left,rgba(255,196,0,0.16),transparent_28%),radial-gradient(circle_at_86%_10%,rgba(139,92,246,0.12),transparent_20%),linear-gradient(145deg,rgba(9,12,18,0.98),rgba(3,6,10,0.96))] p-3 shadow-[0_28px_90px_rgba(0,0,0,0.38)] sm:p-4">
+        <div className="relative min-w-0 overflow-hidden rounded-[30px] border border-amber-300/10 bg-[radial-gradient(circle_at_top_left,rgba(255,196,0,0.16),transparent_28%),radial-gradient(circle_at_86%_10%,rgba(139,92,246,0.12),transparent_20%),linear-gradient(145deg,rgba(9,12,18,0.98),rgba(3,6,10,0.96))] p-3 shadow-[0_28px_90px_rgba(0,0,0,0.38)] sm:p-4">
+          <FeatureBadgeMark
+            badge="leaderboard"
+            className="absolute right-4 top-12 h-36 w-36 opacity-[0.085] mix-blend-screen sm:h-44 sm:w-44"
+            imageClassName="rotate-[8deg]"
+            sizes="176px"
+          />
           <div className="flex flex-wrap items-center justify-between gap-3 px-1 py-1">
             <div className="flex flex-wrap items-center gap-2.5 text-[9px] font-bold uppercase tracking-[0.18em] text-amber-300">
               <span>Leaderboard</span>
@@ -257,6 +264,12 @@ function FeaturedMemberCard({ user, rank }: { user: LiveLeaderboardUser; rank: n
 
   return (
     <article className="relative min-w-0 overflow-hidden rounded-[26px] border border-amber-300/16 bg-[linear-gradient(180deg,rgba(255,255,255,0.055),rgba(255,255,255,0.025))] p-2.5">
+      <FeatureBadgeMark
+        badge="leaderboard"
+        className="absolute right-5 top-16 z-[1] h-28 w-28 opacity-[0.075] mix-blend-screen transition duration-300"
+        imageClassName="rotate-[10deg]"
+        sizes="128px"
+      />
       <ProfileBanner user={user} rank={rank} className="h-44 sm:h-56" />
 
       <div className="relative z-10 -mt-12 px-3 pb-3 sm:px-4">

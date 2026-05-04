@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { DefiRouteNav } from "@/components/defi/defi-route-nav";
 import { DefiSafetyPanel } from "@/components/defi/defi-safety-panel";
+import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 
 const defiShowcaseRoutes = [
   {
@@ -24,6 +25,7 @@ const defiShowcaseRoutes = [
     eyebrow: "Asset route",
     icon: ArrowRightLeft,
     image: "/brand/defi/defi-swap-purple.png",
+    badge: "swap",
     accent: "violet",
     description:
       "Move into the right asset before vaults, lending or trading missions with a VYNTRO-native route finder.",
@@ -37,6 +39,7 @@ const defiShowcaseRoutes = [
     eyebrow: "Lower complexity",
     icon: Wallet,
     image: "/brand/defi/defi-vaults-green.png",
+    badge: "vaults",
     accent: "lime",
     description:
       "Deposit and withdraw through curated vault routes while VYNTRO tracks proof for future XP.",
@@ -50,6 +53,7 @@ const defiShowcaseRoutes = [
     eyebrow: "Advanced route",
     icon: Layers3,
     image: "/brand/defi/defi-borrow-lending-blue.png",
+    badge: "lending",
     accent: "blue",
     description:
       "Supply, enable collateral, borrow, repay and monitor positions with explicit safety gates.",
@@ -63,6 +67,7 @@ const defiShowcaseRoutes = [
     eyebrow: "Competition layer",
     icon: BarChart3,
     image: "/brand/defi/defi-trading-arena-gold.png",
+    badge: "leaderboard",
     accent: "amber",
     description:
       "Launch or join snapshot and live-tracked trading competitions with cost caps, rewards and leaderboards.",
@@ -245,6 +250,12 @@ export function DefiLandingScreen() {
 
                   <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,3,7,0.94)_0%,rgba(2,3,7,0.72)_46%,rgba(2,3,7,0.1)_100%)]" />
                   <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,3,7,0.04)_0%,transparent_30%,rgba(2,3,7,0.9)_100%)]" />
+                  <FeatureBadgeMark
+                    badge={route.badge}
+                    className="absolute right-5 top-12 z-[1] h-28 w-28 opacity-[0.13] mix-blend-screen transition duration-500 group-hover:scale-105 group-hover:opacity-[0.22]"
+                    imageClassName="rotate-[9deg]"
+                    sizes="128px"
+                  />
                   <div className={`absolute -left-24 top-1 h-40 w-40 rounded-full ${accent.glow} blur-3xl transition duration-700 group-hover:opacity-90`} />
                   <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-white/18 via-white/5 to-transparent" />
                   <div className={`absolute inset-x-0 bottom-0 h-px bg-gradient-to-r ${accent.line} to-transparent`} />

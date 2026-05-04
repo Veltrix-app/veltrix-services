@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Copy, ShieldCheck, Signal, Trophy, UserRound, Wallet, Zap } from "lucide-react";
 import { CommunityStatusPanel } from "@/components/community/community-status-panel";
+import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -373,7 +374,13 @@ export function ProfileScreen() {
       ) : null}
 
       <section className="grid gap-5 2xl:grid-cols-[minmax(0,1.25fr)_340px]">
-        <div className="overflow-hidden rounded-[30px] border border-cyan-300/12 bg-[radial-gradient(circle_at_top_left,rgba(0,204,255,0.18),transparent_26%),radial-gradient(circle_at_86%_10%,rgba(192,255,0,0.12),transparent_18%),linear-gradient(145deg,rgba(7,18,24,0.98),rgba(4,9,13,0.95))] p-5 shadow-[0_28px_90px_rgba(0,0,0,0.38)] sm:p-6">
+        <div className="relative overflow-hidden rounded-[30px] border border-cyan-300/12 bg-[radial-gradient(circle_at_top_left,rgba(0,204,255,0.18),transparent_26%),radial-gradient(circle_at_86%_10%,rgba(192,255,0,0.12),transparent_18%),linear-gradient(145deg,rgba(7,18,24,0.98),rgba(4,9,13,0.95))] p-5 shadow-[0_28px_90px_rgba(0,0,0,0.38)] sm:p-6">
+          <FeatureBadgeMark
+            badge="profile"
+            className="absolute right-5 top-12 h-36 w-36 opacity-[0.08] mix-blend-screen sm:h-44 sm:w-44"
+            imageClassName="rotate-[8deg]"
+            sizes="176px"
+          />
           <div className="flex flex-wrap items-center gap-2.5 text-[9px] font-bold uppercase tracking-[0.18em] text-cyan-300">
             <span>Member Profile</span>
             <span className="rounded-full border border-cyan-300/16 bg-cyan-300/10 px-3 py-1 tracking-[0.24em] text-cyan-100">
@@ -728,15 +735,21 @@ export function ProfileScreen() {
         {projectReputation.length > 0 ? (
           <div className="grid gap-3 xl:grid-cols-2">
             {projectReputation.map((item) => (
-              <div key={item.projectId} className="panel-card rounded-[22px] p-4">
-                <div className="flex items-start justify-between gap-4">
+              <div key={item.projectId} className="panel-card relative overflow-hidden rounded-[22px] p-4">
+                <FeatureBadgeMark
+                  badge="reputation"
+                  className="absolute -right-2 top-8 h-20 w-20 opacity-[0.07] mix-blend-screen"
+                  imageClassName="rotate-[10deg]"
+                  sizes="96px"
+                />
+                <div className="relative z-10 flex items-start justify-between gap-4">
                   <div>
                     <p className="text-[12px] font-semibold text-cyan-200">{item.projectName}</p>
                     <p className="mt-1.5 text-[15px] font-black text-white">{item.contributionTier.toUpperCase()}</p>
                   </div>
                   <StatusChip label={item.rank > 0 ? `#${item.rank}` : "Unranked"} tone={item.rank > 0 ? "positive" : "default"} />
                 </div>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <div className="relative z-10 mt-4 grid gap-3 sm:grid-cols-2">
                   <MiniStat label="Project XP" value={item.xp.toLocaleString()} />
                   <MiniStat label="Trust" value={String(item.trustScore)} />
                   <MiniStat label="Quests" value={String(item.questsCompleted)} />
@@ -766,7 +779,13 @@ export function ProfileScreen() {
         </div>
 
         <div className="mt-4 grid gap-3 xl:grid-cols-[1.05fr_0.95fr]">
-          <div className="space-y-2.5 rounded-[20px] border border-white/10 bg-black/20 p-3.5">
+          <div className="relative space-y-2.5 overflow-hidden rounded-[20px] border border-white/10 bg-black/20 p-3.5">
+            <FeatureBadgeMark
+              badge="staking"
+              className="absolute right-2 top-8 h-20 w-20 opacity-[0.06] mix-blend-screen"
+              imageClassName="rotate-[10deg]"
+              sizes="96px"
+            />
             <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-slate-500">
               Claimable distributions
             </p>

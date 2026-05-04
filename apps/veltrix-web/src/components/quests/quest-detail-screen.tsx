@@ -5,6 +5,7 @@ import { useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { ArtworkImage } from "@/components/ui/artwork-image";
+import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -747,8 +748,14 @@ export function QuestDetailScreen() {
 
   return (
     <div className="space-y-5">
-      <section className="rounded-[22px] border border-white/8 bg-[radial-gradient(circle_at_top_left,rgba(186,255,59,0.12),transparent_26%),radial-gradient(circle_at_78%_18%,rgba(0,204,255,0.12),transparent_24%),linear-gradient(180deg,rgba(12,14,18,0.99),rgba(7,9,11,0.99))] p-4 shadow-[0_20px_54px_rgba(0,0,0,0.24)]">
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.16fr)_300px]">
+      <section className="relative overflow-hidden rounded-[22px] border border-white/8 bg-[radial-gradient(circle_at_top_left,rgba(186,255,59,0.12),transparent_26%),radial-gradient(circle_at_78%_18%,rgba(0,204,255,0.12),transparent_24%),linear-gradient(180deg,rgba(12,14,18,0.99),rgba(7,9,11,0.99))] p-4 shadow-[0_20px_54px_rgba(0,0,0,0.24)]">
+        <FeatureBadgeMark
+          badge="quest"
+          className="absolute right-5 top-8 h-28 w-28 opacity-[0.08] mix-blend-screen sm:h-36 sm:w-36"
+          imageClassName="rotate-[8deg]"
+          sizes="144px"
+        />
+        <div className="relative z-10 grid gap-4 xl:grid-cols-[minmax(0,1.16fr)_300px]">
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <StatusChip label={linkedProject?.name ?? "Project"} tone="info" />
