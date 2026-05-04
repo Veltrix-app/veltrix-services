@@ -22,6 +22,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
+import { RaidBadgeMark } from "@/components/raids/raid-badge-mark";
 import { useWalletIdentityActions } from "@/hooks/use-wallet-identity-actions";
 import {
   getMainPageSignalBanner,
@@ -348,9 +349,16 @@ function RaidPageHero({
 
         <div className="relative mx-auto flex min-h-[430px] max-w-[1720px] items-end px-4 pb-32 pt-20 sm:min-h-[500px] sm:px-6 lg:min-h-[620px] lg:px-8 lg:pb-40 2xl:min-h-[680px]">
           <div className="max-w-2xl pb-8 [text-shadow:0_18px_60px_rgba(0,0,0,0.75)]">
-            <p className="text-[10px] font-black uppercase tracking-[0.32em] text-rose-200/90">
-              {eyebrow}
-            </p>
+            <div className="flex items-center gap-3">
+              <RaidBadgeMark
+                priority
+                className="h-12 w-12 opacity-90 sm:h-14 sm:w-14"
+                imageClassName="drop-shadow-[0_0_26px_rgba(168,85,247,0.42)]"
+              />
+              <p className="text-[10px] font-black uppercase tracking-[0.32em] text-rose-200/90">
+                {eyebrow}
+              </p>
+            </div>
             <h1 className="mt-4 max-w-3xl text-balance text-[clamp(2.1rem,4vw,4.9rem)] font-black leading-[0.9] tracking-[-0.055em] text-white">
               {title}
             </h1>

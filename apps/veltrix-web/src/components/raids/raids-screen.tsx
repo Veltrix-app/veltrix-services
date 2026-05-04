@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 import { StatusChip } from "@/components/ui/status-chip";
+import { RaidBadgeMark } from "@/components/raids/raid-badge-mark";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 
 export function RaidsScreen() {
@@ -82,6 +83,12 @@ export function RaidsScreen() {
                 }`}
               >
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(251,113,133,0.14),transparent_35%),linear-gradient(180deg,rgba(10,12,15,0.08),rgba(10,12,15,0.88))]" />
+                <RaidBadgeMark
+                  className={`absolute right-3 top-12 ${
+                    index === 0 ? "h-28 w-28 opacity-[0.13]" : "h-20 w-20 opacity-[0.1]"
+                  } transition duration-300 group-hover:opacity-[0.2]`}
+                  imageClassName="rotate-[8deg]"
+                />
                 <div className="relative flex h-full flex-col">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="flex flex-wrap gap-2">
@@ -142,9 +149,13 @@ export function RaidsScreen() {
                 key={raid.id}
                 href={`/raids/${raid.id}`}
                 prefetch={false}
-                className="group rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(7,9,12,0.98))] p-3.5 transition hover:border-rose-300/16 hover:bg-[linear-gradient(180deg,rgba(21,17,19,0.98),rgba(8,10,13,0.98))]"
+                className="group relative overflow-hidden rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(7,9,12,0.98))] p-3.5 transition hover:border-rose-300/16 hover:bg-[linear-gradient(180deg,rgba(21,17,19,0.98),rgba(8,10,13,0.98))]"
               >
-                <div className="flex items-start justify-between gap-3">
+                <RaidBadgeMark
+                  className="absolute right-2 top-9 h-16 w-16 opacity-[0.08] transition duration-300 group-hover:opacity-[0.15]"
+                  imageClassName="rotate-[10deg]"
+                />
+                <div className="relative flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="truncate text-[0.94rem] font-semibold text-white">{raid.title}</p>
                     <p className="mt-2 truncate text-[10px] uppercase tracking-[0.16em] text-slate-500">
@@ -154,17 +165,17 @@ export function RaidsScreen() {
                   <StatusChip label={raid.progress >= 50 ? "Hot" : "Live"} tone={raid.progress >= 50 ? "warning" : "default"} />
                 </div>
 
-                <div className="mt-3 flex items-center justify-between gap-3 text-[11px] text-slate-500">
+                <div className="relative mt-3 flex items-center justify-between gap-3 text-[11px] text-slate-500">
                   <span className="truncate">{raid.target}</span>
                   <span>{raid.participants} in</span>
                 </div>
 
-                <div className="mt-4 flex flex-wrap gap-1.5">
+                <div className="relative mt-4 flex flex-wrap gap-1.5">
                   <MetricPill label="Reward" value={`${raid.reward} XP`} />
                   <MetricPill label="Timer" value={raid.timer} />
                 </div>
 
-                <div className="mt-4 flex items-center justify-between border-t border-white/6 pt-3">
+                <div className="relative mt-4 flex items-center justify-between border-t border-white/6 pt-3">
                   <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
                     Open raid
                   </span>
