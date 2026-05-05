@@ -8,8 +8,7 @@ import {
   buildQuestSubmissionDecisionPlan,
   normalizeQuestSubmissionDecision,
 } from "@/lib/xp/quest-submission-decision";
-import { LOOTBOX_EARNING_RULES } from "@/lib/lootboxes/lootbox-catalog";
-import { grantShards } from "@/lib/lootboxes/shard-server";
+import { grantQuestShardsWithFeaturedPool } from "@/lib/lootboxes/featured-shard-pool-server";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -337,26 +336,17 @@ export async function POST(
       serviceSupabase,
       campaignId: decisionPlan.xpAward?.campaignId ?? (safeString(quest.campaign_id) || null),
     });
-    const shardRange = featuredQuest
-      ? LOOTBOX_EARNING_RULES.featuredQuest.range
-      : LOOTBOX_EARNING_RULES.normalQuest.range;
     const shardAward =
       decisionPlan.decision === "approved"
-        ? await grantShards({
+        ? await grantQuestShardsWithFeaturedPool({
             serviceSupabase,
             authUserId: submission.auth_user_id,
-            amount: shardRange[0],
-            sourceType: featuredQuest ? "featured_quest" : "normal_quest",
-            sourceRef: String(quest.id),
-            action: "approved",
-            reason: featuredQuest ? "Featured quest approved" : "Quest approved",
-            metadata: {
-              questId: quest.id,
-              questTitle: safeString(quest.title) || "Quest",
-              submissionId: submission.id,
-              projectId: safeString(quest.project_id) || null,
-              campaignId: safeString(quest.campaign_id) || null,
-            },
+            questId: String(quest.id),
+            questTitle: safeString(quest.title) || "Quest",
+            projectId: safeString(quest.project_id) || null,
+            campaignId: safeString(quest.campaign_id) || null,
+            featured: featuredQuest,
+            submissionId: submission.id,
           })
         : null;
 

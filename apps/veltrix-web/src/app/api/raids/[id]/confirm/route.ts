@@ -3,8 +3,7 @@ import {
   createSupabaseServiceClient,
   createSupabaseUserServerClient,
 } from "@/lib/supabase/server";
-import { LOOTBOX_EARNING_RULES } from "@/lib/lootboxes/lootbox-catalog";
-import { grantShards } from "@/lib/lootboxes/shard-server";
+import { grantRaidShardsWithFeaturedPool } from "@/lib/lootboxes/featured-shard-pool-server";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -128,25 +127,16 @@ export async function POST(
     const generatedBy = typeof raid.generated_by === "string" ? raid.generated_by : "";
     const featuredRaid =
       featuredCampaign || generatedBy === "featured" || generatedBy === "campaign_studio";
-    const range = featuredRaid
-      ? LOOTBOX_EARNING_RULES.featuredRaid.range
-      : LOOTBOX_EARNING_RULES.normalRaid.range;
-    const shardAward = await grantShards({
+    const shardAward = await grantRaidShardsWithFeaturedPool({
       serviceSupabase,
       authUserId: user.id,
-      amount: range[0],
-      sourceType: featuredRaid ? "featured_raid" : "normal_raid",
-      sourceRef: raidId,
-      action: "confirmed",
-      reason: featuredRaid ? "Featured raid confirmed" : "Raid confirmed",
-      metadata: {
-        raidId,
-        raidTitle: typeof raid.title === "string" ? raid.title : "Raid",
-        campaignId: typeof raid.campaign_id === "string" ? raid.campaign_id : null,
-        projectId: typeof raid.project_id === "string" ? raid.project_id : null,
-        community: typeof raid.community === "string" ? raid.community : null,
-        timer: typeof raid.timer === "string" ? raid.timer : null,
-      },
+      raidId,
+      raidTitle: typeof raid.title === "string" ? raid.title : "Raid",
+      projectId: typeof raid.project_id === "string" ? raid.project_id : null,
+      campaignId: typeof raid.campaign_id === "string" ? raid.campaign_id : null,
+      featured: featuredRaid,
+      community: typeof raid.community === "string" ? raid.community : null,
+      timer: typeof raid.timer === "string" ? raid.timer : null,
     });
 
     return NextResponse.json({ ok: true, confirmed: true, shardAward });
