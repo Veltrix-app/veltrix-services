@@ -27,6 +27,28 @@ type UserProgressRow = {
   unlocked_reward_ids: string[] | null;
 };
 
+type LiveLootboxShopTier = {
+  id: string;
+  label: string;
+  priceShards: number;
+  assetPath: string;
+  odds: Record<string, number>;
+  eligibility: {
+    unlocked: boolean;
+    reason: string | null;
+  };
+};
+
+type LiveInventoryItem = {
+  id: string;
+  item_type: string;
+  rarity: string;
+  label: string;
+  payload: Record<string, unknown>;
+  status: string;
+  created_at: string;
+};
+
 export type LiveUserDataDataset =
   | "connectedAccounts"
   | "projects"
@@ -39,7 +61,9 @@ export type LiveUserDataDataset =
   | "projectReputation"
   | "joinedCommunityIds"
   | "xpStakes"
-  | "rewardDistributions";
+  | "rewardDistributions"
+  | "lootboxes"
+  | "inventory";
 
 type UseLiveUserDataOptions = {
   datasets?: LiveUserDataDataset[];
@@ -59,6 +83,9 @@ type LiveUserDataCacheEntry = {
   joinedCommunityIds: string[];
   xpStakes: LiveXpStake[];
   rewardDistributions: LiveRewardDistribution[];
+  shardBalance: number;
+  lootboxes: LiveLootboxShopTier[];
+  inventory: LiveInventoryItem[];
 };
 
 const ALL_LIVE_USER_DATASETS: LiveUserDataDataset[] = [
@@ -74,6 +101,8 @@ const ALL_LIVE_USER_DATASETS: LiveUserDataDataset[] = [
   "joinedCommunityIds",
   "xpStakes",
   "rewardDistributions",
+  "lootboxes",
+  "inventory",
 ];
 
 const liveUserDataCache = new Map<string, LiveUserDataCacheEntry>();
@@ -107,6 +136,9 @@ function createEmptyCacheEntry(): LiveUserDataCacheEntry {
     joinedCommunityIds: [],
     xpStakes: [],
     rewardDistributions: [],
+    shardBalance: 0,
+    lootboxes: [],
+    inventory: [],
   };
 }
 
@@ -154,6 +186,9 @@ function applyLiveUserDataCacheEntry(
     setJoinedCommunityIds: (value: string[]) => void;
     setXpStakes: (value: LiveXpStake[]) => void;
     setRewardDistributions: (value: LiveRewardDistribution[]) => void;
+    setShardBalance: (value: number) => void;
+    setLootboxTiers: (value: LiveLootboxShopTier[]) => void;
+    setInventory: (value: LiveInventoryItem[]) => void;
   }
 ) {
   setters.setConnectedAccounts(
@@ -188,6 +223,11 @@ function applyLiveUserDataCacheEntry(
       requestedDatasets.has("rewardDistributions") ? [] : []
     )
   );
+  if (entry.loadedDatasets.includes("lootboxes") || entry.loadedDatasets.includes("inventory")) {
+    setters.setShardBalance(entry.shardBalance ?? 0);
+  }
+  setters.setLootboxTiers(readCachedDataset(entry, "lootboxes", requestedDatasets.has("lootboxes") ? [] : []));
+  setters.setInventory(readCachedDataset(entry, "inventory", requestedDatasets.has("inventory") ? [] : []));
 }
 
 function mapClaimStatusToDistributionStatus(status: string | null | undefined) {
@@ -202,6 +242,49 @@ function mapClaimStatusToDistributionStatus(status: string | null | undefined) {
     default:
       return "queued";
   }
+}
+
+async function fetchLootboxShop(accessToken: string): Promise<{
+  data: {
+    balance: number;
+    tiers: LiveLootboxShopTier[];
+    inventory: LiveInventoryItem[];
+  } | null;
+  error: { message: string } | null;
+}> {
+  const response = await fetch("/api/lootboxes", {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    cache: "no-store",
+  });
+  const payload = (await response.json().catch(() => null)) as
+    | {
+        ok?: boolean;
+        shop?: {
+          balance?: number;
+          tiers?: LiveLootboxShopTier[];
+          inventory?: LiveInventoryItem[];
+        };
+        error?: string;
+      }
+    | null;
+
+  if (!response.ok || !payload?.ok || !payload.shop) {
+    return {
+      data: null,
+      error: { message: payload?.error ?? "Lootbox shop failed to load." },
+    };
+  }
+
+  return {
+    data: {
+      balance: Number(payload.shop.balance ?? 0),
+      tiers: Array.isArray(payload.shop.tiers) ? payload.shop.tiers : [],
+      inventory: Array.isArray(payload.shop.inventory) ? payload.shop.inventory : [],
+    },
+    error: null,
+  };
 }
 
 export function seedLiveUserConnectedAccounts(
@@ -298,6 +381,13 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
   const [rewardDistributions, setRewardDistributions] = useState<LiveRewardDistribution[]>(
     readCachedDataset(cachedState, "rewardDistributions", [])
   );
+  const [shardBalance, setShardBalance] = useState(cachedState?.shardBalance ?? 0);
+  const [lootboxTiers, setLootboxTiers] = useState<LiveLootboxShopTier[]>(
+    readCachedDataset(cachedState, "lootboxes", [])
+  );
+  const [inventory, setInventory] = useState<LiveInventoryItem[]>(
+    readCachedDataset(cachedState, "inventory", [])
+  );
   const supabase = useMemo(
     () => (authConfigured ? createSupabaseBrowserClient() : null),
     [authConfigured]
@@ -320,6 +410,9 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
       setJoinedCommunityIds([]);
       setXpStakes([]);
       setRewardDistributions([]);
+      setShardBalance(0);
+      setLootboxTiers([]);
+      setInventory([]);
       setError(null);
       setLoading(false);
       setRefreshing(false);
@@ -345,6 +438,9 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
         setJoinedCommunityIds,
         setXpStakes,
         setRewardDistributions,
+        setShardBalance,
+        setLootboxTiers,
+        setInventory,
       });
       setLoading(!hasRequestedCache);
       setRefreshing(hasRequestedCache);
@@ -366,6 +462,9 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
     const shouldLoadJoinedCommunityIds = requestedDatasetSet.has("joinedCommunityIds");
     const shouldLoadXpStakes = requestedDatasetSet.has("xpStakes");
     const shouldLoadRewardDistributions = requestedDatasetSet.has("rewardDistributions");
+    const shouldLoadLootboxes = requestedDatasetSet.has("lootboxes");
+    const shouldLoadInventory = requestedDatasetSet.has("inventory");
+    const shouldLoadLootboxState = shouldLoadLootboxes || shouldLoadInventory;
     const shouldLoadUserProgress =
       shouldLoadJoinedCommunityIds || shouldLoadQuests || shouldLoadRewards;
 
@@ -382,6 +481,7 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
       projectReputationResult,
       xpStakesResult,
       rewardDistributionsResult,
+      lootboxShopResult,
     ] = await Promise.all([
       shouldLoadConnectedAccounts
         ? supabase
@@ -463,6 +563,9 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
             .eq("auth_user_id", authUserId)
             .order("updated_at", { ascending: false })
         : Promise.resolve({ data: [], error: null }),
+      shouldLoadLootboxState && session?.access_token
+        ? fetchLootboxShop(session.access_token)
+        : Promise.resolve({ data: null, error: null }),
     ]);
 
     const firstError =
@@ -477,7 +580,8 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
       raidsResult.error ??
       projectReputationResult.error ??
       xpStakesResult.error ??
-      rewardDistributionsResult.error;
+      rewardDistributionsResult.error ??
+      lootboxShopResult.error;
 
     if (firstError) {
       setError(firstError.message);
@@ -770,6 +874,18 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
     if (shouldLoadRewardDistributions) {
       setRewardDistributions(nextRewardDistributions);
     }
+    const nextShardBalance = lootboxShopResult.data?.balance ?? 0;
+    const nextLootboxTiers = lootboxShopResult.data?.tiers ?? [];
+    const nextInventory = lootboxShopResult.data?.inventory ?? [];
+    if (shouldLoadLootboxState) {
+      setShardBalance(nextShardBalance);
+    }
+    if (shouldLoadLootboxes) {
+      setLootboxTiers(nextLootboxTiers);
+    }
+    if (shouldLoadInventory) {
+      setInventory(nextInventory);
+    }
 
     mergeLiveUserDataCacheEntry({
       authUserId,
@@ -788,6 +904,9 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
         ...(shouldLoadRewardDistributions
           ? { rewardDistributions: nextRewardDistributions }
           : {}),
+        ...(shouldLoadLootboxState ? { shardBalance: nextShardBalance } : {}),
+        ...(shouldLoadLootboxes ? { lootboxes: nextLootboxTiers } : {}),
+        ...(shouldLoadInventory ? { inventory: nextInventory } : {}),
       },
       loadedDatasets: requestedDatasets,
     });
@@ -1145,6 +1264,51 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
     return { ok: true };
   }
 
+  async function openLootbox(tierId: string) {
+    if (!authConfigured || !authUserId || !session?.access_token) {
+      return { ok: false, error: "Sign in before opening a lootbox." };
+    }
+
+    const response = await fetch("/api/lootboxes/open", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ tierId }),
+      cache: "no-store",
+    });
+    const payload = (await response.json().catch(() => null)) as
+      | {
+          ok?: boolean;
+          result?: {
+            balance: number;
+            inventoryItem: LiveInventoryItem;
+          };
+          error?: string;
+        }
+      | null;
+
+    if (!response.ok || !payload?.ok || !payload.result) {
+      const errorMessage = payload?.error ?? "Lootbox open failed.";
+      setError(errorMessage);
+      return { ok: false, error: errorMessage };
+    }
+
+    setShardBalance(payload.result.balance);
+    setInventory((current) => [payload.result!.inventoryItem, ...current]);
+    mergeLiveUserDataCacheEntry({
+      authUserId,
+      patch: {
+        shardBalance: payload.result.balance,
+        inventory: [payload.result.inventoryItem, ...inventory],
+      },
+      loadedDatasets: ["lootboxes", "inventory"],
+    });
+
+    return { ok: true, result: payload.result };
+  }
+
   async function markNotificationsRead() {
     if (!authConfigured || !authUserId || !supabase) {
       return;
@@ -1204,6 +1368,9 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
           setJoinedCommunityIds,
           setXpStakes,
           setRewardDistributions,
+          setShardBalance,
+          setLootboxTiers,
+          setInventory,
         });
         const fullyCached = requestedDatasets.every((dataset) =>
           liveUserDataCache.get(authUserId)!.loadedDatasets.includes(dataset)
@@ -1250,11 +1417,15 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
     joinedCommunityIds,
     xpStakes,
     rewardDistributions,
+    shardBalance,
+    lootboxTiers,
+    inventory,
     ...derived,
     reload,
     markNotificationsRead,
     joinCommunity,
     claimReward,
     claimRewardDistribution,
+    openLootbox,
   };
 }
