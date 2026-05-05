@@ -7,6 +7,7 @@ import { ArtworkImage } from "@/components/ui/artwork-image";
 import { RaidBadgeMark } from "@/components/raids/raid-badge-mark";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
+import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 import { XP_SOURCE_TYPES } from "@/lib/xp/xp-economy";
@@ -248,10 +249,14 @@ export function RaidDetailScreen() {
 }
 
 function MetricTile({ label, value }: { label: string; value: string }) {
+  const hasXpBadge = isXpDisplay(label, value);
+
   return (
     <div className="metric-card rounded-[14px] p-2.5">
       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">{label}</p>
-      <p className="mt-1 text-[0.8rem] font-semibold text-white">{value}</p>
+      <div className="mt-1">
+        {hasXpBadge ? <XpValue size="sm">{value}</XpValue> : <p className="text-[0.8rem] font-semibold text-white">{value}</p>}
+      </div>
     </div>
   );
 }
@@ -282,10 +287,12 @@ function Notice({ text, tone }: { text: string; tone: "default" | "error" | "suc
 }
 
 function MetricPill({ label, value }: { label: string; value: string }) {
+  const hasXpBadge = isXpDisplay(label, value);
+
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-black/20 px-2 py-1 text-[8px] font-bold uppercase tracking-[0.12em] text-slate-400">
       <span>{label}</span>
-      <span className="text-white">{value}</span>
+      {hasXpBadge ? <XpValue size="xs">{value}</XpValue> : <span className="text-white">{value}</span>}
     </span>
   );
 }

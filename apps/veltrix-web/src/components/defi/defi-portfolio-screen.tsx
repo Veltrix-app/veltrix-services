@@ -12,6 +12,7 @@ import {
 import { DefiSafetyPanel } from "@/components/defi/defi-safety-panel";
 import { useAuth } from "@/components/providers/auth-provider";
 import { StatusChip } from "@/components/ui/status-chip";
+import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useDefiXpEligibility } from "@/hooks/use-defi-xp-eligibility";
 import { useMoonwellMarkets } from "@/hooks/use-moonwell-markets";
 import { useMoonwellVaultPositions } from "@/hooks/use-moonwell-vault-positions";
@@ -301,7 +302,9 @@ function XpLane({
                   onClick={() => void onClaim(mission.slug)}
                   className="rounded-full bg-lime-300 px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-black transition hover:bg-lime-200 disabled:cursor-not-allowed disabled:bg-white/8 disabled:text-slate-500"
                 >
-                  {claimingSlug === mission.slug ? "Claiming..." : `Claim ${mission.xp} XP`}
+                  {claimingSlug === mission.slug ? "Claiming..." : (
+                    <XpValue size="xs" textClassName="text-black">Claim {mission.xp} XP</XpValue>
+                  )}
                 </button>
               </div>
             </div>
@@ -317,10 +320,14 @@ function XpLane({
 }
 
 function MetricCard({ label, value }: { label: string; value: string }) {
+  const hasXpBadge = isXpDisplay(label, value);
+
   return (
     <div className="rounded-[18px] border border-white/6 bg-black/22 px-3.5 py-3">
       <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">{label}</p>
-      <p className="mt-2 text-[1.05rem] font-black text-white">{value}</p>
+      <div className="mt-2">
+        {hasXpBadge ? <XpValue size="md">{value}</XpValue> : <p className="text-[1.05rem] font-black text-white">{value}</p>}
+      </div>
     </div>
   );
 }

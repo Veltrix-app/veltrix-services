@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 import { StatusChip } from "@/components/ui/status-chip";
+import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { RaidBadgeMark } from "@/components/raids/raid-badge-mark";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 
@@ -256,10 +257,12 @@ function CardPill({ children }: { children: ReactNode }) {
 }
 
 function MetricPill({ label, value }: { label: string; value: string }) {
+  const hasXpBadge = isXpDisplay(label, value);
+
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-black/20 px-2 py-1 text-[8px] font-bold uppercase tracking-[0.14em] text-slate-400">
       <span>{label}</span>
-      <span className="text-white">{value}</span>
+      {hasXpBadge ? <XpValue size="xs">{value}</XpValue> : <span className="text-white">{value}</span>}
     </span>
   );
 }

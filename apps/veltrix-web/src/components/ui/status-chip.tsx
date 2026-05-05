@@ -1,3 +1,5 @@
+import { XpBadgeMark, isXpDisplay } from "@/components/ui/xp-badge";
+
 export function StatusChip({
   label,
   tone = "default",
@@ -15,11 +17,13 @@ export function StatusChip({
       : tone === "info"
       ? "bg-cyan-300/14 text-cyan-200"
       : "bg-white/8 text-slate-200";
+  const hasXpBadge = isXpDisplay(label);
 
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] ${toneClass}`}
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] ${toneClass}`}
     >
+      {hasXpBadge ? <XpBadgeMark size="xs" /> : null}
       {label}
     </span>
   );

@@ -11,6 +11,7 @@ import { ContributionTierBadge } from "@/components/ui/contribution-tier-badge";
 import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
+import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useCommunityJourney } from "@/hooks/use-community-journey";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
@@ -432,8 +433,9 @@ export function ProfileScreen() {
                       <p className="text-[9px] font-black uppercase tracking-[0.18em] text-lime-300">
                         XP economy v1
                       </p>
-                      <p className="mt-2 text-[14px] font-black text-white">
-                        {xpProgression.levelLabel} to {xpProgression.nextLevelXp.toLocaleString()} XP
+                      <p className="mt-2 inline-flex flex-wrap items-center gap-1.5 text-[14px] font-black text-white">
+                        <span>{xpProgression.levelLabel} to</span>
+                        <XpValue size="xs">{xpProgression.nextLevelXp.toLocaleString()} XP</XpValue>
                       </p>
                       <p className="mt-1.5 text-[11px] leading-5 text-slate-300">
                         Quests, raids, DeFi, streaks and anti-abuse now share one central XP logic.
@@ -448,7 +450,7 @@ export function ProfileScreen() {
                     />
                   </div>
                   <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[10px] font-semibold text-slate-400">
-                    <span>{xpProgression.totalXp.toLocaleString()} XP</span>
+                    <XpValue size="xs">{xpProgression.totalXp.toLocaleString()} XP</XpValue>
                     <span>{xpProgression.progressPercent}% to next level</span>
                   </div>
                 </div>
@@ -920,19 +922,27 @@ function ProfileIdentityAvatar() {
 }
 
 function FeatureStat({ label, value }: { label: string; value: string }) {
+  const hasXpBadge = isXpDisplay(label, value);
+
   return (
     <div className="metric-card rounded-[16px] px-3 py-2.5">
       <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">{label}</p>
-      <p className="mt-1.5 text-[13px] font-semibold text-white">{value}</p>
+      <div className="mt-1.5">
+        {hasXpBadge ? <XpValue size="sm">{value}</XpValue> : <p className="text-[13px] font-semibold text-white">{value}</p>}
+      </div>
     </div>
   );
 }
 
 function MiniStat({ label, value }: { label: string; value: string }) {
+  const hasXpBadge = isXpDisplay(label, value);
+
   return (
     <div className="metric-card rounded-[14px] px-3 py-2.5">
       <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">{label}</p>
-      <p className="mt-1 text-[11px] font-semibold text-white">{value}</p>
+      <div className="mt-1">
+        {hasXpBadge ? <XpValue size="xs">{value}</XpValue> : <p className="text-[11px] font-semibold text-white">{value}</p>}
+      </div>
     </div>
   );
 }

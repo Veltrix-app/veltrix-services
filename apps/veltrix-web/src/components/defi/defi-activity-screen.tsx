@@ -6,6 +6,7 @@ import { ArrowRight, ExternalLink, History, RefreshCw } from "lucide-react";
 import { DefiSafetyPanel } from "@/components/defi/defi-safety-panel";
 import { useAuth } from "@/components/providers/auth-provider";
 import { StatusChip } from "@/components/ui/status-chip";
+import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useDefiActivity } from "@/hooks/use-defi-activity";
 import type { DefiActivityCategory, DefiActivityItem } from "@/lib/defi/defi-activity";
 
@@ -255,10 +256,18 @@ function EmptyActivityState({ walletReady }: { walletReady: boolean }) {
 }
 
 function ActivityMetric({ label, value }: { label: string; value: string }) {
+  const hasXpBadge = isXpDisplay(label, value);
+
   return (
     <div className="rounded-[18px] border border-white/6 bg-black/20 px-3.5 py-3">
       <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-500">{label}</p>
-      <p className="mt-2 break-words text-[13px] font-semibold text-white">{value}</p>
+      <div className="mt-2">
+        {hasXpBadge ? (
+          <XpValue size="sm">{value}</XpValue>
+        ) : (
+          <p className="break-words text-[13px] font-semibold text-white">{value}</p>
+        )}
+      </div>
     </div>
   );
 }

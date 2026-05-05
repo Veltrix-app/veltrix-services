@@ -7,6 +7,7 @@ import { useParams } from "next/navigation";
 import { ContributionTierBadge } from "@/components/ui/contribution-tier-badge";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
+import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 
 export function CommunityDetailScreen() {
@@ -278,21 +279,27 @@ function MetricTile({
   value: string;
   valueNode?: ReactNode;
 }) {
+  const hasXpBadge = isXpDisplay(label, value);
+
   return (
     <div className="metric-card rounded-[24px] p-4">
       <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">{label}</p>
       <div className="mt-3">
-        {valueNode ?? <p className="text-3xl font-black text-white">{value}</p>}
+        {valueNode ?? (hasXpBadge ? <XpValue size="md">{value}</XpValue> : <p className="text-3xl font-black text-white">{value}</p>)}
       </div>
     </div>
   );
 }
 
 function MiniStat({ label, value }: { label: string; value: string }) {
+  const hasXpBadge = isXpDisplay(label, value);
+
   return (
     <div className="metric-card rounded-[20px] px-4 py-3">
       <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</p>
-      <p className="mt-2 text-sm font-semibold text-white">{value}</p>
+      <div className="mt-2">
+        {hasXpBadge ? <XpValue size="sm">{value}</XpValue> : <p className="text-sm font-semibold text-white">{value}</p>}
+      </div>
     </div>
   );
 }

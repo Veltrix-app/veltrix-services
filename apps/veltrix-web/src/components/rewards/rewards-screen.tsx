@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 import { StatusChip } from "@/components/ui/status-chip";
+import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 
 type RewardFilter = "all" | "claimable" | "high-value";
@@ -307,7 +308,7 @@ export function RewardsScreen() {
 
                 <div className="relative z-10 mt-3 flex items-center justify-between gap-3 text-[11px] text-slate-500">
                   <span>{reward.rarity}</span>
-                  <span>{reward.cost} XP</span>
+                  <XpValue size="xs">{reward.cost} XP</XpValue>
                 </div>
 
                 <div className="relative z-10 mt-4 flex flex-wrap gap-1.5">
@@ -514,10 +515,12 @@ function CardPill({ children }: { children: ReactNode }) {
 }
 
 function MetricPill({ label, value }: { label: string; value: string }) {
+  const hasXpBadge = isXpDisplay(label, value);
+
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-black/20 px-2 py-1 text-[8px] font-bold uppercase tracking-[0.14em] text-slate-400">
       <span>{label}</span>
-      <span className="text-white">{value}</span>
+      {hasXpBadge ? <XpValue size="xs">{value}</XpValue> : <span className="text-white">{value}</span>}
     </span>
   );
 }

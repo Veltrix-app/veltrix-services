@@ -17,6 +17,7 @@ import { ArtworkImage } from "@/components/ui/artwork-image";
 import { ContributionTierBadge } from "@/components/ui/contribution-tier-badge";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
+import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 import {
   buildProjectShowcase,
@@ -545,9 +546,13 @@ function ActivationColumn({
               className="flex items-center justify-between gap-3 rounded-[18px] border border-white/6 bg-white/[0.03] px-3 py-3 transition hover:border-cyan-300/18"
             >
               <span className="text-sm font-semibold text-white">{item.title}</span>
-              <span className="text-[11px] font-black uppercase tracking-[0.14em] text-lime-300">
-                {item.meta}
-              </span>
+              {isXpDisplay(item.meta) ? (
+                <XpValue size="sm">{item.meta}</XpValue>
+              ) : (
+                <span className="text-[11px] font-black uppercase tracking-[0.14em] text-lime-300">
+                  {item.meta}
+                </span>
+              )}
             </Link>
           ))
         ) : (
@@ -613,11 +618,13 @@ function SmallStat({
   value: string;
   valueNode?: ReactNode;
 }) {
+  const hasXpBadge = isXpDisplay(label, value);
+
   return (
     <div className="rounded-[20px] border border-white/6 bg-black/20 px-4 py-3">
       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">{label}</p>
       <div className="mt-2">
-        {valueNode ?? <p className="text-lg font-black text-white">{value}</p>}
+        {valueNode ?? (hasXpBadge ? <XpValue size="md">{value}</XpValue> : <p className="text-lg font-black text-white">{value}</p>)}
       </div>
     </div>
   );

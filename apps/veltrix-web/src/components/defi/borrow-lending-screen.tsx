@@ -7,6 +7,7 @@ import { BorrowRiskMiniPanel } from "@/components/defi/risk-education-screen";
 import { useAuth } from "@/components/providers/auth-provider";
 import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 import { StatusChip } from "@/components/ui/status-chip";
+import { XpValue } from "@/components/ui/xp-badge";
 import { useDefiXpEligibility } from "@/hooks/use-defi-xp-eligibility";
 import { useMoonwellMarketTransactions } from "@/hooks/use-moonwell-market-transactions";
 import { useMoonwellMarkets } from "@/hooks/use-moonwell-markets";
@@ -535,7 +536,9 @@ function MarketXpPanel({
                 onClick={() => void onClaim(mission.slug)}
                 className="mt-3 w-full rounded-full bg-lime-300 px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-black transition hover:bg-lime-200 disabled:cursor-not-allowed disabled:bg-white/8 disabled:text-slate-500"
               >
-                {claimingSlug === mission.slug ? "Claiming..." : `Claim ${mission.xp} XP`}
+                {claimingSlug === mission.slug ? "Claiming..." : (
+                  <XpValue size="xs" textClassName="text-black">Claim {mission.xp} XP</XpValue>
+                )}
               </button>
             ) : (
               <p className="mt-2 text-[10px] font-black uppercase tracking-[0.14em] text-lime-200">

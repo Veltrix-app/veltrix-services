@@ -15,6 +15,7 @@ import {
 import { Surface } from "@/components/ui/surface";
 import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 import { StatusChip } from "@/components/ui/status-chip";
+import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 import type { LiveLeaderboardUser } from "@/types/live";
@@ -294,7 +295,9 @@ function FeaturedMemberCard({ user, rank }: { user: LiveLeaderboardUser; rank: n
 
           <div className="w-full rounded-[18px] border border-white/8 bg-black/34 px-4 py-3 text-left backdrop-blur-xl sm:w-auto sm:text-right">
             <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-500">Total XP</p>
-            <p className="mt-1 text-[1.15rem] font-black text-amber-100">{formatXp(user.xp)}</p>
+            <div className="mt-1 flex sm:justify-end">
+              <XpValue size="md">{formatXp(user.xp)}</XpValue>
+            </div>
           </div>
         </div>
 
@@ -533,13 +536,17 @@ function SignalTile({
   value: string;
   accent: string;
 }) {
+  const hasXpBadge = isXpDisplay(label, value);
+
   return (
     <div className="metric-card rounded-[16px] px-3 py-2.5">
       <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">
         <SignalIcon icon={icon} />
         <span>{label}</span>
       </div>
-      <p className={`mt-1.5 text-[13px] font-semibold ${accent}`}>{value}</p>
+      <div className="mt-1.5">
+        {hasXpBadge ? <XpValue size="sm">{value}</XpValue> : <p className={`text-[13px] font-semibold ${accent}`}>{value}</p>}
+      </div>
     </div>
   );
 }
@@ -561,10 +568,14 @@ function SignalIcon({ icon }: { icon: "crown" | "shield" | "trophy" | "zap" }) {
 }
 
 function FeatureStat({ label, value }: { label: string; value: string }) {
+  const hasXpBadge = isXpDisplay(label, value);
+
   return (
     <div className="metric-card rounded-[16px] px-3 py-2.5">
       <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">{label}</p>
-      <p className="mt-1.5 truncate text-[13px] font-semibold text-white">{value}</p>
+      <div className="mt-1.5">
+        {hasXpBadge ? <XpValue size="sm">{value}</XpValue> : <p className="truncate text-[13px] font-semibold text-white">{value}</p>}
+      </div>
     </div>
   );
 }

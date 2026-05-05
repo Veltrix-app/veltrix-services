@@ -8,6 +8,7 @@ import { ArtworkImage } from "@/components/ui/artwork-image";
 import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
+import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 import { XP_SOURCE_TYPES } from "@/lib/xp/xp-economy";
@@ -1028,19 +1029,27 @@ function useQuestAuth() {
 }
 
 function MetricTile({ label, value }: { label: string; value: string }) {
+  const hasXpBadge = isXpDisplay(label, value);
+
   return (
     <div className="metric-card rounded-[14px] p-2.5">
       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">{label}</p>
-      <p className="mt-1 text-[0.8rem] font-semibold capitalize text-white">{value}</p>
+      <div className="mt-1">
+        {hasXpBadge ? <XpValue size="sm">{value}</XpValue> : <p className="text-[0.8rem] font-semibold capitalize text-white">{value}</p>}
+      </div>
     </div>
   );
 }
 
 function MiniStat({ label, value }: { label: string; value: string }) {
+  const hasXpBadge = isXpDisplay(label, value);
+
   return (
     <div className="metric-card rounded-[14px] px-3 py-2.5">
       <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">{label}</p>
-      <p className="mt-1 text-[10px] font-semibold capitalize text-white">{value}</p>
+      <div className="mt-1">
+        {hasXpBadge ? <XpValue size="xs">{value}</XpValue> : <p className="text-[10px] font-semibold capitalize text-white">{value}</p>}
+      </div>
     </div>
   );
 }
@@ -1077,10 +1086,12 @@ function Notice({
 }
 
 function MetricPill({ label, value }: { label: string; value: string }) {
+  const hasXpBadge = isXpDisplay(label, value);
+
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-black/20 px-2 py-1 text-[8px] font-bold uppercase tracking-[0.12em] text-slate-400">
       <span>{label}</span>
-      <span className="text-white">{value}</span>
+      {hasXpBadge ? <XpValue size="xs">{value}</XpValue> : <span className="text-white">{value}</span>}
     </span>
   );
 }

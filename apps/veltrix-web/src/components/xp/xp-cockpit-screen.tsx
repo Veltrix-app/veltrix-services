@@ -6,6 +6,7 @@ import { ArrowRight, BadgeCheck, Flame, RefreshCw, ShieldCheck, WalletCards, Zap
 import { useAuth } from "@/components/providers/auth-provider";
 import { ContributionTierBadge } from "@/components/ui/contribution-tier-badge";
 import { StatusChip } from "@/components/ui/status-chip";
+import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useDefiXpEligibility } from "@/hooks/use-defi-xp-eligibility";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 import { useMoonwellMarkets } from "@/hooks/use-moonwell-markets";
@@ -120,7 +121,10 @@ export function XpCockpitScreen() {
           <div className="relative z-10 mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard label="Total XP" value={read.levelRead.totalXp.toLocaleString()} />
             <MetricCard label="Level" value={read.levelRead.levelLabel} />
-            <MetricCard label="Claimable" value={String(read.metrics.claimableXp)} />
+            <MetricCard
+              label="Claimable XP"
+              value={String(read.metrics.claimableXp)}
+            />
             <MetricCard
               label="Tier"
               value={profile?.contributionTier ?? read.levelRead.contributionTier}
@@ -139,10 +143,12 @@ export function XpCockpitScreen() {
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
                   Progress to next level
                 </p>
-                <p className="mt-2 text-[1rem] font-black text-white">
-                  {read.levelRead.currentLevelXp.toLocaleString()} /{" "}
-                  {read.levelRead.nextLevelXp.toLocaleString()} XP
-                </p>
+                <div className="mt-2">
+                  <XpValue size="sm">
+                    {read.levelRead.currentLevelXp.toLocaleString()} /{" "}
+                    {read.levelRead.nextLevelXp.toLocaleString()} XP
+                  </XpValue>
+                </div>
               </div>
               <StatusChip label={`${read.levelRead.progressPercent}%`} tone="info" />
             </div>
@@ -255,7 +261,9 @@ export function XpCockpitScreen() {
                       onClick={() => void claimMission(mission.slug)}
                       className="rounded-full bg-lime-300 px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-black transition hover:bg-lime-200 disabled:cursor-not-allowed disabled:bg-white/8 disabled:text-slate-500"
                     >
-                      {defiXp.claimingSlug === mission.slug ? "Claiming..." : `Claim ${mission.xp} XP`}
+                      {defiXp.claimingSlug === mission.slug ? "Claiming..." : (
+                        <XpValue size="xs" textClassName="text-black">Claim {mission.xp} XP</XpValue>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -419,23 +427,27 @@ function MetricCard({
   value: string;
   valueNode?: ReactNode;
 }) {
+  const hasXpBadge = isXpDisplay(label, value);
+
   return (
     <div className="rounded-[18px] border border-white/6 bg-black/22 px-3.5 py-3">
       <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">{label}</p>
       <div className="mt-2">
-        {valueNode ?? <p className="text-[1.05rem] font-black text-white">{value}</p>}
+        {valueNode ?? (hasXpBadge ? <XpValue size="md">{value}</XpValue> : <p className="text-[1.05rem] font-black text-white">{value}</p>)}
       </div>
     </div>
   );
 }
 
 function MiniRead({ label, value }: { label: string; value: string }) {
+  const hasXpBadge = isXpDisplay(label, value);
+
   return (
     <div className="flex items-center justify-between gap-3 rounded-[16px] border border-white/6 bg-black/20 px-3 py-2.5">
       <span className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-500">
         {label}
       </span>
-      <span className="text-[12px] font-semibold text-white">{value}</span>
+      {hasXpBadge ? <XpValue size="sm">{value}</XpValue> : <span className="text-[12px] font-semibold text-white">{value}</span>}
     </div>
   );
 }

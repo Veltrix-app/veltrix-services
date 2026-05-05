@@ -7,6 +7,7 @@ import { CommunityStatusPanel } from "@/components/community/community-status-pa
 import { ArtworkImage } from "@/components/ui/artwork-image";
 import { ContributionTierBadge } from "@/components/ui/contribution-tier-badge";
 import { StatusChip } from "@/components/ui/status-chip";
+import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useCommunityJourney } from "@/hooks/use-community-journey";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
@@ -377,7 +378,7 @@ export function HomeScreen() {
 
                 <div className="mt-2.5 flex items-center justify-between gap-3 text-[10px] text-slate-500">
                   <span>{quest.completionMode ?? "manual"}</span>
-                  <span>{quest.xp} XP</span>
+                  <XpValue size="xs">{quest.xp} XP</XpValue>
                 </div>
 
                 <div className="mt-3.5 flex flex-wrap gap-1.5">
@@ -438,7 +439,7 @@ export function HomeScreen() {
                 </div>
 
                 <div className="mt-3.5 flex flex-wrap gap-1.5">
-                  <MetricPill label="Reward" value={formatCompactNumber(raid.reward)} />
+                  <MetricPill label="Reward" value={`${formatCompactNumber(raid.reward)} XP`} />
                   <MetricPill label="People" value={formatCompactNumber(raid.participants)} />
                 </div>
 
@@ -491,7 +492,7 @@ export function HomeScreen() {
 
                 <div className="mt-2.5 flex items-center justify-between gap-3 text-[10px] text-slate-500">
                   <span>{reward.rewardType}</span>
-                  <span>{reward.cost} XP</span>
+                  <XpValue size="xs">{reward.cost} XP</XpValue>
                 </div>
 
                 <div className="mt-3.5 flex flex-wrap gap-1.5">
@@ -621,10 +622,12 @@ function CardPill({ children }: { children: string }) {
 }
 
 function MetricPill({ label, value }: { label: string; value: string }) {
+  const hasXpBadge = isXpDisplay(label, value);
+
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-black/20 px-2 py-[3px] text-[7px] font-bold uppercase tracking-[0.12em] text-slate-400">
       <span>{label}</span>
-      <span className="text-white">{value}</span>
+      {hasXpBadge ? <XpValue size="xs">{value}</XpValue> : <span className="text-white">{value}</span>}
     </span>
   );
 }

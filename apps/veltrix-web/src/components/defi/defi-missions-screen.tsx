@@ -36,6 +36,7 @@ import { DefiSafetyPanel } from "@/components/defi/defi-safety-panel";
 import { useAuth } from "@/components/providers/auth-provider";
 import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 import { StatusChip } from "@/components/ui/status-chip";
+import { XpValue } from "@/components/ui/xp-badge";
 import { useDefiXpEligibility } from "@/hooks/use-defi-xp-eligibility";
 import { useMoonwellMarkets } from "@/hooks/use-moonwell-markets";
 import { useMoonwellVaultPositions } from "@/hooks/use-moonwell-vault-positions";
@@ -760,7 +761,7 @@ function DefiXpEligibilityPanel({
           </p>
           <p className="mt-2 text-[12px] leading-5 text-slate-400">
             {snapshot.completedMissions}/{snapshot.totalMissions} missions eligible, with{" "}
-            {snapshot.claimableXp} XP ready to claim when proof checks pass.
+            <XpValue size="xs">{snapshot.claimableXp} XP</XpValue>{" "}ready to claim when proof checks pass.
           </p>
           <div className="mt-4 rounded-[18px] border border-white/8 bg-black/20 p-3">
             <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">
@@ -780,7 +781,7 @@ function DefiXpEligibilityPanel({
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">
-                  {mission.xp > 0 ? `${mission.xp} XP` : "Guard"}
+                  {mission.xp > 0 ? <XpValue size="xs">{mission.xp} XP</XpValue> : "Guard"}
                 </span>
                 <span className="rounded-full border border-white/8 bg-black/18 px-2 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-slate-300">
                   {mission.state}
@@ -802,7 +803,9 @@ function DefiXpEligibilityPanel({
                   onClick={() => void onClaim(mission.slug)}
                   className="mt-3 w-full rounded-full bg-lime-300 px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-black transition hover:bg-lime-200 disabled:cursor-not-allowed disabled:bg-white/8 disabled:text-slate-500"
                 >
-                  {claimingSlug === mission.slug ? "Claiming..." : `Claim ${mission.xp} XP`}
+                  {claimingSlug === mission.slug ? "Claiming..." : (
+                    <XpValue size="xs" textClassName="text-black">Claim {mission.xp} XP</XpValue>
+                  )}
                 </button>
               ) : mission.claimState === "claimed" ? (
                 <p className="mt-3 rounded-full border border-lime-300/12 bg-lime-300/[0.07] px-3 py-2 text-center text-[10px] font-black uppercase tracking-[0.14em] text-lime-200">

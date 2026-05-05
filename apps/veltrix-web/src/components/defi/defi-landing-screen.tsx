@@ -17,6 +17,7 @@ import {
 import { DefiRouteNav } from "@/components/defi/defi-route-nav";
 import { DefiSafetyPanel } from "@/components/defi/defi-safety-panel";
 import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
+import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 
 const defiShowcaseRoutes = [
   {
@@ -175,7 +176,13 @@ export function DefiLandingScreen() {
                 <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">
                   {stat.label}
                 </p>
-                <p className="mt-1.5 text-sm font-black text-white">{stat.value}</p>
+                <div className="mt-1.5">
+                  {isXpDisplay(stat.label, stat.value) ? (
+                    <XpValue size="sm">{stat.value}</XpValue>
+                  ) : (
+                    <p className="text-sm font-black text-white">{stat.value}</p>
+                  )}
+                </div>
               </div>
             ))}
           </div>
