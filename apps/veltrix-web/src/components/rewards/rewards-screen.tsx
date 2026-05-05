@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
+import { ShardBadge } from "@/components/ui/shard-badge";
 import { StatusChip } from "@/components/ui/status-chip";
 import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
@@ -20,8 +21,9 @@ export function RewardsScreen() {
     claimableRewardCount,
     rewardDistributions,
     claimRewardDistribution,
+    shardBalance,
   } = useLiveUserData({
-    datasets: ["rewards", "campaigns", "rewardDistributions"],
+    datasets: ["rewards", "campaigns", "rewardDistributions", "lootboxes"],
   });
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<RewardFilter>("all");
@@ -159,6 +161,16 @@ export function RewardsScreen() {
             <BoardStat label="Rewards" value={String(enrichedRewards.length)} />
             <BoardStat label="Claimable" value={String(claimableRewardCount)} />
             <BoardStat label="Locked" value={String(lockedCount)} />
+            <Link
+              href="/lootboxes"
+              prefetch={false}
+              className="inline-flex items-center gap-2 rounded-full border border-emerald-300/18 bg-emerald-300/[0.075] px-3.5 py-2 transition hover:border-emerald-200/30 hover:bg-emerald-300/[0.11]"
+            >
+              <ShardBadge value={shardBalance} size="sm" className="border-0 bg-transparent p-0 shadow-none" />
+              <span className="text-[10px] font-black uppercase tracking-[0.14em] text-emerald-100">
+                Lootboxes
+              </span>
+            </Link>
           </div>
         </div>
 
