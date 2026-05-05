@@ -10,6 +10,7 @@ import {
   ChevronDown,
   Compass,
   Gem,
+  Gift,
   Home,
   Layers3,
   Radar,
@@ -52,6 +53,7 @@ const primaryNavItems = [
     ],
   },
   { href: "/raids", label: "Raids", icon: Swords },
+  { href: "/lootboxes", label: "Lootboxes", icon: Gift },
   { href: "/rewards", label: "Rewards", icon: Gem },
 ] as const;
 
