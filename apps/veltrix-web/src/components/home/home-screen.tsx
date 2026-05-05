@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { ArrowRight, Radar, Shield, Sparkles, Swords, Wallet } from "lucide-react";
 import { CommunityStatusPanel } from "@/components/community/community-status-panel";
 import { ArtworkImage } from "@/components/ui/artwork-image";
+import { ContributionTierBadge } from "@/components/ui/contribution-tier-badge";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useCommunityJourney } from "@/hooks/use-community-journey";
@@ -292,7 +294,12 @@ export function HomeScreen() {
           </p>
 
           <div className="mt-4 space-y-2.5">
-            <AssetMetric label="Tier" value={profile?.contributionTier ?? "Explorer"} icon={Sparkles} />
+            <AssetMetric
+              label="Tier"
+              value={profile?.contributionTier ?? "explorer"}
+              icon={Sparkles}
+              valueNode={<ContributionTierBadge tier={profile?.contributionTier ?? "explorer"} size="sm" />}
+            />
             <AssetMetric label="Wallet" value={profile?.wallet ? "Connected" : "Not linked"} icon={Wallet} />
             <AssetMetric label="Signals" value={String(notifications.length)} icon={Radar} />
             <AssetMetric label="Approved" value={String(approvedQuestCount)} icon={Shield} />
@@ -626,10 +633,12 @@ function AssetMetric({
   label,
   value,
   icon: Icon,
+  valueNode,
 }: {
   label: string;
   value: string;
   icon: typeof Sparkles;
+  valueNode?: ReactNode;
 }) {
   return (
     <div className="flex items-center justify-between gap-3 rounded-[14px] border border-white/6 bg-white/[0.03] px-2.5 py-2">
@@ -637,7 +646,7 @@ function AssetMetric({
         <Icon className="h-3.5 w-3.5" />
         <span>{label}</span>
       </div>
-      <p className="text-[10px] font-semibold text-white">{value}</p>
+      {valueNode ?? <p className="text-[10px] font-semibold text-white">{value}</p>}
     </div>
   );
 }

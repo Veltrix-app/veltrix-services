@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import { useParams } from "next/navigation";
+import { ContributionTierBadge } from "@/components/ui/contribution-tier-badge";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
@@ -151,6 +153,11 @@ export function CommunityDetailScreen() {
             <MetricTile
               label="Tier"
               value={communityReputation ? communityReputation.contributionTier.toUpperCase() : "NOT STARTED"}
+              valueNode={
+                communityReputation ? (
+                  <ContributionTierBadge tier={communityReputation.contributionTier} size="md" />
+                ) : undefined
+              }
             />
             <MetricTile label="Rank" value={communityReputation?.rank ? `#${communityReputation.rank}` : "-"} />
             <MetricTile label="Project XP" value={communityReputation ? communityReputation.xp.toLocaleString() : "0"} />
@@ -262,11 +269,21 @@ export function CommunityDetailScreen() {
   );
 }
 
-function MetricTile({ label, value }: { label: string; value: string }) {
+function MetricTile({
+  label,
+  value,
+  valueNode,
+}: {
+  label: string;
+  value: string;
+  valueNode?: ReactNode;
+}) {
   return (
     <div className="metric-card rounded-[24px] p-4">
       <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">{label}</p>
-      <p className="mt-3 text-3xl font-black text-white">{value}</p>
+      <div className="mt-3">
+        {valueNode ?? <p className="text-3xl font-black text-white">{value}</p>}
+      </div>
     </div>
   );
 }

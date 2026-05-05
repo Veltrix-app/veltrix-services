@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { ProjectBenchmarkCard } from "@/components/analytics/project-benchmark-card";
 import { ArtworkImage } from "@/components/ui/artwork-image";
+import { ContributionTierBadge } from "@/components/ui/contribution-tier-badge";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
@@ -410,7 +411,11 @@ export function ProjectDetailScreen() {
         description="User reputation stays separate per project, so contribution history can become part of the showcase experience."
       >
         <div className="grid gap-3 sm:grid-cols-4">
-          <SmallStat label="Tier" value={reputation ? reputation.contributionTier.toUpperCase() : "NOT STARTED"} />
+          <SmallStat
+            label="Tier"
+            value={reputation ? reputation.contributionTier : "NOT STARTED"}
+            valueNode={reputation ? <ContributionTierBadge tier={reputation.contributionTier} size="md" /> : undefined}
+          />
           <SmallStat label="Rank" value={reputation?.rank ? `#${reputation.rank}` : "-"} />
           <SmallStat label="Project XP" value={reputation ? reputation.xp.toLocaleString() : "0"} />
           <SmallStat label="Trust" value={String(reputation?.trustScore ?? 50)} />
@@ -599,11 +604,21 @@ function MetricLine({ label, value }: { label: string; value: string }) {
   );
 }
 
-function SmallStat({ label, value }: { label: string; value: string }) {
+function SmallStat({
+  label,
+  value,
+  valueNode,
+}: {
+  label: string;
+  value: string;
+  valueNode?: ReactNode;
+}) {
   return (
     <div className="rounded-[20px] border border-white/6 bg-black/20 px-4 py-3">
       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">{label}</p>
-      <p className="mt-2 text-lg font-black text-white">{value}</p>
+      <div className="mt-2">
+        {valueNode ?? <p className="text-lg font-black text-white">{value}</p>}
+      </div>
     </div>
   );
 }

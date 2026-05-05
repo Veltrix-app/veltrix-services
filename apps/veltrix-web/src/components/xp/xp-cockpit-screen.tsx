@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { ArrowRight, BadgeCheck, Flame, RefreshCw, ShieldCheck, WalletCards, Zap } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
+import { ContributionTierBadge } from "@/components/ui/contribution-tier-badge";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useDefiXpEligibility } from "@/hooks/use-defi-xp-eligibility";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
@@ -119,7 +121,16 @@ export function XpCockpitScreen() {
             <MetricCard label="Total XP" value={read.levelRead.totalXp.toLocaleString()} />
             <MetricCard label="Level" value={read.levelRead.levelLabel} />
             <MetricCard label="Claimable" value={String(read.metrics.claimableXp)} />
-            <MetricCard label="Tier" value={profile?.contributionTier ?? read.levelRead.contributionTier} />
+            <MetricCard
+              label="Tier"
+              value={profile?.contributionTier ?? read.levelRead.contributionTier}
+              valueNode={
+                <ContributionTierBadge
+                  tier={profile?.contributionTier ?? read.levelRead.contributionTier}
+                  size="md"
+                />
+              }
+            />
           </div>
 
           <div className="relative z-10 mt-5 rounded-[20px] border border-white/8 bg-black/22 p-4">
@@ -399,11 +410,21 @@ function GuardrailCard({ guardrail }: { guardrail: XpCockpitGuardrail }) {
   );
 }
 
-function MetricCard({ label, value }: { label: string; value: string }) {
+function MetricCard({
+  label,
+  value,
+  valueNode,
+}: {
+  label: string;
+  value: string;
+  valueNode?: ReactNode;
+}) {
   return (
     <div className="rounded-[18px] border border-white/6 bg-black/22 px-3.5 py-3">
       <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">{label}</p>
-      <p className="mt-2 text-[1.05rem] font-black text-white">{value}</p>
+      <div className="mt-2">
+        {valueNode ?? <p className="text-[1.05rem] font-black text-white">{value}</p>}
+      </div>
     </div>
   );
 }

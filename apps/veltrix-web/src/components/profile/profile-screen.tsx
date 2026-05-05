@@ -3,9 +3,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Copy, ShieldCheck, Signal, Trophy, UserRound, Wallet, Zap } from "lucide-react";
 import { CommunityStatusPanel } from "@/components/community/community-status-panel";
+import { ContributionTierBadge } from "@/components/ui/contribution-tier-badge";
 import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
@@ -437,7 +439,7 @@ export function ProfileScreen() {
                         Quests, raids, DeFi, streaks and anti-abuse now share one central XP logic.
                       </p>
                     </div>
-                    <StatusChip label={xpProgression.contributionTier} tone="info" />
+                    <ContributionTierBadge tier={xpProgression.contributionTier} size="sm" />
                   </div>
                   <div className="mt-3 h-2 overflow-hidden rounded-full bg-black/30">
                     <div
@@ -524,7 +526,11 @@ export function ProfileScreen() {
 
             <div className="grid gap-3 sm:grid-cols-3">
               <QuickRead label="Profile title" value={profile?.title ?? "Operator"} />
-              <QuickRead label="Contribution tier" value={profile?.contributionTier ?? "Explorer"} />
+              <QuickRead
+                label="Contribution tier"
+                value={profile?.contributionTier ?? "explorer"}
+                valueNode={<ContributionTierBadge tier={profile?.contributionTier ?? "explorer"} size="sm" />}
+              />
               <QuickRead label="Unread now" value={String(unreadNotificationCount)} />
             </div>
           </div>
@@ -745,7 +751,9 @@ export function ProfileScreen() {
                 <div className="relative z-10 flex items-start justify-between gap-4">
                   <div>
                     <p className="text-[12px] font-semibold text-cyan-200">{item.projectName}</p>
-                    <p className="mt-1.5 text-[15px] font-black text-white">{item.contributionTier.toUpperCase()}</p>
+                    <div className="mt-2">
+                      <ContributionTierBadge tier={item.contributionTier} size="md" />
+                    </div>
                   </div>
                   <StatusChip label={item.rank > 0 ? `#${item.rank}` : "Unranked"} tone={item.rank > 0 ? "positive" : "default"} />
                 </div>
@@ -951,11 +959,21 @@ function SignalTile({
   );
 }
 
-function QuickRead({ label, value }: { label: string; value: string }) {
+function QuickRead({
+  label,
+  value,
+  valueNode,
+}: {
+  label: string;
+  value: string;
+  valueNode?: ReactNode;
+}) {
   return (
     <div className="rounded-[16px] border border-white/8 bg-white/[0.04] p-3">
       <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">{label}</p>
-      <p className="mt-1.5 text-[12px] font-semibold text-white">{value}</p>
+      <div className="mt-1.5">
+        {valueNode ?? <p className="text-[12px] font-semibold text-white">{value}</p>}
+      </div>
     </div>
   );
 }
