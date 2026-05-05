@@ -5,11 +5,14 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useParams } from "next/navigation";
 import { Coins, Radar, RefreshCcw, ShieldCheck, Wallet2 } from "lucide-react";
 import { ArtworkImage } from "@/components/ui/artwork-image";
+import { ShardBadge } from "@/components/ui/shard-badge";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
+import { resolveBestFeaturedShardPool } from "@/lib/lootboxes/featured-shard-pools";
+import type { LiveFeaturedShardPool } from "@/types/live";
 
 export function CampaignDetailScreen() {
   const params = useParams<{ id: string }>();
@@ -24,6 +27,7 @@ export function CampaignDetailScreen() {
     rewards,
     xpStakes,
     rewardDistributions,
+    featuredShardPools,
     reload,
   } = useLiveUserData({
     datasets: [
@@ -33,6 +37,7 @@ export function CampaignDetailScreen() {
       "rewards",
       "xpStakes",
       "rewardDistributions",
+      "featuredShardPools",
     ],
   });
   const [stakeAmount, setStakeAmount] = useState("");
@@ -141,6 +146,10 @@ export function CampaignDetailScreen() {
   if (!campaign) return <Notice tone="default" text="Campaign not found." />;
 
   const activeCampaign = campaign;
+  const activeShardPool = resolveBestFeaturedShardPool({
+    pools: featuredShardPools,
+    campaignId: activeCampaign.id,
+  });
 
   async function handleStake() {
     if (!session?.access_token) {
@@ -246,6 +255,7 @@ export function CampaignDetailScreen() {
                 label={campaign.featured ? "Featured" : `${campaign.completionRate}% live`}
                 tone={campaign.featured ? "positive" : "info"}
               />
+              {activeShardPool ? <ShardBoostBadge pool={activeShardPool} /> : null}
             </div>
             <p className="mt-3.5 text-[10px] font-bold uppercase tracking-[0.24em] text-lime-300">Campaign</p>
             <h2 className="mt-2.5 max-w-[18ch] text-[1.06rem] font-semibold tracking-[-0.03em] text-white sm:text-[1.22rem]">
@@ -292,6 +302,8 @@ export function CampaignDetailScreen() {
           </div>
         </div>
       </section>
+
+      {activeShardPool ? <CampaignShardBoostStrip pool={activeShardPool} /> : null}
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.12fr)_300px]">
         <Surface
@@ -588,6 +600,55 @@ export function CampaignDetailScreen() {
         )}
       </Surface>
     </div>
+  );
+}
+
+function CampaignShardBoostStrip({ pool }: { pool: LiveFeaturedShardPool }) {
+  const boostLabel =
+    pool.bonusMin === pool.bonusMax ? `+${pool.bonusMin}` : `+${pool.bonusMin}-${pool.bonusMax}`;
+  const remainingRatio =
+    pool.poolSize > 0 ? Math.max(0, Math.min(100, (pool.remainingShards / pool.poolSize) * 100)) : 0;
+
+  return (
+    <section className="overflow-hidden rounded-[22px] border border-emerald-300/16 bg-[radial-gradient(circle_at_12%_0%,rgba(16,185,129,0.18),transparent_32%),linear-gradient(180deg,rgba(12,18,17,0.98),rgba(6,10,10,0.98))] p-3.5 shadow-[0_18px_48px_rgba(0,0,0,0.22)]">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <ShardBadge value={boostLabel} label="boost" />
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-emerald-200">
+              Featured shard pool
+            </p>
+            <p className="mt-1 truncate text-[13px] font-semibold text-white">{pool.label}</p>
+          </div>
+        </div>
+        <div className="grid min-w-0 flex-1 gap-2 sm:min-w-[260px] sm:max-w-xl">
+          <div className="flex items-center justify-between gap-3 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+            <span>{pool.remainingShards} shards left</span>
+            <span>{pool.poolSize} pool</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
+            <div
+              className="h-full rounded-full bg-[linear-gradient(90deg,#34d399,#baff3b)] shadow-[0_0_18px_rgba(52,211,153,0.35)]"
+              style={{ width: `${remainingRatio}%` }}
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ShardBoostBadge({ pool }: { pool: LiveFeaturedShardPool }) {
+  const value =
+    pool.bonusMin === pool.bonusMax ? `+${pool.bonusMin}` : `+${pool.bonusMin}-${pool.bonusMax}`;
+
+  return (
+    <ShardBadge
+      value={value}
+      label="boost"
+      size="sm"
+      className="border-emerald-300/22 bg-emerald-300/[0.08] text-[8px]"
+    />
   );
 }
 

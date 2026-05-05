@@ -26,7 +26,7 @@ export function ShardBadge({
         className="h-auto w-auto object-contain"
       />
       <span>{value}</span>
-      <span className="text-emerald-100/60">{label}</span>
+      {label ? <span className="text-emerald-100/60">{label}</span> : null}
     </span>
   );
 }

@@ -7,6 +7,7 @@ import { calculateQuestGlobalXp } from "@/lib/xp/xp-economy";
 import type { ConnectedAccount } from "@/types/auth";
 import type {
   LiveCampaign,
+  LiveFeaturedShardPool,
   LiveLeaderboardUser,
   LiveNotification,
   LiveProject,
@@ -62,6 +63,7 @@ export type LiveUserDataDataset =
   | "joinedCommunityIds"
   | "xpStakes"
   | "rewardDistributions"
+  | "featuredShardPools"
   | "lootboxes"
   | "inventory";
 
@@ -83,6 +85,7 @@ type LiveUserDataCacheEntry = {
   joinedCommunityIds: string[];
   xpStakes: LiveXpStake[];
   rewardDistributions: LiveRewardDistribution[];
+  featuredShardPools: LiveFeaturedShardPool[];
   shardBalance: number;
   lootboxes: LiveLootboxShopTier[];
   inventory: LiveInventoryItem[];
@@ -101,6 +104,7 @@ const ALL_LIVE_USER_DATASETS: LiveUserDataDataset[] = [
   "joinedCommunityIds",
   "xpStakes",
   "rewardDistributions",
+  "featuredShardPools",
   "lootboxes",
   "inventory",
 ];
@@ -136,6 +140,7 @@ function createEmptyCacheEntry(): LiveUserDataCacheEntry {
     joinedCommunityIds: [],
     xpStakes: [],
     rewardDistributions: [],
+    featuredShardPools: [],
     shardBalance: 0,
     lootboxes: [],
     inventory: [],
@@ -186,6 +191,7 @@ function applyLiveUserDataCacheEntry(
     setJoinedCommunityIds: (value: string[]) => void;
     setXpStakes: (value: LiveXpStake[]) => void;
     setRewardDistributions: (value: LiveRewardDistribution[]) => void;
+    setFeaturedShardPools: (value: LiveFeaturedShardPool[]) => void;
     setShardBalance: (value: number) => void;
     setLootboxTiers: (value: LiveLootboxShopTier[]) => void;
     setInventory: (value: LiveInventoryItem[]) => void;
@@ -221,6 +227,13 @@ function applyLiveUserDataCacheEntry(
       entry,
       "rewardDistributions",
       requestedDatasets.has("rewardDistributions") ? [] : []
+    )
+  );
+  setters.setFeaturedShardPools(
+    readCachedDataset(
+      entry,
+      "featuredShardPools",
+      requestedDatasets.has("featuredShardPools") ? [] : []
     )
   );
   if (entry.loadedDatasets.includes("lootboxes") || entry.loadedDatasets.includes("inventory")) {
@@ -285,6 +298,14 @@ async function fetchLootboxShop(accessToken: string): Promise<{
     },
     error: null,
   };
+}
+
+function isFeaturedShardPoolTableMissing(error: { message?: string } | null | undefined) {
+  const message = error?.message?.toLowerCase() ?? "";
+  return (
+    message.includes("featured_shard_pools") ||
+    message.includes("could not find the table")
+  );
 }
 
 export function seedLiveUserConnectedAccounts(
@@ -381,6 +402,9 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
   const [rewardDistributions, setRewardDistributions] = useState<LiveRewardDistribution[]>(
     readCachedDataset(cachedState, "rewardDistributions", [])
   );
+  const [featuredShardPools, setFeaturedShardPools] = useState<LiveFeaturedShardPool[]>(
+    readCachedDataset(cachedState, "featuredShardPools", [])
+  );
   const [shardBalance, setShardBalance] = useState(cachedState?.shardBalance ?? 0);
   const [lootboxTiers, setLootboxTiers] = useState<LiveLootboxShopTier[]>(
     readCachedDataset(cachedState, "lootboxes", [])
@@ -410,6 +434,7 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
       setJoinedCommunityIds([]);
       setXpStakes([]);
       setRewardDistributions([]);
+      setFeaturedShardPools([]);
       setShardBalance(0);
       setLootboxTiers([]);
       setInventory([]);
@@ -438,6 +463,7 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
         setJoinedCommunityIds,
         setXpStakes,
         setRewardDistributions,
+        setFeaturedShardPools,
         setShardBalance,
         setLootboxTiers,
         setInventory,
@@ -462,6 +488,7 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
     const shouldLoadJoinedCommunityIds = requestedDatasetSet.has("joinedCommunityIds");
     const shouldLoadXpStakes = requestedDatasetSet.has("xpStakes");
     const shouldLoadRewardDistributions = requestedDatasetSet.has("rewardDistributions");
+    const shouldLoadFeaturedShardPools = requestedDatasetSet.has("featuredShardPools");
     const shouldLoadLootboxes = requestedDatasetSet.has("lootboxes");
     const shouldLoadInventory = requestedDatasetSet.has("inventory");
     const shouldLoadLootboxState = shouldLoadLootboxes || shouldLoadInventory;
@@ -481,6 +508,7 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
       projectReputationResult,
       xpStakesResult,
       rewardDistributionsResult,
+      featuredShardPoolsResult,
       lootboxShopResult,
     ] = await Promise.all([
       shouldLoadConnectedAccounts
@@ -563,10 +591,21 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
             .eq("auth_user_id", authUserId)
             .order("updated_at", { ascending: false })
         : Promise.resolve({ data: [], error: null }),
+      shouldLoadFeaturedShardPools
+        ? supabase
+            .from("featured_shard_pools")
+            .select("*")
+            .in("status", ["active", "scheduled"])
+            .order("created_at", { ascending: false })
+        : Promise.resolve({ data: [], error: null }),
       shouldLoadLootboxState && session?.access_token
         ? fetchLootboxShop(session.access_token)
         : Promise.resolve({ data: null, error: null }),
     ]);
+
+    const featuredShardPoolsError = isFeaturedShardPoolTableMissing(featuredShardPoolsResult.error)
+      ? null
+      : featuredShardPoolsResult.error;
 
     const firstError =
       connectedAccountsResult.error ??
@@ -581,6 +620,7 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
       projectReputationResult.error ??
       xpStakesResult.error ??
       rewardDistributionsResult.error ??
+      featuredShardPoolsError ??
       lootboxShopResult.error;
 
     if (firstError) {
@@ -874,6 +914,27 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
     if (shouldLoadRewardDistributions) {
       setRewardDistributions(nextRewardDistributions);
     }
+
+    const nextFeaturedShardPools = (featuredShardPoolsResult.data ?? []).map((row) => ({
+      id: row.id,
+      projectId: row.project_id,
+      campaignId: row.campaign_id ?? null,
+      questId: row.quest_id ?? null,
+      raidId: row.raid_id ?? null,
+      label: row.label ?? "Shard Boost",
+      poolSize: row.pool_size ?? 0,
+      remainingShards: row.remaining_shards ?? 0,
+      bonusMin: row.bonus_min ?? 0,
+      bonusMax: row.bonus_max ?? 0,
+      perUserCap: row.per_user_cap ?? null,
+      startsAt: row.starts_at ?? null,
+      endsAt: row.ends_at ?? null,
+      status: row.status ?? "draft",
+    }));
+    if (shouldLoadFeaturedShardPools) {
+      setFeaturedShardPools(nextFeaturedShardPools);
+    }
+
     const nextShardBalance = lootboxShopResult.data?.balance ?? 0;
     const nextLootboxTiers = lootboxShopResult.data?.tiers ?? [];
     const nextInventory = lootboxShopResult.data?.inventory ?? [];
@@ -903,6 +964,9 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
         ...(shouldLoadXpStakes ? { xpStakes: nextXpStakes } : {}),
         ...(shouldLoadRewardDistributions
           ? { rewardDistributions: nextRewardDistributions }
+          : {}),
+        ...(shouldLoadFeaturedShardPools
+          ? { featuredShardPools: nextFeaturedShardPools }
           : {}),
         ...(shouldLoadLootboxState ? { shardBalance: nextShardBalance } : {}),
         ...(shouldLoadLootboxes ? { lootboxes: nextLootboxTiers } : {}),
@@ -1368,6 +1432,7 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
           setJoinedCommunityIds,
           setXpStakes,
           setRewardDistributions,
+          setFeaturedShardPools,
           setShardBalance,
           setLootboxTiers,
           setInventory,
@@ -1417,6 +1482,7 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
     joinedCommunityIds,
     xpStakes,
     rewardDistributions,
+    featuredShardPools,
     shardBalance,
     lootboxTiers,
     inventory,

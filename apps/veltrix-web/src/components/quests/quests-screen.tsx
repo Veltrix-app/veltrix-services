@@ -6,9 +6,12 @@ import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 import { ArtworkImage } from "@/components/ui/artwork-image";
 import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
+import { ShardBadge } from "@/components/ui/shard-badge";
 import { StatusChip } from "@/components/ui/status-chip";
 import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
+import { resolveBestFeaturedShardPool } from "@/lib/lootboxes/featured-shard-pools";
+import type { LiveFeaturedShardPool } from "@/types/live";
 
 type QuestFilter = "all" | "open" | "high-xp";
 
@@ -20,8 +23,8 @@ function getQuestTone(status: string) {
 }
 
 export function QuestsScreen() {
-  const { loading, error, quests, campaigns, projects, rewards } = useLiveUserData({
-    datasets: ["quests", "campaigns", "projects", "rewards"],
+  const { loading, error, quests, campaigns, projects, rewards, featuredShardPools } = useLiveUserData({
+    datasets: ["quests", "campaigns", "projects", "rewards", "featuredShardPools"],
   });
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<QuestFilter>("all");
@@ -34,6 +37,11 @@ export function QuestsScreen() {
           (project) => project.id === (quest.projectId ?? linkedCampaign?.projectId)
         );
         const rewardCount = rewards.filter((reward) => reward.campaignId === quest.campaignId).length;
+        const shardPool = resolveBestFeaturedShardPool({
+          pools: featuredShardPools,
+          campaignId: quest.campaignId,
+          questId: quest.id,
+        });
 
         return {
           ...quest,
@@ -42,6 +50,7 @@ export function QuestsScreen() {
           campaignFeatured: linkedCampaign?.featured ?? false,
           imageUrl: linkedCampaign?.bannerUrl ?? linkedCampaign?.thumbnailUrl ?? linkedProject?.bannerUrl ?? null,
           rewardCount,
+          shardPool,
         };
       })
       .sort(
@@ -50,7 +59,7 @@ export function QuestsScreen() {
           Number(left.status === "approved") - Number(right.status === "approved") ||
           right.xp - left.xp
       );
-  }, [campaigns, projects, quests, rewards]);
+  }, [campaigns, featuredShardPools, projects, quests, rewards]);
 
   const filteredQuests = useMemo(() => {
     let items = enrichedQuests;
@@ -208,6 +217,7 @@ export function QuestsScreen() {
 
                   <div className="mt-4 flex flex-wrap gap-1.5">
                     <MetricPill label="XP" value={String(quest.xp)} />
+                    {quest.shardPool ? <ShardBoostPill pool={quest.shardPool} /> : null}
                     <MetricPill label="Mode" value={quest.completionMode ?? "manual"} />
                     <MetricPill label="Rewards" value={String(quest.rewardCount)} />
                   </div>
@@ -273,6 +283,7 @@ export function QuestsScreen() {
 
                 <div className="relative z-10 mt-4 flex flex-wrap gap-1.5">
                   <MetricPill label="XP" value={String(quest.xp)} />
+                  {quest.shardPool ? <ShardBoostPill pool={quest.shardPool} compact /> : null}
                   <MetricPill label="Mode" value={quest.completionMode ?? "manual"} />
                 </div>
 
@@ -386,6 +397,35 @@ function MetricPill({ label, value }: { label: string; value: string }) {
     <span className="inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-black/20 px-2 py-1 text-[8px] font-bold uppercase tracking-[0.14em] text-slate-400">
       <span>{label}</span>
       {hasXpBadge ? <XpValue size="xs">{value}</XpValue> : <span className="text-white">{value}</span>}
+    </span>
+  );
+}
+
+function ShardBoostPill({
+  pool,
+  compact = false,
+}: {
+  pool: LiveFeaturedShardPool;
+  compact?: boolean;
+}) {
+  const label =
+    pool.bonusMin === pool.bonusMax ? `+${pool.bonusMin}` : `+${pool.bonusMin}-${pool.bonusMax}`;
+
+  return (
+    <span
+      className={`inline-flex max-w-full items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-300/[0.075] text-[8px] font-bold uppercase tracking-[0.13em] text-emerald-100 shadow-[0_12px_28px_rgba(16,185,129,0.08)] ${
+        compact ? "px-1.5 py-0.5" : "px-2 py-1"
+      }`}
+    >
+      <ShardBadge
+        value={label}
+        label={compact ? "" : "boost"}
+        size="sm"
+        className="border-0 bg-transparent p-0 text-[8px] shadow-none"
+      />
+      {!compact ? (
+        <span className="text-emerald-100/55">{pool.remainingShards} left</span>
+      ) : null}
     </span>
   );
 }

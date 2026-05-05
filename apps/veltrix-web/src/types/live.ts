@@ -120,6 +120,23 @@ export type LiveRaid = {
   generatedBy?: string | null;
 };
 
+export type LiveFeaturedShardPool = {
+  id: string;
+  projectId: string;
+  campaignId: string | null;
+  questId: string | null;
+  raidId: string | null;
+  label: string;
+  poolSize: number;
+  remainingShards: number;
+  bonusMin: number;
+  bonusMax: number;
+  perUserCap: number | null;
+  startsAt: string | null;
+  endsAt: string | null;
+  status: "draft" | "scheduled" | "active" | "paused" | "ended";
+};
+
 export type LiveProjectReputation = {
   projectId: string;
   projectName: string;

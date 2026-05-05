@@ -4,11 +4,14 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import { ArtworkImage } from "@/components/ui/artwork-image";
 import { RaidBadgeMark } from "@/components/raids/raid-badge-mark";
+import { ShardBadge } from "@/components/ui/shard-badge";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
+import { resolveBestFeaturedShardPool } from "@/lib/lootboxes/featured-shard-pools";
+import type { LiveFeaturedShardPool } from "@/types/live";
 import { XP_SOURCE_TYPES } from "@/lib/xp/xp-economy";
 import {
   claimUserXpAward,
@@ -29,7 +32,14 @@ async function confirmRaidForUser(accessToken: string, raidId: string) {
     | {
         ok?: boolean;
         error?: string;
-        shardAward?: { granted: boolean; amount: number; alreadyGranted: boolean };
+        shardAward?: {
+          granted: boolean;
+          amount: number;
+          alreadyGranted: boolean;
+          bonusAmount?: number;
+          poolId?: string | null;
+          poolRemainingShards?: number | null;
+        };
       }
     | null;
 
@@ -44,8 +54,8 @@ export function RaidDetailScreen() {
   const params = useParams<{ id: string }>();
   const raidId = Array.isArray(params.id) ? params.id[0] : params.id;
   const { authUserId, session, reloadProfile } = useAuth();
-  const { raids, loading, error, reload } = useLiveUserData({
-    datasets: ["raids"],
+  const { raids, featuredShardPools, loading, error, reload } = useLiveUserData({
+    datasets: ["raids", "featuredShardPools"],
   });
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ tone: "default" | "error" | "success"; text: string } | null>(null);
@@ -56,6 +66,11 @@ export function RaidDetailScreen() {
   if (error) return <Notice tone="error" text={error} />;
   if (!raid) return <Notice tone="default" text="Raid not found." />;
   const currentRaid = raid;
+  const activeShardPool = resolveBestFeaturedShardPool({
+    pools: featuredShardPools,
+    campaignId: currentRaid.campaignId,
+    raidId: currentRaid.id,
+  });
   const nextRaidMove =
     currentRaid.instructions.length > 0
       ? `Run the ${currentRaid.instructions.length}-step push first, then confirm the result back into your live progress layer.`
@@ -101,7 +116,11 @@ export function RaidDetailScreen() {
       }
       await Promise.all([reload(), reloadProfile()]);
       const successText = shardAward?.granted
-        ? `Your raid has been confirmed. +${shardAward.amount} shards added.`
+        ? `Your raid has been confirmed. +${shardAward.amount} shards added${
+            shardAward.bonusAmount && shardAward.bonusAmount > 0
+              ? `, including +${shardAward.bonusAmount} from the featured boost`
+              : ""
+          }.`
         : "Your raid has been confirmed.";
       setMessage({
         tone: "success",
@@ -132,6 +151,7 @@ export function RaidDetailScreen() {
               <RaidBadgeMark className="h-8 w-8 opacity-90" />
               <StatusChip label={currentRaid.community} tone="info" />
               <StatusChip label={`+${currentRaid.reward} XP`} tone="info" />
+              {activeShardPool ? <ShardBoostBadge pool={activeShardPool} /> : null}
             </div>
             <p className="mt-3.5 text-[10px] font-bold uppercase tracking-[0.24em] text-rose-300">Raid</p>
             <h2 className="mt-2.5 max-w-[18ch] text-[1.06rem] font-semibold tracking-[-0.03em] text-white sm:text-[1.22rem]">
@@ -209,6 +229,21 @@ export function RaidDetailScreen() {
             />
             <ReadTile label="Next" value={nextRaidMove} />
             <ReadTile label="Watch" value={watchRaidCue} />
+            {activeShardPool ? (
+              <div className="rounded-[16px] border border-emerald-300/18 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.16),transparent_46%),rgba(16,185,129,0.07)] p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-emerald-200">
+                      Shard boost live
+                    </p>
+                    <p className="mt-1.5 text-[11px] leading-5 text-slate-200">
+                      Confirm this raid while the pool still has shards available.
+                    </p>
+                  </div>
+                  <ShardBoostBadge pool={activeShardPool} compact />
+                </div>
+              </div>
+            ) : null}
             <div className="metric-card rounded-[16px] p-3 text-[11px] leading-5 text-slate-300">
               Confirming a raid writes the completion into the same live progress layer used by the mobile app and web board.
             </div>
@@ -246,6 +281,33 @@ function MetricTile({ label, value }: { label: string; value: string }) {
         {hasXpBadge ? <XpValue size="sm">{value}</XpValue> : <p className="text-[0.8rem] font-semibold text-white">{value}</p>}
       </div>
     </div>
+  );
+}
+
+function ShardBoostBadge({
+  pool,
+  compact = false,
+}: {
+  pool: LiveFeaturedShardPool;
+  compact?: boolean;
+}) {
+  const value =
+    pool.bonusMin === pool.bonusMax ? `+${pool.bonusMin}` : `+${pool.bonusMin}-${pool.bonusMax}`;
+
+  return (
+    <span className="inline-flex max-w-full items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-300/[0.08] px-2 py-1 shadow-[0_12px_30px_rgba(16,185,129,0.08)]">
+      <ShardBadge
+        value={value}
+        label={compact ? "" : "boost"}
+        size="sm"
+        className="border-0 bg-transparent p-0 text-[8px] shadow-none"
+      />
+      {!compact ? (
+        <span className="text-[8px] font-bold uppercase tracking-[0.13em] text-emerald-100/55">
+          {pool.remainingShards} left
+        </span>
+      ) : null}
+    </span>
   );
 }
 
