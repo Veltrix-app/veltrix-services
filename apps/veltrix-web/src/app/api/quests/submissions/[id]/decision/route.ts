@@ -8,6 +8,8 @@ import {
   buildQuestSubmissionDecisionPlan,
   normalizeQuestSubmissionDecision,
 } from "@/lib/xp/quest-submission-decision";
+import { LOOTBOX_EARNING_RULES } from "@/lib/lootboxes/lootbox-catalog";
+import { grantShards } from "@/lib/lootboxes/shard-server";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -154,6 +156,27 @@ async function upsertUserQuestProgress(params: {
   if (progressWriteError) {
     throw new Error(progressWriteError.message);
   }
+}
+
+async function isCampaignFeatured(params: {
+  serviceSupabase: ServiceSupabase;
+  campaignId: string | null;
+}) {
+  if (!params.campaignId) {
+    return false;
+  }
+
+  const { data: campaign, error } = await params.serviceSupabase
+    .from("campaigns")
+    .select("featured")
+    .eq("id", params.campaignId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return Boolean(campaign?.featured);
 }
 
 export async function POST(
@@ -310,6 +333,32 @@ export async function POST(
           metadata: decisionPlan.xpAward.metadata,
         })
       : null;
+    const featuredQuest = await isCampaignFeatured({
+      serviceSupabase,
+      campaignId: decisionPlan.xpAward?.campaignId ?? (safeString(quest.campaign_id) || null),
+    });
+    const shardRange = featuredQuest
+      ? LOOTBOX_EARNING_RULES.featuredQuest.range
+      : LOOTBOX_EARNING_RULES.normalQuest.range;
+    const shardAward =
+      decisionPlan.decision === "approved"
+        ? await grantShards({
+            serviceSupabase,
+            authUserId: submission.auth_user_id,
+            amount: shardRange[0],
+            sourceType: featuredQuest ? "featured_quest" : "normal_quest",
+            sourceRef: String(quest.id),
+            action: "approved",
+            reason: featuredQuest ? "Featured quest approved" : "Quest approved",
+            metadata: {
+              questId: quest.id,
+              questTitle: safeString(quest.title) || "Quest",
+              submissionId: submission.id,
+              projectId: safeString(quest.project_id) || null,
+              campaignId: safeString(quest.campaign_id) || null,
+            },
+          })
+        : null;
 
     const sideEffectResults = await Promise.allSettled([
       serviceSupabase.from("admin_audit_logs").insert({
@@ -324,6 +373,7 @@ export async function POST(
           previousStatus: submission.status ?? null,
           nextStatus: decisionPlan.decision,
           xpAwarded: xpAward?.ok ? xpAward.xpAwarded : 0,
+          shardAwarded: shardAward?.granted ? shardAward.amount : 0,
         },
       }),
       serviceSupabase.from("app_notifications").insert({
@@ -338,6 +388,7 @@ export async function POST(
           ...decisionPlan.notification.metadata,
           status: decisionPlan.decision,
           xpAwarded: xpAward?.ok ? xpAward.xpAwarded : 0,
+          shardAwarded: shardAward?.granted ? shardAward.amount : 0,
         },
       }),
     ]);
@@ -350,6 +401,7 @@ export async function POST(
       status: decisionPlan.decision,
       shouldAwardXp: decisionPlan.shouldAwardXp,
       xpAward,
+      shardAward,
       warnings,
     });
   } catch (error) {

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { ArtworkImage } from "@/components/ui/artwork-image";
 import { RaidBadgeMark } from "@/components/raids/raid-badge-mark";
 import { Surface } from "@/components/ui/surface";
@@ -17,41 +16,28 @@ import {
   type UserXpAwardResponse,
 } from "@/lib/xp/xp-award-client";
 
-async function confirmRaidForUser(authUserId: string, raidId: string) {
-  const supabase = createSupabaseBrowserClient();
-
-  const { data: existing } = await supabase
-    .from("user_progress")
-    .select(
-      "joined_communities, confirmed_raids, claimed_rewards, opened_lootbox_ids, unlocked_reward_ids, quest_statuses"
-    )
-    .eq("auth_user_id", authUserId)
-    .maybeSingle();
-
-  const confirmedRaids = Array.isArray(existing?.confirmed_raids)
-    ? [...new Set([...(existing?.confirmed_raids ?? []), raidId])]
-    : [raidId];
-
-  const { error } = await supabase.from("user_progress").upsert({
-    auth_user_id: authUserId,
-    joined_communities: existing?.joined_communities ?? [],
-    confirmed_raids: confirmedRaids,
-    claimed_rewards: existing?.claimed_rewards ?? [],
-    opened_lootbox_ids: existing?.opened_lootbox_ids ?? [],
-    unlocked_reward_ids: existing?.unlocked_reward_ids ?? [],
-    quest_statuses: existing?.quest_statuses ?? {},
+async function confirmRaidForUser(accessToken: string, raidId: string) {
+  const response = await fetch(`/api/raids/${raidId}/confirm`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    cache: "no-store",
   });
 
-  if (error) throw error;
+  const payload = (await response.json().catch(() => null)) as
+    | {
+        ok?: boolean;
+        error?: string;
+        shardAward?: { granted: boolean; amount: number; alreadyGranted: boolean };
+      }
+    | null;
 
-  const { error: completionError } = await supabase.from("raid_completions").insert({
-    auth_user_id: authUserId,
-    raid_id: raidId,
-  });
-
-  if (completionError && !completionError.message.toLowerCase().includes("duplicate")) {
-    throw completionError;
+  if (!response.ok || !payload?.ok) {
+    throw new Error(payload?.error ?? "Raid confirmation failed.");
   }
+
+  return payload.shardAward ?? null;
 }
 
 export function RaidDetailScreen() {
@@ -91,7 +77,7 @@ export function RaidDetailScreen() {
     setMessage(null);
 
     try {
-      await confirmRaidForUser(authUserId, currentRaid.id);
+      const shardAward = await confirmRaidForUser(session.access_token, currentRaid.id);
       let xpAward: UserXpAwardResponse | null = null;
       let xpAwardError: string | null = null;
       try {
@@ -114,7 +100,9 @@ export function RaidDetailScreen() {
             : "XP sync could not finish for this confirmed raid.";
       }
       await Promise.all([reload(), reloadProfile()]);
-      const successText = "Your raid has been confirmed.";
+      const successText = shardAward?.granted
+        ? `Your raid has been confirmed. +${shardAward.amount} shards added.`
+        : "Your raid has been confirmed.";
       setMessage({
         tone: "success",
         text: xpAwardError
