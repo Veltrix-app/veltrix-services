@@ -50,6 +50,14 @@ type LiveInventoryItem = {
   created_at: string;
 };
 
+type LiveLootboxOpenResult = {
+  openId: string;
+  shardSpend: number;
+  shardRefund: number;
+  balance: number;
+  inventoryItem: LiveInventoryItem;
+};
+
 export type LiveUserDataDataset =
   | "connectedAccounts"
   | "projects"
@@ -1345,10 +1353,7 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
     const payload = (await response.json().catch(() => null)) as
       | {
           ok?: boolean;
-          result?: {
-            balance: number;
-            inventoryItem: LiveInventoryItem;
-          };
+          result?: LiveLootboxOpenResult;
           error?: string;
         }
       | null;
@@ -1359,13 +1364,15 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
       return { ok: false, error: errorMessage };
     }
 
+    const nextInventory = [payload.result.inventoryItem, ...inventory];
+
     setShardBalance(payload.result.balance);
-    setInventory((current) => [payload.result!.inventoryItem, ...current]);
+    setInventory(nextInventory);
     mergeLiveUserDataCacheEntry({
       authUserId,
       patch: {
         shardBalance: payload.result.balance,
-        inventory: [payload.result.inventoryItem, ...inventory],
+        inventory: nextInventory,
       },
       loadedDatasets: ["lootboxes", "inventory"],
     });
