@@ -82,7 +82,7 @@ export async function POST(
 
     const { data: existing, error: existingError } = await serviceSupabase
       .from("user_progress")
-      .select("id, joined_communities, confirmed_raids, claimed_rewards, opened_lootbox_ids, unlocked_reward_ids, quest_statuses")
+      .select("joined_communities, confirmed_raids, claimed_rewards, opened_lootbox_ids, unlocked_reward_ids, quest_statuses")
       .eq("auth_user_id", user.id)
       .maybeSingle();
 
