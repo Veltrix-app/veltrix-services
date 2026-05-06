@@ -13,6 +13,7 @@ import {
   isLootboxTierUnlocked,
   pickLootboxPoolItem,
   pickLootboxRarity,
+  shouldReserveLootboxPoolItemStock,
 } from "./lootbox-engine";
 
 export type ServiceSupabase = ReturnType<typeof createSupabaseServiceClient>;
@@ -232,29 +233,45 @@ export async function openLootbox(params: {
     sourceRef: openId,
     action: "spend",
   });
+  const stockReservation = await reserveLootboxPoolItemStock({
+    serviceSupabase: params.serviceSupabase,
+    item: selectedItem,
+  });
 
-  const { data: spendLedger, error: spendError } = await params.serviceSupabase
-    .from("shard_ledger")
-    .insert({
-      auth_user_id: params.authUserId,
-      amount: -tier.priceShards,
-      source_type: "lootbox_open",
-      source_ref: openId,
-      source_dedupe_key: spendDedupeKey,
-      reason: `${tier.label} opened`,
-      metadata: {
-        tierId: tier.id,
-        priceShards: tier.priceShards,
-      },
-    })
-    .select("id")
-    .single();
-
-  if (spendError) {
-    throw new Error(spendError.message);
+  if (!stockReservation.available) {
+    return {
+      ok: false as const,
+      status: 409,
+      error: stockReservation.setupMissing
+        ? "Limited lootbox stock is being activated. Try again soon."
+        : "This limited lootbox reward just sold out. Try again.",
+    };
   }
 
+  let spendLedgerId: string | null = null;
   try {
+    const { data: spendLedger, error: spendError } = await params.serviceSupabase
+      .from("shard_ledger")
+      .insert({
+        auth_user_id: params.authUserId,
+        amount: -tier.priceShards,
+        source_type: "lootbox_open",
+        source_ref: openId,
+        source_dedupe_key: spendDedupeKey,
+        reason: `${tier.label} opened`,
+        metadata: {
+          tierId: tier.id,
+          priceShards: tier.priceShards,
+        },
+      })
+      .select("id")
+      .single();
+
+    if (spendError) {
+      throw new Error(spendError.message);
+    }
+    spendLedgerId = typeof spendLedger?.id === "string" ? spendLedger.id : null;
+
     const { error: openError } = await params.serviceSupabase.from("lootbox_opens").insert({
       id: openId,
       auth_user_id: params.authUserId,
@@ -316,7 +333,15 @@ export async function openLootbox(params: {
   } catch (error) {
     await Promise.allSettled([
       params.serviceSupabase.from("lootbox_opens").delete().eq("id", openId),
-      params.serviceSupabase.from("shard_ledger").delete().eq("id", spendLedger?.id ?? ""),
+      spendLedgerId
+        ? params.serviceSupabase.from("shard_ledger").delete().eq("id", spendLedgerId)
+        : Promise.resolve(),
+      stockReservation.reserved
+        ? restoreLootboxPoolItemStock({
+            serviceSupabase: params.serviceSupabase,
+            item: selectedItem,
+          })
+        : Promise.resolve(),
     ]);
     throw error;
   }
@@ -425,6 +450,50 @@ async function loadPoolItems(params: {
   }
 
   return (data ?? []) as PoolItemRow[];
+}
+
+async function reserveLootboxPoolItemStock(params: {
+  serviceSupabase: ServiceSupabase;
+  item: PoolItemRow;
+}) {
+  if (!shouldReserveLootboxPoolItemStock(params.item)) {
+    return { available: true, reserved: false, setupMissing: false };
+  }
+
+  const { data, error } = await params.serviceSupabase.rpc(
+    "reserve_lootbox_pool_item_stock",
+    {
+      p_pool_item_id: params.item.id,
+    }
+  );
+
+  if (error) {
+    if (isMissingLootboxStockRpcError(error)) {
+      console.warn("Lootbox stock reservation RPC is not deployed yet.", error.message);
+      return { available: false, reserved: false, setupMissing: true };
+    }
+
+    throw new Error(error.message);
+  }
+
+  return { available: data === true, reserved: data === true, setupMissing: false };
+}
+
+async function restoreLootboxPoolItemStock(params: {
+  serviceSupabase: ServiceSupabase;
+  item: PoolItemRow;
+}) {
+  await params.serviceSupabase.rpc("restore_lootbox_pool_item_stock", {
+    p_pool_item_id: params.item.id,
+  });
+}
+
+function isMissingLootboxStockRpcError(error: { code?: string; message?: string }) {
+  return (
+    error.code === "42883" ||
+    error.code === "PGRST202" ||
+    /reserve_lootbox_pool_item_stock/i.test(error.message ?? "")
+  );
 }
 
 function normalizePoolItemPayload(item: PoolItemRow) {

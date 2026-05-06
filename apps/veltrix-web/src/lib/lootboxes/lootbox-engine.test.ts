@@ -7,6 +7,7 @@ import {
   isLootboxTierUnlocked,
   pickLootboxPoolItem,
   pickLootboxRarity,
+  shouldReserveLootboxPoolItemStock,
 } from "./lootbox-engine";
 
 test("calculateShardBalance sums grants, spends, and refunds", () => {
@@ -72,4 +73,37 @@ test("pickLootboxPoolItem never returns inactive, depleted, or empty outcomes", 
   );
 
   assert.equal(item.id, "winner");
+});
+
+test("shouldReserveLootboxPoolItemStock only reserves finite stock outcomes", () => {
+  assert.equal(
+    shouldReserveLootboxPoolItemStock({
+      id: "limited",
+      active: true,
+      weight: 1,
+      stock: 2,
+      unlimited_stock: false,
+    }),
+    true
+  );
+  assert.equal(
+    shouldReserveLootboxPoolItemStock({
+      id: "unlimited",
+      active: true,
+      weight: 1,
+      stock: null,
+      unlimited_stock: true,
+    }),
+    false
+  );
+  assert.equal(
+    shouldReserveLootboxPoolItemStock({
+      id: "legacy-null-stock",
+      active: true,
+      weight: 1,
+      stock: null,
+      unlimited_stock: false,
+    }),
+    false
+  );
 });

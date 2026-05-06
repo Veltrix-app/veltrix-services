@@ -124,6 +124,10 @@ export function pickLootboxPoolItem<TItem extends LootboxPoolItemLike>(
   return eligibleItems[eligibleItems.length - 1];
 }
 
+export function shouldReserveLootboxPoolItemStock(item: LootboxPoolItemLike) {
+  return item.unlimited_stock === false && item.stock !== null && Number(item.stock) > 0;
+}
+
 function clampRoll(roll: number) {
   if (!Number.isFinite(roll)) {
     return 0;
