@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { LockKeyhole, Sparkles } from "lucide-react";
-import { ShardBadge } from "@/components/ui/shard-badge";
+
+const LOOTBOX_SHARD_PILE_SRC = "/assets/lootboxes/shards-pile.webp";
 
 export function LootboxCard({
   tier,
@@ -33,7 +34,7 @@ export function LootboxCard({
           </p>
           <h3 className="mt-2 truncate text-[0.98rem] font-semibold text-white">{tier.label}</h3>
         </div>
-        <ShardBadge value={tier.priceShards} size="sm" />
+        <LootboxShardCost value={tier.priceShards} />
       </div>
 
       <div className="relative mt-4 flex h-40 items-center justify-center">
@@ -82,5 +83,22 @@ export function LootboxCard({
         </p>
       )}
     </article>
+  );
+}
+
+function LootboxShardCost({ value }: { value: number }) {
+  return (
+    <span className="inline-flex shrink-0 items-center gap-2 rounded-full border border-emerald-300/18 bg-emerald-300/[0.075] px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-emerald-100 shadow-[0_10px_24px_rgba(16,185,129,0.08)]">
+      <Image
+        src={LOOTBOX_SHARD_PILE_SRC}
+        alt=""
+        width={34}
+        height={34}
+        className="-my-1 h-8 w-8 object-contain drop-shadow-[0_0_14px_rgba(134,239,172,0.18)]"
+        sizes="32px"
+      />
+      <span>{value}</span>
+      <span className="text-emerald-100/60">shards</span>
+    </span>
   );
 }
