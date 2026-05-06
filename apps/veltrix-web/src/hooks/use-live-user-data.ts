@@ -48,6 +48,7 @@ type LiveInventoryItem = {
   payload: Record<string, unknown>;
   status: string;
   created_at: string;
+  updated_at: string | null;
 };
 
 type LiveLootboxOpenResult = {
@@ -1380,6 +1381,71 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
     return { ok: true, result: payload.result };
   }
 
+  async function requestLootboxClaim(inventoryItemId: string) {
+    if (!authConfigured || !authUserId || !session?.access_token) {
+      return { ok: false, error: "Sign in before requesting lootbox fulfillment." };
+    }
+
+    const response = await fetch(`/api/lootboxes/inventory/${inventoryItemId}/claim`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      cache: "no-store",
+    });
+    const payload = (await response.json().catch(() => null)) as
+      | {
+          ok?: boolean;
+          inventoryItem?: LiveInventoryItem;
+          error?: string;
+        }
+      | null;
+
+    if (!response.ok || !payload?.ok || !payload.inventoryItem) {
+      const errorMessage = payload?.error ?? "Lootbox fulfillment request failed.";
+      setError(errorMessage);
+      return { ok: false, error: errorMessage };
+    }
+
+    const nextInventory = inventory.map((item) =>
+      item.id === payload.inventoryItem?.id ? payload.inventoryItem : item
+    );
+    const requestedAt = payload.inventoryItem.updated_at ?? new Date().toISOString();
+
+    setInventory(nextInventory);
+    setNotifications((current) => [
+      {
+        id: `local-lootbox-claim-${inventoryItemId}-${requestedAt}`,
+        title: "Lootbox reward queued",
+        body: `${payload.inventoryItem?.label ?? "Lootbox reward"} moved into operator review.`,
+        read: false,
+        type: "reward",
+        createdAt: requestedAt,
+      },
+      ...current,
+    ]);
+    mergeLiveUserDataCacheEntry({
+      authUserId,
+      patch: {
+        inventory: nextInventory,
+        notifications: [
+          {
+            id: `local-lootbox-claim-${inventoryItemId}-${requestedAt}`,
+            title: "Lootbox reward queued",
+            body: `${payload.inventoryItem.label} moved into operator review.`,
+            read: false,
+            type: "reward",
+            createdAt: requestedAt,
+          },
+          ...notifications,
+        ],
+      },
+      loadedDatasets: ["inventory", "notifications"],
+    });
+
+    return { ok: true, inventoryItem: payload.inventoryItem };
+  }
+
   async function markNotificationsRead() {
     if (!authConfigured || !authUserId || !supabase) {
       return;
@@ -1500,5 +1566,6 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
     claimReward,
     claimRewardDistribution,
     openLootbox,
+    requestLootboxClaim,
   };
 }

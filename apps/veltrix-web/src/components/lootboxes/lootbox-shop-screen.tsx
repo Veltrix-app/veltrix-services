@@ -1,12 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import Image from "next/image";
-import { Archive, BadgeCheck, Gem, Sparkles, X } from "lucide-react";
+import {
+  Archive,
+  BadgeCheck,
+  CheckCircle2,
+  Clock3,
+  Gem,
+  Send,
+  ShieldCheck,
+  Sparkles,
+  X,
+} from "lucide-react";
 import { LootboxCard } from "@/components/lootboxes/lootbox-card";
 import { ShardBadge } from "@/components/ui/shard-badge";
-import { Surface } from "@/components/ui/surface";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
+import { buildLootboxInventoryRead } from "@/lib/lootboxes/lootbox-inventory-read";
 
 type LootboxReveal = {
   tierLabel: string;
@@ -22,14 +33,24 @@ type LootboxReveal = {
 };
 
 export function LootboxShopScreen() {
-  const { loading, error, shardBalance, lootboxTiers, inventory, openLootbox } =
+  const {
+    loading,
+    error,
+    shardBalance,
+    lootboxTiers,
+    inventory,
+    openLootbox,
+    requestLootboxClaim,
+  } =
     useLiveUserData({ datasets: ["lootboxes", "inventory"] });
   const [busyTier, setBusyTier] = useState<string | null>(null);
+  const [claimingItemId, setClaimingItemId] = useState<string | null>(null);
   const [reveal, setReveal] = useState<LootboxReveal | null>(null);
   const [message, setMessage] = useState<{
     tone: "default" | "success" | "error";
     text: string;
   } | null>(null);
+  const inventoryRead = useMemo(() => buildLootboxInventoryRead(inventory), [inventory]);
 
   async function handleOpen(tierId: string) {
     setBusyTier(tierId);
@@ -56,6 +77,27 @@ export function LootboxShopScreen() {
       text: `Unlocked ${result.result.inventoryItem.label}.`,
     });
     setBusyTier(null);
+  }
+
+  async function handleRequestClaim(inventoryItemId: string) {
+    setClaimingItemId(inventoryItemId);
+    setMessage({ tone: "default", text: "Routing reward into operator review..." });
+    const result = await requestLootboxClaim(inventoryItemId);
+
+    if (!result.ok) {
+      setMessage({
+        tone: "error",
+        text: result.error ?? "Lootbox fulfillment request failed.",
+      });
+      setClaimingItemId(null);
+      return;
+    }
+
+    setMessage({
+      tone: "success",
+      text: `${result.inventoryItem?.label ?? "Lootbox reward"} is now in review.`,
+    });
+    setClaimingItemId(null);
   }
 
   if (loading) {
@@ -108,7 +150,7 @@ export function LootboxShopScreen() {
         <div className="relative z-10 mt-5 grid gap-2.5 sm:grid-cols-3">
           <HeroStat label="Balance" value={String(shardBalance)} meta="available shards" />
           <HeroStat label="Boxes" value={String(lootboxTiers.length)} meta="tier catalog" />
-          <HeroStat label="Inventory" value={String(inventory.length)} meta="owned unlocks" />
+          <HeroStat label="Claimable" value={String(inventoryRead.summary.claimable)} meta="ready rewards" />
         </div>
       </section>
 
@@ -125,105 +167,235 @@ export function LootboxShopScreen() {
         ))}
       </div>
 
-      <InventoryVault inventory={inventory} />
-
-      <Surface
-        eyebrow="Inventory"
-        title="Recent unlocks"
-        description="New lootbox results land here before the full cosmetics and perk inventory grows out."
-      >
-        {inventory.length ? (
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {inventory.slice(0, 9).map((item) => (
-              <div
-                key={item.id}
-                className={`rounded-[16px] border p-3 ${getInventoryTone(item.rarity)}`}
-              >
-                <div className="flex items-start gap-2.5">
-                  <span className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-black/20 text-white">
-                    <Gem className="h-3.5 w-3.5" />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate text-[12px] font-semibold text-white">{item.label}</p>
-                    <p className="mt-1 text-[9px] uppercase tracking-[0.16em] text-slate-500">
-                      {item.rarity} / {item.item_type}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-[16px] border border-white/8 bg-white/[0.025] p-4 text-[12px] text-slate-400">
-            No lootbox unlocks yet.
-          </div>
-        )}
-      </Surface>
+      <InventoryVault
+        read={inventoryRead}
+        claimingItemId={claimingItemId}
+        onRequestClaim={(inventoryItemId) => void handleRequestClaim(inventoryItemId)}
+      />
 
       {reveal ? <LootboxRevealDialog reveal={reveal} onClose={() => setReveal(null)} /> : null}
     </div>
   );
 }
 
+type InventoryRead = ReturnType<typeof buildLootboxInventoryRead>;
+type InventoryReadItem = InventoryRead["items"][number];
+
 function InventoryVault({
-  inventory,
+  read,
+  claimingItemId,
+  onRequestClaim,
 }: {
-  inventory: Array<{ rarity: string; item_type: string }>;
+  read: InventoryRead;
+  claimingItemId: string | null;
+  onRequestClaim: (inventoryItemId: string) => void;
 }) {
-  const rarityCounts = ["common", "rare", "epic", "legendary", "mythic"].map((rarity) => ({
-    rarity,
-    count: inventory.filter((item) => item.rarity === rarity).length,
-  }));
-  const cosmeticCount = inventory.filter((item) => item.item_type.includes("cosmetic")).length;
+  const activeItems = read.items.slice(0, 8);
 
   return (
-    <section className="grid gap-3 md:grid-cols-[minmax(0,1fr)_280px]">
-      <div className="rounded-[22px] border border-white/8 bg-[linear-gradient(180deg,rgba(13,17,24,0.92),rgba(7,9,14,0.9))] p-4">
+    <section className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="overflow-hidden rounded-[24px] border border-white/8 bg-[radial-gradient(circle_at_12%_0%,rgba(16,185,129,0.1),transparent_28%),linear-gradient(180deg,rgba(13,17,24,0.96),rgba(7,9,14,0.96))] p-4 shadow-[0_18px_52px_rgba(0,0,0,0.24)]">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-200">
-              Vault read
+            <p className="text-[9px] font-black uppercase tracking-[0.22em] text-emerald-200">
+              Reward vault
             </p>
             <h2 className="mt-2 text-[1rem] font-semibold tracking-[-0.03em] text-white">
-              Inventory quality mix
+              Claim and fulfillment lane
             </h2>
+            <p className="mt-1.5 max-w-2xl text-[12px] leading-5 text-slate-400">
+              Lootbox unlocks now show whether they are ready, queued, applied or fulfilled.
+            </p>
           </div>
-          <span className="rounded-full border border-white/8 bg-white/[0.035] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-slate-300">
-            {inventory.length} unlocks
-          </span>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <VaultMetric label="Total" value={read.summary.total} />
+            <VaultMetric label="Claimable" value={read.summary.claimable} tone="success" />
+            <VaultMetric label="Review" value={read.summary.pendingReview} tone="warning" />
+            <VaultMetric label="High rarity" value={read.summary.highRarity} tone="rare" />
+          </div>
         </div>
-        <div className="mt-4 grid gap-2 sm:grid-cols-5">
-          {rarityCounts.map((item) => (
-            <div
-              key={item.rarity}
-              className={`rounded-[15px] border px-3 py-2.5 ${getInventoryTone(item.rarity)}`}
-            >
-              <p className="text-[8px] font-black uppercase tracking-[0.16em] text-slate-400">
-                {item.rarity}
-              </p>
-              <p className="mt-2 text-[1rem] font-semibold text-white">{item.count}</p>
+
+        <div className="mt-4 grid gap-2.5">
+          {activeItems.length ? (
+            activeItems.map((item) => (
+              <InventoryRewardRow
+                key={item.id}
+                item={item}
+                busy={claimingItemId === item.id}
+                onRequestClaim={() => onRequestClaim(item.id)}
+              />
+            ))
+          ) : (
+            <div className="flex items-center gap-3 rounded-[18px] border border-white/8 bg-white/[0.025] p-4">
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/8 bg-white/[0.035] text-slate-300">
+                <Archive className="h-4 w-4" />
+              </span>
+              <div>
+                <p className="text-[12px] font-semibold text-white">No lootbox unlocks yet.</p>
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Open a box and the reward will land here first.
+                </p>
+              </div>
             </div>
-          ))}
+          )}
         </div>
       </div>
 
-      <div className="rounded-[22px] border border-white/8 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.08),transparent_34%),linear-gradient(180deg,rgba(13,17,24,0.92),rgba(7,9,14,0.9))] p-4">
+      <aside className="rounded-[24px] border border-white/8 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.1),transparent_34%),linear-gradient(180deg,rgba(13,17,24,0.95),rgba(7,9,14,0.95))] p-4">
         <div className="flex items-center gap-3">
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-emerald-300/18 bg-emerald-300/[0.08] text-emerald-100">
-            <Archive className="h-4 w-4" />
+            <ShieldCheck className="h-4 w-4" />
           </span>
           <div>
             <p className="text-[9px] font-black uppercase tracking-[0.18em] text-emerald-200">
-              Cosmetic lane
+              Fulfillment
             </p>
-            <p className="mt-1 text-[1rem] font-semibold text-white">{cosmeticCount} owned</p>
+            <p className="mt-1 text-[1rem] font-semibold text-white">Operator-backed</p>
           </div>
         </div>
-        <p className="mt-3 text-[11px] leading-5 text-slate-400">
-          Profile frames, glows and aura outcomes will become the visible identity layer.
-        </p>
-      </div>
+
+        <div className="mt-4 space-y-2">
+          <FulfillmentStep
+            icon={<Send className="h-3.5 w-3.5" />}
+            label="Ready"
+            value={`${read.summary.claimable} requestable`}
+            tone="success"
+          />
+          <FulfillmentStep
+            icon={<Clock3 className="h-3.5 w-3.5" />}
+            label="In review"
+            value={`${read.summary.pendingReview} queued`}
+            tone="warning"
+          />
+          <FulfillmentStep
+            icon={<CheckCircle2 className="h-3.5 w-3.5" />}
+            label="Claimed"
+            value={`${read.summary.claimed} fulfilled`}
+            tone="default"
+          />
+        </div>
+
+        <div className="mt-4 rounded-[18px] border border-white/8 bg-black/20 p-3">
+          <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">
+            Auto-applied
+          </p>
+          <p className="mt-2 text-[1.35rem] font-semibold tracking-[-0.04em] text-white">
+            {read.summary.autoApplied}
+          </p>
+          <p className="mt-1 text-[11px] leading-5 text-slate-500">
+            Shard refunds stay visible in the vault without creating manual work.
+          </p>
+        </div>
+      </aside>
     </section>
+  );
+}
+
+function InventoryRewardRow({
+  item,
+  busy,
+  onRequestClaim,
+}: {
+  item: InventoryReadItem;
+  busy: boolean;
+  onRequestClaim: () => void;
+}) {
+  return (
+    <article className="grid gap-3 rounded-[18px] border border-white/8 bg-white/[0.025] p-3 transition hover:border-white/12 md:grid-cols-[minmax(0,1fr)_170px] md:items-center">
+      <div className="flex min-w-0 items-start gap-3">
+        <span
+          className={`mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border ${getInventoryTone(item.rarity)}`}
+        >
+          <Gem className="h-4 w-4" />
+        </span>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="truncate text-[13px] font-semibold text-white">{item.label}</h3>
+            <span className={`rounded-full border px-2 py-1 text-[8px] font-black uppercase tracking-[0.14em] ${getStatusTone(item.statusTone)}`}>
+              {item.statusLabel}
+            </span>
+          </div>
+          <p className="mt-1 text-[9px] font-black uppercase tracking-[0.16em] text-slate-500">
+            {item.rarity} / {item.itemType.replace(/_/g, " ")}
+          </p>
+          <p className="mt-2 line-clamp-1 text-[11px] leading-5 text-slate-400">
+            {item.payloadSummary}
+          </p>
+          <p className="mt-1 line-clamp-1 text-[10px] leading-4 text-slate-500">
+            {item.fulfillment.nextStep}
+          </p>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={onRequestClaim}
+        disabled={!item.canRequestClaim || busy}
+        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-emerald-300/18 bg-emerald-300/[0.08] px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-emerald-100 transition hover:border-emerald-200/32 hover:bg-emerald-300/[0.13] disabled:cursor-not-allowed disabled:border-white/8 disabled:bg-white/[0.035] disabled:text-slate-500"
+      >
+        {item.canRequestClaim ? <Send className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+        {busy ? "Routing..." : item.primaryActionLabel}
+      </button>
+    </article>
+  );
+}
+
+function VaultMetric({
+  label,
+  value,
+  tone = "default",
+}: {
+  label: string;
+  value: number;
+  tone?: "default" | "success" | "warning" | "rare";
+}) {
+  const toneClass =
+    tone === "success"
+      ? "border-emerald-300/18 bg-emerald-300/[0.07] text-emerald-100"
+      : tone === "warning"
+        ? "border-amber-300/18 bg-amber-300/[0.07] text-amber-100"
+        : tone === "rare"
+          ? "border-violet-300/18 bg-violet-300/[0.07] text-violet-100"
+          : "border-white/8 bg-white/[0.035] text-white";
+
+  return (
+    <div className={`min-w-24 rounded-[16px] border px-3 py-2 ${toneClass}`}>
+      <p className="text-[8px] font-black uppercase tracking-[0.16em] opacity-65">{label}</p>
+      <p className="mt-1 text-[1rem] font-semibold">{value}</p>
+    </div>
+  );
+}
+
+function FulfillmentStep({
+  icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+  tone: "success" | "warning" | "default";
+}) {
+  const toneClass =
+    tone === "success"
+      ? "border-emerald-300/16 bg-emerald-300/[0.065] text-emerald-100"
+      : tone === "warning"
+        ? "border-amber-300/16 bg-amber-300/[0.065] text-amber-100"
+        : "border-white/8 bg-white/[0.03] text-slate-200";
+
+  return (
+    <div className={`flex items-center justify-between gap-3 rounded-[16px] border px-3 py-2.5 ${toneClass}`}>
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/15">
+          {icon}
+        </span>
+        <span className="truncate text-[11px] font-semibold">{label}</span>
+      </div>
+      <span className="shrink-0 text-[9px] font-black uppercase tracking-[0.14em] opacity-70">
+        {value}
+      </span>
+    </div>
   );
 }
 
@@ -333,6 +505,20 @@ function getInventoryTone(rarity: string) {
     case "common":
     default:
       return "border-white/8 bg-white/[0.03] text-slate-200";
+  }
+}
+
+function getStatusTone(tone: InventoryReadItem["statusTone"]) {
+  switch (tone) {
+    case "success":
+      return "border-emerald-300/18 bg-emerald-300/[0.075] text-emerald-100";
+    case "warning":
+      return "border-amber-300/18 bg-amber-300/[0.075] text-amber-100";
+    case "danger":
+      return "border-rose-300/18 bg-rose-300/[0.075] text-rose-100";
+    case "default":
+    default:
+      return "border-white/8 bg-white/[0.035] text-slate-300";
   }
 }
 

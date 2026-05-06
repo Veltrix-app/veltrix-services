@@ -46,6 +46,7 @@ export type LootboxInventoryItem = {
   payload: Record<string, unknown>;
   status: string;
   created_at: string;
+  updated_at: string | null;
 };
 
 type ReputationRow = {
@@ -298,7 +299,7 @@ export async function openLootbox(params: {
         payload: selectedItem.payload ?? {},
         status: "owned",
       })
-      .select("id, item_type, rarity, label, payload, status, created_at")
+      .select("id, item_type, rarity, label, payload, status, created_at, updated_at")
       .single();
 
     if (inventoryError) {
@@ -392,7 +393,7 @@ async function loadInventory(params: {
 }): Promise<LootboxInventoryItem[]> {
   const { data, error } = await params.serviceSupabase
     .from("user_inventory")
-    .select("id, item_type, rarity, label, payload, status, created_at")
+    .select("id, item_type, rarity, label, payload, status, created_at, updated_at")
     .eq("auth_user_id", params.authUserId)
     .order("created_at", { ascending: false })
     .limit(25);
@@ -522,6 +523,7 @@ function normalizeInventoryItem(value: unknown): LootboxInventoryItem {
     status: typeof row.status === "string" ? row.status : "owned",
     created_at:
       typeof row.created_at === "string" ? row.created_at : new Date(0).toISOString(),
+    updated_at: typeof row.updated_at === "string" ? row.updated_at : null,
   };
 }
 
