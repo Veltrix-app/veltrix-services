@@ -2,10 +2,11 @@ import { createSupabaseServiceClient } from "@/lib/supabase/server";
 import { buildXpProgressionRead } from "@/lib/xp/xp-economy";
 import {
   LOOTBOX_TIERS,
+  type LootboxTier,
   type LootboxTierId,
   type LootboxRarity,
-  getLootboxTier,
 } from "./lootbox-catalog";
+import { normalizeLootboxTierRows, type DbLootboxTierRow } from "./lootbox-db-catalog";
 import {
   calculateShardBalance,
   createShardSourceDedupeKey,
@@ -150,11 +151,12 @@ export async function getLootboxShopState(params: {
   serviceSupabase: ServiceSupabase;
   authUserId: string;
 }) {
-  const [balance, reputation, featuredCompletions, inventory] = await Promise.all([
+  const [balance, reputation, featuredCompletions, inventory, tiers] = await Promise.all([
     getShardBalance(params),
     loadReputation(params),
     countFeaturedShardCompletions(params),
     loadInventory(params),
+    loadLootboxTiers(params),
   ]);
   const level =
     typeof reputation?.level === "number" && reputation.level > 0
@@ -166,7 +168,7 @@ export async function getLootboxShopState(params: {
 
   return {
     balance,
-    tiers: LOOTBOX_TIERS.map((tier): LootboxShopTier => ({
+    tiers: tiers.map((tier): LootboxShopTier => ({
       id: tier.id,
       label: tier.label,
       priceShards: tier.priceShards,
@@ -188,7 +190,16 @@ export async function openLootbox(params: {
   authUserId: string;
   tierId: LootboxTierId;
 }) {
-  const tier = getLootboxTier(params.tierId);
+  const tiers = await loadLootboxTiers(params);
+  const tier = tiers.find((item) => item.id === params.tierId);
+  if (!tier) {
+    return {
+      ok: false as const,
+      status: 404,
+      error: "Lootbox tier is not available.",
+    };
+  }
+
   const shop = await getLootboxShopState(params);
   const shopTier = shop.tiers.find((item) => item.id === tier.id);
 
@@ -366,6 +377,37 @@ async function loadInventory(params: {
   }
 
   return (data ?? []).map(normalizeInventoryItem);
+}
+
+async function loadLootboxTiers(params: {
+  serviceSupabase: ServiceSupabase;
+}): Promise<LootboxTier[]> {
+  const { data, error } = await params.serviceSupabase
+    .from("lootbox_tiers")
+    .select(
+      [
+        "id",
+        "label",
+        "price_shards",
+        "asset_path",
+        "min_level",
+        "featured_completions_required",
+        "requires_clean_trust",
+        "requires_season_window",
+        "odds",
+        "active",
+        "sort_order",
+      ].join(", ")
+    )
+    .eq("active", true)
+    .order("sort_order", { ascending: true });
+
+  if (error) {
+    console.warn("Falling back to static lootbox tiers.", error.message);
+    return LOOTBOX_TIERS;
+  }
+
+  return normalizeLootboxTierRows(((data ?? []) as unknown) as DbLootboxTierRow[]);
 }
 
 async function loadPoolItems(params: {
