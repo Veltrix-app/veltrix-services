@@ -241,11 +241,12 @@ function InventoryVault({
               Lootbox unlocks now show whether they are ready, queued, applied or fulfilled.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
             <VaultMetric label="Total" value={read.summary.total} />
             <VaultMetric label="Claimable" value={read.summary.claimable} tone="success" />
             <VaultMetric label="Review" value={read.summary.pendingReview} tone="warning" />
             <VaultMetric label="High rarity" value={read.summary.highRarity} tone="rare" />
+            <VaultMetric label="Passes" value={read.summary.seasonAccess} tone="access" />
           </div>
         </div>
 
@@ -341,6 +342,7 @@ function InventoryRewardRow({
   onEquipUtility: () => void;
 }) {
   const hasEquipUtility = item.utility.isTitle || item.utility.isProfileCosmetic;
+  const hasAccessUtility = item.utility.isSeasonAccess;
   const canEquipUtility = item.utility.canEquipTitle || item.utility.canEquipCosmetic;
   const equipActionLabel = item.utility.isProfileCosmetic
     ? item.utility.cosmeticActionLabel
@@ -386,6 +388,17 @@ function InventoryRewardRow({
           >
             <Trophy className="h-3.5 w-3.5" />
             {equipBusy ? "Equipping..." : equipActionLabel}
+          </button>
+        ) : null}
+
+        {hasAccessUtility ? (
+          <button
+            type="button"
+            disabled
+            className="inline-flex min-h-10 cursor-default items-center justify-center gap-2 rounded-full border border-cyan-300/18 bg-cyan-300/[0.08] px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-cyan-100"
+          >
+            <ShieldCheck className="h-3.5 w-3.5" />
+            {item.utility.seasonAccessActionLabel}
           </button>
         ) : null}
 
@@ -500,7 +513,7 @@ function VaultMetric({
 }: {
   label: string;
   value: number;
-  tone?: "default" | "success" | "warning" | "rare";
+  tone?: "default" | "success" | "warning" | "rare" | "access";
 }) {
   const toneClass =
     tone === "success"
@@ -509,6 +522,8 @@ function VaultMetric({
         ? "border-amber-300/18 bg-amber-300/[0.07] text-amber-100"
         : tone === "rare"
           ? "border-violet-300/18 bg-violet-300/[0.07] text-violet-100"
+          : tone === "access"
+            ? "border-cyan-300/18 bg-cyan-300/[0.07] text-cyan-100"
           : "border-white/8 bg-white/[0.035] text-white";
 
   return (

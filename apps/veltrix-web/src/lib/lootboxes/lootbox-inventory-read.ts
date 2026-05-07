@@ -113,6 +113,7 @@ export function buildLootboxInventoryRead(rows: LootboxInventoryReadRow[]) {
       claimed: items.filter((item) => item.status === "claimed").length,
       highRarity: items.filter((item) => isHighRarity(item.rarity)).length,
       autoApplied: rows.filter((row) => isAutoAppliedInventoryItem(row.item_type)).length,
+      seasonAccess: items.filter((item) => item.utility.isActiveSeasonAccess).length,
     },
     items,
   };
@@ -124,7 +125,8 @@ export function canRequestLootboxInventoryClaim(params: {
 }) {
   return (
     normalizeInventoryStatus(params.status) === "owned" &&
-    !isAutoAppliedInventoryItem(params.item_type)
+    !isAutoAppliedInventoryItem(params.item_type) &&
+    params.item_type !== "season_access"
   );
 }
 
@@ -264,6 +266,24 @@ export function resolveLootboxProfileCosmeticLabel(params: {
   return sanitizeCosmeticLabel(params.label ?? "Profile cosmetic");
 }
 
+export function resolveLootboxSeasonAccessLabel(params: {
+  label: string | null | undefined;
+  payload: Record<string, unknown> | null | undefined;
+}) {
+  const payload = normalizeInventoryPayload(params.payload);
+  const explicitLabel = readAuditString(payload.accessLabel);
+  if (explicitLabel) {
+    return explicitLabel;
+  }
+
+  const window = readAuditString(payload.window);
+  if (window) {
+    return formatAccessWindowLabel(window);
+  }
+
+  return sanitizeSeasonAccessLabel(params.label ?? "Season access");
+}
+
 export function canEquipLootboxTitle(params: {
   item_type: string | null | undefined;
   status: string | null | undefined;
@@ -308,6 +328,18 @@ function getInventoryStatusRead(
       fulfillment: {
         label: "Auto-applied",
         nextStep: "Shard refund was applied instantly.",
+      },
+    };
+  }
+
+  if (row.item_type === "season_access" && (status === "owned" || status === "claimed")) {
+    return {
+      label: "Access active",
+      tone: "success" as const,
+      primaryActionLabel: "Pass armed",
+      fulfillment: {
+        label: "Season access",
+        nextStep: "This access pass is active on your member profile.",
       },
     };
   }
@@ -373,8 +405,11 @@ function buildInventoryUtilityRead(row: LootboxInventoryReadRow) {
   const payload = normalizeInventoryPayload(row.payload);
   const isTitle = row.item_type === "title";
   const isProfileCosmetic = row.item_type === "profile_cosmetic";
+  const isSeasonAccess = row.item_type === "season_access";
   const isEquippedTitle = isTitle && payload.equipped === true;
   const isEquippedCosmetic = isProfileCosmetic && payload.equipped === true;
+  const isActiveSeasonAccess =
+    isSeasonAccess && ["owned", "claimed"].includes(normalizeInventoryStatus(row.status));
   const canEquipTitle = canEquipLootboxTitle(row);
   const canEquipCosmetic = canEquipLootboxProfileCosmetic(row);
   const titleLabel = isTitle
@@ -389,18 +424,30 @@ function buildInventoryUtilityRead(row: LootboxInventoryReadRow) {
         payload,
       })
     : null;
+  const seasonAccessLabel = isSeasonAccess
+    ? resolveLootboxSeasonAccessLabel({
+        label: row.label,
+        payload,
+      })
+    : null;
+  const seasonAccessWindow = isSeasonAccess ? readAuditString(payload.window) : null;
 
   return {
     isTitle,
     isProfileCosmetic,
+    isSeasonAccess,
     titleLabel,
     cosmeticLabel,
+    seasonAccessLabel,
+    seasonAccessWindow,
     isEquippedTitle,
     isEquippedCosmetic,
+    isActiveSeasonAccess,
     canEquipTitle,
     canEquipCosmetic,
     equipActionLabel: isEquippedTitle ? "Equipped" : "Equip title",
     cosmeticActionLabel: isEquippedCosmetic ? "Equipped" : "Equip cosmetic",
+    seasonAccessActionLabel: isActiveSeasonAccess ? "Access active" : "Access pending",
   };
 }
 
@@ -414,6 +461,13 @@ function buildFulfillmentTimeline(
     return [
       { label: "Unlocked", state: "complete" },
       { label: "Applied", state: "complete" },
+    ];
+  }
+
+  if (row.item_type === "season_access" && (status === "owned" || status === "claimed")) {
+    return [
+      { label: "Unlocked", state: "complete" },
+      { label: "Active", state: "complete" },
     ];
   }
 
@@ -593,19 +647,23 @@ function getInventoryReadPriority(
     return 1;
   }
 
-  if (status === "owned" && isAutoAppliedInventoryItem(itemType)) {
+  if (status === "owned" && itemType === "season_access") {
     return 2;
   }
 
-  if (status === "claimed") {
+  if (status === "owned" && isAutoAppliedInventoryItem(itemType)) {
     return 3;
   }
 
-  if (status === "expired") {
+  if (status === "claimed") {
     return 4;
   }
 
-  return 5;
+  if (status === "expired") {
+    return 5;
+  }
+
+  return 6;
 }
 
 function normalizeInventoryStatus(status: string | null | undefined): LootboxInventoryStatus {
@@ -711,4 +769,15 @@ function sanitizeTitleLabel(value: string) {
 function sanitizeCosmeticLabel(value: string) {
   const trimmed = value.trim();
   return trimmed || "Profile cosmetic";
+}
+
+function sanitizeSeasonAccessLabel(value: string) {
+  const trimmed = value.trim();
+  return trimmed || "Season access";
+}
+
+function formatAccessWindowLabel(value: string) {
+  return value
+    .replace(/[-_]+/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }

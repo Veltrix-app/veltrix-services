@@ -61,15 +61,16 @@ test("buildLootboxInventoryRead prioritizes claim flow rows before passive rewar
   );
   assert.deepEqual(read.summary, {
     total: 4,
-    claimable: 1,
+    claimable: 0,
     pendingReview: 1,
     claimed: 1,
     highRarity: 2,
     autoApplied: 1,
+    seasonAccess: 1,
   });
-  assert.equal(read.items[1].statusLabel, "Ready to claim");
-  assert.equal(read.items[1].primaryActionLabel, "Request fulfillment");
-  assert.equal(read.items[1].canRequestClaim, true);
+  assert.equal(read.items[1].statusLabel, "Access active");
+  assert.equal(read.items[1].primaryActionLabel, "Pass armed");
+  assert.equal(read.items[1].canRequestClaim, false);
   assert.equal(read.items[2].statusLabel, "Applied");
   assert.equal(read.items[2].primaryActionLabel, "Refund applied");
   assert.equal(read.items[2].canRequestClaim, false);
@@ -87,8 +88,7 @@ test("buildLootboxInventoryRead explains the member fulfillment timeline per sta
     ready?.fulfillment.timeline.map((step) => [step.label, step.state]),
     [
       ["Unlocked", "complete"],
-      ["Ready", "current"],
-      ["Fulfilled", "pending"],
+      ["Active", "complete"],
     ]
   );
   assert.deepEqual(
@@ -245,6 +245,29 @@ test("buildLootboxInventoryRead exposes profile cosmetic equip utility state", (
   assert.equal(equipped?.utility.canEquipCosmetic, false);
   assert.equal(equipped?.utility.isEquippedCosmetic, true);
   assert.equal(equipped?.utility.cosmeticActionLabel, "Equipped");
+});
+
+test("buildLootboxInventoryRead exposes active season access utility state", () => {
+  const read = buildLootboxInventoryRead([
+    {
+      id: "season-access",
+      item_type: "season_access",
+      rarity: "mythic",
+      label: "Mythic Preview Key",
+      payload: { window: "mythic-preview" },
+      status: "owned",
+      created_at: "2026-01-03T10:00:00.000Z",
+      updated_at: null,
+    },
+  ]);
+  const item = read.items[0];
+
+  assert.equal(read.summary.seasonAccess, 1);
+  assert.equal(item.utility.isSeasonAccess, true);
+  assert.equal(item.utility.seasonAccessLabel, "Mythic Preview");
+  assert.equal(item.utility.seasonAccessWindow, "mythic-preview");
+  assert.equal(item.utility.isActiveSeasonAccess, true);
+  assert.equal(item.utility.seasonAccessActionLabel, "Access active");
 });
 
 test("buildLootboxTitleEquipPatch preserves title payload while toggling equipped state", () => {

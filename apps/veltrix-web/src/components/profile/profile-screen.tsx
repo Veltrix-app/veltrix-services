@@ -213,6 +213,9 @@ export function ProfileScreen() {
   const equippedCosmetic =
     inventoryRead.items.find((item) => item.utility.isEquippedCosmetic)?.utility.cosmeticLabel ??
     null;
+  const activeSeasonAccess =
+    inventoryRead.items.find((item) => item.utility.isActiveSeasonAccess)?.utility.seasonAccessLabel ??
+    null;
 
   async function handleProviderLink(provider: "discord" | "x") {
     setProviderMessage(null);
@@ -412,6 +415,11 @@ export function ProfileScreen() {
                       {equippedCosmetic ? (
                         <span className="rounded-full border border-violet-300/18 bg-violet-300/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-violet-100">
                           {equippedCosmetic}
+                        </span>
+                      ) : null}
+                      {activeSeasonAccess ? (
+                        <span className="rounded-full border border-cyan-300/18 bg-cyan-300/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-cyan-100">
+                          {activeSeasonAccess}
                         </span>
                       ) : null}
                       <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.24em] text-slate-300">

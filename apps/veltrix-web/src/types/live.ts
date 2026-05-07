@@ -98,6 +98,7 @@ export type LiveLeaderboardUser = {
   title: string;
   faction: string;
   profileCosmetic?: string | null;
+  seasonAccess?: string | null;
   isCurrentUser: boolean;
 };
 

@@ -98,19 +98,23 @@ export function LeaderboardScreen() {
   const equippedCosmetic =
     inventoryRead.items.find((item) => item.utility.isEquippedCosmetic)?.utility.cosmeticLabel ??
     null;
+  const activeSeasonAccess =
+    inventoryRead.items.find((item) => item.utility.isActiveSeasonAccess)?.utility.seasonAccessLabel ??
+    null;
   const sourceLeaderboard =
     liveLeaderboard.length > 0 || !showingPreview ? liveLeaderboard : previewLeaderboardUsers;
   const leaderboard = useMemo(
     () =>
       sourceLeaderboard.map((user) =>
-        user.isCurrentUser && equippedCosmetic
+        user.isCurrentUser && (equippedCosmetic || activeSeasonAccess)
           ? {
               ...user,
-              profileCosmetic: equippedCosmetic,
+              profileCosmetic: equippedCosmetic ?? user.profileCosmetic ?? null,
+              seasonAccess: activeSeasonAccess ?? user.seasonAccess ?? null,
             }
           : user
       ),
-    [equippedCosmetic, sourceLeaderboard]
+    [activeSeasonAccess, equippedCosmetic, sourceLeaderboard]
   );
   const [featuredMember, ...rankingQueue] = leaderboard;
   const podiumMembers = leaderboard.slice(0, 3);
@@ -532,6 +536,10 @@ function buildMemberBadges(user: LiveLeaderboardUser, rank: number): MemberBadge
 
   if (user.profileCosmetic) {
     badges.push({ label: user.profileCosmetic, tone: "violet" });
+  }
+
+  if (user.seasonAccess) {
+    badges.push({ label: user.seasonAccess, tone: "cyan" });
   }
 
   if (user.xp >= 10000) {
