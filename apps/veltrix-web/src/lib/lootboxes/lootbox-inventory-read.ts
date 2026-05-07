@@ -10,6 +10,7 @@ export type LootboxInventoryAuditRow = {
 
 export type LootboxInventoryReadRow = {
   id: string;
+  lootbox_open_id?: string | null;
   item_type: string;
   rarity: string;
   label: string;
@@ -18,6 +19,14 @@ export type LootboxInventoryReadRow = {
   created_at: string;
   updated_at: string | null;
   auditTrail?: LootboxInventoryAuditRow[];
+  openAudit?: LootboxInventoryOpenAuditRow | null;
+};
+
+export type LootboxInventoryOpenAuditRow = {
+  openId: string;
+  tierId: string;
+  shardSpend: number;
+  openedAt: string;
 };
 
 export type LootboxInventoryClaimAuditItem = {
@@ -95,6 +104,7 @@ export function buildLootboxInventoryRead(rows: LootboxInventoryReadRow[]) {
         label: row.label || "Lootbox reward",
         itemType: row.item_type || "unknown",
         rarity: row.rarity || "common",
+        openAudit: buildOpenAuditRead(row),
         payloadSummary: summarizeInventoryPayload(row.payload),
         payloadEntries: formatInventoryPayloadEntries(row.payload),
         status: normalizeInventoryStatus(row.status),
@@ -121,6 +131,27 @@ export function buildLootboxInventoryRead(rows: LootboxInventoryReadRow[]) {
       seasonAccess: items.filter((item) => item.utility.isActiveSeasonAccess).length,
     },
     items,
+  };
+}
+
+function buildOpenAuditRead(row: LootboxInventoryReadRow) {
+  const audit = row.openAudit;
+  const openId = readAuditString(audit?.openId) ?? readAuditString(row.lootbox_open_id);
+  if (!openId || !audit) {
+    return null;
+  }
+
+  const tierId = readAuditString(audit.tierId) ?? "lootbox";
+  const shardSpend = Math.max(0, Math.floor(Number(audit.shardSpend ?? 0)));
+  const openedAt = readAuditString(audit.openedAt) ?? row.created_at;
+
+  return {
+    openId,
+    tierId,
+    shardSpend,
+    openedAt,
+    label: `${formatPayloadLabel(tierId)} box`,
+    spendLabel: `${shardSpend.toLocaleString("en-US")} shards`,
   };
 }
 

@@ -50,6 +50,7 @@ type LiveInventoryAuditItem = {
 
 type LiveInventoryItem = {
   id: string;
+  lootbox_open_id?: string | null;
   item_type: string;
   rarity: string;
   label: string;
@@ -58,6 +59,12 @@ type LiveInventoryItem = {
   created_at: string;
   updated_at: string | null;
   auditTrail?: LiveInventoryAuditItem[];
+  openAudit?: {
+    openId: string;
+    tierId: string;
+    shardSpend: number;
+    openedAt: string;
+  } | null;
 };
 
 type LiveLootboxOpenResult = {

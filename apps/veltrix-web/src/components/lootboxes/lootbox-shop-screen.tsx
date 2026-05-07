@@ -584,6 +584,7 @@ function InventoryRewardRow({
           <p className="mt-1 line-clamp-1 text-[10px] leading-4 text-slate-500">
             {item.fulfillment.nextStep}
           </p>
+          <InventoryOpenAudit audit={item.openAudit} />
           {hasAccessUtility && item.utility.seasonAccessPerks.length ? (
             <div className="mt-2 grid gap-1.5 sm:grid-cols-3">
               {item.utility.seasonAccessPerks.slice(0, 3).map((perk) => (
@@ -642,6 +643,44 @@ function InventoryRewardRow({
         </button>
       </div>
     </article>
+  );
+}
+
+function InventoryOpenAudit({
+  audit,
+}: {
+  audit: InventoryReadItem["openAudit"];
+}) {
+  if (!audit) {
+    return null;
+  }
+
+  return (
+    <div className="mt-2 grid gap-1.5 sm:grid-cols-3">
+      <div className="min-w-0 rounded-[12px] border border-white/8 bg-white/[0.025] px-2.5 py-2">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <History className="h-3 w-3 shrink-0 text-emerald-100/75" />
+          <span className="truncate text-[8px] font-black uppercase tracking-[0.12em] text-slate-400">
+            Opened from
+          </span>
+        </div>
+        <p className="mt-1 truncate text-[10px] font-semibold text-slate-200">{audit.label}</p>
+      </div>
+      <div className="min-w-0 rounded-[12px] border border-emerald-300/12 bg-emerald-300/[0.045] px-2.5 py-2 text-emerald-100">
+        <p className="text-[8px] font-black uppercase tracking-[0.12em] opacity-70">
+          Spend
+        </p>
+        <p className="mt-1 truncate text-[10px] font-semibold">{audit.spendLabel}</p>
+      </div>
+      <div className="min-w-0 rounded-[12px] border border-white/8 bg-white/[0.025] px-2.5 py-2">
+        <p className="text-[8px] font-black uppercase tracking-[0.12em] text-slate-500">
+          Open id
+        </p>
+        <p className="mt-1 truncate text-[10px] font-semibold text-slate-300">
+          {audit.openId.slice(0, 8)} / {formatOpenAuditDate(audit.openedAt)}
+        </p>
+      </div>
+    </div>
   );
 }
 
@@ -874,6 +913,18 @@ function RevealRead({ label, value }: { label: string; value: string }) {
       <span className="text-[11px] font-semibold text-white">{value}</span>
     </div>
   );
+}
+
+function formatOpenAuditDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "unknown";
+  }
+
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
 }
 
 function HeroStat({ label, value, meta }: { label: string; value: string; meta: string }) {

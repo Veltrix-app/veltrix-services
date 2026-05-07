@@ -49,6 +49,7 @@ export type LootboxShopTier = {
 
 export type LootboxInventoryItem = {
   id: string;
+  lootbox_open_id: string | null;
   item_type: string;
   rarity: string;
   label: string;
@@ -57,6 +58,14 @@ export type LootboxInventoryItem = {
   created_at: string;
   updated_at: string | null;
   auditTrail: LootboxInventoryAuditRow[];
+  openAudit: LootboxInventoryOpenAudit | null;
+};
+
+type LootboxInventoryOpenAudit = {
+  openId: string;
+  tierId: string;
+  shardSpend: number;
+  openedAt: string;
 };
 
 type ReputationRow = {
@@ -86,6 +95,13 @@ type AdminAuditLogRow = {
   metadata: Record<string, unknown> | null;
   created_at: string | null;
   source_id: string | null;
+};
+
+type LootboxOpenAuditRow = {
+  id: string;
+  tier_id: string | null;
+  shard_spend: number | null;
+  created_at: string | null;
 };
 
 const LOOTBOX_INVENTORY_AUDIT_ACTIONS = [
@@ -324,7 +340,7 @@ export async function openLootbox(params: {
         payload: selectedItem.payload ?? {},
         status: "owned",
       })
-      .select("id, item_type, rarity, label, payload, status, created_at, updated_at")
+      .select("id, lootbox_open_id, item_type, rarity, label, payload, status, created_at, updated_at")
       .single();
 
     if (inventoryError) {
@@ -354,7 +370,15 @@ export async function openLootbox(params: {
       shardSpend: tier.priceShards,
       shardRefund: refund,
       balance: await getShardBalance(params),
-      inventoryItem: normalizeInventoryItem(inventoryItem),
+      inventoryItem: normalizeInventoryItem({
+        ...inventoryItem,
+        openAudit: buildOpenAuditForInventoryItem({
+          id: openId,
+          tier_id: tier.id,
+          shard_spend: tier.priceShards,
+          created_at: new Date().toISOString(),
+        }),
+      }),
     };
   } catch (error) {
     await Promise.allSettled([
@@ -436,7 +460,7 @@ async function loadInventory(params: {
 }): Promise<LootboxInventoryItem[]> {
   const { data, error } = await params.serviceSupabase
     .from("user_inventory")
-    .select("id, item_type, rarity, label, payload, status, created_at, updated_at")
+    .select("id, lootbox_open_id, item_type, rarity, label, payload, status, created_at, updated_at")
     .eq("auth_user_id", params.authUserId)
     .order("created_at", { ascending: false })
     .limit(25);
@@ -445,12 +469,55 @@ async function loadInventory(params: {
     throw new Error(error.message);
   }
 
-  const inventory = (data ?? []).map(normalizeInventoryItem);
+  const inventory = await attachInventoryOpenAudits({
+    serviceSupabase: params.serviceSupabase,
+    authUserId: params.authUserId,
+    inventory: (data ?? []).map(normalizeInventoryItem),
+  });
   return attachInventoryAuditTrails({
     serviceSupabase: params.serviceSupabase,
     authUserId: params.authUserId,
     inventory,
   });
+}
+
+async function attachInventoryOpenAudits(params: {
+  serviceSupabase: ServiceSupabase;
+  authUserId: string;
+  inventory: LootboxInventoryItem[];
+}): Promise<LootboxInventoryItem[]> {
+  const openIds = Array.from(
+    new Set(params.inventory.map((item) => item.lootbox_open_id).filter(Boolean))
+  ) as string[];
+  if (!openIds.length) {
+    return params.inventory;
+  }
+
+  const { data, error } = await params.serviceSupabase
+    .from("lootbox_opens")
+    .select("id, tier_id, shard_spend, created_at")
+    .eq("auth_user_id", params.authUserId)
+    .in("id", openIds);
+
+  if (error) {
+    console.warn("Lootbox open audit history skipped:", error.message);
+    return params.inventory;
+  }
+
+  const auditsByOpenId = new Map<string, LootboxInventoryOpenAudit>();
+  for (const row of ((data ?? []) as unknown) as LootboxOpenAuditRow[]) {
+    const audit = buildOpenAuditForInventoryItem(row);
+    if (audit) {
+      auditsByOpenId.set(audit.openId, audit);
+    }
+  }
+
+  return params.inventory.map((item) => ({
+    ...item,
+    openAudit: item.lootbox_open_id
+      ? auditsByOpenId.get(item.lootbox_open_id) ?? item.openAudit
+      : item.openAudit,
+  }));
 }
 
 async function attachInventoryAuditTrails(params: {
@@ -647,6 +714,7 @@ function normalizeInventoryItem(value: unknown): LootboxInventoryItem {
     : [];
   return {
     id: typeof row.id === "string" ? row.id : "",
+    lootbox_open_id: typeof row.lootbox_open_id === "string" ? row.lootbox_open_id : null,
     item_type: typeof row.item_type === "string" ? row.item_type : "unknown",
     rarity: typeof row.rarity === "string" ? row.rarity : "common",
     label: typeof row.label === "string" ? row.label : "Lootbox reward",
@@ -659,6 +727,44 @@ function normalizeInventoryItem(value: unknown): LootboxInventoryItem {
       typeof row.created_at === "string" ? row.created_at : new Date(0).toISOString(),
     updated_at: typeof row.updated_at === "string" ? row.updated_at : null,
     auditTrail,
+    openAudit: normalizeOpenAudit(row.openAudit),
+  };
+}
+
+function buildOpenAuditForInventoryItem(row: LootboxOpenAuditRow | null | undefined) {
+  const openId = readString(row?.id);
+  const tierId = readString(row?.tier_id);
+  const shardSpend = Number(row?.shard_spend ?? 0);
+  const openedAt = readString(row?.created_at);
+
+  if (!openId || !tierId || !Number.isFinite(shardSpend) || shardSpend <= 0 || !openedAt) {
+    return null;
+  }
+
+  return {
+    openId,
+    tierId,
+    shardSpend: Math.floor(shardSpend),
+    openedAt,
+  };
+}
+
+function normalizeOpenAudit(value: unknown): LootboxInventoryOpenAudit | null {
+  const row = (value ?? {}) as Record<string, unknown>;
+  const openId = readString(row.openId);
+  const tierId = readString(row.tierId);
+  const openedAt = readString(row.openedAt);
+  const shardSpend = Number(row.shardSpend ?? 0);
+
+  if (!openId || !tierId || !openedAt || !Number.isFinite(shardSpend) || shardSpend <= 0) {
+    return null;
+  }
+
+  return {
+    openId,
+    tierId,
+    shardSpend: Math.floor(shardSpend),
+    openedAt,
   };
 }
 

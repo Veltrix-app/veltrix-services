@@ -176,6 +176,38 @@ test("buildLootboxInventoryRead exposes member-safe fulfillment activity and not
   assert.equal(item.fulfillment.latestNote?.reference, "DIS-742");
 });
 
+test("buildLootboxInventoryRead exposes member-safe lootbox open provenance", () => {
+  const read = buildLootboxInventoryRead([
+    {
+      id: "reward-with-open",
+      item_type: "title",
+      rarity: "epic",
+      label: "Vault Runner Title",
+      payload: { title: "Vault Runner" },
+      status: "owned",
+      created_at: "2026-05-07T12:02:00.000Z",
+      updated_at: null,
+      lootbox_open_id: "open-123",
+      openAudit: {
+        openId: "open-123",
+        tierId: "epic",
+        shardSpend: 2000,
+        openedAt: "2026-05-07T12:00:00.000Z",
+      },
+    },
+  ]);
+  const item = read.items[0];
+
+  assert.deepEqual(item.openAudit, {
+    openId: "open-123",
+    tierId: "epic",
+    shardSpend: 2000,
+    openedAt: "2026-05-07T12:00:00.000Z",
+    label: "Epic box",
+    spendLabel: "2,000 shards",
+  });
+});
+
 test("buildLootboxInventoryRead exposes title equip utility state", () => {
   const read = buildLootboxInventoryRead([
     {
