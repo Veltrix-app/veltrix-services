@@ -3,11 +3,14 @@
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   Archive,
+  ArrowRight,
   BadgeCheck,
   CheckCircle2,
   Clock3,
+  Flame,
   Gem,
   History,
   MessageSquareText,
@@ -18,6 +21,7 @@ import {
   X,
 } from "lucide-react";
 import { LootboxCard } from "@/components/lootboxes/lootbox-card";
+import { buildLootboxHuntRoute } from "@/components/lootboxes/lootbox-hunt-route";
 import { ShardBadge } from "@/components/ui/shard-badge";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 import { buildLootboxInventoryRead } from "@/lib/lootboxes/lootbox-inventory-read";
@@ -45,12 +49,13 @@ export function LootboxShopScreen() {
     error,
     shardBalance,
     lootboxTiers,
+    featuredShardPools,
     inventory,
     openLootbox,
     requestLootboxClaim,
     equipLootboxUtility,
   } =
-    useLiveUserData({ datasets: ["lootboxes", "inventory"] });
+    useLiveUserData({ datasets: ["lootboxes", "inventory", "featuredShardPools"] });
   const [busyTier, setBusyTier] = useState<string | null>(null);
   const [claimingItemId, setClaimingItemId] = useState<string | null>(null);
   const [equippingItemId, setEquippingItemId] = useState<string | null>(null);
@@ -60,6 +65,15 @@ export function LootboxShopScreen() {
     text: string;
   } | null>(null);
   const inventoryRead = useMemo(() => buildLootboxInventoryRead(inventory), [inventory]);
+  const huntRoute = useMemo(
+    () =>
+      buildLootboxHuntRoute({
+        shardBalance,
+        lootboxTiers,
+        featuredShardPools,
+      }),
+    [featuredShardPools, lootboxTiers, shardBalance]
+  );
   const activeSeasonAccessItem =
     inventoryRead.items.find((item) => item.utility.isActiveSeasonAccess) ?? null;
   const recommendedPass = getRecommendedVyntroMemberPass({
@@ -168,7 +182,7 @@ export function LootboxShopScreen() {
               VYNTRO lootboxes
             </h1>
             <p className="mt-2 max-w-2xl text-[12px] leading-5 text-slate-400">
-              Earned shards turn featured quests and raids into a platform-wide chase layer.
+              Hunt sponsored shard boosts, open premium boxes and move every unlock through your vault.
             </p>
           </div>
           <div className="grid gap-2 rounded-[20px] border border-white/8 bg-black/25 p-3 backdrop-blur-xl">
@@ -184,9 +198,10 @@ export function LootboxShopScreen() {
           </div>
         </div>
 
-        <div className="relative z-10 mt-5 grid gap-2.5 sm:grid-cols-4">
+        <div className="relative z-10 mt-5 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-5">
           <HeroStat label="Balance" value={String(shardBalance)} meta="available shards" />
-          <HeroStat label="Boxes" value={String(lootboxTiers.length)} meta="tier catalog" />
+          <HeroStat label="Target" value={huntRoute.shortfallLabel} meta={huntRoute.targetTierLabel} />
+          <HeroStat label="Boosts" value={String(huntRoute.activeBoostCount)} meta="featured pools" />
           <HeroStat label="Claimable" value={String(inventoryRead.summary.claimable)} meta="ready rewards" />
           <HeroStat
             label="Pass"
@@ -197,6 +212,8 @@ export function LootboxShopScreen() {
       </section>
 
       {message ? <Notice text={message.text} tone={message.tone === "error" ? "error" : "default"} /> : null}
+
+      <HuntRouteConsole route={huntRoute} />
 
       <SeasonAccessConsole item={activeSeasonAccessItem} />
 
@@ -209,6 +226,8 @@ export function LootboxShopScreen() {
             tier={tier}
             busy={busyTier === tier.id}
             shardBalance={shardBalance}
+            huntHref={huntRoute.primaryHref}
+            huntLabel={huntRoute.primaryCta}
             onOpen={() => void handleOpen(tier.id)}
           />
         ))}
@@ -229,6 +248,87 @@ export function LootboxShopScreen() {
 
 type InventoryRead = ReturnType<typeof buildLootboxInventoryRead>;
 type InventoryReadItem = InventoryRead["items"][number];
+type LootboxHuntRoute = ReturnType<typeof buildLootboxHuntRoute>;
+
+function HuntRouteConsole({ route }: { route: LootboxHuntRoute }) {
+  const ready = route.state === "ready_to_open";
+
+  return (
+    <section className="relative overflow-hidden rounded-[24px] border border-emerald-300/14 bg-[radial-gradient(circle_at_8%_0%,rgba(16,185,129,0.13),transparent_26%),radial-gradient(circle_at_84%_16%,rgba(168,85,247,0.12),transparent_28%),linear-gradient(180deg,rgba(13,18,24,0.97),rgba(6,8,13,0.98))] p-4 shadow-[0_18px_52px_rgba(0,0,0,0.24)]">
+      <div className="pointer-events-none absolute -right-8 top-0 h-36 w-36 opacity-60">
+        <Image
+          src="/assets/lootboxes/shards-pile.webp"
+          alt=""
+          fill
+          sizes="144px"
+          className="object-contain drop-shadow-[0_22px_48px_rgba(16,185,129,0.18)]"
+        />
+      </div>
+
+      <div className="relative z-10 grid gap-4 xl:grid-cols-[minmax(0,1fr)_420px] xl:items-stretch">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-emerald-300/18 bg-emerald-300/[0.08] text-emerald-100">
+              <Flame className="h-4 w-4" />
+            </span>
+            <span className="rounded-full border border-emerald-300/18 bg-emerald-300/[0.075] px-3 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-emerald-100">
+              {ready ? "Open window ready" : "Shard hunt active"}
+            </span>
+            <span className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-slate-400">
+              {route.highestBonusLabel}
+            </span>
+          </div>
+
+          <h2 className="mt-3 text-[1.08rem] font-semibold tracking-[-0.035em] text-white">
+            {ready ? `Open your ${route.targetTierLabel}` : `Hunt toward ${route.targetTierLabel}`}
+          </h2>
+          <p className="mt-2 max-w-2xl text-[12px] leading-5 text-slate-400">
+            Featured quests and raids can carry sponsor-funded shard boosts. Finish the boosted
+            lanes first, then spend those shards here.
+          </p>
+
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <ShardBadge value={route.targetPriceShards} label="target" />
+            <Link
+              href={route.primaryHref}
+              className="inline-flex min-h-9 items-center justify-center gap-2 rounded-full bg-emerald-300 px-4 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-black transition hover:brightness-105"
+            >
+              {route.primaryCta}
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+            <Link
+              href={route.primaryHref === "/quests" ? "/raids" : "/quests"}
+              className="inline-flex min-h-9 items-center justify-center gap-2 rounded-full border border-white/8 bg-white/[0.035] px-4 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-slate-200 transition hover:border-white/14 hover:text-white"
+            >
+              {route.primaryHref === "/quests" ? "Check raids" : "Check quests"}
+            </Link>
+          </div>
+        </div>
+
+        <div className="grid gap-2 sm:grid-cols-2">
+          <HuntMetric label="Boost pools" value={`${route.activeBoostCount}`} meta="active or scheduled" />
+          <HuntMetric
+            label="Pool supply"
+            value={route.remainingBoostShards.toLocaleString("en-US")}
+            meta="shards remaining"
+          />
+          <HuntMetric label="Quest lanes" value={`${route.questBoosts}`} meta="boosted tasks" />
+          <HuntMetric label="Raid lanes" value={`${route.raidBoosts}`} meta="boosted pushes" />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function HuntMetric({ label, value, meta }: { label: string; value: string; meta: string }) {
+  return (
+    <div className="min-w-0 rounded-[16px] border border-white/8 bg-white/[0.03] px-3 py-3">
+      <p className="text-[8px] font-black uppercase tracking-[0.16em] text-slate-500">{label}</p>
+      <p className="mt-2 truncate text-[1.05rem] font-semibold text-white">{value}</p>
+      <p className="mt-1 truncate text-[10px] uppercase tracking-[0.12em] text-slate-500">{meta}</p>
+    </div>
+  );
+}
 
 function SeasonAccessConsole({ item }: { item: InventoryReadItem | null }) {
   const active = Boolean(item?.utility.isActiveSeasonAccess);

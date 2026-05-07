@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { LockKeyhole, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, LockKeyhole, Sparkles } from "lucide-react";
 import { getLootboxOpenAvailability } from "@/components/lootboxes/lootbox-card-state";
 
 const LOOTBOX_SHARD_PILE_SRC = "/assets/lootboxes/shards-pile.webp";
@@ -8,6 +9,8 @@ export function LootboxCard({
   tier,
   busy,
   shardBalance,
+  huntHref = "/quests",
+  huntLabel = "Hunt featured quests",
   onOpen,
 }: {
   tier: {
@@ -20,6 +23,8 @@ export function LootboxCard({
   };
   busy: boolean;
   shardBalance: number;
+  huntHref?: string;
+  huntLabel?: string;
   onOpen: () => void;
 }) {
   const topOdds = Object.entries(tier.odds)
@@ -85,6 +90,16 @@ export function LootboxCard({
       <p className="mt-2 min-h-8 text-center text-[10px] leading-4 text-slate-500">
         {availability.helperText}
       </p>
+
+      {availability.shortfall > 0 ? (
+        <Link
+          href={huntHref}
+          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full border border-emerald-300/18 bg-emerald-300/[0.055] px-3 py-2 text-[9px] font-black uppercase tracking-[0.13em] text-emerald-100 transition hover:border-emerald-200/30 hover:bg-emerald-300/[0.1]"
+        >
+          {huntLabel}
+          <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
+      ) : null}
     </article>
   );
 }
