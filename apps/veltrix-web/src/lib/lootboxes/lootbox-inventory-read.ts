@@ -18,11 +18,20 @@ export type LootboxInventoryClaimAuditItem = {
   status: string | null;
 };
 
+export type LootboxFulfillmentTimelineStep = {
+  label: string;
+  state: "complete" | "current" | "pending";
+};
+
 export function buildLootboxInventoryRead(rows: LootboxInventoryReadRow[]) {
   const items = rows
     .map((row) => {
       const canRequestClaim = canRequestLootboxInventoryClaim(row);
       const statusRead = getInventoryStatusRead(row, canRequestClaim);
+      const fulfillment = {
+        ...statusRead.fulfillment,
+        timeline: buildFulfillmentTimeline(row, canRequestClaim),
+      };
 
       return {
         id: row.id,
@@ -36,7 +45,7 @@ export function buildLootboxInventoryRead(rows: LootboxInventoryReadRow[]) {
         statusTone: statusRead.tone,
         primaryActionLabel: statusRead.primaryActionLabel,
         canRequestClaim,
-        fulfillment: statusRead.fulfillment,
+        fulfillment,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
       };
@@ -166,6 +175,48 @@ function getInventoryStatusRead(
           nextStep: "Reward is stored in your inventory vault.",
         },
       };
+  }
+}
+
+function buildFulfillmentTimeline(
+  row: LootboxInventoryReadRow,
+  canRequestClaim: boolean
+): LootboxFulfillmentTimelineStep[] {
+  const status = normalizeInventoryStatus(row.status);
+
+  if (isAutoAppliedInventoryItem(row.item_type) && status === "owned") {
+    return [
+      { label: "Unlocked", state: "complete" },
+      { label: "Applied", state: "complete" },
+    ];
+  }
+
+  switch (status) {
+    case "pending_review":
+      return [
+        { label: "Unlocked", state: "complete" },
+        { label: "Queued", state: "current" },
+        { label: "Fulfilled", state: "pending" },
+      ];
+    case "claimed":
+      return [
+        { label: "Unlocked", state: "complete" },
+        { label: "Queued", state: "complete" },
+        { label: "Fulfilled", state: "complete" },
+      ];
+    case "expired":
+      return [
+        { label: "Unlocked", state: "complete" },
+        { label: "Queued", state: "complete" },
+        { label: "Closed", state: "complete" },
+      ];
+    case "owned":
+    default:
+      return [
+        { label: "Unlocked", state: "complete" },
+        { label: canRequestClaim ? "Ready" : "Stored", state: "current" },
+        { label: "Fulfilled", state: "pending" },
+      ];
   }
 }
 

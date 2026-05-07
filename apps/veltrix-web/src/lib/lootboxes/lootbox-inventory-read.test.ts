@@ -73,6 +73,46 @@ test("buildLootboxInventoryRead prioritizes claim flow rows before passive rewar
   assert.equal(read.items[3].fulfillment.nextStep, "Reward has been fulfilled.");
 });
 
+test("buildLootboxInventoryRead explains the member fulfillment timeline per status", () => {
+  const read = buildLootboxInventoryRead(inventoryRows);
+  const ready = read.items.find((item) => item.id === "owned-1");
+  const review = read.items.find((item) => item.id === "review-1");
+  const claimed = read.items.find((item) => item.id === "claimed-1");
+  const refund = read.items.find((item) => item.id === "refund-1");
+
+  assert.deepEqual(
+    ready?.fulfillment.timeline.map((step) => [step.label, step.state]),
+    [
+      ["Unlocked", "complete"],
+      ["Ready", "current"],
+      ["Fulfilled", "pending"],
+    ]
+  );
+  assert.deepEqual(
+    review?.fulfillment.timeline.map((step) => [step.label, step.state]),
+    [
+      ["Unlocked", "complete"],
+      ["Queued", "current"],
+      ["Fulfilled", "pending"],
+    ]
+  );
+  assert.deepEqual(
+    claimed?.fulfillment.timeline.map((step) => [step.label, step.state]),
+    [
+      ["Unlocked", "complete"],
+      ["Queued", "complete"],
+      ["Fulfilled", "complete"],
+    ]
+  );
+  assert.deepEqual(
+    refund?.fulfillment.timeline.map((step) => [step.label, step.state]),
+    [
+      ["Unlocked", "complete"],
+      ["Applied", "complete"],
+    ]
+  );
+});
+
 test("canRequestLootboxInventoryClaim only allows owned manual rewards", () => {
   assert.equal(canRequestLootboxInventoryClaim({ status: "owned", item_type: "title" }), true);
   assert.equal(

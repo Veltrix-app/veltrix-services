@@ -324,6 +324,7 @@ function InventoryRewardRow({
           <p className="mt-1 line-clamp-1 text-[10px] leading-4 text-slate-500">
             {item.fulfillment.nextStep}
           </p>
+          <FulfillmentTimeline steps={item.fulfillment.timeline} />
         </div>
       </div>
 
@@ -337,6 +338,35 @@ function InventoryRewardRow({
         {busy ? "Routing..." : item.primaryActionLabel}
       </button>
     </article>
+  );
+}
+
+function FulfillmentTimeline({
+  steps,
+}: {
+  steps: InventoryReadItem["fulfillment"]["timeline"];
+}) {
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-1.5">
+      {steps.map((step, index) => (
+        <div key={`${step.label}-${index}`} className="flex items-center gap-1.5">
+          <span
+            className={`inline-flex h-5 items-center rounded-full border px-2 text-[8px] font-black uppercase tracking-[0.12em] ${
+              step.state === "complete"
+                ? "border-emerald-300/18 bg-emerald-300/[0.075] text-emerald-100"
+                : step.state === "current"
+                  ? "border-amber-300/20 bg-amber-300/[0.08] text-amber-100"
+                  : "border-white/8 bg-white/[0.025] text-slate-500"
+            }`}
+          >
+            {step.label}
+          </span>
+          {index < steps.length - 1 ? (
+            <span className="h-px w-3 bg-white/10" aria-hidden="true" />
+          ) : null}
+        </div>
+      ))}
+    </div>
   );
 }
 
