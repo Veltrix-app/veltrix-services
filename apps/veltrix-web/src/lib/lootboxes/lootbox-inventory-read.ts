@@ -1,5 +1,13 @@
 export type LootboxInventoryStatus = "owned" | "pending_review" | "claimed" | "expired";
 
+export type LootboxInventoryAuditRow = {
+  id: string;
+  action: string;
+  summary: string | null;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+};
+
 export type LootboxInventoryReadRow = {
   id: string;
   item_type: string;
@@ -9,6 +17,7 @@ export type LootboxInventoryReadRow = {
   status: string;
   created_at: string;
   updated_at: string | null;
+  auditTrail?: LootboxInventoryAuditRow[];
 };
 
 export type LootboxInventoryClaimAuditItem = {
@@ -23,14 +32,33 @@ export type LootboxFulfillmentTimelineStep = {
   state: "complete" | "current" | "pending";
 };
 
+export type LootboxFulfillmentEvent = {
+  id: string;
+  label: string;
+  detail: string;
+  tone: "default" | "success" | "warning" | "danger";
+  note: string | null;
+  reference: string | null;
+  createdAt: string;
+};
+
+export type LootboxFulfillmentNote = {
+  note: string;
+  reference: string | null;
+  createdAt: string;
+};
+
 export function buildLootboxInventoryRead(rows: LootboxInventoryReadRow[]) {
   const items = rows
     .map((row) => {
       const canRequestClaim = canRequestLootboxInventoryClaim(row);
       const statusRead = getInventoryStatusRead(row, canRequestClaim);
+      const fulfillmentEvents = buildFulfillmentEvents(row.auditTrail);
       const fulfillment = {
         ...statusRead.fulfillment,
         timeline: buildFulfillmentTimeline(row, canRequestClaim),
+        events: fulfillmentEvents.slice(0, 3),
+        latestNote: getLatestFulfillmentNote(fulfillmentEvents),
       };
 
       return {
@@ -220,6 +248,102 @@ function buildFulfillmentTimeline(
   }
 }
 
+function buildFulfillmentEvents(
+  auditTrail: LootboxInventoryAuditRow[] | null | undefined
+): LootboxFulfillmentEvent[] {
+  return [...(auditTrail ?? [])]
+    .map(formatFulfillmentEvent)
+    .filter((event): event is LootboxFulfillmentEvent => Boolean(event))
+    .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime());
+}
+
+function formatFulfillmentEvent(row: LootboxInventoryAuditRow) {
+  const metadata = normalizeAuditMetadata(row.metadata);
+  const note = readAuditString(metadata.note);
+  const reference = readAuditString(metadata.reference);
+  const summary = typeof row.summary === "string" && row.summary.trim() ? row.summary.trim() : null;
+
+  switch (row.action) {
+    case "lootbox_inventory_claim_requested":
+      return {
+        id: row.id,
+        label: "Claim requested",
+        detail: summary ?? "Member moved this reward into operator review.",
+        tone: "warning" as const,
+        note: null,
+        reference: null,
+        createdAt: row.created_at,
+      };
+    case "lootbox_inventory_note_added":
+      return {
+        id: row.id,
+        label: "Operator note",
+        detail: note ?? summary ?? "Operator added a fulfillment update.",
+        tone: "default" as const,
+        note,
+        reference,
+        createdAt: row.created_at,
+      };
+    case "lootbox_inventory_status_changed": {
+      const nextStatus = normalizeInventoryStatus(readAuditString(metadata.nextStatus));
+      return {
+        id: row.id,
+        label: getFulfillmentStatusEventLabel(nextStatus),
+        detail: summary ?? `Reward moved to ${getFulfillmentStatusEventLabel(nextStatus).toLowerCase()}.`,
+        tone: getFulfillmentStatusEventTone(nextStatus),
+        note,
+        reference,
+        createdAt: row.created_at,
+      };
+    }
+    default:
+      return null;
+  }
+}
+
+function getLatestFulfillmentNote(
+  events: LootboxFulfillmentEvent[]
+): LootboxFulfillmentNote | null {
+  const event = events.find((item) => item.note || item.reference);
+  if (!event?.note) {
+    return null;
+  }
+
+  return {
+    note: event.note,
+    reference: event.reference,
+    createdAt: event.createdAt,
+  };
+}
+
+function getFulfillmentStatusEventLabel(status: LootboxInventoryStatus) {
+  switch (status) {
+    case "pending_review":
+      return "Queued for review";
+    case "claimed":
+      return "Fulfilled";
+    case "expired":
+      return "Closed";
+    case "owned":
+    default:
+      return "Returned to vault";
+  }
+}
+
+function getFulfillmentStatusEventTone(status: LootboxInventoryStatus) {
+  switch (status) {
+    case "claimed":
+      return "success" as const;
+    case "pending_review":
+      return "warning" as const;
+    case "expired":
+      return "danger" as const;
+    case "owned":
+    default:
+      return "default" as const;
+  }
+}
+
 function compareInventoryReadItems(
   left: ReturnType<typeof buildLootboxInventoryRead>["items"][number],
   right: ReturnType<typeof buildLootboxInventoryRead>["items"][number]
@@ -347,4 +471,12 @@ function formatPayloadValue(value: unknown) {
   }
 
   return "Available";
+}
+
+function normalizeAuditMetadata(value: Record<string, unknown> | null | undefined) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function readAuditString(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
 }

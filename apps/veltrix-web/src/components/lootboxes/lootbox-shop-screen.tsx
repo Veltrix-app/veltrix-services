@@ -9,6 +9,8 @@ import {
   CheckCircle2,
   Clock3,
   Gem,
+  History,
+  MessageSquareText,
   Send,
   ShieldCheck,
   Sparkles,
@@ -325,6 +327,8 @@ function InventoryRewardRow({
             {item.fulfillment.nextStep}
           </p>
           <FulfillmentTimeline steps={item.fulfillment.timeline} />
+          <FulfillmentActivity events={item.fulfillment.events} />
+          <LatestFulfillmentNote note={item.fulfillment.latestNote} />
         </div>
       </div>
 
@@ -338,6 +342,67 @@ function InventoryRewardRow({
         {busy ? "Routing..." : item.primaryActionLabel}
       </button>
     </article>
+  );
+}
+
+function FulfillmentActivity({
+  events,
+}: {
+  events: InventoryReadItem["fulfillment"]["events"];
+}) {
+  if (!events.length) {
+    return null;
+  }
+
+  return (
+    <div className="mt-2 grid gap-1.5 sm:grid-cols-3">
+      {events.map((event) => (
+        <div
+          key={event.id}
+          className={`min-w-0 rounded-[12px] border px-2.5 py-2 ${getFulfillmentEventTone(event.tone)}`}
+        >
+          <div className="flex min-w-0 items-center gap-1.5">
+            <History className="h-3 w-3 shrink-0 opacity-75" />
+            <span className="truncate text-[8px] font-black uppercase tracking-[0.12em]">
+              {event.label}
+            </span>
+          </div>
+          <p className="mt-1 line-clamp-1 text-[10px] leading-4 opacity-75">{event.detail}</p>
+          {event.reference ? (
+            <p className="mt-1 truncate text-[8px] font-black uppercase tracking-[0.12em] opacity-55">
+              Ref {event.reference}
+            </p>
+          ) : null}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function LatestFulfillmentNote({
+  note,
+}: {
+  note: InventoryReadItem["fulfillment"]["latestNote"];
+}) {
+  if (!note) {
+    return null;
+  }
+
+  return (
+    <div className="mt-2 flex min-w-0 items-start gap-2 rounded-[14px] border border-emerald-300/14 bg-emerald-300/[0.055] px-3 py-2">
+      <MessageSquareText className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-100" />
+      <div className="min-w-0">
+        <p className="text-[8px] font-black uppercase tracking-[0.14em] text-emerald-100/80">
+          Latest update
+        </p>
+        <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-slate-300">{note.note}</p>
+        {note.reference ? (
+          <p className="mt-1 truncate text-[8px] font-black uppercase tracking-[0.12em] text-emerald-100/55">
+            Reference {note.reference}
+          </p>
+        ) : null}
+      </div>
+    </div>
   );
 }
 
@@ -549,6 +614,20 @@ function getStatusTone(tone: InventoryReadItem["statusTone"]) {
     case "default":
     default:
       return "border-white/8 bg-white/[0.035] text-slate-300";
+  }
+}
+
+function getFulfillmentEventTone(tone: InventoryReadItem["fulfillment"]["events"][number]["tone"]) {
+  switch (tone) {
+    case "success":
+      return "border-emerald-300/16 bg-emerald-300/[0.06] text-emerald-100";
+    case "warning":
+      return "border-amber-300/16 bg-amber-300/[0.06] text-amber-100";
+    case "danger":
+      return "border-rose-300/16 bg-rose-300/[0.06] text-rose-100";
+    case "default":
+    default:
+      return "border-white/8 bg-white/[0.028] text-slate-300";
   }
 }
 

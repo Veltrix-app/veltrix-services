@@ -97,20 +97,27 @@ export async function POST(
       );
     }
 
+    const auditPayload = buildLootboxInventoryClaimAuditPayload({
+      authUserId: user.id,
+      inventoryItem: existing,
+    });
     const auditResponse = await serviceSupabase
       .from("admin_audit_logs")
-      .insert(
-        buildLootboxInventoryClaimAuditPayload({
-          authUserId: user.id,
-          inventoryItem: existing,
-        })
-      );
+      .insert(auditPayload)
+      .select("id, action, summary, metadata, created_at")
+      .single();
 
     if (auditResponse.error) {
       console.error("Lootbox claim request audit skipped:", auditResponse.error.message);
     }
 
-    return NextResponse.json({ ok: true, inventoryItem: updateResponse.data });
+    return NextResponse.json({
+      ok: true,
+      inventoryItem: {
+        ...updateResponse.data,
+        auditTrail: auditResponse.data ? [auditResponse.data] : [],
+      },
+    });
   } catch (error) {
     return NextResponse.json(
       {

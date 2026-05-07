@@ -7,6 +7,7 @@ import {
   type LootboxRarity,
 } from "./lootbox-catalog";
 import { normalizeLootboxTierRows, type DbLootboxTierRow } from "./lootbox-db-catalog";
+import type { LootboxInventoryAuditRow } from "./lootbox-inventory-read";
 import {
   calculateShardBalance,
   createShardSourceDedupeKey,
@@ -47,6 +48,7 @@ export type LootboxInventoryItem = {
   status: string;
   created_at: string;
   updated_at: string | null;
+  auditTrail: LootboxInventoryAuditRow[];
 };
 
 type ReputationRow = {
@@ -68,6 +70,21 @@ type PoolItemRow = {
   payload: Record<string, unknown> | null;
   active: boolean | null;
 };
+
+type AdminAuditLogRow = {
+  id: string | null;
+  action: string | null;
+  summary: string | null;
+  metadata: Record<string, unknown> | null;
+  created_at: string | null;
+  source_id: string | null;
+};
+
+const LOOTBOX_INVENTORY_AUDIT_ACTIONS = [
+  "lootbox_inventory_claim_requested",
+  "lootbox_inventory_status_changed",
+  "lootbox_inventory_note_added",
+];
 
 export async function getShardBalance(params: {
   serviceSupabase: ServiceSupabase;
@@ -402,7 +419,58 @@ async function loadInventory(params: {
     throw new Error(error.message);
   }
 
-  return (data ?? []).map(normalizeInventoryItem);
+  const inventory = (data ?? []).map(normalizeInventoryItem);
+  return attachInventoryAuditTrails({
+    serviceSupabase: params.serviceSupabase,
+    authUserId: params.authUserId,
+    inventory,
+  });
+}
+
+async function attachInventoryAuditTrails(params: {
+  serviceSupabase: ServiceSupabase;
+  authUserId: string;
+  inventory: LootboxInventoryItem[];
+}): Promise<LootboxInventoryItem[]> {
+  const inventoryIds = params.inventory.map((item) => item.id).filter(Boolean);
+  if (!inventoryIds.length) {
+    return params.inventory;
+  }
+
+  const { data, error } = await params.serviceSupabase
+    .from("admin_audit_logs")
+    .select("id, action, summary, metadata, created_at, source_id")
+    .eq("source_table", "user_inventory")
+    .in("source_id", inventoryIds)
+    .in("action", LOOTBOX_INVENTORY_AUDIT_ACTIONS)
+    .order("created_at", { ascending: false })
+    .limit(80);
+
+  if (error) {
+    console.warn("Lootbox inventory audit history skipped:", error.message);
+    return params.inventory;
+  }
+
+  const auditByInventoryId = new Map<string, LootboxInventoryAuditRow[]>();
+  for (const row of ((data ?? []) as unknown) as AdminAuditLogRow[]) {
+    const normalized = normalizeInventoryAuditRow(row);
+    if (!normalized || !row.source_id) {
+      continue;
+    }
+
+    const targetAuthUserId = readString(normalized.metadata?.targetAuthUserId);
+    if (targetAuthUserId && targetAuthUserId !== params.authUserId) {
+      continue;
+    }
+
+    const current = auditByInventoryId.get(row.source_id) ?? [];
+    auditByInventoryId.set(row.source_id, [...current, normalized]);
+  }
+
+  return params.inventory.map((item) => ({
+    ...item,
+    auditTrail: auditByInventoryId.get(item.id) ?? [],
+  }));
 }
 
 async function loadLootboxTiers(params: {
@@ -511,6 +579,11 @@ function normalizePoolItemPayload(item: PoolItemRow) {
 function normalizeInventoryItem(value: unknown): LootboxInventoryItem {
   const row = (value ?? {}) as Record<string, unknown>;
   const payload = row.payload;
+  const auditTrail = Array.isArray(row.auditTrail)
+    ? row.auditTrail
+        .map((item) => normalizeInventoryAuditRow(item))
+        .filter((item): item is LootboxInventoryAuditRow => Boolean(item))
+    : [];
   return {
     id: typeof row.id === "string" ? row.id : "",
     item_type: typeof row.item_type === "string" ? row.item_type : "unknown",
@@ -524,6 +597,30 @@ function normalizeInventoryItem(value: unknown): LootboxInventoryItem {
     created_at:
       typeof row.created_at === "string" ? row.created_at : new Date(0).toISOString(),
     updated_at: typeof row.updated_at === "string" ? row.updated_at : null,
+    auditTrail,
+  };
+}
+
+function normalizeInventoryAuditRow(value: unknown): LootboxInventoryAuditRow | null {
+  const row = (value ?? {}) as Record<string, unknown>;
+  const metadata = row.metadata;
+  const action = readString(row.action);
+  const id = readString(row.id);
+
+  if (!id || !action || !LOOTBOX_INVENTORY_AUDIT_ACTIONS.includes(action)) {
+    return null;
+  }
+
+  return {
+    id,
+    action,
+    summary: readString(row.summary),
+    metadata:
+      metadata && typeof metadata === "object" && !Array.isArray(metadata)
+        ? (metadata as Record<string, unknown>)
+        : {},
+    created_at:
+      typeof row.created_at === "string" ? row.created_at : new Date(0).toISOString(),
   };
 }
 
@@ -537,4 +634,8 @@ function calculateShardRefund(priceShards: number, item: PoolItemRow) {
       ? item.payload.refundPercent
       : 0;
   return Math.max(0, Math.round((priceShards * refundPercent) / 100));
+}
+
+function readString(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
 }

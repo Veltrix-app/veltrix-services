@@ -40,6 +40,14 @@ type LiveLootboxShopTier = {
   };
 };
 
+type LiveInventoryAuditItem = {
+  id: string;
+  action: string;
+  summary: string | null;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+};
+
 type LiveInventoryItem = {
   id: string;
   item_type: string;
@@ -49,6 +57,7 @@ type LiveInventoryItem = {
   status: string;
   created_at: string;
   updated_at: string | null;
+  auditTrail?: LiveInventoryAuditItem[];
 };
 
 type LiveLootboxOpenResult = {
@@ -264,6 +273,23 @@ function mapClaimStatusToDistributionStatus(status: string | null | undefined) {
     default:
       return "queued";
   }
+}
+
+function mergeInventoryAuditTrail(
+  first: LiveInventoryAuditItem[] | null | undefined,
+  second: LiveInventoryAuditItem[] | null | undefined
+) {
+  const seen = new Set<string>();
+  return [...(first ?? []), ...(second ?? [])]
+    .filter((item) => {
+      if (!item.id || seen.has(item.id)) {
+        return false;
+      }
+
+      seen.add(item.id);
+      return true;
+    })
+    .sort((left, right) => new Date(right.created_at).getTime() - new Date(left.created_at).getTime());
 }
 
 async function fetchLootboxShop(accessToken: string): Promise<{
@@ -1407,17 +1433,25 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
       return { ok: false, error: errorMessage };
     }
 
+    const previousInventoryItem = inventory.find((item) => item.id === payload.inventoryItem?.id);
+    const nextInventoryItem = {
+      ...payload.inventoryItem,
+      auditTrail: mergeInventoryAuditTrail(
+        payload.inventoryItem.auditTrail,
+        previousInventoryItem?.auditTrail
+      ),
+    };
     const nextInventory = inventory.map((item) =>
-      item.id === payload.inventoryItem?.id ? payload.inventoryItem : item
+      item.id === nextInventoryItem.id ? nextInventoryItem : item
     );
-    const requestedAt = payload.inventoryItem.updated_at ?? new Date().toISOString();
+    const requestedAt = nextInventoryItem.updated_at ?? new Date().toISOString();
 
     setInventory(nextInventory);
     setNotifications((current) => [
       {
         id: `local-lootbox-claim-${inventoryItemId}-${requestedAt}`,
         title: "Lootbox reward queued",
-        body: `${payload.inventoryItem?.label ?? "Lootbox reward"} moved into operator review.`,
+        body: `${nextInventoryItem.label ?? "Lootbox reward"} moved into operator review.`,
         read: false,
         type: "reward",
         createdAt: requestedAt,
@@ -1432,7 +1466,7 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
           {
             id: `local-lootbox-claim-${inventoryItemId}-${requestedAt}`,
             title: "Lootbox reward queued",
-            body: `${payload.inventoryItem.label} moved into operator review.`,
+            body: `${nextInventoryItem.label} moved into operator review.`,
             read: false,
             type: "reward",
             createdAt: requestedAt,
@@ -1443,7 +1477,7 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
       loadedDatasets: ["inventory", "notifications"],
     });
 
-    return { ok: true, inventoryItem: payload.inventoryItem };
+    return { ok: true, inventoryItem: nextInventoryItem };
   }
 
   async function markNotificationsRead() {

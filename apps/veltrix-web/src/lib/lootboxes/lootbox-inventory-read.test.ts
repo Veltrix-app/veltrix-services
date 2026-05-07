@@ -113,6 +113,65 @@ test("buildLootboxInventoryRead explains the member fulfillment timeline per sta
   );
 });
 
+test("buildLootboxInventoryRead exposes member-safe fulfillment activity and notes", () => {
+  const read = buildLootboxInventoryRead([
+    {
+      id: "claimed-with-history",
+      item_type: "title",
+      rarity: "legendary",
+      label: "Shard Hunter Title",
+      payload: { title: "Shard Hunter" },
+      status: "claimed",
+      created_at: "2026-01-02T10:00:00.000Z",
+      updated_at: "2026-01-02T13:00:00.000Z",
+      auditTrail: [
+        {
+          id: "event-claim",
+          action: "lootbox_inventory_claim_requested",
+          summary: "Member requested fulfillment for Shard Hunter Title.",
+          metadata: {
+            previousStatus: "owned",
+            nextStatus: "pending_review",
+          },
+          created_at: "2026-01-02T11:00:00.000Z",
+        },
+        {
+          id: "event-note",
+          action: "lootbox_inventory_note_added",
+          summary: "Operator note added for Shard Hunter Title.",
+          metadata: {
+            note: "Wallet verified, preparing Discord role.",
+            reference: "DIS-742",
+          },
+          created_at: "2026-01-02T12:00:00.000Z",
+        },
+        {
+          id: "event-fulfilled",
+          action: "lootbox_inventory_status_changed",
+          summary: "Marked claimed for Shard Hunter Title.",
+          metadata: {
+            previousStatus: "pending_review",
+            nextStatus: "claimed",
+          },
+          created_at: "2026-01-02T13:00:00.000Z",
+        },
+      ],
+    },
+  ]);
+  const item = read.items[0];
+
+  assert.deepEqual(
+    item.fulfillment.events.map((event) => [event.label, event.detail]),
+    [
+      ["Fulfilled", "Marked claimed for Shard Hunter Title."],
+      ["Operator note", "Wallet verified, preparing Discord role."],
+      ["Claim requested", "Member requested fulfillment for Shard Hunter Title."],
+    ]
+  );
+  assert.equal(item.fulfillment.latestNote?.note, "Wallet verified, preparing Discord role.");
+  assert.equal(item.fulfillment.latestNote?.reference, "DIS-742");
+});
+
 test("canRequestLootboxInventoryClaim only allows owned manual rewards", () => {
   assert.equal(canRequestLootboxInventoryClaim({ status: "owned", item_type: "title" }), true);
   assert.equal(
