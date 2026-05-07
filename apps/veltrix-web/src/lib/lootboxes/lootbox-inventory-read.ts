@@ -48,6 +48,18 @@ export type LootboxFulfillmentNote = {
   createdAt: string;
 };
 
+export type LootboxTitleEquipAuditItem = {
+  id: string;
+  auth_user_id: string;
+  label: string;
+};
+
+export type LootboxTitleEquipPatchInput = {
+  payload: Record<string, unknown> | null | undefined;
+  equipped: boolean;
+  now?: string;
+};
+
 export function buildLootboxInventoryRead(rows: LootboxInventoryReadRow[]) {
   const items = rows
     .map((row) => {
@@ -74,6 +86,7 @@ export function buildLootboxInventoryRead(rows: LootboxInventoryReadRow[]) {
         primaryActionLabel: statusRead.primaryActionLabel,
         canRequestClaim,
         fulfillment,
+        utility: buildInventoryUtilityRead(row),
         createdAt: row.created_at,
         updatedAt: row.updated_at,
       };
@@ -129,6 +142,77 @@ export function buildLootboxInventoryClaimAuditPayload(params: {
       origin: "webapp",
     },
   };
+}
+
+export function buildLootboxTitleEquipPatch(params: LootboxTitleEquipPatchInput) {
+  const now = params.now ?? new Date().toISOString();
+  const payload = normalizeInventoryPayload(params.payload);
+
+  return {
+    payload: {
+      ...payload,
+      equipped: params.equipped,
+      ...(params.equipped ? { equippedAt: now } : {}),
+    },
+    updated_at: now,
+  };
+}
+
+export function buildLootboxTitleProfilePatch(title: string) {
+  return {
+    title: sanitizeTitleLabel(title),
+  };
+}
+
+export function buildLootboxTitleEquipAuditPayload(params: {
+  authUserId: string;
+  inventoryItem: LootboxTitleEquipAuditItem;
+  title: string;
+}) {
+  const title = sanitizeTitleLabel(params.title);
+
+  return {
+    auth_user_id: params.authUserId,
+    project_id: null,
+    source_table: "user_inventory",
+    source_id: params.inventoryItem.id,
+    action: "lootbox_inventory_title_equipped",
+    summary: `Member equipped ${title}.`,
+    metadata: {
+      inventoryItemId: params.inventoryItem.id,
+      targetAuthUserId: params.inventoryItem.auth_user_id,
+      title,
+      origin: "webapp",
+    },
+  };
+}
+
+export function resolveLootboxTitleLabel(params: {
+  label: string | null | undefined;
+  payload: Record<string, unknown> | null | undefined;
+}) {
+  const payload = normalizeInventoryPayload(params.payload);
+  const payloadTitle = readAuditString(payload.title);
+  if (payloadTitle) {
+    return payloadTitle;
+  }
+
+  return sanitizeTitleLabel(params.label ?? "Lootbox title");
+}
+
+export function canEquipLootboxTitle(params: {
+  item_type: string | null | undefined;
+  status: string | null | undefined;
+  payload: Record<string, unknown> | null | undefined;
+}) {
+  const status = normalizeInventoryStatus(params.status);
+  const payload = normalizeInventoryPayload(params.payload);
+
+  return (
+    params.item_type === "title" &&
+    (status === "owned" || status === "claimed") &&
+    payload.equipped !== true
+  );
 }
 
 function getInventoryStatusRead(
@@ -204,6 +288,27 @@ function getInventoryStatusRead(
         },
       };
   }
+}
+
+function buildInventoryUtilityRead(row: LootboxInventoryReadRow) {
+  const payload = normalizeInventoryPayload(row.payload);
+  const isTitle = row.item_type === "title";
+  const isEquippedTitle = isTitle && payload.equipped === true;
+  const canEquipTitle = canEquipLootboxTitle(row);
+  const titleLabel = isTitle
+    ? resolveLootboxTitleLabel({
+        label: row.label,
+        payload,
+      })
+    : null;
+
+  return {
+    isTitle,
+    titleLabel,
+    isEquippedTitle,
+    canEquipTitle,
+    equipActionLabel: isEquippedTitle ? "Equipped" : "Equip title",
+  };
 }
 
 function buildFulfillmentTimeline(
@@ -282,6 +387,16 @@ function formatFulfillmentEvent(row: LootboxInventoryAuditRow) {
         tone: "default" as const,
         note,
         reference,
+        createdAt: row.created_at,
+      };
+    case "lootbox_inventory_title_equipped":
+      return {
+        id: row.id,
+        label: "Title equipped",
+        detail: summary ?? "Member equipped this title on their public profile.",
+        tone: "success" as const,
+        note: null,
+        reference: null,
         createdAt: row.created_at,
       };
     case "lootbox_inventory_status_changed": {
@@ -479,4 +594,13 @@ function normalizeAuditMetadata(value: Record<string, unknown> | null | undefine
 
 function readAuditString(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function normalizeInventoryPayload(value: Record<string, unknown> | null | undefined) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function sanitizeTitleLabel(value: string) {
+  const trimmed = value.trim();
+  return trimmed || "Lootbox title";
 }

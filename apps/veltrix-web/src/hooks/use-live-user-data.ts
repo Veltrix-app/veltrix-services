@@ -392,7 +392,7 @@ export function prependLiveUserNotification(
 }
 
 export function useLiveUserData(options?: UseLiveUserDataOptions) {
-  const { authUserId, initialized, authConfigured, session, profile } = useAuth();
+  const { authUserId, initialized, authConfigured, session, profile, reloadProfile } = useAuth();
   const datasetKey = Array.isArray(options?.datasets)
     ? Array.from(new Set(options.datasets)).sort().join("|")
     : "all";
@@ -1480,6 +1480,78 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
     return { ok: true, inventoryItem: nextInventoryItem };
   }
 
+  async function equipLootboxTitle(inventoryItemId: string) {
+    if (!authConfigured || !authUserId || !session?.access_token) {
+      return { ok: false, error: "Sign in before equipping a lootbox title." };
+    }
+
+    const response = await fetch(`/api/lootboxes/inventory/${inventoryItemId}/equip`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      cache: "no-store",
+    });
+    const payload = (await response.json().catch(() => null)) as
+      | {
+          ok?: boolean;
+          profileTitle?: string;
+          inventoryItem?: LiveInventoryItem;
+          error?: string;
+        }
+      | null;
+
+    if (!response.ok || !payload?.ok || !payload.inventoryItem) {
+      const errorMessage = payload?.error ?? "Lootbox title equip failed.";
+      setError(errorMessage);
+      return { ok: false, error: errorMessage };
+    }
+
+    const profileTitle = payload.profileTitle ?? payload.inventoryItem.label;
+    const previousInventoryItem = inventory.find((item) => item.id === payload.inventoryItem?.id);
+    const nextInventoryItem = {
+      ...payload.inventoryItem,
+      auditTrail: mergeInventoryAuditTrail(
+        payload.inventoryItem.auditTrail,
+        previousInventoryItem?.auditTrail
+      ),
+    };
+    const nextInventory = inventory.map((item) => {
+      if (item.id === nextInventoryItem.id) {
+        return nextInventoryItem;
+      }
+
+      if (item.item_type === "title" && item.payload?.equipped === true) {
+        return {
+          ...item,
+          payload: {
+            ...item.payload,
+            equipped: false,
+          },
+        };
+      }
+
+      return item;
+    });
+
+    setInventory(nextInventory);
+    invalidateLiveUserDataCache(authUserId, ["leaderboard"]);
+    mergeLiveUserDataCacheEntry({
+      authUserId,
+      patch: {
+        inventory: nextInventory,
+      },
+      loadedDatasets: ["inventory"],
+    });
+    await reloadProfile();
+
+    return {
+      ok: true,
+      profileTitle,
+      inventoryItem: nextInventoryItem,
+    };
+  }
+
   async function markNotificationsRead() {
     if (!authConfigured || !authUserId || !supabase) {
       return;
@@ -1601,5 +1673,6 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
     claimRewardDistribution,
     openLootbox,
     requestLootboxClaim,
+    equipLootboxTitle,
   };
 }

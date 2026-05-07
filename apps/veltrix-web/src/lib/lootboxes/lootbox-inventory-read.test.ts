@@ -3,6 +3,8 @@ import test from "node:test";
 import {
   buildLootboxInventoryClaimAuditPayload,
   buildLootboxInventoryRead,
+  buildLootboxTitleEquipPatch,
+  buildLootboxTitleProfilePatch,
   canRequestLootboxInventoryClaim,
 } from "./lootbox-inventory-read";
 
@@ -170,6 +172,66 @@ test("buildLootboxInventoryRead exposes member-safe fulfillment activity and not
   );
   assert.equal(item.fulfillment.latestNote?.note, "Wallet verified, preparing Discord role.");
   assert.equal(item.fulfillment.latestNote?.reference, "DIS-742");
+});
+
+test("buildLootboxInventoryRead exposes title equip utility state", () => {
+  const read = buildLootboxInventoryRead([
+    {
+      id: "title-ready",
+      item_type: "title",
+      rarity: "legendary",
+      label: "Shard Hunter Title",
+      payload: { title: "Shard Hunter" },
+      status: "claimed",
+      created_at: "2026-01-02T10:00:00.000Z",
+      updated_at: null,
+    },
+    {
+      id: "title-equipped",
+      item_type: "title",
+      rarity: "mythic",
+      label: "Vault Legend Title",
+      payload: { title: "Vault Legend", equipped: true },
+      status: "claimed",
+      created_at: "2026-01-03T10:00:00.000Z",
+      updated_at: "2026-01-03T11:00:00.000Z",
+    },
+  ]);
+  const ready = read.items.find((item) => item.id === "title-ready");
+  const equipped = read.items.find((item) => item.id === "title-equipped");
+
+  assert.equal(ready?.utility.titleLabel, "Shard Hunter");
+  assert.equal(ready?.utility.canEquipTitle, true);
+  assert.equal(ready?.utility.isEquippedTitle, false);
+  assert.equal(ready?.utility.equipActionLabel, "Equip title");
+  assert.equal(equipped?.utility.titleLabel, "Vault Legend");
+  assert.equal(equipped?.utility.canEquipTitle, false);
+  assert.equal(equipped?.utility.isEquippedTitle, true);
+  assert.equal(equipped?.utility.equipActionLabel, "Equipped");
+});
+
+test("buildLootboxTitleEquipPatch preserves title payload while toggling equipped state", () => {
+  const now = "2026-01-04T10:00:00.000Z";
+
+  assert.deepEqual(
+    buildLootboxTitleEquipPatch({
+      payload: { title: "Shard Hunter", cosmetic: "violet-glow" },
+      equipped: true,
+      now,
+    }),
+    {
+      payload: {
+        title: "Shard Hunter",
+        cosmetic: "violet-glow",
+        equipped: true,
+        equippedAt: now,
+      },
+      updated_at: now,
+    }
+  );
+  assert.deepEqual(buildLootboxTitleProfilePatch("Shard Hunter"), {
+    title: "Shard Hunter",
+  });
 });
 
 test("canRequestLootboxInventoryClaim only allows owned manual rewards", () => {

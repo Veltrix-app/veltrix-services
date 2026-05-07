@@ -84,6 +84,7 @@ const LOOTBOX_INVENTORY_AUDIT_ACTIONS = [
   "lootbox_inventory_claim_requested",
   "lootbox_inventory_status_changed",
   "lootbox_inventory_note_added",
+  "lootbox_inventory_title_equipped",
 ];
 
 export async function getShardBalance(params: {
