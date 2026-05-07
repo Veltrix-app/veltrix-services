@@ -48,6 +48,11 @@ export type LootboxFulfillmentNote = {
   createdAt: string;
 };
 
+export type LootboxSeasonAccessPerk = {
+  label: string;
+  detail: string;
+};
+
 export type LootboxTitleEquipAuditItem = {
   id: string;
   auth_user_id: string;
@@ -127,6 +132,19 @@ export function canRequestLootboxInventoryClaim(params: {
     normalizeInventoryStatus(params.status) === "owned" &&
     !isAutoAppliedInventoryItem(params.item_type) &&
     params.item_type !== "season_access"
+  );
+}
+
+export function hasActiveLootboxSeasonAccess(
+  rows: Array<{
+    item_type: string | null | undefined;
+    status: string | null | undefined;
+  }>
+) {
+  return rows.some(
+    (row) =>
+      row.item_type === "season_access" &&
+      ["owned", "claimed"].includes(normalizeInventoryStatus(row.status))
   );
 }
 
@@ -431,6 +449,13 @@ function buildInventoryUtilityRead(row: LootboxInventoryReadRow) {
       })
     : null;
   const seasonAccessWindow = isSeasonAccess ? readAuditString(payload.window) : null;
+  const seasonAccessPerks =
+    isSeasonAccess && seasonAccessLabel
+      ? buildSeasonAccessPerks({
+          label: seasonAccessLabel,
+          payload,
+        })
+      : [];
 
   return {
     isTitle,
@@ -439,7 +464,13 @@ function buildInventoryUtilityRead(row: LootboxInventoryReadRow) {
     titleLabel,
     cosmeticLabel,
     seasonAccessLabel,
+    seasonAccessBadgeLabel: seasonAccessLabel ? `Pass: ${seasonAccessLabel}` : null,
     seasonAccessWindow,
+    seasonAccessUnlockLabel: isSeasonAccess ? "Mythic gate" : null,
+    seasonAccessSummary: seasonAccessLabel
+      ? `${seasonAccessLabel} arms mythic access and public pass identity.`
+      : null,
+    seasonAccessPerks,
     isEquippedTitle,
     isEquippedCosmetic,
     isActiveSeasonAccess,
@@ -684,6 +715,63 @@ function isAutoAppliedInventoryItem(itemType: string | null | undefined) {
 
 function isHighRarity(rarity: string) {
   return ["legendary", "mythic"].includes(rarity.toLowerCase());
+}
+
+function buildSeasonAccessPerks(params: {
+  label: string;
+  payload: Record<string, unknown>;
+}): LootboxSeasonAccessPerk[] {
+  const payloadPerks = normalizePayloadSeasonAccessPerks(params.payload.perks);
+  if (payloadPerks.length) {
+    return payloadPerks.slice(0, 4);
+  }
+
+  return [
+    {
+      label: "Mythic gate armed",
+      detail: `${params.label} can satisfy the mythic season gate when level and trust checks are ready.`,
+    },
+    {
+      label: "Public pass signal",
+      detail: "Your active pass appears on your profile and leaderboard presence.",
+    },
+    {
+      label: "Vault route visible",
+      detail: "The pass stays in your reward vault as an active utility reward.",
+    },
+  ];
+}
+
+function normalizePayloadSeasonAccessPerks(value: unknown): LootboxSeasonAccessPerk[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((item) => {
+      if (typeof item === "string" && item.trim()) {
+        return {
+          label: item.trim(),
+          detail: "Season access perk is active on this pass.",
+        };
+      }
+
+      if (item && typeof item === "object" && !Array.isArray(item)) {
+        const record = item as Record<string, unknown>;
+        const label = readAuditString(record.label);
+        if (!label) {
+          return null;
+        }
+
+        return {
+          label,
+          detail: readAuditString(record.detail) ?? "Season access perk is active on this pass.",
+        };
+      }
+
+      return null;
+    })
+    .filter((item): item is LootboxSeasonAccessPerk => Boolean(item));
 }
 
 function summarizeInventoryPayload(payload: Record<string, unknown>) {

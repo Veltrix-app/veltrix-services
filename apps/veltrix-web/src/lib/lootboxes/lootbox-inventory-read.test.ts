@@ -7,6 +7,7 @@ import {
   buildLootboxTitleEquipPatch,
   buildLootboxTitleProfilePatch,
   canRequestLootboxInventoryClaim,
+  hasActiveLootboxSeasonAccess,
 } from "./lootbox-inventory-read";
 
 const inventoryRows = [
@@ -265,9 +266,35 @@ test("buildLootboxInventoryRead exposes active season access utility state", () 
   assert.equal(read.summary.seasonAccess, 1);
   assert.equal(item.utility.isSeasonAccess, true);
   assert.equal(item.utility.seasonAccessLabel, "Mythic Preview");
+  assert.equal(item.utility.seasonAccessBadgeLabel, "Pass: Mythic Preview");
   assert.equal(item.utility.seasonAccessWindow, "mythic-preview");
+  assert.equal(item.utility.seasonAccessUnlockLabel, "Mythic gate");
+  assert.equal(
+    item.utility.seasonAccessSummary,
+    "Mythic Preview arms mythic access and public pass identity."
+  );
+  assert.deepEqual(
+    item.utility.seasonAccessPerks.map((perk) => perk.label),
+    ["Mythic gate armed", "Public pass signal", "Vault route visible"]
+  );
   assert.equal(item.utility.isActiveSeasonAccess, true);
   assert.equal(item.utility.seasonAccessActionLabel, "Access active");
+});
+
+test("hasActiveLootboxSeasonAccess only treats owned or claimed season access as active", () => {
+  assert.equal(
+    hasActiveLootboxSeasonAccess([
+      { item_type: "season_access", status: "pending_review" },
+      { item_type: "title", status: "owned" },
+    ]),
+    false
+  );
+  assert.equal(
+    hasActiveLootboxSeasonAccess([
+      { item_type: "season_access", status: "claimed" },
+    ]),
+    true
+  );
 });
 
 test("buildLootboxTitleEquipPatch preserves title payload while toggling equipped state", () => {

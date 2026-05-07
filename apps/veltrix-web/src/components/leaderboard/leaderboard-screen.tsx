@@ -99,8 +99,8 @@ export function LeaderboardScreen() {
     inventoryRead.items.find((item) => item.utility.isEquippedCosmetic)?.utility.cosmeticLabel ??
     null;
   const activeSeasonAccess =
-    inventoryRead.items.find((item) => item.utility.isActiveSeasonAccess)?.utility.seasonAccessLabel ??
-    null;
+    inventoryRead.items.find((item) => item.utility.isActiveSeasonAccess)?.utility
+      .seasonAccessBadgeLabel ?? null;
   const sourceLeaderboard =
     liveLeaderboard.length > 0 || !showingPreview ? liveLeaderboard : previewLeaderboardUsers;
   const leaderboard = useMemo(

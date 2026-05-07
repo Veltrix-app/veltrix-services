@@ -214,8 +214,8 @@ export function ProfileScreen() {
     inventoryRead.items.find((item) => item.utility.isEquippedCosmetic)?.utility.cosmeticLabel ??
     null;
   const activeSeasonAccess =
-    inventoryRead.items.find((item) => item.utility.isActiveSeasonAccess)?.utility.seasonAccessLabel ??
-    null;
+    inventoryRead.items.find((item) => item.utility.isActiveSeasonAccess)?.utility
+      .seasonAccessBadgeLabel ?? null;
 
   async function handleProviderLink(provider: "discord" | "x") {
     setProviderMessage(null);

@@ -7,7 +7,10 @@ import {
   type LootboxRarity,
 } from "./lootbox-catalog";
 import { normalizeLootboxTierRows, type DbLootboxTierRow } from "./lootbox-db-catalog";
-import type { LootboxInventoryAuditRow } from "./lootbox-inventory-read";
+import {
+  hasActiveLootboxSeasonAccess,
+  type LootboxInventoryAuditRow,
+} from "./lootbox-inventory-read";
 import {
   calculateShardBalance,
   createShardSourceDedupeKey,
@@ -172,13 +175,15 @@ export async function getLootboxShopState(params: {
   serviceSupabase: ServiceSupabase;
   authUserId: string;
 }) {
-  const [balance, reputation, featuredCompletions, inventory, tiers] = await Promise.all([
-    getShardBalance(params),
-    loadReputation(params),
-    countFeaturedShardCompletions(params),
-    loadInventory(params),
-    loadLootboxTiers(params),
-  ]);
+  const [balance, reputation, featuredCompletions, inventory, tiers, hasActiveSeasonAccess] =
+    await Promise.all([
+      getShardBalance(params),
+      loadReputation(params),
+      countFeaturedShardCompletions(params),
+      loadInventory(params),
+      loadLootboxTiers(params),
+      loadActiveSeasonAccess(params),
+    ]);
   const level =
     typeof reputation?.level === "number" && reputation.level > 0
       ? reputation.level
@@ -186,6 +191,7 @@ export async function getLootboxShopState(params: {
   const cleanTrust =
     !reputation?.status ||
     (reputation.status !== "review" && reputation.status !== "suspended" && Number(reputation.sybil_score ?? 0) < 90);
+  const seasonWindowActive = hasActiveSeasonAccess || hasActiveLootboxSeasonAccess(inventory);
 
   return {
     balance,
@@ -199,7 +205,7 @@ export async function getLootboxShopState(params: {
         level,
         featuredCompletions,
         cleanTrust,
-        seasonWindowActive: false,
+        seasonWindowActive,
       }),
     })),
     inventory,
@@ -404,6 +410,24 @@ async function countFeaturedShardCompletions(params: {
   }
 
   return count ?? 0;
+}
+
+async function loadActiveSeasonAccess(params: {
+  serviceSupabase: ServiceSupabase;
+  authUserId: string;
+}) {
+  const { count, error } = await params.serviceSupabase
+    .from("user_inventory")
+    .select("id", { count: "exact", head: true })
+    .eq("auth_user_id", params.authUserId)
+    .eq("item_type", "season_access")
+    .in("status", ["owned", "claimed"]);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return Number(count ?? 0) > 0;
 }
 
 async function loadInventory(params: {

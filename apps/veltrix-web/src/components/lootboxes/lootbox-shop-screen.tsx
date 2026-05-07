@@ -56,6 +56,8 @@ export function LootboxShopScreen() {
     text: string;
   } | null>(null);
   const inventoryRead = useMemo(() => buildLootboxInventoryRead(inventory), [inventory]);
+  const activeSeasonAccessItem =
+    inventoryRead.items.find((item) => item.utility.isActiveSeasonAccess) ?? null;
 
   async function handleOpen(tierId: string) {
     setBusyTier(tierId);
@@ -175,14 +177,21 @@ export function LootboxShopScreen() {
           </div>
         </div>
 
-        <div className="relative z-10 mt-5 grid gap-2.5 sm:grid-cols-3">
+        <div className="relative z-10 mt-5 grid gap-2.5 sm:grid-cols-4">
           <HeroStat label="Balance" value={String(shardBalance)} meta="available shards" />
           <HeroStat label="Boxes" value={String(lootboxTiers.length)} meta="tier catalog" />
           <HeroStat label="Claimable" value={String(inventoryRead.summary.claimable)} meta="ready rewards" />
+          <HeroStat
+            label="Pass"
+            value={activeSeasonAccessItem ? "Active" : "None"}
+            meta={activeSeasonAccessItem?.utility.seasonAccessLabel ?? "season access"}
+          />
         </div>
       </section>
 
       {message ? <Notice text={message.text} tone={message.tone === "error" ? "error" : "default"} /> : null}
+
+      <SeasonAccessConsole item={activeSeasonAccessItem} />
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
         {lootboxTiers.map((tier) => (
@@ -210,6 +219,102 @@ export function LootboxShopScreen() {
 
 type InventoryRead = ReturnType<typeof buildLootboxInventoryRead>;
 type InventoryReadItem = InventoryRead["items"][number];
+
+function SeasonAccessConsole({ item }: { item: InventoryReadItem | null }) {
+  const active = Boolean(item?.utility.isActiveSeasonAccess);
+  const accessLabel = item?.utility.seasonAccessLabel ?? "No active pass";
+  const summary =
+    item?.utility.seasonAccessSummary ??
+    "Season access is the premium gate for mythic windows, public pass identity and future pass perks.";
+  const perks = active
+    ? item?.utility.seasonAccessPerks ?? []
+    : [
+        {
+          label: "Hunt access",
+          detail: "Open premium boxes to find season access rewards.",
+        },
+        {
+          label: "Mythic gate",
+          detail: "Mythic boxes require level, trust and an active season pass.",
+        },
+        {
+          label: "Public signal",
+          detail: "Active passes show on your profile and leaderboard presence.",
+        },
+      ];
+
+  return (
+    <section
+      className={`relative overflow-hidden rounded-[24px] border p-4 shadow-[0_18px_52px_rgba(0,0,0,0.24)] ${
+        active
+          ? "border-cyan-300/16 bg-[radial-gradient(circle_at_82%_22%,rgba(34,211,238,0.14),transparent_26%),linear-gradient(180deg,rgba(12,18,24,0.98),rgba(6,9,14,0.98))]"
+          : "border-white/8 bg-[linear-gradient(180deg,rgba(13,17,24,0.95),rgba(7,9,14,0.95))]"
+      }`}
+    >
+      <div className="pointer-events-none absolute -right-4 -top-8 h-32 w-32 opacity-40">
+        <Image
+          src="/assets/lootboxes/mythic-lootbox.webp"
+          alt=""
+          fill
+          sizes="128px"
+          className="object-contain drop-shadow-[0_24px_44px_rgba(34,211,238,0.16)]"
+        />
+      </div>
+      <div className="relative z-10 grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.72fr)] xl:items-center">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={`inline-flex h-10 w-10 items-center justify-center rounded-full border ${
+                active
+                  ? "border-cyan-300/22 bg-cyan-300/[0.09] text-cyan-100"
+                  : "border-white/8 bg-white/[0.035] text-slate-300"
+              }`}
+            >
+              <ShieldCheck className="h-4 w-4" />
+            </span>
+            <span
+              className={`rounded-full border px-3 py-1 text-[9px] font-black uppercase tracking-[0.16em] ${
+                active
+                  ? "border-cyan-300/18 bg-cyan-300/[0.08] text-cyan-100"
+                  : "border-white/8 bg-white/[0.035] text-slate-400"
+              }`}
+            >
+              {active ? "Season pass active" : "Season pass inactive"}
+            </span>
+            <span className="rounded-full border border-white/8 bg-black/18 px-3 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-slate-400">
+              {item?.utility.seasonAccessUnlockLabel ?? "Mythic gate"}
+            </span>
+          </div>
+          <h2 className="mt-3 text-[1.05rem] font-semibold tracking-[-0.035em] text-white">
+            {accessLabel}
+          </h2>
+          <p className="mt-2 max-w-2xl text-[12px] leading-5 text-slate-400">{summary}</p>
+        </div>
+
+        <div className="grid gap-2 sm:grid-cols-3">
+          {perks.slice(0, 3).map((perk) => (
+            <div
+              key={perk.label}
+              className={`min-w-0 rounded-[16px] border px-3 py-3 ${
+                active
+                  ? "border-cyan-300/14 bg-cyan-300/[0.055] text-cyan-100"
+                  : "border-white/8 bg-white/[0.025] text-slate-300"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <BadgeCheck className="h-3.5 w-3.5 shrink-0 opacity-80" />
+                <p className="truncate text-[9px] font-black uppercase tracking-[0.14em]">
+                  {perk.label}
+                </p>
+              </div>
+              <p className="mt-2 line-clamp-2 text-[10px] leading-4 opacity-75">{perk.detail}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 function InventoryVault({
   read,
@@ -372,6 +477,23 @@ function InventoryRewardRow({
           <p className="mt-1 line-clamp-1 text-[10px] leading-4 text-slate-500">
             {item.fulfillment.nextStep}
           </p>
+          {hasAccessUtility && item.utility.seasonAccessPerks.length ? (
+            <div className="mt-2 grid gap-1.5 sm:grid-cols-3">
+              {item.utility.seasonAccessPerks.slice(0, 3).map((perk) => (
+                <div
+                  key={perk.label}
+                  className="min-w-0 rounded-[12px] border border-cyan-300/12 bg-cyan-300/[0.045] px-2.5 py-2 text-cyan-100"
+                >
+                  <p className="truncate text-[8px] font-black uppercase tracking-[0.12em]">
+                    {perk.label}
+                  </p>
+                  <p className="mt-1 line-clamp-1 text-[10px] leading-4 text-cyan-100/65">
+                    {perk.detail}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : null}
           <FulfillmentTimeline steps={item.fulfillment.timeline} />
           <FulfillmentActivity events={item.fulfillment.events} />
           <LatestFulfillmentNote note={item.fulfillment.latestNote} />
