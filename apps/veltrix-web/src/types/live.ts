@@ -97,6 +97,7 @@ export type LiveLeaderboardUser = {
   bannerUrl: string;
   title: string;
   faction: string;
+  profileCosmetic?: string | null;
   isCurrentUser: boolean;
 };
 

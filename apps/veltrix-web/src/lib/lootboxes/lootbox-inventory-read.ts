@@ -54,7 +54,19 @@ export type LootboxTitleEquipAuditItem = {
   label: string;
 };
 
+export type LootboxProfileCosmeticEquipAuditItem = {
+  id: string;
+  auth_user_id: string;
+  label: string;
+};
+
 export type LootboxTitleEquipPatchInput = {
+  payload: Record<string, unknown> | null | undefined;
+  equipped: boolean;
+  now?: string;
+};
+
+export type LootboxProfileCosmeticEquipPatchInput = {
   payload: Record<string, unknown> | null | undefined;
   equipped: boolean;
   now?: string;
@@ -158,9 +170,48 @@ export function buildLootboxTitleEquipPatch(params: LootboxTitleEquipPatchInput)
   };
 }
 
+export function buildLootboxProfileCosmeticEquipPatch(
+  params: LootboxProfileCosmeticEquipPatchInput
+) {
+  const now = params.now ?? new Date().toISOString();
+  const payload = normalizeInventoryPayload(params.payload);
+
+  return {
+    payload: {
+      ...payload,
+      equipped: params.equipped,
+      ...(params.equipped ? { equippedAt: now } : {}),
+    },
+    updated_at: now,
+  };
+}
+
 export function buildLootboxTitleProfilePatch(title: string) {
   return {
     title: sanitizeTitleLabel(title),
+  };
+}
+
+export function buildLootboxProfileCosmeticEquipAuditPayload(params: {
+  authUserId: string;
+  inventoryItem: LootboxProfileCosmeticEquipAuditItem;
+  cosmetic: string;
+}) {
+  const cosmetic = sanitizeCosmeticLabel(params.cosmetic);
+
+  return {
+    auth_user_id: params.authUserId,
+    project_id: null,
+    source_table: "user_inventory",
+    source_id: params.inventoryItem.id,
+    action: "lootbox_inventory_cosmetic_equipped",
+    summary: `Member equipped ${cosmetic}.`,
+    metadata: {
+      inventoryItemId: params.inventoryItem.id,
+      targetAuthUserId: params.inventoryItem.auth_user_id,
+      cosmetic,
+      origin: "webapp",
+    },
   };
 }
 
@@ -200,6 +251,19 @@ export function resolveLootboxTitleLabel(params: {
   return sanitizeTitleLabel(params.label ?? "Lootbox title");
 }
 
+export function resolveLootboxProfileCosmeticLabel(params: {
+  label: string | null | undefined;
+  payload: Record<string, unknown> | null | undefined;
+}) {
+  const payload = normalizeInventoryPayload(params.payload);
+  const payloadCosmetic = readAuditString(payload.cosmetic);
+  if (payloadCosmetic) {
+    return payloadCosmetic;
+  }
+
+  return sanitizeCosmeticLabel(params.label ?? "Profile cosmetic");
+}
+
 export function canEquipLootboxTitle(params: {
   item_type: string | null | undefined;
   status: string | null | undefined;
@@ -210,6 +274,21 @@ export function canEquipLootboxTitle(params: {
 
   return (
     params.item_type === "title" &&
+    (status === "owned" || status === "claimed") &&
+    payload.equipped !== true
+  );
+}
+
+export function canEquipLootboxProfileCosmetic(params: {
+  item_type: string | null | undefined;
+  status: string | null | undefined;
+  payload: Record<string, unknown> | null | undefined;
+}) {
+  const status = normalizeInventoryStatus(params.status);
+  const payload = normalizeInventoryPayload(params.payload);
+
+  return (
+    params.item_type === "profile_cosmetic" &&
     (status === "owned" || status === "claimed") &&
     payload.equipped !== true
   );
@@ -293,10 +372,19 @@ function getInventoryStatusRead(
 function buildInventoryUtilityRead(row: LootboxInventoryReadRow) {
   const payload = normalizeInventoryPayload(row.payload);
   const isTitle = row.item_type === "title";
+  const isProfileCosmetic = row.item_type === "profile_cosmetic";
   const isEquippedTitle = isTitle && payload.equipped === true;
+  const isEquippedCosmetic = isProfileCosmetic && payload.equipped === true;
   const canEquipTitle = canEquipLootboxTitle(row);
+  const canEquipCosmetic = canEquipLootboxProfileCosmetic(row);
   const titleLabel = isTitle
     ? resolveLootboxTitleLabel({
+        label: row.label,
+        payload,
+      })
+    : null;
+  const cosmeticLabel = isProfileCosmetic
+    ? resolveLootboxProfileCosmeticLabel({
         label: row.label,
         payload,
       })
@@ -304,10 +392,15 @@ function buildInventoryUtilityRead(row: LootboxInventoryReadRow) {
 
   return {
     isTitle,
+    isProfileCosmetic,
     titleLabel,
+    cosmeticLabel,
     isEquippedTitle,
+    isEquippedCosmetic,
     canEquipTitle,
+    canEquipCosmetic,
     equipActionLabel: isEquippedTitle ? "Equipped" : "Equip title",
+    cosmeticActionLabel: isEquippedCosmetic ? "Equipped" : "Equip cosmetic",
   };
 }
 
@@ -394,6 +487,16 @@ function formatFulfillmentEvent(row: LootboxInventoryAuditRow) {
         id: row.id,
         label: "Title equipped",
         detail: summary ?? "Member equipped this title on their public profile.",
+        tone: "success" as const,
+        note: null,
+        reference: null,
+        createdAt: row.created_at,
+      };
+    case "lootbox_inventory_cosmetic_equipped":
+      return {
+        id: row.id,
+        label: "Cosmetic equipped",
+        detail: summary ?? "Member equipped this cosmetic on their public profile.",
         tone: "success" as const,
         note: null,
         reference: null,
@@ -603,4 +706,9 @@ function normalizeInventoryPayload(value: Record<string, unknown> | null | undef
 function sanitizeTitleLabel(value: string) {
   const trimmed = value.trim();
   return trimmed || "Lootbox title";
+}
+
+function sanitizeCosmeticLabel(value: string) {
+  const trimmed = value.trim();
+  return trimmed || "Profile cosmetic";
 }

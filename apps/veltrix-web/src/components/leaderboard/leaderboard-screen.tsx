@@ -2,6 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element -- Profile avatars can be user-uploaded or Supabase-hosted URLs outside the static image config. */
 import Link from "next/link";
+import { useMemo } from "react";
 import {
   BadgeCheck,
   Crown,
@@ -18,6 +19,7 @@ import { StatusChip } from "@/components/ui/status-chip";
 import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
+import { buildLootboxInventoryRead } from "@/lib/lootboxes/lootbox-inventory-read";
 import type { LiveLeaderboardUser } from "@/types/live";
 
 type BadgeTone = "gold" | "lime" | "cyan" | "violet" | "slate";
@@ -87,13 +89,29 @@ const previewLeaderboardUsers: LiveLeaderboardUser[] = [
 
 export function LeaderboardScreen() {
   const { authConfigured, session } = useAuth();
-  const { leaderboard: liveLeaderboard, loading, error } = useLiveUserData({
-    datasets: ["leaderboard"],
+  const { leaderboard: liveLeaderboard, inventory, loading, error } = useLiveUserData({
+    datasets: ["leaderboard", "inventory"],
   });
   const isPreview = !authConfigured || !session;
   const showingPreview = isPreview && liveLeaderboard.length === 0;
-  const leaderboard =
+  const inventoryRead = useMemo(() => buildLootboxInventoryRead(inventory), [inventory]);
+  const equippedCosmetic =
+    inventoryRead.items.find((item) => item.utility.isEquippedCosmetic)?.utility.cosmeticLabel ??
+    null;
+  const sourceLeaderboard =
     liveLeaderboard.length > 0 || !showingPreview ? liveLeaderboard : previewLeaderboardUsers;
+  const leaderboard = useMemo(
+    () =>
+      sourceLeaderboard.map((user) =>
+        user.isCurrentUser && equippedCosmetic
+          ? {
+              ...user,
+              profileCosmetic: equippedCosmetic,
+            }
+          : user
+      ),
+    [equippedCosmetic, sourceLeaderboard]
+  );
   const [featuredMember, ...rankingQueue] = leaderboard;
   const podiumMembers = leaderboard.slice(0, 3);
   const currentUserRank = leaderboard.findIndex((user) => user.isCurrentUser) + 1;
@@ -510,6 +528,10 @@ function buildMemberBadges(user: LiveLeaderboardUser, rank: number): MemberBadge
     badges.push({ label: "Rising", tone: "violet" });
   } else {
     badges.push({ label: `Level ${user.level}`, tone: "slate" });
+  }
+
+  if (user.profileCosmetic) {
+    badges.push({ label: user.profileCosmetic, tone: "violet" });
   }
 
   if (user.xp >= 10000) {

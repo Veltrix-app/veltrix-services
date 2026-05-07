@@ -15,6 +15,7 @@ import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useCommunityJourney } from "@/hooks/use-community-journey";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
+import { buildLootboxInventoryRead } from "@/lib/lootboxes/lootbox-inventory-read";
 import { buildXpProgressionRead } from "@/lib/xp/xp-economy";
 import type { ConnectedAccount } from "@/types/auth";
 
@@ -41,6 +42,7 @@ export function ProfileScreen() {
     quests,
     xpStakes,
     rewardDistributions,
+    inventory,
     claimableDistributionCount,
     reload,
   } = useLiveUserData({
@@ -51,6 +53,7 @@ export function ProfileScreen() {
       "quests",
       "xpStakes",
       "rewardDistributions",
+      "inventory",
     ],
   });
   const [telegramUserId, setTelegramUserId] = useState("");
@@ -206,6 +209,10 @@ export function ProfileScreen() {
         ? `${activeStakeCount} active AESP stake lanes are still live and worth monitoring.`
         : `${unreadNotificationCount} unread signals are still competing for your attention.`;
   const xpProgression = buildXpProgressionRead(profile?.xp ?? 0);
+  const inventoryRead = useMemo(() => buildLootboxInventoryRead(inventory), [inventory]);
+  const equippedCosmetic =
+    inventoryRead.items.find((item) => item.utility.isEquippedCosmetic)?.utility.cosmeticLabel ??
+    null;
 
   async function handleProviderLink(provider: "discord" | "x") {
     setProviderMessage(null);
@@ -402,6 +409,11 @@ export function ProfileScreen() {
                       <span className="rounded-full border border-cyan-300/16 bg-cyan-300/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.24em] text-cyan-100">
                         {profile?.title ?? "Operator"}
                       </span>
+                      {equippedCosmetic ? (
+                        <span className="rounded-full border border-violet-300/18 bg-violet-300/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-violet-100">
+                          {equippedCosmetic}
+                        </span>
+                      ) : null}
                       <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.24em] text-slate-300">
                         {connectedCount} linked systems
                       </span>

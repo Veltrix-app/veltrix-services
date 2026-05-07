@@ -44,12 +44,12 @@ export function LootboxShopScreen() {
     inventory,
     openLootbox,
     requestLootboxClaim,
-    equipLootboxTitle,
+    equipLootboxUtility,
   } =
     useLiveUserData({ datasets: ["lootboxes", "inventory"] });
   const [busyTier, setBusyTier] = useState<string | null>(null);
   const [claimingItemId, setClaimingItemId] = useState<string | null>(null);
-  const [equippingTitleId, setEquippingTitleId] = useState<string | null>(null);
+  const [equippingItemId, setEquippingItemId] = useState<string | null>(null);
   const [reveal, setReveal] = useState<LootboxReveal | null>(null);
   const [message, setMessage] = useState<{
     tone: "default" | "success" | "error";
@@ -105,25 +105,27 @@ export function LootboxShopScreen() {
     setClaimingItemId(null);
   }
 
-  async function handleEquipTitle(inventoryItemId: string) {
-    setEquippingTitleId(inventoryItemId);
-    setMessage({ tone: "default", text: "Equipping title on your public profile..." });
-    const result = await equipLootboxTitle(inventoryItemId);
+  async function handleEquipUtility(inventoryItemId: string) {
+    const item = inventoryRead.items.find((row) => row.id === inventoryItemId);
+    const utilityLabel = item?.utility.isProfileCosmetic ? "cosmetic" : "title";
+    setEquippingItemId(inventoryItemId);
+    setMessage({ tone: "default", text: `Equipping ${utilityLabel} on your public profile...` });
+    const result = await equipLootboxUtility(inventoryItemId);
 
     if (!result.ok) {
       setMessage({
         tone: "error",
-        text: result.error ?? "Lootbox title equip failed.",
+        text: result.error ?? "Lootbox equip failed.",
       });
-      setEquippingTitleId(null);
+      setEquippingItemId(null);
       return;
     }
 
     setMessage({
       tone: "success",
-      text: `${result.profileTitle ?? "Lootbox title"} is now equipped.`,
+      text: `${result.equippedLabel ?? "Lootbox reward"} is now equipped.`,
     });
-    setEquippingTitleId(null);
+    setEquippingItemId(null);
   }
 
   if (loading) {
@@ -196,9 +198,9 @@ export function LootboxShopScreen() {
       <InventoryVault
         read={inventoryRead}
         claimingItemId={claimingItemId}
-        equippingTitleId={equippingTitleId}
+        equippingItemId={equippingItemId}
         onRequestClaim={(inventoryItemId) => void handleRequestClaim(inventoryItemId)}
-        onEquipTitle={(inventoryItemId) => void handleEquipTitle(inventoryItemId)}
+        onEquipUtility={(inventoryItemId) => void handleEquipUtility(inventoryItemId)}
       />
 
       {reveal ? <LootboxRevealDialog reveal={reveal} onClose={() => setReveal(null)} /> : null}
@@ -212,15 +214,15 @@ type InventoryReadItem = InventoryRead["items"][number];
 function InventoryVault({
   read,
   claimingItemId,
-  equippingTitleId,
+  equippingItemId,
   onRequestClaim,
-  onEquipTitle,
+  onEquipUtility,
 }: {
   read: InventoryRead;
   claimingItemId: string | null;
-  equippingTitleId: string | null;
+  equippingItemId: string | null;
   onRequestClaim: (inventoryItemId: string) => void;
-  onEquipTitle: (inventoryItemId: string) => void;
+  onEquipUtility: (inventoryItemId: string) => void;
 }) {
   const activeItems = read.items.slice(0, 8);
 
@@ -254,9 +256,9 @@ function InventoryVault({
                 key={item.id}
                 item={item}
                 busy={claimingItemId === item.id}
-                equipBusy={equippingTitleId === item.id}
+                equipBusy={equippingItemId === item.id}
                 onRequestClaim={() => onRequestClaim(item.id)}
-                onEquipTitle={() => onEquipTitle(item.id)}
+                onEquipUtility={() => onEquipUtility(item.id)}
               />
             ))
           ) : (
@@ -330,14 +332,20 @@ function InventoryRewardRow({
   busy,
   equipBusy,
   onRequestClaim,
-  onEquipTitle,
+  onEquipUtility,
 }: {
   item: InventoryReadItem;
   busy: boolean;
   equipBusy: boolean;
   onRequestClaim: () => void;
-  onEquipTitle: () => void;
+  onEquipUtility: () => void;
 }) {
+  const hasEquipUtility = item.utility.isTitle || item.utility.isProfileCosmetic;
+  const canEquipUtility = item.utility.canEquipTitle || item.utility.canEquipCosmetic;
+  const equipActionLabel = item.utility.isProfileCosmetic
+    ? item.utility.cosmeticActionLabel
+    : item.utility.equipActionLabel;
+
   return (
     <article className="grid gap-3 rounded-[18px] border border-white/8 bg-white/[0.025] p-3 transition hover:border-white/12 md:grid-cols-[minmax(0,1fr)_170px] md:items-center">
       <div className="flex min-w-0 items-start gap-3">
@@ -369,15 +377,15 @@ function InventoryRewardRow({
       </div>
 
       <div className="grid gap-2">
-        {item.utility.isTitle ? (
+        {hasEquipUtility ? (
           <button
             type="button"
-            onClick={onEquipTitle}
-            disabled={!item.utility.canEquipTitle || equipBusy}
+            onClick={onEquipUtility}
+            disabled={!canEquipUtility || equipBusy}
             className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-violet-300/18 bg-violet-300/[0.08] px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-violet-100 transition hover:border-violet-200/32 hover:bg-violet-300/[0.13] disabled:cursor-not-allowed disabled:border-white/8 disabled:bg-white/[0.035] disabled:text-slate-500"
           >
             <Trophy className="h-3.5 w-3.5" />
-            {equipBusy ? "Equipping..." : item.utility.equipActionLabel}
+            {equipBusy ? "Equipping..." : equipActionLabel}
           </button>
         ) : null}
 

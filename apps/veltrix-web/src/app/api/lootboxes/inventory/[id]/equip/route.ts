@@ -4,17 +4,21 @@ import {
   createSupabaseUserServerClient,
 } from "@/lib/supabase/server";
 import {
+  buildLootboxProfileCosmeticEquipAuditPayload,
+  buildLootboxProfileCosmeticEquipPatch,
   buildLootboxTitleEquipAuditPayload,
   buildLootboxTitleEquipPatch,
   buildLootboxTitleProfilePatch,
+  canEquipLootboxProfileCosmetic,
   canEquipLootboxTitle,
+  resolveLootboxProfileCosmeticLabel,
   resolveLootboxTitleLabel,
 } from "@/lib/lootboxes/lootbox-inventory-read";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-type InventoryTitleRow = {
+type InventoryUtilityRow = {
   id: string;
   auth_user_id: string;
   item_type: string;
@@ -82,15 +86,103 @@ export async function POST(
       return NextResponse.json({ ok: false, error: "Inventory item not found." }, { status: 404 });
     }
 
-    const existing = existingResponse.data as InventoryTitleRow;
-    if (!canEquipLootboxTitle(existing)) {
+    const existing = existingResponse.data as InventoryUtilityRow;
+    const canEquipTitle = canEquipLootboxTitle(existing);
+    const canEquipCosmetic = canEquipLootboxProfileCosmetic(existing);
+
+    if (!canEquipTitle && !canEquipCosmetic) {
       return NextResponse.json(
-        { ok: false, error: "This lootbox reward is not an equip-ready title." },
+        { ok: false, error: "This lootbox reward is not equip-ready." },
         { status: 409 }
       );
     }
 
     const now = new Date().toISOString();
+    if (canEquipCosmetic) {
+      const cosmetic = resolveLootboxProfileCosmeticLabel({
+        label: existing.label,
+        payload: existing.payload,
+      });
+      const cosmeticRowsResponse = await serviceSupabase
+        .from("user_inventory")
+        .select("id, payload")
+        .eq("auth_user_id", user.id)
+        .eq("item_type", "profile_cosmetic");
+
+      if (cosmeticRowsResponse.error) {
+        return NextResponse.json(
+          { ok: false, error: cosmeticRowsResponse.error.message },
+          { status: 500 }
+        );
+      }
+
+      const clearPreviousCosmetics = await Promise.all(
+        (cosmeticRowsResponse.data ?? [])
+          .filter((row) => row.id !== existing.id && normalizePayload(row.payload).equipped === true)
+          .map((row) =>
+            serviceSupabase
+              .from("user_inventory")
+              .update(
+                buildLootboxProfileCosmeticEquipPatch({
+                  payload: normalizePayload(row.payload),
+                  equipped: false,
+                  now,
+                })
+              )
+              .eq("id", row.id)
+              .eq("auth_user_id", user.id)
+          )
+      );
+      const clearCosmeticError = clearPreviousCosmetics.find((result) => result.error)?.error;
+      if (clearCosmeticError) {
+        return NextResponse.json({ ok: false, error: clearCosmeticError.message }, { status: 500 });
+      }
+
+      const updateResponse = await serviceSupabase
+        .from("user_inventory")
+        .update(
+          buildLootboxProfileCosmeticEquipPatch({
+            payload: existing.payload,
+            equipped: true,
+            now,
+          })
+        )
+        .eq("id", existing.id)
+        .eq("auth_user_id", user.id)
+        .select("id, item_type, rarity, label, payload, status, created_at, updated_at")
+        .single();
+
+      if (updateResponse.error) {
+        return NextResponse.json({ ok: false, error: updateResponse.error.message }, { status: 500 });
+      }
+
+      const auditResponse = await serviceSupabase
+        .from("admin_audit_logs")
+        .insert(
+          buildLootboxProfileCosmeticEquipAuditPayload({
+            authUserId: user.id,
+            inventoryItem: existing,
+            cosmetic,
+          })
+        )
+        .select("id, action, summary, metadata, created_at")
+        .single();
+
+      if (auditResponse.error) {
+        console.error("Lootbox cosmetic equip audit skipped:", auditResponse.error.message);
+      }
+
+      return NextResponse.json({
+        ok: true,
+        equippedKind: "profile_cosmetic",
+        profileCosmetic: cosmetic,
+        inventoryItem: {
+          ...updateResponse.data,
+          auditTrail: auditResponse.data ? [auditResponse.data] : [],
+        },
+      });
+    }
+
     const title = resolveLootboxTitleLabel({
       label: existing.label,
       payload: existing.payload,
@@ -175,6 +267,7 @@ export async function POST(
 
     return NextResponse.json({
       ok: true,
+      equippedKind: "title",
       profileTitle: title,
       inventoryItem: {
         ...updateResponse.data,
@@ -185,7 +278,7 @@ export async function POST(
     return NextResponse.json(
       {
         ok: false,
-        error: error instanceof Error ? error.message : "Lootbox title equip failed.",
+        error: error instanceof Error ? error.message : "Lootbox equip failed.",
       },
       { status: 500 }
     );

@@ -1480,9 +1480,9 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
     return { ok: true, inventoryItem: nextInventoryItem };
   }
 
-  async function equipLootboxTitle(inventoryItemId: string) {
+  async function equipLootboxUtility(inventoryItemId: string) {
     if (!authConfigured || !authUserId || !session?.access_token) {
-      return { ok: false, error: "Sign in before equipping a lootbox title." };
+      return { ok: false, error: "Sign in before equipping a lootbox reward." };
     }
 
     const response = await fetch(`/api/lootboxes/inventory/${inventoryItemId}/equip`, {
@@ -1495,19 +1495,27 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
     const payload = (await response.json().catch(() => null)) as
       | {
           ok?: boolean;
+          equippedKind?: "title" | "profile_cosmetic";
           profileTitle?: string;
+          profileCosmetic?: string;
           inventoryItem?: LiveInventoryItem;
           error?: string;
         }
       | null;
 
     if (!response.ok || !payload?.ok || !payload.inventoryItem) {
-      const errorMessage = payload?.error ?? "Lootbox title equip failed.";
+      const errorMessage = payload?.error ?? "Lootbox equip failed.";
       setError(errorMessage);
       return { ok: false, error: errorMessage };
     }
 
-    const profileTitle = payload.profileTitle ?? payload.inventoryItem.label;
+    const equippedKind =
+      payload.equippedKind ??
+      (payload.inventoryItem.item_type === "profile_cosmetic" ? "profile_cosmetic" : "title");
+    const equippedLabel =
+      equippedKind === "profile_cosmetic"
+        ? payload.profileCosmetic ?? payload.inventoryItem.label
+        : payload.profileTitle ?? payload.inventoryItem.label;
     const previousInventoryItem = inventory.find((item) => item.id === payload.inventoryItem?.id);
     const nextInventoryItem = {
       ...payload.inventoryItem,
@@ -1521,7 +1529,7 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
         return nextInventoryItem;
       }
 
-      if (item.item_type === "title" && item.payload?.equipped === true) {
+      if (item.item_type === nextInventoryItem.item_type && item.payload?.equipped === true) {
         return {
           ...item,
           payload: {
@@ -1535,7 +1543,6 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
     });
 
     setInventory(nextInventory);
-    invalidateLiveUserDataCache(authUserId, ["leaderboard"]);
     mergeLiveUserDataCacheEntry({
       authUserId,
       patch: {
@@ -1543,11 +1550,17 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
       },
       loadedDatasets: ["inventory"],
     });
-    await reloadProfile();
+    if (equippedKind === "title") {
+      invalidateLiveUserDataCache(authUserId, ["leaderboard"]);
+      await reloadProfile();
+    }
 
     return {
       ok: true,
-      profileTitle,
+      equippedKind,
+      equippedLabel,
+      profileTitle: payload.profileTitle,
+      profileCosmetic: payload.profileCosmetic,
       inventoryItem: nextInventoryItem,
     };
   }
@@ -1673,6 +1686,6 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
     claimRewardDistribution,
     openLootbox,
     requestLootboxClaim,
-    equipLootboxTitle,
+    equipLootboxUtility,
   };
 }
