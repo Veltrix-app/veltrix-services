@@ -1,11 +1,13 @@
 import Image from "next/image";
 import { LockKeyhole, Sparkles } from "lucide-react";
+import { getLootboxOpenAvailability } from "@/components/lootboxes/lootbox-card-state";
 
 const LOOTBOX_SHARD_PILE_SRC = "/assets/lootboxes/shards-pile.webp";
 
 export function LootboxCard({
   tier,
   busy,
+  shardBalance,
   onOpen,
 }: {
   tier: {
@@ -17,12 +19,19 @@ export function LootboxCard({
     eligibility: { unlocked: boolean; reason: string | null };
   };
   busy: boolean;
+  shardBalance: number;
   onOpen: () => void;
 }) {
   const topOdds = Object.entries(tier.odds)
     .filter(([, value]) => value > 0)
     .sort((left, right) => right[1] - left[1])
     .slice(0, 3);
+  const availability = getLootboxOpenAvailability({
+    busy,
+    priceShards: tier.priceShards,
+    shardBalance,
+    eligibility: tier.eligibility,
+  });
 
   return (
     <article className="group relative overflow-hidden rounded-[24px] border border-white/8 bg-[linear-gradient(180deg,rgba(15,18,24,0.98),rgba(6,8,12,0.99))] p-4 shadow-[0_18px_54px_rgba(0,0,0,0.24)] transition duration-300 hover:border-emerald-300/18">
@@ -66,22 +75,16 @@ export function LootboxCard({
       <button
         type="button"
         onClick={onOpen}
-        disabled={busy || !tier.eligibility.unlocked}
+        disabled={!availability.canOpen}
         className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-emerald-300 px-4 py-2.5 text-[11px] font-black uppercase tracking-[0.14em] text-black transition hover:brightness-105 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-slate-500"
       >
-        {tier.eligibility.unlocked ? <Sparkles className="h-3.5 w-3.5" /> : <LockKeyhole className="h-3.5 w-3.5" />}
-        {busy ? "Opening..." : tier.eligibility.unlocked ? "Open box" : "Locked"}
+        {availability.canOpen ? <Sparkles className="h-3.5 w-3.5" /> : <LockKeyhole className="h-3.5 w-3.5" />}
+        {availability.cta}
       </button>
 
-      {!tier.eligibility.unlocked ? (
-        <p className="mt-2 min-h-8 text-center text-[10px] leading-4 text-slate-500">
-          {tier.eligibility.reason}
-        </p>
-      ) : (
-        <p className="mt-2 min-h-8 text-center text-[10px] leading-4 text-slate-500">
-          Ready to open.
-        </p>
-      )}
+      <p className="mt-2 min-h-8 text-center text-[10px] leading-4 text-slate-500">
+        {availability.helperText}
+      </p>
     </article>
   );
 }

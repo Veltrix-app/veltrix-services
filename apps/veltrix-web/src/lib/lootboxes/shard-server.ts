@@ -19,6 +19,11 @@ import {
   pickLootboxRarity,
   shouldReserveLootboxPoolItemStock,
 } from "./lootbox-engine";
+import {
+  buildLootboxShardSpendRpcArgs,
+  isMissingLootboxSpendGuardRpcError,
+  normalizeLootboxShardSpendRpcResult,
+} from "./lootbox-shard-spend-guard";
 
 export type ServiceSupabase = ReturnType<typeof createSupabaseServiceClient>;
 
@@ -254,11 +259,6 @@ export async function openLootbox(params: {
   const matchingItems = poolItems.filter((item) => item.rarity === selectedRarity);
   const selectedItem = pickLootboxPoolItem(matchingItems.length ? matchingItems : poolItems);
   const openId = crypto.randomUUID();
-  const spendDedupeKey = createShardSourceDedupeKey({
-    sourceType: "lootbox_open",
-    sourceRef: openId,
-    action: "spend",
-  });
   const stockReservation = await reserveLootboxPoolItemStock({
     serviceSupabase: params.serviceSupabase,
     item: selectedItem,
@@ -274,30 +274,30 @@ export async function openLootbox(params: {
     };
   }
 
-  let spendLedgerId: string | null = null;
-  try {
-    const { data: spendLedger, error: spendError } = await params.serviceSupabase
-      .from("shard_ledger")
-      .insert({
-        auth_user_id: params.authUserId,
-        amount: -tier.priceShards,
-        source_type: "lootbox_open",
-        source_ref: openId,
-        source_dedupe_key: spendDedupeKey,
-        reason: `${tier.label} opened`,
-        metadata: {
-          tierId: tier.id,
-          priceShards: tier.priceShards,
-        },
-      })
-      .select("id")
-      .single();
+  const spendResult = await spendShardsForLootboxOpen({
+    serviceSupabase: params.serviceSupabase,
+    authUserId: params.authUserId,
+    openId,
+    tier,
+  });
 
-    if (spendError) {
-      throw new Error(spendError.message);
+  if (!spendResult.ok) {
+    if (stockReservation.reserved) {
+      await restoreLootboxPoolItemStock({
+        serviceSupabase: params.serviceSupabase,
+        item: selectedItem,
+      });
     }
-    spendLedgerId = typeof spendLedger?.id === "string" ? spendLedger.id : null;
 
+    return {
+      ok: false as const,
+      status: spendResult.status,
+      error: spendResult.error,
+    };
+  }
+
+  const spendLedgerId = spendResult.ledgerId;
+  try {
     const { error: openError } = await params.serviceSupabase.from("lootbox_opens").insert({
       id: openId,
       auth_user_id: params.authUserId,
@@ -572,6 +572,41 @@ async function reserveLootboxPoolItemStock(params: {
   }
 
   return { available: data === true, reserved: data === true, setupMissing: false };
+}
+
+async function spendShardsForLootboxOpen(params: {
+  serviceSupabase: ServiceSupabase;
+  authUserId: string;
+  openId: string;
+  tier: LootboxTier;
+}) {
+  const { data, error } = await params.serviceSupabase.rpc(
+    "spend_shards_if_balance_available",
+    buildLootboxShardSpendRpcArgs({
+      authUserId: params.authUserId,
+      openId: params.openId,
+      tierId: params.tier.id,
+      tierLabel: params.tier.label,
+      priceShards: params.tier.priceShards,
+    })
+  );
+
+  if (error) {
+    if (isMissingLootboxSpendGuardRpcError(error)) {
+      console.warn("Lootbox shard spend guard RPC is not deployed yet.", error.message);
+      return {
+        ok: false as const,
+        status: 503,
+        ledgerId: null,
+        balanceAfter: 0,
+        error: "Lootbox shard spend guard is being activated. Try again soon.",
+      };
+    }
+
+    throw new Error(error.message);
+  }
+
+  return normalizeLootboxShardSpendRpcResult(data);
 }
 
 async function restoreLootboxPoolItemStock(params: {

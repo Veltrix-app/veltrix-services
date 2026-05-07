@@ -208,6 +208,7 @@ export function LootboxShopScreen() {
             key={tier.id}
             tier={tier}
             busy={busyTier === tier.id}
+            shardBalance={shardBalance}
             onOpen={() => void handleOpen(tier.id)}
           />
         ))}
