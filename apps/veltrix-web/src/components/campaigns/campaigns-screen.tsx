@@ -80,8 +80,8 @@ export function CampaignsScreen() {
   return (
     <div className="space-y-7">
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1.42fr)_300px]">
-        <div className="rounded-[22px] border border-white/6 bg-[radial-gradient(circle_at_top_left,rgba(163,230,53,0.12),transparent_26%),linear-gradient(180deg,rgba(13,15,18,0.99),rgba(6,8,11,0.99))] p-4 shadow-[0_20px_54px_rgba(0,0,0,0.24)]">
-        <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="motion-surface motion-light-sweep overflow-hidden rounded-[22px] border border-white/6 bg-[radial-gradient(circle_at_top_left,rgba(163,230,53,0.12),transparent_26%),linear-gradient(180deg,rgba(13,15,18,0.99),rgba(6,8,11,0.99))] p-4 shadow-[0_20px_54px_rgba(0,0,0,0.24)]">
+        <div className="relative z-10 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-lime-300">Campaign lanes</p>
             <h2 className="mt-2.5 text-[1rem] font-semibold tracking-[-0.03em] text-white sm:text-[1.12rem]">
@@ -99,7 +99,7 @@ export function CampaignsScreen() {
           </div>
         </div>
 
-        <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+        <div className="relative z-10 mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
           <label className="flex items-center gap-3 rounded-full border border-white/8 bg-white/[0.03] px-4 py-2">
             <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">Find</span>
             <input
@@ -118,13 +118,14 @@ export function CampaignsScreen() {
         </div>
         </div>
 
-        <div className="rounded-[22px] border border-white/6 bg-[radial-gradient(circle_at_bottom_right,rgba(163,230,53,0.12),transparent_28%),linear-gradient(180deg,rgba(13,14,18,0.98),rgba(8,9,12,0.98))] p-4">
-          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-400">Lane signal</p>
-          <p className="mt-2.5 text-[1rem] font-semibold tracking-[-0.02em] text-white">
+        <div className="motion-surface motion-light-sweep overflow-hidden rounded-[22px] border border-white/6 bg-[radial-gradient(circle_at_bottom_right,rgba(163,230,53,0.12),transparent_28%),linear-gradient(180deg,rgba(13,14,18,0.98),rgba(8,9,12,0.98))] p-4">
+          <div className="motion-ambient-grid opacity-[0.07]" />
+          <p className="relative z-10 text-[10px] font-bold uppercase tracking-[0.24em] text-slate-400">Lane signal</p>
+          <p className="relative z-10 mt-2.5 text-[1rem] font-semibold tracking-[-0.02em] text-white">
             Campaign density
           </p>
 
-          <div className="mt-4 space-y-2.5">
+          <div className="relative z-10 mt-4 space-y-2.5">
             <SignalCard label="Featured live" value={String(featuredCount)} meta="priority lanes" />
             <SignalCard label="Average clear" value={`${averageClearRate}%`} meta="board health" />
             <SignalCard label="Open lanes" value={String(campaignCount)} meta="campaign rows" />
@@ -150,12 +151,13 @@ export function CampaignsScreen() {
                 key={campaign.id}
                 href={`/campaigns/${campaign.id}`}
                 prefetch={false}
-                className={`group relative overflow-hidden rounded-[25px] border border-white/6 bg-[linear-gradient(180deg,rgba(18,20,24,0.98),rgba(8,10,13,0.98))] shadow-[0_20px_56px_rgba(0,0,0,0.32)] transition hover:border-lime-300/18 ${
+                className={`motion-surface motion-light-sweep group relative overflow-hidden rounded-[25px] border border-white/6 bg-[linear-gradient(180deg,rgba(18,20,24,0.98),rgba(8,10,13,0.98))] shadow-[0_20px_56px_rgba(0,0,0,0.32)] transition hover:border-lime-300/18 ${
                   index === 0 ? "min-h-[240px] p-4.5 sm:p-5" : "min-h-[204px] p-3.5 sm:p-4"
                 }`}
               >
+                <div className="motion-ambient-grid opacity-[0.1]" />
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(163,230,53,0.14),transparent_35%),linear-gradient(180deg,rgba(10,12,15,0.12),rgba(10,12,15,0.88))]" />
-                <div className="relative flex h-full flex-col">
+                <div className="relative z-10 flex h-full flex-col">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="flex flex-wrap gap-2">
                       <CardPill>{campaign.projectName}</CardPill>
@@ -220,9 +222,10 @@ export function CampaignsScreen() {
                 key={campaign.id}
                 href={`/campaigns/${campaign.id}`}
                 prefetch={false}
-                className="group rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(7,9,12,0.98))] p-3.5 transition hover:border-lime-300/16 hover:bg-[linear-gradient(180deg,rgba(18,21,19,0.98),rgba(8,10,13,0.98))]"
+                className="motion-surface motion-light-sweep group relative overflow-hidden rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(7,9,12,0.98))] p-3.5 transition hover:border-lime-300/16 hover:bg-[linear-gradient(180deg,rgba(18,21,19,0.98),rgba(8,10,13,0.98))]"
               >
-                <div className="flex items-start justify-between gap-3">
+                <div className="motion-ambient-grid opacity-[0.07]" />
+                <div className="relative z-10 flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="truncate text-[0.94rem] font-semibold text-white">{campaign.title}</p>
                     <p className="mt-2 truncate text-[10px] uppercase tracking-[0.16em] text-slate-500">
@@ -235,17 +238,17 @@ export function CampaignsScreen() {
                   />
                 </div>
 
-                <div className="mt-3 flex items-center justify-between text-[11px] text-slate-500">
+                <div className="relative z-10 mt-3 flex items-center justify-between text-[11px] text-slate-500">
                   <span>{campaign.questCount} steps</span>
                   <span>{campaign.endsLabel}</span>
                 </div>
 
-                <div className="mt-4 flex flex-wrap gap-1.5">
+                <div className="relative z-10 mt-4 flex flex-wrap gap-1.5">
                   <MetricPill label="XP" value={String(campaign.xpBudget)} />
                   <MetricPill label="Clear" value={`${campaign.completionRate}%`} />
                 </div>
 
-                <div className="mt-4 flex items-center justify-between border-t border-white/6 pt-3">
+                <div className="relative z-10 mt-4 flex items-center justify-between border-t border-white/6 pt-3">
                   <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
                     Open lane
                   </span>
@@ -329,7 +332,7 @@ function FilterButton({
   return (
     <button
       onClick={onClick}
-      className={`rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-[0.16em] transition ${
+      className={`motion-press rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-[0.16em] transition ${
         active
           ? "border border-lime-300/16 bg-lime-300/10 text-lime-100"
           : "border border-white/8 bg-white/[0.03] text-slate-400 hover:border-white/12 hover:text-white"

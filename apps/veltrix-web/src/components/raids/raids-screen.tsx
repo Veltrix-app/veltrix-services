@@ -27,8 +27,8 @@ export function RaidsScreen() {
   return (
     <div className="space-y-7">
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1.42fr)_300px]">
-        <div className="rounded-[22px] border border-white/6 bg-[radial-gradient(circle_at_top_left,rgba(251,113,133,0.12),transparent_26%),linear-gradient(180deg,rgba(13,15,18,0.99),rgba(6,8,11,0.99))] p-4 shadow-[0_20px_54px_rgba(0,0,0,0.24)]">
-        <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="motion-surface motion-light-sweep overflow-hidden rounded-[22px] border border-white/6 bg-[radial-gradient(circle_at_top_left,rgba(251,113,133,0.12),transparent_26%),linear-gradient(180deg,rgba(13,15,18,0.99),rgba(6,8,11,0.99))] p-4 shadow-[0_20px_54px_rgba(0,0,0,0.24)]">
+        <div className="relative z-10 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-rose-300">Raid pushes</p>
             <h2 className="mt-2.5 text-[1rem] font-semibold tracking-[-0.03em] text-white sm:text-[1.12rem]">
@@ -47,13 +47,14 @@ export function RaidsScreen() {
         </div>
         </div>
 
-        <div className="rounded-[22px] border border-white/6 bg-[radial-gradient(circle_at_bottom_right,rgba(251,113,133,0.12),transparent_28%),linear-gradient(180deg,rgba(13,14,18,0.98),rgba(8,9,12,0.98))] p-4">
-          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-400">Push signal</p>
-          <p className="mt-2.5 text-[1rem] font-semibold tracking-[-0.02em] text-white">
+        <div className="motion-surface motion-light-sweep overflow-hidden rounded-[22px] border border-white/6 bg-[radial-gradient(circle_at_bottom_right,rgba(251,113,133,0.12),transparent_28%),linear-gradient(180deg,rgba(13,14,18,0.98),rgba(8,9,12,0.98))] p-4">
+          <div className="motion-ambient-grid opacity-[0.07]" />
+          <p className="relative z-10 text-[10px] font-bold uppercase tracking-[0.24em] text-slate-400">Push signal</p>
+          <p className="relative z-10 mt-2.5 text-[1rem] font-semibold tracking-[-0.02em] text-white">
             Raid pressure
           </p>
 
-          <div className="mt-4 space-y-2.5">
+          <div className="relative z-10 mt-4 space-y-2.5">
             <SignalCard label="Urgent now" value={String(urgentCount)} meta="hot raids" />
             <SignalCard label="Squads live" value={String(liveParticipants)} meta="active members" />
             <SignalCard label="Average clear" value={`${averageProgress}%`} meta="raid progress" />
@@ -79,18 +80,19 @@ export function RaidsScreen() {
                 key={raid.id}
                 href={`/raids/${raid.id}`}
                 prefetch={false}
-                className={`group relative overflow-hidden rounded-[25px] border border-white/6 bg-[linear-gradient(180deg,rgba(18,20,24,0.98),rgba(9,11,15,0.98))] shadow-[0_18px_52px_rgba(0,0,0,0.26)] transition hover:border-rose-300/18 hover:bg-[linear-gradient(180deg,rgba(24,18,20,0.98),rgba(10,11,14,0.98))] ${
+                className={`motion-surface motion-light-sweep group relative overflow-hidden rounded-[25px] border border-white/6 bg-[linear-gradient(180deg,rgba(18,20,24,0.98),rgba(9,11,15,0.98))] shadow-[0_18px_52px_rgba(0,0,0,0.26)] transition hover:border-rose-300/18 hover:bg-[linear-gradient(180deg,rgba(24,18,20,0.98),rgba(10,11,14,0.98))] ${
                   index === 0 ? "min-h-[238px] p-4.5 sm:p-5" : "min-h-[200px] p-3.5 sm:p-4"
                 }`}
               >
+                <div className="motion-ambient-grid opacity-[0.1]" />
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(251,113,133,0.14),transparent_35%),linear-gradient(180deg,rgba(10,12,15,0.08),rgba(10,12,15,0.88))]" />
                 <RaidBadgeMark
-                  className={`absolute right-3 top-12 ${
+                  className={`motion-soft-float absolute right-3 top-12 ${
                     index === 0 ? "h-28 w-28 opacity-[0.34]" : "h-20 w-20 opacity-[0.28]"
                   } transition duration-300 group-hover:opacity-[0.48]`}
                   imageClassName="rotate-[8deg]"
                 />
-                <div className="relative flex h-full flex-col">
+                <div className="relative z-10 flex h-full flex-col">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="flex flex-wrap gap-2">
                       <CardPill>{raid.community}</CardPill>
@@ -150,13 +152,14 @@ export function RaidsScreen() {
                 key={raid.id}
                 href={`/raids/${raid.id}`}
                 prefetch={false}
-                className="group relative overflow-hidden rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(7,9,12,0.98))] p-3.5 transition hover:border-rose-300/16 hover:bg-[linear-gradient(180deg,rgba(21,17,19,0.98),rgba(8,10,13,0.98))]"
+                className="motion-surface motion-light-sweep group relative overflow-hidden rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(7,9,12,0.98))] p-3.5 transition hover:border-rose-300/16 hover:bg-[linear-gradient(180deg,rgba(21,17,19,0.98),rgba(8,10,13,0.98))]"
               >
+                <div className="motion-ambient-grid opacity-[0.07]" />
                 <RaidBadgeMark
                   className="absolute right-2 top-9 h-16 w-16 opacity-[0.24] transition duration-300 group-hover:opacity-[0.38]"
                   imageClassName="rotate-[10deg]"
                 />
-                <div className="relative flex items-start justify-between gap-3">
+                <div className="relative z-10 flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="truncate text-[0.94rem] font-semibold text-white">{raid.title}</p>
                     <p className="mt-2 truncate text-[10px] uppercase tracking-[0.16em] text-slate-500">
@@ -166,17 +169,17 @@ export function RaidsScreen() {
                   <StatusChip label={raid.progress >= 50 ? "Hot" : "Live"} tone={raid.progress >= 50 ? "warning" : "default"} />
                 </div>
 
-                <div className="relative mt-3 flex items-center justify-between gap-3 text-[11px] text-slate-500">
+                <div className="relative z-10 mt-3 flex items-center justify-between gap-3 text-[11px] text-slate-500">
                   <span className="truncate">{raid.target}</span>
                   <span>{raid.participants} in</span>
                 </div>
 
-                <div className="relative mt-4 flex flex-wrap gap-1.5">
+                <div className="relative z-10 mt-4 flex flex-wrap gap-1.5">
                   <MetricPill label="Reward" value={`${raid.reward} XP`} />
                   <MetricPill label="Timer" value={raid.timer} />
                 </div>
 
-                <div className="relative mt-4 flex items-center justify-between border-t border-white/6 pt-3">
+                <div className="relative z-10 mt-4 flex items-center justify-between border-t border-white/6 pt-3">
                   <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
                     Open raid
                   </span>
