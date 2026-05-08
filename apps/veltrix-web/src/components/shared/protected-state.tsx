@@ -84,13 +84,13 @@ function PreviewShell({
         <div className="flex flex-wrap gap-3">
           <Link
             href={publicAuthRoutes.signIn}
-            className="rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-lime-200"
+            className="motion-button-glow motion-press rounded-full bg-lime-300 px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-lime-200"
           >
             Sign in
           </Link>
           <Link
             href={publicAuthRoutes.signUp}
-            className="glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+            className="motion-press glass-button rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
           >
             Create account
           </Link>

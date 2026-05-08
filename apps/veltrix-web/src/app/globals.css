@@ -66,6 +66,19 @@ body::before {
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.18);
+  transition:
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 220ms ease,
+    background 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.glass-button:hover {
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.24);
+}
+
+.glass-button:active {
+  transform: translateY(1px) scale(0.99);
 }
 
 .panel-card {
@@ -248,6 +261,53 @@ body::before {
   transform: translateX(38%);
 }
 
+.motion-press {
+  transform: translateZ(0);
+  transition:
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 220ms ease,
+    background 220ms ease,
+    box-shadow 220ms ease,
+    color 220ms ease;
+}
+
+.motion-press:not(:disabled):active {
+  transform: translateY(1px) scale(0.985);
+}
+
+.motion-press:focus-visible {
+  outline: 2px solid rgba(190, 255, 74, 0.48);
+  outline-offset: 3px;
+}
+
+.motion-active-glow {
+  animation: vyntro-active-glow 4.8s ease-in-out infinite;
+  box-shadow:
+    0 0 0 1px rgba(190, 255, 74, 0.1),
+    0 12px 40px rgba(0, 0, 0, 0.3),
+    0 0 28px rgba(190, 255, 74, 0.08);
+}
+
+.motion-signal-dot {
+  animation: vyntro-signal-dot 2.8s ease-in-out infinite;
+}
+
+.motion-progress-pulse {
+  position: relative;
+  overflow: hidden;
+}
+
+.motion-progress-pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  opacity: 0;
+  transform: translateX(-100%);
+  animation: vyntro-progress-sheen 3.2s ease-in-out infinite;
+}
+
 .motion-reveal-backdrop {
   animation: vyntro-backdrop-in 220ms ease-out both;
 }
@@ -352,6 +412,50 @@ body::before {
   }
 }
 
+@keyframes vyntro-active-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(190, 255, 74, 0.1),
+      0 12px 40px rgba(0, 0, 0, 0.3),
+      0 0 22px rgba(190, 255, 74, 0.06);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(190, 255, 74, 0.18),
+      0 14px 46px rgba(0, 0, 0, 0.32),
+      0 0 34px rgba(190, 255, 74, 0.13);
+  }
+}
+
+@keyframes vyntro-signal-dot {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes vyntro-progress-sheen {
+  0%,
+  52%,
+  100% {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  68% {
+    opacity: 0.32;
+  }
+  86% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -363,7 +467,14 @@ body::before {
   }
 
   .motion-surface,
-  .motion-surface:hover {
+  .motion-surface:hover,
+  .motion-press,
+  .motion-press:not(:disabled):active {
     transform: none;
+  }
+
+  .motion-active-glow,
+  .motion-signal-dot {
+    animation: none;
   }
 }

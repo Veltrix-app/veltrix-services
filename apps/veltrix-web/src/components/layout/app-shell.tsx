@@ -115,9 +115,9 @@ function TopNavLink({
   return (
     <Link
       href={href}
-      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-2.5 text-[10px] font-bold uppercase tracking-[0.13em] transition min-[1720px]:px-2.5 min-[1720px]:text-[11px] ${
+      className={`motion-press inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-2.5 text-[10px] font-bold uppercase tracking-[0.13em] transition min-[1720px]:px-2.5 min-[1720px]:text-[11px] ${
         active
-          ? "border border-white/10 bg-white/[0.09] text-white shadow-[0_12px_40px_rgba(0,0,0,0.28)]"
+          ? "motion-active-glow border border-white/10 bg-white/[0.09] text-white"
           : "border border-transparent text-slate-400 hover:border-white/8 hover:bg-white/[0.04] hover:text-white"
       }`}
     >
@@ -160,9 +160,9 @@ function TopNavItem({
     <div className="group relative">
       <Link
         href={item.href}
-        className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-2.5 text-[10px] font-bold uppercase tracking-[0.13em] transition min-[1720px]:px-2.5 min-[1720px]:text-[11px] ${
+        className={`motion-press inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-2.5 text-[10px] font-bold uppercase tracking-[0.13em] transition min-[1720px]:px-2.5 min-[1720px]:text-[11px] ${
           active
-            ? "border border-white/10 bg-white/[0.09] text-white shadow-[0_12px_40px_rgba(0,0,0,0.28)]"
+            ? "motion-active-glow border border-white/10 bg-white/[0.09] text-white"
             : "border border-transparent text-slate-400 hover:border-white/8 hover:bg-white/[0.04] hover:text-white"
         }`}
       >
@@ -179,14 +179,14 @@ function TopNavItem({
             <Link
               key={child.href}
               href={child.href}
-              className={`flex items-center justify-between gap-4 rounded-[16px] px-3.5 py-3 text-[11px] font-bold uppercase tracking-[0.14em] transition ${
+              className={`motion-press flex items-center justify-between gap-4 rounded-[16px] px-3.5 py-3 text-[11px] font-bold uppercase tracking-[0.14em] transition ${
                 childActive
-                  ? "bg-lime-300/12 text-lime-100"
+                  ? "motion-active-glow bg-lime-300/12 text-lime-100"
                   : "text-slate-400 hover:bg-white/[0.05] hover:text-white"
               }`}
             >
               {child.label}
-              <span className={`h-1.5 w-1.5 rounded-full ${childActive ? "bg-lime-300" : "bg-white/12"}`} />
+              <span className={`h-1.5 w-1.5 rounded-full ${childActive ? "motion-signal-dot bg-lime-300" : "bg-white/12"}`} />
             </Link>
           );
         })}
@@ -213,9 +213,9 @@ function UtilityLink({
       href={href}
       aria-label={label}
       title={label}
-      className={`flex h-10 w-10 items-center justify-center rounded-full border transition 2xl:h-11 2xl:w-11 ${
+      className={`motion-press flex h-10 w-10 items-center justify-center rounded-full border transition 2xl:h-11 2xl:w-11 ${
         active
-          ? "border-lime-300/18 bg-lime-300/12 text-lime-100"
+          ? "motion-active-glow border-lime-300/18 bg-lime-300/12 text-lime-100"
           : "border-white/8 bg-white/[0.03] text-slate-400 hover:border-white/12 hover:bg-white/[0.05] hover:text-white"
       }`}
     >
@@ -256,7 +256,7 @@ function MainPageSignalBannerCard({ banner }: { banner: MainPageSignalBanner }) 
   }, [banner.route, banner.slides.length]);
 
   return (
-    <section className="relative w-full min-w-0 overflow-hidden rounded-[28px] border border-white/7 bg-[linear-gradient(180deg,rgba(14,17,22,0.72),rgba(7,9,12,0.82))] p-2 shadow-[0_18px_70px_rgba(0,0,0,0.28)] backdrop-blur-xl xl:ml-auto xl:w-[min(430px,27vw)]">
+    <section className="motion-surface motion-light-sweep relative w-full min-w-0 overflow-hidden rounded-[28px] border border-white/7 bg-[linear-gradient(180deg,rgba(14,17,22,0.72),rgba(7,9,12,0.82))] p-2 shadow-[0_18px_70px_rgba(0,0,0,0.28)] backdrop-blur-xl xl:ml-auto xl:w-[min(430px,27vw)]">
       <div className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-lime-300/28 to-transparent" />
 
       <Link href={banner.href} className="group block">
@@ -292,7 +292,7 @@ function MainPageSignalBannerCard({ banner }: { banner: MainPageSignalBanner }) 
                 {banner.title}
               </h2>
             </div>
-            <span className="mt-1 h-2.5 w-2.5 rounded-full bg-lime-300 shadow-[0_0_18px_rgba(190,255,74,0.5)]" />
+            <span className="motion-signal-dot mt-1 h-2.5 w-2.5 rounded-full bg-lime-300 shadow-[0_0_18px_rgba(190,255,74,0.5)]" />
           </div>
           <p className="mt-2 text-[12px] leading-5 text-slate-400">{banner.copy}</p>
         </div>
@@ -312,7 +312,7 @@ function MainPageSignalBannerCard({ banner }: { banner: MainPageSignalBanner }) 
               onClick={() => setActiveSlideIndex(index)}
               className={`h-1.5 rounded-full transition ${
                 index === activeSlideIndex
-                  ? "w-5 bg-lime-300"
+                  ? "motion-progress-pulse w-5 bg-lime-300"
                   : "w-1.5 bg-white/18 hover:bg-white/35"
               }`}
             />
@@ -405,9 +405,9 @@ function SessionMenu({
         aria-haspopup="dialog"
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
-        className="inline-flex h-11 w-11 items-center justify-center gap-2 rounded-full border border-white/8 bg-white/[0.03] px-0 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-300 transition hover:border-white/12 hover:bg-white/[0.05] hover:text-white sm:w-auto sm:px-3.5 sm:py-2.5"
+        className={`motion-press inline-flex h-11 w-11 items-center justify-center gap-2 rounded-full border border-white/8 bg-white/[0.03] px-0 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-300 transition hover:border-white/12 hover:bg-white/[0.05] hover:text-white sm:w-auto sm:px-3.5 sm:py-2.5 ${open ? "motion-active-glow" : ""}`}
       >
-        <span className={`h-2 w-2 rounded-full ${accountReady ? "bg-lime-300 shadow-[0_0_14px_rgba(190,255,74,0.5)]" : "bg-slate-500"}`} />
+        <span className={`h-2 w-2 rounded-full ${accountReady ? "motion-signal-dot bg-lime-300 shadow-[0_0_14px_rgba(190,255,74,0.5)]" : "bg-slate-500"}`} />
         <span className="hidden sm:inline">Session</span>
         <span className="hidden max-w-[7rem] truncate normal-case tracking-normal text-white sm:inline sm:max-w-[9rem]">
           {walletReady ? shortenWallet(wallet) : accountReady ? "Wallet needed" : "Guest"}
@@ -429,7 +429,7 @@ function SessionMenu({
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="rounded-full bg-white/[0.04] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400 transition hover:bg-white/[0.07] hover:text-white"
+              className="motion-press rounded-full bg-white/[0.04] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400 transition hover:bg-white/[0.07] hover:text-white"
             >
               Close
             </button>
@@ -460,7 +460,7 @@ function SessionMenu({
                     }
                   }}
                   disabled={connecting || disconnecting}
-                  className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[0.14em] transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                  className={`motion-press inline-flex items-center gap-2 rounded-full px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[0.14em] transition disabled:cursor-not-allowed disabled:opacity-50 ${
                     walletReady
                       ? "border border-rose-300/18 bg-rose-300/10 text-rose-100 hover:bg-rose-300/14"
                       : "border border-lime-300/18 bg-lime-300/12 text-lime-100 hover:bg-lime-300/18"
@@ -479,7 +479,7 @@ function SessionMenu({
                 <Link
                   href="/profile/edit"
                   onClick={() => setOpen(false)}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.04] px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-300 transition hover:border-white/12 hover:text-white"
+                  className="motion-press inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.04] px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-300 transition hover:border-white/12 hover:text-white"
                 >
                   Manage identity
                 </Link>
@@ -493,7 +493,7 @@ function SessionMenu({
                   setOpen(false);
                   onSignOut();
                 }}
-                className="inline-flex items-center rounded-full border border-white/8 bg-white/[0.03] px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-300 transition hover:border-white/12 hover:bg-white/[0.05] hover:text-white"
+                className="motion-press inline-flex items-center rounded-full border border-white/8 bg-white/[0.03] px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-300 transition hover:border-white/12 hover:bg-white/[0.05] hover:text-white"
               >
                 Sign out
               </button>
@@ -501,7 +501,7 @@ function SessionMenu({
               <Link
                 href="/sign-in"
                 onClick={() => setOpen(false)}
-                className="inline-flex items-center rounded-full border border-lime-300/18 bg-lime-300/12 px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[0.14em] text-lime-100 transition hover:bg-lime-300/18"
+                className="motion-press inline-flex items-center rounded-full border border-lime-300/18 bg-lime-300/12 px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[0.14em] text-lime-100 transition hover:bg-lime-300/18"
               >
                 Access
               </Link>
@@ -593,7 +593,7 @@ export function AppShell({
               {!accountReady ? (
                 <Link
                   href="/sign-in"
-                  className="hidden rounded-full border border-lime-300/18 bg-lime-300/12 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.16em] text-lime-100 transition hover:bg-lime-300/18 sm:inline-flex"
+                  className="motion-press hidden rounded-full border border-lime-300/18 bg-lime-300/12 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.16em] text-lime-100 transition hover:bg-lime-300/18 sm:inline-flex"
                 >
                   Access
                 </Link>
