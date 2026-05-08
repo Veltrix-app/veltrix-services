@@ -11,6 +11,7 @@ export type VyntroMemberPass = {
   priceUsd: 5 | 10 | 15;
   status: "planned";
   accent: "emerald" | "violet" | "amber";
+  assetPath: string;
   position: string;
   shardLiftLabel: string;
   perks: VyntroMemberPassPerk[];
@@ -23,6 +24,7 @@ export const VYNTRO_MEMBER_PASSES: VyntroMemberPass[] = [
     priceUsd: 5,
     status: "planned",
     accent: "emerald",
+    assetPath: "/assets/member-passes/spark-pass.webp",
     position: "Entry utility",
     shardLiftLabel: "Small featured shard lift",
     perks: [
@@ -46,6 +48,7 @@ export const VYNTRO_MEMBER_PASSES: VyntroMemberPass[] = [
     priceUsd: 10,
     status: "planned",
     accent: "violet",
+    assetPath: "/assets/member-passes/surge-pass.webp",
     position: "Hunter utility",
     shardLiftLabel: "Medium featured shard lift",
     perks: [
@@ -69,6 +72,7 @@ export const VYNTRO_MEMBER_PASSES: VyntroMemberPass[] = [
     priceUsd: 15,
     status: "planned",
     accent: "amber",
+    assetPath: "/assets/member-passes/mythic-pass.webp",
     position: "Premium utility",
     shardLiftLabel: "Highest featured shard lift",
     perks: [

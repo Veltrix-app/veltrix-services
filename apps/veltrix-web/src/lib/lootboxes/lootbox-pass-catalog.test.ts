@@ -22,6 +22,7 @@ test("member passes expose visible perk copy for the blueprint UI", () => {
     assert.equal(pass.perks.length, 3);
     assert.ok(pass.shardLiftLabel.length > 0);
     assert.ok(pass.position.length > 0);
+    assert.match(pass.assetPath, /^\/assets\/member-passes\/.+\.webp$/);
   }
 });
 

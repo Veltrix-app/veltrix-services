@@ -1,14 +1,16 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, BadgeCheck, Crown, Sparkles } from "lucide-react";
 import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 import { ShardBadge } from "@/components/ui/shard-badge";
 import { StatusChip } from "@/components/ui/status-chip";
 import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
+import { VYNTRO_MEMBER_PASSES } from "@/lib/lootboxes/lootbox-pass-catalog";
 
 type RewardFilter = "all" | "claimable" | "high-value";
 
@@ -161,6 +163,7 @@ export function RewardsScreen() {
             <BoardStat label="Rewards" value={String(enrichedRewards.length)} />
             <BoardStat label="Claimable" value={String(claimableRewardCount)} />
             <BoardStat label="Locked" value={String(lockedCount)} />
+            <BoardStat label="Pass tiers" value={String(VYNTRO_MEMBER_PASSES.length)} />
             <Link
               href="/lootboxes"
               prefetch={false}
@@ -206,6 +209,8 @@ export function RewardsScreen() {
           </div>
         </div>
       </section>
+
+      <MemberPassBlueprint />
 
       <section className="space-y-4">
         <SectionHeading
@@ -493,6 +498,178 @@ function SignalCard({
       <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-slate-500">{meta}</p>
     </div>
   );
+}
+
+function MemberPassBlueprint() {
+  const recommendedPassId = "surge";
+
+  return (
+    <section className="space-y-4">
+      <SectionHeading
+        eyebrow="Member passes"
+        title="Monthly utility ladder"
+        description="Planned passes belong in Rewards: public identity, shard boost utility and future subscription perks stay separate from the lootbox shop."
+      />
+
+      <div className="grid gap-3 lg:grid-cols-3">
+        {VYNTRO_MEMBER_PASSES.map((pass) => (
+          <MemberPassCard
+            key={pass.id}
+            pass={pass}
+            recommended={pass.id === recommendedPassId}
+          />
+        ))}
+      </div>
+
+      <div className="grid gap-3 xl:grid-cols-[1fr_1fr]">
+        <div className="rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,18,22,0.98),rgba(7,9,13,0.98))] p-4">
+          <div className="flex items-start gap-3">
+            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-emerald-300/18 bg-emerald-300/[0.075] text-emerald-100">
+              <Sparkles className="h-4 w-4" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-200">
+                Reward utility
+              </p>
+              <h3 className="mt-2 text-[0.98rem] font-semibold tracking-[-0.02em] text-white">
+                Passes boost the hunt, boxes spend the shards
+              </h3>
+              <p className="mt-2 text-[12px] leading-5 text-slate-400">
+                Featured quests and raids can become more attractive through pass utility, but
+                the lootbox page stays focused on opening boxes, inventory and claims.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,18,22,0.98),rgba(7,9,13,0.98))] p-4">
+          <div className="flex items-start gap-3">
+            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-amber-300/18 bg-amber-300/[0.075] text-amber-100">
+              <Crown className="h-4 w-4" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-200">
+                Planned layer
+              </p>
+              <h3 className="mt-2 text-[0.98rem] font-semibold tracking-[-0.02em] text-white">
+                Billing and entitlement gates come later
+              </h3>
+              <p className="mt-2 text-[12px] leading-5 text-slate-400">
+                The UI can show the product shape now without pretending checkout, monthly
+                renewal or automatic entitlement checks are already live.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function MemberPassCard({
+  pass,
+  recommended,
+}: {
+  pass: (typeof VYNTRO_MEMBER_PASSES)[number];
+  recommended: boolean;
+}) {
+  const tone = getPassTone(pass.accent);
+
+  return (
+    <article className={`group relative min-w-0 overflow-hidden rounded-[24px] border shadow-[0_18px_52px_rgba(0,0,0,0.24)] ${tone.card}`}>
+      <div className="relative aspect-[16/9] overflow-hidden bg-black">
+        <Image
+          src={pass.assetPath}
+          alt={`${pass.label} visual`}
+          fill
+          sizes="(min-width: 1024px) 33vw, 100vw"
+          className="object-cover transition duration-500 group-hover:scale-[1.02]"
+        />
+        <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 bg-[linear-gradient(180deg,transparent,rgba(0,0,0,0.78))] p-3.5">
+          <span className={`rounded-full border px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.14em] ${recommended ? tone.badge : "border-white/10 bg-white/[0.06] text-slate-300"}`}>
+            {recommended ? "Recommended" : pass.status}
+          </span>
+          <div className="rounded-[16px] border border-white/10 bg-black/55 px-3 py-2 text-right backdrop-blur-md">
+            <p className="text-[8px] font-black uppercase tracking-[0.16em] text-slate-500">
+              Monthly
+            </p>
+            <p className="mt-1 text-[1rem] font-semibold text-white">${pass.priceUsd}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
+              {pass.position}
+            </p>
+            <h3 className="mt-1.5 truncate text-[1.05rem] font-semibold text-white">
+              {pass.label}
+            </h3>
+          </div>
+          <span className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border ${tone.icon}`}>
+            <Crown className="h-4 w-4" />
+          </span>
+        </div>
+
+        <div className={`mt-4 rounded-[16px] border px-3 py-2.5 ${tone.panel}`}>
+          <p className="text-[9px] font-black uppercase tracking-[0.16em] opacity-80">
+            {pass.shardLiftLabel}
+          </p>
+        </div>
+
+        <div className="mt-3 grid gap-2">
+          {pass.perks.map((perk) => (
+            <div
+              key={perk.label}
+              className="min-w-0 rounded-[14px] border border-white/8 bg-white/[0.025] px-3 py-2"
+            >
+              <div className="flex items-center gap-2">
+                <BadgeCheck className={`h-3.5 w-3.5 shrink-0 ${tone.check}`} />
+                <p className="truncate text-[9px] font-black uppercase tracking-[0.13em] text-slate-200">
+                  {perk.label}
+                </p>
+              </div>
+              <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-slate-500">
+                {perk.detail}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function getPassTone(accent: (typeof VYNTRO_MEMBER_PASSES)[number]["accent"]) {
+  switch (accent) {
+    case "amber":
+      return {
+        card: "border-amber-300/14 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.13),transparent_30%),linear-gradient(180deg,rgba(28,21,14,0.98),rgba(10,9,8,0.98))]",
+        icon: "border-amber-300/18 bg-amber-300/[0.08] text-amber-100",
+        badge: "border-amber-300/18 bg-amber-300/[0.08] text-amber-100",
+        panel: "border-amber-300/14 bg-amber-300/[0.055] text-amber-100",
+        check: "text-amber-100",
+      };
+    case "violet":
+      return {
+        card: "border-violet-300/14 bg-[radial-gradient(circle_at_top_left,rgba(168,85,247,0.15),transparent_30%),linear-gradient(180deg,rgba(20,16,32,0.98),rgba(9,8,15,0.98))]",
+        icon: "border-violet-300/18 bg-violet-300/[0.08] text-violet-100",
+        badge: "border-violet-300/18 bg-violet-300/[0.08] text-violet-100",
+        panel: "border-violet-300/14 bg-violet-300/[0.055] text-violet-100",
+        check: "text-violet-100",
+      };
+    case "emerald":
+    default:
+      return {
+        card: "border-emerald-300/14 bg-[radial-gradient(circle_at_top_left,rgba(45,212,191,0.13),transparent_30%),linear-gradient(180deg,rgba(14,25,25,0.98),rgba(7,11,12,0.98))]",
+        icon: "border-emerald-300/18 bg-emerald-300/[0.08] text-emerald-100",
+        badge: "border-emerald-300/18 bg-emerald-300/[0.08] text-emerald-100",
+        panel: "border-emerald-300/14 bg-emerald-300/[0.055] text-emerald-100",
+        check: "text-emerald-100",
+      };
+  }
 }
 
 function FilterButton({

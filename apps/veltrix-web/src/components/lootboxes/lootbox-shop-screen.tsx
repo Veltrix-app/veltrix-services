@@ -25,10 +25,6 @@ import { buildLootboxHuntRoute } from "@/components/lootboxes/lootbox-hunt-route
 import { ShardBadge } from "@/components/ui/shard-badge";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 import { buildLootboxInventoryRead } from "@/lib/lootboxes/lootbox-inventory-read";
-import {
-  VYNTRO_MEMBER_PASSES,
-  getRecommendedVyntroMemberPass,
-} from "@/lib/lootboxes/lootbox-pass-catalog";
 
 type LootboxReveal = {
   tierLabel: string;
@@ -76,9 +72,6 @@ export function LootboxShopScreen() {
   );
   const activeSeasonAccessItem =
     inventoryRead.items.find((item) => item.utility.isActiveSeasonAccess) ?? null;
-  const recommendedPass = getRecommendedVyntroMemberPass({
-    hasSeasonAccess: Boolean(activeSeasonAccessItem),
-  });
 
   async function handleOpen(tierId: string) {
     setBusyTier(tierId);
@@ -216,8 +209,6 @@ export function LootboxShopScreen() {
       <HuntRouteConsole route={huntRoute} />
 
       <SeasonAccessConsole item={activeSeasonAccessItem} />
-
-      <MemberPassBlueprint recommendedPassId={recommendedPass.id} />
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
         {lootboxTiers.map((tier) => (
@@ -423,103 +414,6 @@ function SeasonAccessConsole({ item }: { item: InventoryReadItem | null }) {
         </div>
       </div>
     </section>
-  );
-}
-
-function MemberPassBlueprint({ recommendedPassId }: { recommendedPassId: string }) {
-  return (
-    <section className="overflow-hidden rounded-[24px] border border-white/8 bg-[radial-gradient(circle_at_12%_0%,rgba(168,85,247,0.11),transparent_25%),radial-gradient(circle_at_82%_4%,rgba(16,185,129,0.1),transparent_28%),linear-gradient(180deg,rgba(13,17,24,0.96),rgba(7,9,14,0.97))] p-4 shadow-[0_18px_52px_rgba(0,0,0,0.24)]">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-[9px] font-black uppercase tracking-[0.22em] text-violet-200">
-            Member pass blueprint
-          </p>
-          <h2 className="mt-2 text-[1rem] font-semibold tracking-[-0.03em] text-white">
-            Monthly utility ladder
-          </h2>
-          <p className="mt-1.5 max-w-2xl text-[12px] leading-5 text-slate-400">
-            Planned pass tiers give shards a second sink beyond boxes while keeping rewards configurable.
-          </p>
-        </div>
-        <span className="rounded-full border border-amber-300/18 bg-amber-300/[0.08] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.16em] text-amber-100">
-          Planned layer
-        </span>
-      </div>
-
-      <div className="mt-4 grid gap-3 lg:grid-cols-3">
-        {VYNTRO_MEMBER_PASSES.map((pass) => (
-          <MemberPassCard
-            key={pass.id}
-            pass={pass}
-            recommended={pass.id === recommendedPassId}
-          />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function MemberPassCard({
-  pass,
-  recommended,
-}: {
-  pass: (typeof VYNTRO_MEMBER_PASSES)[number];
-  recommended: boolean;
-}) {
-  const tone = getPassTone(pass.accent);
-
-  return (
-    <article className={`relative min-w-0 overflow-hidden rounded-[20px] border p-4 ${tone.card}`}>
-      <div className={`pointer-events-none absolute -right-8 -top-10 h-24 w-24 rounded-full blur-3xl ${tone.glow}`} />
-      <div className="relative z-10 flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={`inline-flex h-9 w-9 items-center justify-center rounded-full border ${tone.icon}`}>
-              <Sparkles className="h-4 w-4" />
-            </span>
-            {recommended ? (
-              <span className={`rounded-full border px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.14em] ${tone.badge}`}>
-                Recommended
-              </span>
-            ) : null}
-            <span className="rounded-full border border-white/8 bg-white/[0.035] px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.14em] text-slate-400">
-              {pass.status}
-            </span>
-          </div>
-          <h3 className="mt-3 truncate text-[1rem] font-semibold text-white">{pass.label}</h3>
-          <p className="mt-1 text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
-            {pass.position}
-          </p>
-        </div>
-        <div className="shrink-0 rounded-[16px] border border-white/8 bg-black/22 px-3 py-2 text-right">
-          <p className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-500">Monthly</p>
-          <p className="mt-1 text-[1.05rem] font-semibold text-white">${pass.priceUsd}</p>
-        </div>
-      </div>
-
-      <div className={`relative z-10 mt-4 rounded-[16px] border px-3 py-2.5 ${tone.panel}`}>
-        <p className="text-[9px] font-black uppercase tracking-[0.16em] opacity-70">
-          {pass.shardLiftLabel}
-        </p>
-      </div>
-
-      <div className="relative z-10 mt-3 grid gap-2">
-        {pass.perks.map((perk) => (
-          <div
-            key={perk.label}
-            className="min-w-0 rounded-[14px] border border-white/8 bg-white/[0.025] px-3 py-2"
-          >
-            <div className="flex items-center gap-2">
-              <BadgeCheck className={`h-3.5 w-3.5 shrink-0 ${tone.check}`} />
-              <p className="truncate text-[9px] font-black uppercase tracking-[0.13em] text-slate-200">
-                {perk.label}
-              </p>
-            </div>
-            <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-slate-500">{perk.detail}</p>
-          </div>
-        ))}
-      </div>
-    </article>
   );
 }
 
@@ -1081,39 +975,6 @@ function getFulfillmentEventTone(tone: InventoryReadItem["fulfillment"]["events"
     case "default":
     default:
       return "border-white/8 bg-white/[0.028] text-slate-300";
-  }
-}
-
-function getPassTone(accent: (typeof VYNTRO_MEMBER_PASSES)[number]["accent"]) {
-  switch (accent) {
-    case "amber":
-      return {
-        card: "border-amber-300/14 bg-amber-300/[0.045]",
-        icon: "border-amber-300/18 bg-amber-300/[0.08] text-amber-100",
-        badge: "border-amber-300/18 bg-amber-300/[0.08] text-amber-100",
-        panel: "border-amber-300/14 bg-amber-300/[0.055] text-amber-100",
-        check: "text-amber-100",
-        glow: "bg-amber-300/16",
-      };
-    case "violet":
-      return {
-        card: "border-violet-300/14 bg-violet-300/[0.045]",
-        icon: "border-violet-300/18 bg-violet-300/[0.08] text-violet-100",
-        badge: "border-violet-300/18 bg-violet-300/[0.08] text-violet-100",
-        panel: "border-violet-300/14 bg-violet-300/[0.055] text-violet-100",
-        check: "text-violet-100",
-        glow: "bg-violet-300/16",
-      };
-    case "emerald":
-    default:
-      return {
-        card: "border-emerald-300/14 bg-emerald-300/[0.045]",
-        icon: "border-emerald-300/18 bg-emerald-300/[0.08] text-emerald-100",
-        badge: "border-emerald-300/18 bg-emerald-300/[0.08] text-emerald-100",
-        panel: "border-emerald-300/14 bg-emerald-300/[0.055] text-emerald-100",
-        check: "text-emerald-100",
-        glow: "bg-emerald-300/16",
-      };
   }
 }
 
