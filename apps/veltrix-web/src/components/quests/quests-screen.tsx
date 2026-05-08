@@ -168,13 +168,19 @@ export function QuestsScreen() {
                 key={quest.id}
                 href={`/quests/${quest.id}`}
                 prefetch={false}
-                className={`group relative overflow-hidden rounded-[26px] border border-white/6 bg-[linear-gradient(180deg,rgba(18,20,24,0.98),rgba(9,11,15,0.98))] shadow-[0_20px_56px_rgba(0,0,0,0.32)] transition hover:border-cyan-300/18 ${
+                className={`motion-surface motion-light-sweep group relative overflow-hidden rounded-[26px] border border-white/6 bg-[linear-gradient(180deg,rgba(18,20,24,0.98),rgba(9,11,15,0.98))] shadow-[0_20px_56px_rgba(0,0,0,0.32)] transition hover:border-cyan-300/18 ${
                   index === 0 ? "min-h-[248px] p-4.5 sm:p-5" : "min-h-[208px] p-3.5 sm:p-4"
                 }`}
                 >
+                <div className="motion-ambient-grid opacity-[0.13]" />
+                <div className="motion-shard-field opacity-60">
+                  <span />
+                  <span />
+                  <span />
+                </div>
                 <FeatureBadgeMark
                   badge="quest"
-                  className={`absolute right-3 top-12 h-20 w-20 opacity-[0.24] mix-blend-screen transition duration-300 group-hover:scale-105 group-hover:opacity-[0.4] ${
+                  className={`motion-soft-float absolute right-3 top-12 h-20 w-20 opacity-[0.26] mix-blend-screen transition duration-300 group-hover:opacity-[0.42] ${
                     index === 0 ? "sm:h-28 sm:w-28" : ""
                   }`}
                   imageClassName="rotate-[10deg]"
@@ -258,11 +264,11 @@ export function QuestsScreen() {
                 key={quest.id}
                 href={`/quests/${quest.id}`}
                 prefetch={false}
-                className="group relative overflow-hidden rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(7,9,12,0.98))] p-3.5 transition hover:border-cyan-300/16 hover:bg-[linear-gradient(180deg,rgba(15,19,22,0.98),rgba(8,10,13,0.98))]"
+                className="motion-surface motion-light-sweep group relative overflow-hidden rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(7,9,12,0.98))] p-3.5 transition hover:border-cyan-300/16 hover:bg-[linear-gradient(180deg,rgba(15,19,22,0.98),rgba(8,10,13,0.98))]"
               >
                 <FeatureBadgeMark
                   badge="quest"
-                  className="absolute -right-2 top-10 h-16 w-16 opacity-[0.18] mix-blend-screen transition duration-300 group-hover:opacity-[0.32]"
+                  className="absolute -right-2 top-10 h-16 w-16 opacity-[0.18] mix-blend-screen transition duration-300 group-hover:opacity-[0.34]"
                   imageClassName="rotate-[12deg]"
                   sizes="72px"
                 />
