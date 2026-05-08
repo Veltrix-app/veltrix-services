@@ -29,6 +29,7 @@ import {
   getMainPageSignalBanner,
   type MainPageSignalBanner,
 } from "@/lib/navigation/page-signal-banners";
+import { VyntroCursor } from "@/components/layout/vyntro-cursor";
 
 const primaryNavItems = [
   { href: "/home", label: "Home", icon: Home },
@@ -535,6 +536,7 @@ export function AppShell({
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(148,98,255,0.12),transparent_18%),linear-gradient(180deg,#050608_0%,#040507_36%,#020304_100%)] text-white">
+      <VyntroCursor />
       <header className="sticky top-0 z-40 border-b border-white/6 bg-[#030406]/86 backdrop-blur-2xl">
         <div className="mx-auto max-w-[1720px] px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3 2xl:gap-4">

@@ -62,6 +62,127 @@ body::before {
   opacity: 0.28;
 }
 
+@media (hover: hover) and (pointer: fine) {
+  html.vyntro-custom-cursor,
+  html.vyntro-custom-cursor body,
+  html.vyntro-custom-cursor a,
+  html.vyntro-custom-cursor button,
+  html.vyntro-custom-cursor [role="button"],
+  html.vyntro-custom-cursor summary,
+  html.vyntro-custom-cursor select {
+    cursor: none;
+  }
+
+  html.vyntro-custom-cursor input,
+  html.vyntro-custom-cursor textarea,
+  html.vyntro-custom-cursor [contenteditable="true"] {
+    cursor: text;
+  }
+}
+
+.vyntro-cursor {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  pointer-events: none;
+  opacity: 0;
+  mix-blend-mode: screen;
+  transition: opacity 180ms ease;
+}
+
+.vyntro-cursor.is-ready {
+  opacity: 1;
+}
+
+.vyntro-cursor-core,
+.vyntro-cursor-ring {
+  position: fixed;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.vyntro-cursor-core {
+  display: grid;
+  height: 18px;
+  width: 18px;
+  place-items: center;
+  filter: drop-shadow(0 0 12px rgba(190, 255, 74, 0.44));
+}
+
+.vyntro-cursor-core span {
+  display: block;
+  height: 18px;
+  width: 9px;
+  clip-path: polygon(50% 0%, 100% 36%, 58% 100%, 0% 62%);
+  background:
+    linear-gradient(155deg, rgba(236, 255, 176, 0.96), rgba(151, 255, 120, 0.92) 42%, rgba(34, 211, 238, 0.72)),
+    rgba(190, 255, 74, 0.92);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.26),
+    0 0 18px rgba(190, 255, 74, 0.48);
+  transform: rotate(23deg) scale(1);
+  transition:
+    height 180ms ease,
+    width 180ms ease,
+    transform 180ms ease,
+    background 180ms ease,
+    opacity 180ms ease;
+}
+
+.vyntro-cursor-ring {
+  height: 38px;
+  width: 38px;
+  border: 1px solid rgba(190, 255, 74, 0.24);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle, rgba(190, 255, 74, 0.1), transparent 58%),
+    radial-gradient(circle at 72% 28%, rgba(34, 211, 238, 0.14), transparent 44%);
+  box-shadow:
+    0 0 26px rgba(190, 255, 74, 0.12),
+    inset 0 0 18px rgba(34, 211, 238, 0.08);
+  opacity: 0.66;
+  transition:
+    height 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease,
+    opacity 180ms ease;
+}
+
+.vyntro-cursor.is-active .vyntro-cursor-ring {
+  height: 58px;
+  width: 58px;
+  border-color: rgba(190, 255, 74, 0.42);
+  background:
+    radial-gradient(circle, rgba(190, 255, 74, 0.14), transparent 58%),
+    radial-gradient(circle at 72% 28%, rgba(34, 211, 238, 0.2), transparent 45%);
+  box-shadow:
+    0 0 34px rgba(190, 255, 74, 0.18),
+    inset 0 0 22px rgba(34, 211, 238, 0.12);
+}
+
+.vyntro-cursor.is-active .vyntro-cursor-core span {
+  transform: rotate(23deg) scale(1.22);
+}
+
+.vyntro-cursor.is-text .vyntro-cursor-ring {
+  height: 30px;
+  width: 30px;
+  opacity: 0.36;
+}
+
+.vyntro-cursor.is-text .vyntro-cursor-core span {
+  height: 22px;
+  width: 2px;
+  clip-path: none;
+  border-radius: 999px;
+  background: rgba(190, 255, 74, 0.95);
+  transform: rotate(0deg);
+}
+
 .glass-button {
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
