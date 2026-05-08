@@ -154,15 +154,21 @@ export function LootboxShopScreen() {
 
   return (
     <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-[28px] border border-white/8 bg-[radial-gradient(circle_at_88%_14%,rgba(168,85,247,0.18),transparent_25%),radial-gradient(circle_at_12%_10%,rgba(16,185,129,0.14),transparent_24%),linear-gradient(180deg,rgba(12,16,22,0.99),rgba(5,7,11,0.99))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.34)]">
+      <section className="motion-light-sweep relative overflow-hidden rounded-[28px] border border-white/8 bg-[radial-gradient(circle_at_88%_14%,rgba(168,85,247,0.18),transparent_25%),radial-gradient(circle_at_12%_10%,rgba(16,185,129,0.14),transparent_24%),linear-gradient(180deg,rgba(12,16,22,0.99),rgba(5,7,11,0.99))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.34)]">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-200/20 to-transparent" />
+        <div className="motion-ambient-grid" />
+        <div className="motion-shard-field">
+          <span />
+          <span />
+          <span />
+        </div>
         <div className="pointer-events-none absolute bottom-3 right-8 hidden h-40 w-40 opacity-65 sm:block">
           <Image
             src="/assets/lootboxes/mythic-lootbox.webp"
             alt=""
             fill
             sizes="160px"
-            className="object-contain drop-shadow-[0_26px_50px_rgba(168,85,247,0.22)]"
+            className="motion-soft-float object-contain drop-shadow-[0_26px_50px_rgba(168,85,247,0.22)]"
             priority
           />
         </div>
@@ -245,14 +251,15 @@ function HuntRouteConsole({ route }: { route: LootboxHuntRoute }) {
   const ready = route.state === "ready_to_open";
 
   return (
-    <section className="relative overflow-hidden rounded-[24px] border border-emerald-300/14 bg-[radial-gradient(circle_at_8%_0%,rgba(16,185,129,0.13),transparent_26%),radial-gradient(circle_at_84%_16%,rgba(168,85,247,0.12),transparent_28%),linear-gradient(180deg,rgba(13,18,24,0.97),rgba(6,8,13,0.98))] p-4 shadow-[0_18px_52px_rgba(0,0,0,0.24)]">
+    <section className="motion-surface relative overflow-hidden rounded-[24px] border border-emerald-300/14 bg-[radial-gradient(circle_at_8%_0%,rgba(16,185,129,0.13),transparent_26%),radial-gradient(circle_at_84%_16%,rgba(168,85,247,0.12),transparent_28%),linear-gradient(180deg,rgba(13,18,24,0.97),rgba(6,8,13,0.98))] p-4 shadow-[0_18px_52px_rgba(0,0,0,0.24)]">
+      <div className="motion-ambient-grid opacity-[0.12]" />
       <div className="pointer-events-none absolute -right-8 top-0 h-36 w-36 opacity-60">
         <Image
           src="/assets/lootboxes/shards-pile.webp"
           alt=""
           fill
           sizes="144px"
-          className="object-contain drop-shadow-[0_22px_48px_rgba(16,185,129,0.18)]"
+          className="motion-soft-float object-contain drop-shadow-[0_22px_48px_rgba(16,185,129,0.18)]"
         />
       </div>
 
@@ -346,7 +353,7 @@ function SeasonAccessConsole({ item }: { item: InventoryReadItem | null }) {
 
   return (
     <section
-      className={`relative overflow-hidden rounded-[24px] border p-4 shadow-[0_18px_52px_rgba(0,0,0,0.24)] ${
+      className={`motion-surface relative overflow-hidden rounded-[24px] border p-4 shadow-[0_18px_52px_rgba(0,0,0,0.24)] ${
         active
           ? "border-cyan-300/16 bg-[radial-gradient(circle_at_82%_22%,rgba(34,211,238,0.14),transparent_26%),linear-gradient(180deg,rgba(12,18,24,0.98),rgba(6,9,14,0.98))]"
           : "border-white/8 bg-[linear-gradient(180deg,rgba(13,17,24,0.95),rgba(7,9,14,0.95))]"
@@ -358,7 +365,7 @@ function SeasonAccessConsole({ item }: { item: InventoryReadItem | null }) {
           alt=""
           fill
           sizes="128px"
-          className="object-contain drop-shadow-[0_24px_44px_rgba(34,211,238,0.16)]"
+          className="motion-soft-float object-contain drop-shadow-[0_24px_44px_rgba(34,211,238,0.16)]"
         />
       </div>
       <div className="relative z-10 grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.72fr)] xl:items-center">
@@ -837,8 +844,14 @@ function LootboxRevealDialog({
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/72 px-4 py-6 backdrop-blur-xl">
-      <div className="relative w-full max-w-xl overflow-hidden rounded-[30px] border border-white/10 bg-[radial-gradient(circle_at_50%_0%,rgba(168,85,247,0.24),transparent_30%),radial-gradient(circle_at_20%_12%,rgba(16,185,129,0.13),transparent_24%),linear-gradient(180deg,rgba(12,15,22,0.98),rgba(4,6,10,0.99))] p-5 shadow-[0_34px_110px_rgba(0,0,0,0.62)]">
+    <div className="motion-reveal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/72 px-4 py-6 backdrop-blur-xl">
+      <div className="motion-reveal-card relative w-full max-w-xl overflow-hidden rounded-[30px] border border-white/10 bg-[radial-gradient(circle_at_50%_0%,rgba(168,85,247,0.24),transparent_30%),radial-gradient(circle_at_20%_12%,rgba(16,185,129,0.13),transparent_24%),linear-gradient(180deg,rgba(12,15,22,0.98),rgba(4,6,10,0.99))] p-5 shadow-[0_34px_110px_rgba(0,0,0,0.62)]">
+        <div className="motion-ambient-grid opacity-[0.14]" />
+        <div className="motion-shard-field">
+          <span />
+          <span />
+          <span />
+        </div>
         <button
           type="button"
           onClick={onClose}
@@ -851,12 +864,13 @@ function LootboxRevealDialog({
         <div className="grid gap-5 sm:grid-cols-[190px_1fr] sm:items-center">
           <div className="relative flex min-h-48 items-center justify-center">
             <div className="absolute inset-x-6 bottom-8 h-14 rounded-full bg-black/50 blur-2xl" />
+            <div className="motion-rarity-aura motion-reveal-pulse" />
             <Image
               src={reveal.tierAssetPath}
               alt={reveal.tierLabel}
               width={260}
               height={260}
-              className="relative h-44 w-44 object-contain drop-shadow-[0_26px_42px_rgba(0,0,0,0.52)]"
+              className="motion-reveal-prize relative h-44 w-44 object-contain drop-shadow-[0_26px_42px_rgba(0,0,0,0.52)]"
               sizes="176px"
             />
           </div>

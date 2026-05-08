@@ -71,9 +71,9 @@ function PreviewShell({
   isHydrating?: boolean;
 }) {
   return (
-    <div className="space-y-5">
+    <div className="min-w-0 space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-[22px] border border-lime-300/16 bg-[linear-gradient(135deg,rgba(192,255,0,0.12),rgba(0,204,255,0.08),rgba(255,255,255,0.02))] px-4 py-4">
-        <div className="max-w-3xl">
+        <div className="min-w-0 flex-1 basis-80">
           <p className="font-display text-[11px] font-bold uppercase tracking-[0.28em] text-lime-300">
             {previewLabel}
           </p>
