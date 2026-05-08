@@ -159,12 +159,13 @@ export function ProjectsScreen() {
                 key={project.id}
                 href={`/projects/${project.id}`}
                 prefetch={false}
-                className={`group relative overflow-hidden rounded-[24px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(8,10,13,0.98))] transition hover:border-cyan-300/16 hover:bg-[linear-gradient(180deg,rgba(16,19,22,0.98),rgba(9,11,14,0.98))] ${
+                className={`motion-surface motion-light-sweep group relative overflow-hidden rounded-[24px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(8,10,13,0.98))] transition hover:border-cyan-300/16 hover:bg-[linear-gradient(180deg,rgba(16,19,22,0.98),rgba(9,11,14,0.98))] ${
                   index === 0 ? "min-h-[208px] p-4 sm:p-4.5" : "min-h-[168px] p-3"
                 }`}
               >
+                <div className="motion-ambient-grid opacity-[0.11]" />
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.12),transparent_35%),linear-gradient(180deg,rgba(10,12,15,0.05),rgba(10,12,15,0.88))]" />
-                <div className="relative flex h-full flex-col">
+                <div className="relative z-10 flex h-full flex-col">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex flex-wrap gap-2">
                       {project.chain ? <CardPill>{project.chain}</CardPill> : null}
@@ -222,9 +223,9 @@ export function ProjectsScreen() {
             {projectColumns.map((column, columnIndex) => (
               <div
                 key={columnIndex}
-                className="rounded-[24px] border border-white/6 bg-[linear-gradient(180deg,rgba(13,14,18,0.98),rgba(8,9,12,0.98))] p-3.5"
+                className="motion-surface motion-light-sweep rounded-[24px] border border-white/6 bg-[linear-gradient(180deg,rgba(13,14,18,0.98),rgba(8,9,12,0.98))] p-3.5"
               >
-                <div className="flex items-center justify-between gap-3 border-b border-white/6 pb-3">
+                <div className="relative z-10 flex items-center justify-between gap-3 border-b border-white/6 pb-3">
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Space</p>
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Participation</p>
                 </div>
@@ -235,7 +236,7 @@ export function ProjectsScreen() {
                       key={project.id}
                       href={`/projects/${project.id}`}
                       prefetch={false}
-                      className="grid grid-cols-[30px_minmax(0,1fr)_auto] items-center gap-3 py-3.5 transition first:pt-3.5 hover:text-cyan-100"
+                      className="motion-press grid grid-cols-[30px_minmax(0,1fr)_auto] items-center gap-3 py-3.5 transition first:pt-3.5 hover:text-cyan-100"
                     >
                       <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">
                         {String(columnIndex * 4 + index + 1).padStart(2, "0")}
@@ -281,9 +282,10 @@ export function ProjectsScreen() {
                 key={project.id}
                 href={`/projects/${project.id}`}
                 prefetch={false}
-                className="group rounded-[20px] border border-white/6 bg-[linear-gradient(180deg,rgba(13,15,18,0.98),rgba(8,10,13,0.98))] p-3 transition hover:border-cyan-300/16 hover:bg-[linear-gradient(180deg,rgba(15,18,20,0.98),rgba(9,11,14,0.98))]"
+                className="motion-surface motion-light-sweep group relative overflow-hidden rounded-[20px] border border-white/6 bg-[linear-gradient(180deg,rgba(13,15,18,0.98),rgba(8,10,13,0.98))] p-3 transition hover:border-cyan-300/16 hover:bg-[linear-gradient(180deg,rgba(15,18,20,0.98),rgba(9,11,14,0.98))]"
               >
-                <div className="flex items-start justify-between gap-3">
+                <div className="motion-ambient-grid opacity-[0.07]" />
+                <div className="relative z-10 flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="truncate text-[0.86rem] font-semibold text-white">{project.name}</p>
                     <p className="mt-1.5 truncate text-[10px] uppercase tracking-[0.16em] text-slate-500">
@@ -296,17 +298,17 @@ export function ProjectsScreen() {
                   />
                 </div>
 
-                <div className="mt-2.5 flex items-center justify-between gap-3 text-[10px] text-slate-500">
+                <div className="relative z-10 mt-2.5 flex items-center justify-between gap-3 text-[10px] text-slate-500">
                   <span>{project.campaignCount} lanes</span>
                   <span>{formatCompactNumber(project.members)} members</span>
                 </div>
 
-                <div className="mt-3.5 flex flex-wrap gap-1.5">
+                <div className="relative z-10 mt-3.5 flex flex-wrap gap-1.5">
                   <MetricPill label="XP" value={formatCompactNumber(project.liveXp)} />
                   <MetricPill label="Members" value={formatCompactNumber(project.members)} />
                 </div>
 
-                <div className="mt-3.5 flex items-center justify-between border-t border-white/6 pt-3">
+                <div className="relative z-10 mt-3.5 flex items-center justify-between border-t border-white/6 pt-3">
                   <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
                     Open space
                   </span>
@@ -390,7 +392,7 @@ function FilterButton({
   return (
     <button
       onClick={onClick}
-      className={`rounded-full px-3.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.14em] transition ${
+      className={`motion-press rounded-full px-3.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.14em] transition ${
         active
           ? "border border-cyan-300/16 bg-cyan-300/10 text-cyan-100"
           : "border border-white/8 bg-white/[0.03] text-slate-400 hover:border-white/12 hover:text-white"

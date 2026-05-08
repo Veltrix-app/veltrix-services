@@ -167,7 +167,7 @@ export function RewardsScreen() {
             <Link
               href="/lootboxes"
               prefetch={false}
-              className="inline-flex items-center gap-2 rounded-full border border-emerald-300/18 bg-emerald-300/[0.075] px-3.5 py-2 transition hover:border-emerald-200/30 hover:bg-emerald-300/[0.11]"
+              className="motion-press motion-light-sweep inline-flex items-center gap-2 overflow-hidden rounded-full border border-emerald-300/18 bg-emerald-300/[0.075] px-3.5 py-2 transition hover:border-emerald-200/30 hover:bg-emerald-300/[0.11]"
             >
               <ShardBadge value={shardBalance} size="sm" className="border-0 bg-transparent p-0 shadow-none" />
               <span className="text-[10px] font-black uppercase tracking-[0.14em] text-emerald-100">
@@ -230,20 +230,21 @@ export function RewardsScreen() {
                 key={reward.id}
                 href={`/rewards/${reward.id}`}
                 prefetch={false}
-                className={`group relative overflow-hidden rounded-[25px] border border-white/6 bg-[linear-gradient(180deg,rgba(18,20,24,0.98),rgba(9,11,15,0.98))] shadow-[0_18px_52px_rgba(0,0,0,0.26)] transition hover:border-amber-300/18 hover:bg-[linear-gradient(180deg,rgba(24,22,18,0.98),rgba(10,11,14,0.98))] ${
+                className={`motion-surface motion-light-sweep group relative overflow-hidden rounded-[25px] border border-white/6 bg-[linear-gradient(180deg,rgba(18,20,24,0.98),rgba(9,11,15,0.98))] shadow-[0_18px_52px_rgba(0,0,0,0.26)] transition hover:border-amber-300/18 hover:bg-[linear-gradient(180deg,rgba(24,22,18,0.98),rgba(10,11,14,0.98))] ${
                   index === 0 ? "min-h-[238px] p-4.5 sm:p-5" : "min-h-[200px] p-3.5 sm:p-4"
                 }`}
               >
+                <div className="motion-ambient-grid opacity-[0.1]" />
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.14),transparent_35%),linear-gradient(180deg,rgba(10,12,15,0.08),rgba(10,12,15,0.88))]" />
                 <FeatureBadgeMark
                   badge="reward"
-                  className={`absolute right-3 top-12 h-20 w-20 opacity-[0.24] mix-blend-screen transition duration-300 group-hover:scale-105 group-hover:opacity-[0.4] ${
+                  className={`motion-soft-float absolute right-3 top-12 h-20 w-20 opacity-[0.24] mix-blend-screen transition duration-300 group-hover:opacity-[0.4] ${
                     index === 0 ? "sm:h-28 sm:w-28" : ""
                   }`}
                   imageClassName="rotate-[10deg]"
                   sizes="112px"
                 />
-                <div className="relative flex h-full flex-col">
+                <div className="relative z-10 flex h-full flex-col">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="flex flex-wrap gap-2">
                       <CardPill>{reward.linkedCampaignTitle}</CardPill>
@@ -305,11 +306,12 @@ export function RewardsScreen() {
                 key={reward.id}
                 href={`/rewards/${reward.id}`}
                 prefetch={false}
-                className="group relative overflow-hidden rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(7,9,12,0.98))] p-3.5 transition hover:border-amber-300/16 hover:bg-[linear-gradient(180deg,rgba(21,19,16,0.98),rgba(8,10,13,0.98))]"
+                className="motion-surface motion-light-sweep group relative overflow-hidden rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(7,9,12,0.98))] p-3.5 transition hover:border-amber-300/16 hover:bg-[linear-gradient(180deg,rgba(21,19,16,0.98),rgba(8,10,13,0.98))]"
               >
+                <div className="motion-ambient-grid opacity-[0.07]" />
                 <FeatureBadgeMark
                   badge="reward"
-                  className="absolute -right-2 top-10 h-16 w-16 opacity-[0.18] mix-blend-screen transition duration-300 group-hover:opacity-[0.32]"
+                  className="absolute -right-2 top-10 h-16 w-16 opacity-[0.18] mix-blend-screen transition duration-300 group-hover:opacity-[0.34]"
                   imageClassName="rotate-[12deg]"
                   sizes="72px"
                 />
@@ -370,9 +372,9 @@ export function RewardsScreen() {
               payoutRows.slice(0, 6).map((distribution) => (
                 <div
                   key={distribution.id}
-                  className="rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(16,18,21,0.98),rgba(8,10,13,0.98))] p-3.5"
+                  className="motion-surface motion-light-sweep rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(16,18,21,0.98),rgba(8,10,13,0.98))] p-3.5"
                 >
-                  <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="relative z-10 flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="truncate text-[13px] font-semibold text-white">{distribution.campaignTitle}</p>
                       <p className="mt-1.5 text-[11px] uppercase tracking-[0.16em] text-slate-500">
@@ -395,17 +397,17 @@ export function RewardsScreen() {
                     />
                   </div>
 
-                  <div className="mt-3.5 flex flex-wrap gap-1.5">
+                  <div className="relative z-10 mt-3.5 flex flex-wrap gap-1.5">
                     <MetricPill label="Pool" value={distribution.rewardAmountLabel} />
                     <MetricPill label="State" value={distribution.stateLabel} />
                   </div>
 
-                  <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-white/6 pt-3">
+                  <div className="relative z-10 mt-4 flex flex-wrap items-center gap-2 border-t border-white/6 pt-3">
                     {distribution.status === "claimable" ? (
                       <button
                         onClick={() => void handleClaimDistribution(distribution.id)}
                         disabled={activeDistributionId === distribution.id}
-                        className="rounded-full bg-lime-300 px-3.5 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-950 transition hover:bg-lime-200 disabled:cursor-not-allowed disabled:bg-lime-300/40"
+                        className="motion-button-glow motion-press rounded-full bg-lime-300 px-3.5 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-950 transition hover:bg-lime-200 disabled:cursor-not-allowed disabled:bg-lime-300/40"
                       >
                         {activeDistributionId === distribution.id ? "Queueing..." : "Queue payout"}
                       </button>
@@ -422,7 +424,7 @@ export function RewardsScreen() {
                     <Link
                       href={`/campaigns/${distribution.campaignId}`}
                       prefetch={false}
-                      className="rounded-full border border-white/8 bg-white/[0.03] px-3.5 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-300 transition hover:border-white/12 hover:text-white"
+                      className="motion-press rounded-full border border-white/8 bg-white/[0.03] px-3.5 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-300 transition hover:border-white/12 hover:text-white"
                     >
                       Open campaign
                     </Link>
@@ -434,7 +436,7 @@ export function RewardsScreen() {
             )}
           </div>
 
-          <div className="rounded-[24px] border border-white/6 bg-[linear-gradient(180deg,rgba(16,18,21,0.98),rgba(8,10,13,0.98))] p-3.5">
+          <div className="motion-surface motion-light-sweep rounded-[24px] border border-white/6 bg-[linear-gradient(180deg,rgba(16,18,21,0.98),rgba(8,10,13,0.98))] p-3.5">
             <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-500">Payout read</p>
             <div className="mt-3.5 grid gap-2.5">
               <BoardStat label="Claimable pools" value={String(claimableDistributionRows.length)} />
@@ -576,7 +578,8 @@ function MemberPassCard({
   const tone = getPassTone(pass.accent);
 
   return (
-    <article className={`group relative min-w-0 overflow-hidden rounded-[24px] border shadow-[0_18px_52px_rgba(0,0,0,0.24)] ${tone.card}`}>
+    <article className={`motion-surface motion-light-sweep group relative min-w-0 overflow-hidden rounded-[24px] border shadow-[0_18px_52px_rgba(0,0,0,0.24)] ${tone.card}`}>
+      <div className="motion-ambient-grid opacity-[0.08]" />
       <div className="relative aspect-[16/9] overflow-hidden bg-black">
         <Image
           src={pass.assetPath}
@@ -684,7 +687,7 @@ function FilterButton({
   return (
     <button
       onClick={onClick}
-      className={`rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-[0.16em] transition ${
+      className={`motion-press rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-[0.16em] transition ${
         active
           ? "border border-amber-300/16 bg-amber-300/10 text-amber-100"
           : "border border-white/8 bg-white/[0.03] text-slate-400 hover:border-white/12 hover:text-white"
