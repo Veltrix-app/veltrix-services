@@ -80,7 +80,7 @@ export function RaidsScreen() {
                 key={raid.id}
                 href={`/raids/${raid.id}`}
                 prefetch={false}
-                className={`motion-surface motion-light-sweep group relative overflow-hidden rounded-[25px] border border-white/6 bg-[linear-gradient(180deg,rgba(18,20,24,0.98),rgba(9,11,15,0.98))] shadow-[0_18px_52px_rgba(0,0,0,0.26)] transition hover:border-rose-300/18 hover:bg-[linear-gradient(180deg,rgba(24,18,20,0.98),rgba(10,11,14,0.98))] ${
+                className={`motion-surface motion-3d-card motion-light-sweep group relative overflow-hidden rounded-[25px] border border-white/6 bg-[linear-gradient(180deg,rgba(18,20,24,0.98),rgba(9,11,15,0.98))] shadow-[0_18px_52px_rgba(0,0,0,0.26)] transition hover:border-rose-300/18 hover:bg-[linear-gradient(180deg,rgba(24,18,20,0.98),rgba(10,11,14,0.98))] ${
                   index === 0 ? "min-h-[238px] p-4.5 sm:p-5" : "min-h-[200px] p-3.5 sm:p-4"
                 }`}
               >
@@ -152,7 +152,7 @@ export function RaidsScreen() {
                 key={raid.id}
                 href={`/raids/${raid.id}`}
                 prefetch={false}
-                className="motion-surface motion-light-sweep group relative overflow-hidden rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(7,9,12,0.98))] p-3.5 transition hover:border-rose-300/16 hover:bg-[linear-gradient(180deg,rgba(21,17,19,0.98),rgba(8,10,13,0.98))]"
+                className="motion-surface motion-3d-card motion-light-sweep group relative overflow-hidden rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(7,9,12,0.98))] p-3.5 transition hover:border-rose-300/16 hover:bg-[linear-gradient(180deg,rgba(21,17,19,0.98),rgba(8,10,13,0.98))]"
               >
                 <div className="motion-ambient-grid opacity-[0.07]" />
                 <RaidBadgeMark

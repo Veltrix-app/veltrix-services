@@ -159,7 +159,7 @@ export function ProjectsScreen() {
                 key={project.id}
                 href={`/projects/${project.id}`}
                 prefetch={false}
-                className={`motion-surface motion-light-sweep group relative overflow-hidden rounded-[24px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(8,10,13,0.98))] transition hover:border-cyan-300/16 hover:bg-[linear-gradient(180deg,rgba(16,19,22,0.98),rgba(9,11,14,0.98))] ${
+                className={`motion-surface motion-3d-card motion-light-sweep group relative overflow-hidden rounded-[24px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(8,10,13,0.98))] transition hover:border-cyan-300/16 hover:bg-[linear-gradient(180deg,rgba(16,19,22,0.98),rgba(9,11,14,0.98))] ${
                   index === 0 ? "min-h-[208px] p-4 sm:p-4.5" : "min-h-[168px] p-3"
                 }`}
               >
@@ -282,7 +282,7 @@ export function ProjectsScreen() {
                 key={project.id}
                 href={`/projects/${project.id}`}
                 prefetch={false}
-                className="motion-surface motion-light-sweep group relative overflow-hidden rounded-[20px] border border-white/6 bg-[linear-gradient(180deg,rgba(13,15,18,0.98),rgba(8,10,13,0.98))] p-3 transition hover:border-cyan-300/16 hover:bg-[linear-gradient(180deg,rgba(15,18,20,0.98),rgba(9,11,14,0.98))]"
+                className="motion-surface motion-3d-card motion-light-sweep group relative overflow-hidden rounded-[20px] border border-white/6 bg-[linear-gradient(180deg,rgba(13,15,18,0.98),rgba(8,10,13,0.98))] p-3 transition hover:border-cyan-300/16 hover:bg-[linear-gradient(180deg,rgba(15,18,20,0.98),rgba(9,11,14,0.98))]"
               >
                 <div className="motion-ambient-grid opacity-[0.07]" />
                 <div className="relative z-10 flex items-start justify-between gap-3">

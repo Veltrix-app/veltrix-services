@@ -39,7 +39,7 @@ export function LootboxCard({
   });
 
   return (
-    <article className="motion-surface motion-light-sweep group relative overflow-hidden rounded-[24px] border border-white/8 bg-[linear-gradient(180deg,rgba(15,18,24,0.98),rgba(6,8,12,0.99))] p-4 shadow-[0_18px_54px_rgba(0,0,0,0.24)] transition duration-300 hover:border-emerald-300/18">
+    <article className="motion-surface motion-3d-card motion-light-sweep group relative overflow-hidden rounded-[24px] border border-white/8 bg-[linear-gradient(180deg,rgba(15,18,24,0.98),rgba(6,8,12,0.99))] p-4 shadow-[0_18px_54px_rgba(0,0,0,0.24)] transition duration-300 hover:border-emerald-300/18">
       <div className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-emerald-200/20 to-transparent" />
       <div className="relative z-10 flex items-start justify-between gap-3">
         <div className="min-w-0">

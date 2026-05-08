@@ -151,7 +151,7 @@ export function CampaignsScreen() {
                 key={campaign.id}
                 href={`/campaigns/${campaign.id}`}
                 prefetch={false}
-                className={`motion-surface motion-light-sweep group relative overflow-hidden rounded-[25px] border border-white/6 bg-[linear-gradient(180deg,rgba(18,20,24,0.98),rgba(8,10,13,0.98))] shadow-[0_20px_56px_rgba(0,0,0,0.32)] transition hover:border-lime-300/18 ${
+                className={`motion-surface motion-3d-card motion-light-sweep group relative overflow-hidden rounded-[25px] border border-white/6 bg-[linear-gradient(180deg,rgba(18,20,24,0.98),rgba(8,10,13,0.98))] shadow-[0_20px_56px_rgba(0,0,0,0.32)] transition hover:border-lime-300/18 ${
                   index === 0 ? "min-h-[240px] p-4.5 sm:p-5" : "min-h-[204px] p-3.5 sm:p-4"
                 }`}
               >
@@ -222,7 +222,7 @@ export function CampaignsScreen() {
                 key={campaign.id}
                 href={`/campaigns/${campaign.id}`}
                 prefetch={false}
-                className="motion-surface motion-light-sweep group relative overflow-hidden rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(7,9,12,0.98))] p-3.5 transition hover:border-lime-300/16 hover:bg-[linear-gradient(180deg,rgba(18,21,19,0.98),rgba(8,10,13,0.98))]"
+                className="motion-surface motion-3d-card motion-light-sweep group relative overflow-hidden rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(7,9,12,0.98))] p-3.5 transition hover:border-lime-300/16 hover:bg-[linear-gradient(180deg,rgba(18,21,19,0.98),rgba(8,10,13,0.98))]"
               >
                 <div className="motion-ambient-grid opacity-[0.07]" />
                 <div className="relative z-10 flex items-start justify-between gap-3">

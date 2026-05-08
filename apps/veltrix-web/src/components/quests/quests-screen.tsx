@@ -168,7 +168,7 @@ export function QuestsScreen() {
                 key={quest.id}
                 href={`/quests/${quest.id}`}
                 prefetch={false}
-                className={`motion-surface motion-light-sweep group relative overflow-hidden rounded-[26px] border border-white/6 bg-[linear-gradient(180deg,rgba(18,20,24,0.98),rgba(9,11,15,0.98))] shadow-[0_20px_56px_rgba(0,0,0,0.32)] transition hover:border-cyan-300/18 ${
+                className={`motion-surface motion-3d-card motion-light-sweep group relative overflow-hidden rounded-[26px] border border-white/6 bg-[linear-gradient(180deg,rgba(18,20,24,0.98),rgba(9,11,15,0.98))] shadow-[0_20px_56px_rgba(0,0,0,0.32)] transition hover:border-cyan-300/18 ${
                   index === 0 ? "min-h-[248px] p-4.5 sm:p-5" : "min-h-[208px] p-3.5 sm:p-4"
                 }`}
                 >
@@ -264,7 +264,7 @@ export function QuestsScreen() {
                 key={quest.id}
                 href={`/quests/${quest.id}`}
                 prefetch={false}
-                className="motion-surface motion-light-sweep group relative overflow-hidden rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(7,9,12,0.98))] p-3.5 transition hover:border-cyan-300/16 hover:bg-[linear-gradient(180deg,rgba(15,19,22,0.98),rgba(8,10,13,0.98))]"
+                className="motion-surface motion-3d-card motion-light-sweep group relative overflow-hidden rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(7,9,12,0.98))] p-3.5 transition hover:border-cyan-300/16 hover:bg-[linear-gradient(180deg,rgba(15,19,22,0.98),rgba(8,10,13,0.98))]"
               >
                 <FeatureBadgeMark
                   badge="quest"
