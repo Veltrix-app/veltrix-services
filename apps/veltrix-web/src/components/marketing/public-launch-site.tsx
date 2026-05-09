@@ -37,7 +37,7 @@ const productWorlds = [
     label: "Project worlds",
     title: "Turn a project page into a launch world.",
     body: "Show story, missions, rewards, token context and member standing as one premium public surface.",
-    image: "/assets/project-world/mission-lane.webp",
+    image: "/assets/public-home/project-worlds.webp",
     icon: Compass,
     tone: "cyan",
   },
@@ -45,7 +45,7 @@ const productWorlds = [
     label: "Quest pressure",
     title: "Guide members into the next useful action.",
     body: "Quests, raids, XP and shards stay connected, so users understand where momentum comes from.",
-    image: "/brand/slides/vyntro-quests.png",
+    image: "/assets/public-home/quest-pressure.webp",
     icon: Swords,
     tone: "violet",
   },
@@ -53,7 +53,7 @@ const productWorlds = [
     label: "Reward engine",
     title: "Make rewards feel visible before users claim.",
     body: "Lootboxes, pass layers, shards and project rewards give the platform a stronger hunt loop.",
-    image: "/assets/project-world/claim-your-rewards.webp",
+    image: "/assets/public-home/reward-engine.webp",
     icon: Trophy,
     tone: "lime",
   },
@@ -61,7 +61,7 @@ const productWorlds = [
     label: "Safety posture",
     title: "Keep token and trust context beside the action.",
     body: "Public trust, token routes and safety modules make launch decisions easier to read.",
-    image: "/assets/project-world/token-and-trust.webp",
+    image: "/assets/public-home/safety-posture.webp",
     icon: ShieldCheck,
     tone: "teal",
   },
@@ -313,10 +313,10 @@ export function PublicLaunchSite() {
             return (
               <article
                 key={world.label}
-                className={`motion-surface motion-3d-card motion-light-sweep group relative min-h-[29rem] overflow-hidden rounded-[28px] border ${tone.border} bg-[linear-gradient(180deg,rgba(15,18,24,0.98),rgba(6,8,12,0.99))] p-5 shadow-[0_22px_70px_rgba(0,0,0,0.25)]`}
+                className={`motion-surface motion-3d-card motion-light-sweep group relative min-h-[30.5rem] overflow-hidden rounded-[28px] border ${tone.border} bg-[linear-gradient(180deg,rgba(15,18,24,0.98),rgba(6,8,12,0.99))] p-5 shadow-[0_22px_70px_rgba(0,0,0,0.25)]`}
               >
                 <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${tone.glow} via-transparent to-transparent opacity-80`} />
-                <div className="pointer-events-none absolute inset-x-[-20%] bottom-[-4.5rem] h-[17rem] transition duration-500 group-hover:scale-[1.04]">
+                <div className="pointer-events-none absolute inset-x-[-18%] bottom-[-2.25rem] h-[18.5rem] transition duration-500 group-hover:scale-[1.04]">
                   <Image
                     src={world.image}
                     alt=""
@@ -326,6 +326,7 @@ export function PublicLaunchSite() {
                     className="object-contain opacity-[0.86] drop-shadow-[0_0_48px_rgba(45,212,191,0.16)]"
                   />
                 </div>
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-[58%] bg-[linear-gradient(180deg,rgba(9,12,18,0.99)_0%,rgba(9,12,18,0.96)_58%,rgba(9,12,18,0.34)_82%,transparent_100%)]" />
                 <div className="relative z-10">
                   <div className="flex items-start justify-between gap-4">
                     <div>
