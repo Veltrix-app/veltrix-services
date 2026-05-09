@@ -809,6 +809,23 @@ function TokenTrustCard({
       description="Live market signal and safety score sit together before members choose a route."
       ctaLabel="Open swap"
       accent="cyan"
+      contentClassName="max-w-[18.5rem]"
+      mediaLayer={
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -right-16 bottom-[-4.9rem] h-[18.5rem] w-[22rem] sm:-right-20 sm:bottom-[-5.4rem] sm:h-[20.5rem] sm:w-[24rem]">
+            <Image
+              src="/assets/project-world/token-and-trust.webp"
+              alt=""
+              fill
+              unoptimized
+              sizes="384px"
+              className="h-full w-full object-contain opacity-[0.88] drop-shadow-[0_0_42px_rgba(34,211,238,0.22)] [mask-image:linear-gradient(90deg,transparent_0%,black_28%,black_100%)]"
+            />
+          </div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_86%_66%,rgba(34,211,238,0.2),transparent_34%),radial-gradient(circle_at_74%_22%,rgba(125,211,252,0.13),transparent_31%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,10,14,0.97)_0%,rgba(6,10,14,0.88)_45%,rgba(6,10,14,0.5)_72%,rgba(6,10,14,0.24)_100%)]" />
+        </div>
+      }
     >
       <div className="mt-4 grid grid-cols-2 gap-2">
         <SmallStat label="Price" value={tokenPrice} />
@@ -834,31 +851,47 @@ function TokenTrustCard({
 
 function StandingCard({ reputation }: { reputation?: LiveProjectReputation }) {
   return (
-    <div className="motion-card-3d rounded-[26px] border border-white/7 bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,0.13),transparent_34%),linear-gradient(180deg,rgba(15,17,22,0.9),rgba(7,8,12,0.95))] p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.24em] text-amber-200">
-            Your standing
-          </p>
-          <h2 className="mt-3 text-2xl font-black text-white">
-            Level {reputation?.level ?? 0}
-          </h2>
+    <div className="motion-card-3d relative overflow-hidden rounded-[26px] border border-white/7 bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,0.13),transparent_34%),linear-gradient(180deg,rgba(15,17,22,0.9),rgba(7,8,12,0.95))] p-4">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -right-16 bottom-[-5.2rem] h-[19rem] w-[22rem] sm:-right-20 sm:bottom-[-5.4rem] sm:h-[21rem] sm:w-[24rem]">
+          <Image
+            src="/assets/project-world/your-standing.webp"
+            alt=""
+            fill
+            unoptimized
+            sizes="384px"
+            className="h-full w-full object-contain opacity-[0.82] drop-shadow-[0_0_46px_rgba(250,204,21,0.18)] [mask-image:linear-gradient(90deg,transparent_0%,black_30%,black_100%)]"
+          />
         </div>
-        <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-amber-300/18 bg-amber-300/[0.08] text-amber-200">
-          <Crown className="h-5 w-5" />
-        </span>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_84%_66%,rgba(250,204,21,0.16),transparent_34%),radial-gradient(circle_at_76%_22%,rgba(168,85,247,0.14),transparent_32%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(11,9,12,0.97)_0%,rgba(11,9,12,0.89)_45%,rgba(11,9,12,0.58)_73%,rgba(11,9,12,0.28)_100%)]" />
       </div>
-      <p className="mt-3 text-sm leading-6 text-slate-400">
-        Your reputation in this project world grows through completed missions, raids and claimed rewards.
-      </p>
-      <div className="mt-4">
-        <ContributionTierBadge tier={reputation?.contributionTier} size="lg" />
-      </div>
-      <div className="mt-4 grid grid-cols-2 gap-2">
-        <SmallStat label="XP" value={`${reputation?.xp ?? 0} XP`} valueNode={<XpValue size="md">{`${reputation?.xp ?? 0} XP`}</XpValue>} />
-        <SmallStat label="Rank" value={reputation ? `#${reputation.rank}` : "Pending"} />
-        <SmallStat label="Quests" value={String(reputation?.questsCompleted ?? 0)} />
-        <SmallStat label="Raids" value={String(reputation?.raidsCompleted ?? 0)} />
+      <div className="relative z-10">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-amber-200">
+              Your standing
+            </p>
+            <h2 className="mt-3 text-2xl font-black text-white">
+              Level {reputation?.level ?? 0}
+            </h2>
+          </div>
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-amber-300/18 bg-amber-300/[0.08] text-amber-200">
+            <Crown className="h-5 w-5" />
+          </span>
+        </div>
+        <p className="mt-3 text-sm leading-6 text-slate-400">
+          Your reputation in this project world grows through completed missions, raids and claimed rewards.
+        </p>
+        <div className="mt-4">
+          <ContributionTierBadge tier={reputation?.contributionTier} size="lg" />
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <SmallStat label="XP" value={`${reputation?.xp ?? 0} XP`} valueNode={<XpValue size="md">{`${reputation?.xp ?? 0} XP`}</XpValue>} />
+          <SmallStat label="Rank" value={reputation ? `#${reputation.rank}` : "Pending"} />
+          <SmallStat label="Quests" value={String(reputation?.questsCompleted ?? 0)} />
+          <SmallStat label="Raids" value={String(reputation?.raidsCompleted ?? 0)} />
+        </div>
       </div>
     </div>
   );
