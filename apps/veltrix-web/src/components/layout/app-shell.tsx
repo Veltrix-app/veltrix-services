@@ -541,8 +541,16 @@ export function AppShell({
         <div className="mx-auto max-w-[1720px] px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3 2xl:gap-4">
             <Link href="/home" className="flex shrink-0 items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-[linear-gradient(135deg,rgba(111,249,182,0.16),rgba(116,244,255,0.12))] shadow-[0_16px_50px_rgba(0,0,0,0.3)]">
-                <span className="text-sm font-black uppercase tracking-[0.2em] text-white">V</span>
+              <div className="relative h-11 w-11 overflow-hidden rounded-full border border-violet-300/20 bg-black shadow-[0_16px_50px_rgba(111,76,255,0.24)]">
+                <Image
+                  src="/brand/logo/vyntro-logo.webp"
+                  alt=""
+                  fill
+                  priority
+                  unoptimized
+                  sizes="44px"
+                  className="object-cover"
+                />
               </div>
               <div className="min-w-0">
                 <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-500">VYNTRO</p>

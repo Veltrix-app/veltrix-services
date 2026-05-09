@@ -1,10 +1,10 @@
+import Image from "next/image";
 import Link from "next/link";
 import {
   Activity,
   ArrowRight,
   Bot,
   Compass,
-  Orbit,
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
@@ -79,8 +79,16 @@ export function PublicLaunchSite() {
 
       <header className="relative z-10 mx-auto flex w-full max-w-[1480px] flex-wrap items-center justify-between gap-5 px-6 py-6 sm:px-10 lg:px-16">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/12 bg-[linear-gradient(180deg,rgba(186,255,59,0.28),rgba(255,255,255,0.05))] shadow-[0_16px_40px_rgba(0,0,0,0.28)]">
-            <Orbit className="h-5 w-5 text-lime-200" />
+          <div className="relative h-11 w-11 overflow-hidden rounded-full border border-violet-300/20 bg-black shadow-[0_16px_40px_rgba(111,76,255,0.24)]">
+            <Image
+              src="/brand/logo/vyntro-logo.webp"
+              alt=""
+              fill
+              priority
+              unoptimized
+              sizes="44px"
+              className="object-cover"
+            />
           </div>
           <div>
             <p className="font-display text-[11px] font-bold uppercase tracking-[0.34em] text-lime-300">VYNTRO</p>
