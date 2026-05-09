@@ -8,6 +8,7 @@ export default function ProjectDetailPage() {
       eyebrow="Project"
       title="Project ecosystem detail"
       description="Read the project story, your standing and the live campaign or reward pressure from one calmer member-facing surface."
+      hidePageHeader
     >
       <ProtectedState allowPreview previewLabel="Project preview">
         <ProjectDetailScreen />
