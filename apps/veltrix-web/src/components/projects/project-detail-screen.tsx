@@ -702,6 +702,23 @@ function MissionLaneCard({
       description={quest?.description ?? "Project quests appear here as soon as the world has a clear member objective."}
       ctaLabel={quest ? "Open mission" : "View quests"}
       accent="lime"
+      contentClassName="max-w-[18rem]"
+      mediaLayer={
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -right-16 bottom-[-4.8rem] h-[18.5rem] w-[22rem] sm:-right-20 sm:bottom-[-5.1rem] sm:h-[20rem] sm:w-[24rem]">
+            <Image
+              src="/assets/project-world/mission-lane.webp"
+              alt=""
+              fill
+              unoptimized
+              sizes="384px"
+              className="h-full w-full object-contain opacity-[0.9] drop-shadow-[0_0_42px_rgba(45,212,191,0.22)] [mask-image:linear-gradient(90deg,transparent_0%,black_27%,black_100%)]"
+            />
+          </div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_86%_70%,rgba(45,212,191,0.2),transparent_34%),radial-gradient(circle_at_76%_22%,rgba(190,255,74,0.13),transparent_32%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,12,10,0.97)_0%,rgba(8,12,10,0.88)_45%,rgba(8,12,10,0.5)_72%,rgba(8,12,10,0.24)_100%)]" />
+        </div>
+      }
     >
       <div className="mt-4 grid grid-cols-2 gap-2">
         <SmallStat label="Quests" value={questCount} />
