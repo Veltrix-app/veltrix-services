@@ -39,6 +39,8 @@ import {
 import type { ProjectSwapTokenRegistryEntry } from "@/lib/defi/vyntro-swap";
 import type { ProjectTokenPriceSnapshot } from "@/lib/defi/vyntro-prices";
 import type {
+  LiveCampaign,
+  LiveRaid,
   LiveProject,
   LiveProjectReputation,
   LiveQuest,
@@ -55,6 +57,23 @@ type ProjectShowcaseMarketPayload = {
 type ProjectShowcaseMarketPayloadState = {
   projectId: string;
   payload: ProjectShowcaseMarketPayload;
+};
+
+type PublicProjectPayload = {
+  ok?: boolean;
+  project?: LiveProject;
+  campaigns?: LiveCampaign[];
+  quests?: LiveQuest[];
+  rewards?: LiveReward[];
+  raids?: LiveRaid[];
+  error?: string;
+};
+
+type PublicProjectState = {
+  projectId: string | null;
+  loading: boolean;
+  error: string | null;
+  payload: PublicProjectPayload | null;
 };
 
 function getStatusTone(status: ProjectShowcaseStatus) {
@@ -117,6 +136,10 @@ function shortenMiddle(value: string | null | undefined) {
   return `${value.slice(0, 8)}...${value.slice(-6)}`;
 }
 
+function toBackgroundImage(value: string) {
+  return `url("${value.replaceAll('"', '\\"')}")`;
+}
+
 export function ProjectDetailScreen() {
   const params = useParams<{ id: string }>();
   const projectId = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -134,8 +157,89 @@ export function ProjectDetailScreen() {
   });
   const [marketPayloadState, setMarketPayloadState] =
     useState<ProjectShowcaseMarketPayloadState | null>(null);
+  const [publicProjectState, setPublicProjectState] = useState<PublicProjectState>({
+    projectId: null,
+    loading: true,
+    error: null,
+    payload: null,
+  });
 
-  const project = projects.find((item) => item.id === projectId);
+  useEffect(() => {
+    if (!projectId) {
+      return;
+    }
+
+    const currentProjectId = projectId;
+    let cancelled = false;
+
+    async function loadPublicProject() {
+      const response = await fetch(
+        `/api/public/projects/${encodeURIComponent(currentProjectId)}`,
+        {
+          cache: "no-store",
+        }
+      );
+      const payload = (await response.json().catch(() => null)) as PublicProjectPayload | null;
+
+      if (cancelled) {
+        return;
+      }
+
+      if (!response.ok || !payload?.ok || !payload.project) {
+        setPublicProjectState({
+          projectId: currentProjectId,
+          loading: false,
+          error: payload?.error ?? "Public project could not be loaded.",
+          payload: null,
+        });
+        return;
+      }
+
+      setPublicProjectState({
+        projectId: currentProjectId,
+        loading: false,
+        error: null,
+        payload,
+      });
+    }
+
+    void loadPublicProject().catch((loadError) => {
+      if (cancelled) {
+        return;
+      }
+
+      setPublicProjectState({
+        projectId: currentProjectId,
+        loading: false,
+        error: loadError instanceof Error ? loadError.message : "Public project could not be loaded.",
+        payload: null,
+      });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
+
+  const liveProject = projects.find((item) => item.id === projectId);
+  const publicPayload =
+    publicProjectState.projectId === projectId ? publicProjectState.payload : null;
+  const publicProjectLoading = publicProjectState.projectId !== projectId || publicProjectState.loading;
+  const publicProject = publicPayload?.project ?? null;
+  const project = useMemo(
+    () =>
+      liveProject && publicProject
+        ? {
+            ...liveProject,
+            ...publicProject,
+          }
+        : publicProject ?? liveProject,
+    [liveProject, publicProject]
+  );
+  const showcaseCampaigns = liveProject ? campaigns : (publicPayload?.campaigns ?? campaigns);
+  const showcaseQuests = liveProject ? quests : (publicPayload?.quests ?? quests);
+  const showcaseRewards = liveProject ? rewards : (publicPayload?.rewards ?? rewards);
+  const showcaseRaids = liveProject ? raids : (publicPayload?.raids ?? raids);
   const marketPayload =
     marketPayloadState && marketPayloadState.projectId === project?.id
       ? marketPayloadState.payload
@@ -170,39 +274,44 @@ export function ProjectDetailScreen() {
 
     return buildProjectShowcase({
       project,
-      campaigns,
-      quests,
-      rewards,
-      raids,
+      campaigns: showcaseCampaigns,
+      quests: showcaseQuests,
+      rewards: showcaseRewards,
+      raids: showcaseRaids,
       projectSwapTokens: marketPayload?.projectSwapTokens,
       tokenPrice: marketPayload?.tokenPrice,
       contractScanEnrichment: marketPayload?.contractScanEnrichment,
     });
-  }, [campaigns, marketPayload, project, quests, raids, rewards]);
+  }, [marketPayload, project, showcaseCampaigns, showcaseQuests, showcaseRaids, showcaseRewards]);
   const reputation = projectReputation.find((item) => item.projectId === projectId);
 
-  if (loading) return <Notice tone="default" text="Loading project..." />;
-  if (error) return <Notice tone="error" text={error} />;
+  if (!project && (loading || publicProjectLoading)) {
+    return <Notice tone="default" text="Loading project..." />;
+  }
+  if (!project && error) return <Notice tone="error" text={error} />;
+  if (!project && publicProjectState.error) {
+    return <Notice tone="error" text={publicProjectState.error} />;
+  }
   if (!project || !showcase) return <Notice tone="default" text="Project not found." />;
 
   const projectCampaignIds = new Set(
-    campaigns.filter((campaign) => campaign.projectId === project.id).map((campaign) => campaign.id)
+    showcaseCampaigns.filter((campaign) => campaign.projectId === project.id).map((campaign) => campaign.id)
   );
-  const projectQuests = quests
+  const projectQuests = showcaseQuests
     .filter(
       (quest) =>
         quest.projectId === project.id ||
         (quest.campaignId ? projectCampaignIds.has(quest.campaignId) : false)
     )
     .slice(0, 4);
-  const projectRaids = raids
+  const projectRaids = showcaseRaids
     .filter(
       (raid) =>
         raid.projectId === project.id ||
         (raid.campaignId ? projectCampaignIds.has(raid.campaignId) : false)
     )
     .slice(0, 4);
-  const projectRewards = rewards
+  const projectRewards = showcaseRewards
     .filter(
       (reward) =>
         reward.projectId === project.id ||
@@ -218,13 +327,10 @@ export function ProjectDetailScreen() {
     <div className="space-y-4">
       <section className="motion-surface motion-light-sweep relative overflow-hidden rounded-[34px] border border-white/7 bg-[#05080b] shadow-[0_32px_110px_rgba(0,0,0,0.38)]">
         {showcase.heroImageUrl ? (
-          <ArtworkImage
-            src={showcase.heroImageUrl}
-            alt={project.name}
-            tone="cyan"
-            fallbackLabel="Project world art offline"
-            className="absolute inset-0"
-            imgClassName="h-full w-full object-cover opacity-[0.92] brightness-110 contrast-110 saturate-125"
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-[0.98] brightness-110 contrast-110 saturate-125"
+            style={{ backgroundImage: toBackgroundImage(showcase.heroImageUrl) }}
           />
         ) : null}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_58%_26%,rgba(34,211,238,0.14),transparent_31%),radial-gradient(circle_at_14%_28%,rgba(190,255,74,0.1),transparent_23%),linear-gradient(90deg,rgba(0,0,0,0.78),rgba(0,0,0,0.52)_34%,rgba(0,0,0,0.16)_62%,rgba(0,0,0,0.46)),linear-gradient(180deg,rgba(4,7,10,0.02),rgba(3,5,8,0.68))]" />
