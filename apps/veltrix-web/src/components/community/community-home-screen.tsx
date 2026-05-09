@@ -158,15 +158,15 @@ export function CommunityHomeScreen() {
       <div className="relative space-y-5">
         <section className="motion-surface motion-light-sweep relative min-h-[29rem] overflow-hidden rounded-[34px] border border-white/8 bg-[#05070b] p-4 shadow-[0_34px_118px_rgba(0,0,0,0.42)] sm:p-5 lg:p-6">
           <Image
-            src="/brand/slides/vyntro-community.png"
+            src="/assets/community/community-hero-background.webp"
             alt=""
             fill
             priority
             unoptimized
             sizes="(min-width: 1280px) 1180px, 100vw"
-            className="pointer-events-none object-cover object-center opacity-[0.4] saturate-125 [mask-image:linear-gradient(90deg,transparent_0%,black_30%,black_100%)]"
+            className="pointer-events-none object-cover object-center opacity-[0.88] saturate-125 [mask-image:linear-gradient(90deg,black_0%,black_100%)]"
           />
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_34%,rgba(168,85,247,0.2),transparent_31%),radial-gradient(circle_at_18%_72%,rgba(45,212,191,0.14),transparent_34%),linear-gradient(90deg,rgba(4,7,10,0.98)_0%,rgba(5,8,12,0.92)_43%,rgba(5,6,10,0.64)_76%,rgba(4,5,8,0.48)_100%)]" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(168,85,247,0.12),transparent_32%),radial-gradient(circle_at_18%_74%,rgba(45,212,191,0.13),transparent_34%),linear-gradient(90deg,rgba(4,7,10,0.97)_0%,rgba(5,8,12,0.86)_38%,rgba(5,6,10,0.5)_64%,rgba(4,5,8,0.72)_100%)]" />
           <div className="motion-ambient-grid opacity-[0.16]" />
           <div className="motion-shard-field opacity-75">
             <span />
