@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
@@ -726,6 +727,23 @@ function RewardVaultCard({ reward, rewardCount }: { reward: LiveReward | null; r
       description={reward?.description ?? "Claimable project rewards and vault pressure become visible here."}
       ctaLabel={reward ? "Open reward" : "View rewards"}
       accent="violet"
+      contentClassName="max-w-[18rem]"
+      mediaLayer={
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -right-12 bottom-[-4.2rem] h-[18rem] w-[20rem] sm:-right-14 sm:bottom-[-4.4rem] sm:h-[19.5rem] sm:w-[22rem]">
+            <Image
+              src="/assets/project-world/claim-your-rewards.webp"
+              alt=""
+              fill
+              unoptimized
+              sizes="352px"
+              className="h-full w-full object-contain opacity-[0.88] drop-shadow-[0_0_40px_rgba(45,212,191,0.2)] [mask-image:linear-gradient(90deg,transparent_0%,black_25%,black_100%)]"
+            />
+          </div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_86%_70%,rgba(45,212,191,0.18),transparent_32%),radial-gradient(circle_at_72%_22%,rgba(167,139,250,0.16),transparent_34%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,9,14,0.96)_0%,rgba(8,9,14,0.88)_45%,rgba(8,9,14,0.48)_72%,rgba(8,9,14,0.24)_100%)]" />
+        </div>
+      }
     >
       <div className="mt-4 grid grid-cols-2 gap-2">
         <SmallStat label="Visible" value={rewardCount} />
@@ -1004,6 +1022,8 @@ function WorldFeatureCard({
   description,
   ctaLabel,
   accent,
+  mediaLayer,
+  contentClassName = "",
   children,
 }: {
   href: string;
@@ -1013,6 +1033,8 @@ function WorldFeatureCard({
   description: string;
   ctaLabel: string;
   accent: "lime" | "cyan" | "violet";
+  mediaLayer?: ReactNode;
+  contentClassName?: string;
   children?: ReactNode;
 }) {
   const accents = {
@@ -1023,23 +1045,26 @@ function WorldFeatureCard({
 
   const body = (
     <div
-      className={`motion-card-3d group h-full rounded-[26px] border border-white/7 bg-[radial-gradient(circle_at_top_right,var(--tw-gradient-from),transparent_38%),linear-gradient(180deg,rgba(15,17,22,0.9),rgba(7,8,12,0.95))] p-4 ${accents}`}
+      className={`motion-card-3d group relative h-full overflow-hidden rounded-[26px] border border-white/7 bg-[radial-gradient(circle_at_top_right,var(--tw-gradient-from),transparent_38%),linear-gradient(180deg,rgba(15,17,22,0.9),rgba(7,8,12,0.95))] p-4 ${accents}`}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[10px] font-black uppercase tracking-[0.24em]">{eyebrow}</p>
-          <h2 className="mt-3 line-clamp-2 text-2xl font-black text-white">{title}</h2>
+      {mediaLayer}
+      <div className={`relative z-10 ${contentClassName}`}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-[0.24em]">{eyebrow}</p>
+            <h2 className="mt-3 line-clamp-2 text-2xl font-black text-white">{title}</h2>
+          </div>
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border bg-white/[0.045]">
+            {icon}
+          </span>
         </div>
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border bg-white/[0.045]">
-          {icon}
+        <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-400">{description}</p>
+        {children}
+        <span className="mt-5 inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.14em] text-white">
+          {ctaLabel}
+          <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
         </span>
       </div>
-      <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-400">{description}</p>
-      {children}
-      <span className="mt-5 inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.14em] text-white">
-        {ctaLabel}
-        <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
-      </span>
     </div>
   );
 
