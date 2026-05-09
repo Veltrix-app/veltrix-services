@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowRight, BadgeCheck, Flame, RefreshCw, ShieldCheck, WalletCards, Zap } from "lucide-react";
@@ -94,6 +95,20 @@ export function XpCockpitScreen() {
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="relative overflow-hidden rounded-[30px] border border-white/6 bg-[radial-gradient(circle_at_15%_0%,rgba(190,255,74,0.15),transparent_26%),radial-gradient(circle_at_82%_14%,rgba(74,217,255,0.13),transparent_30%),linear-gradient(180deg,rgba(13,15,19,0.99),rgba(6,7,10,0.995))] p-5 shadow-[0_24px_90px_rgba(0,0,0,0.36)] sm:p-6">
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.035),transparent_34%)]" />
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div className="absolute -right-32 bottom-[-5.5rem] h-[27rem] w-[39rem] sm:-right-20 sm:bottom-[-6.5rem] sm:h-[34rem] sm:w-[48rem]">
+              <Image
+                src="/assets/xp/xp-economy.webp"
+                alt=""
+                fill
+                unoptimized
+                sizes="(min-width: 1280px) 760px, (min-width: 640px) 620px, 420px"
+                className="h-full w-full object-contain opacity-[0.94] drop-shadow-[0_0_58px_rgba(34,197,94,0.26)] [mask-image:linear-gradient(90deg,transparent_0%,black_20%,black_100%)]"
+              />
+            </div>
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_77%_54%,rgba(34,197,94,0.2),transparent_32%),radial-gradient(circle_at_91%_22%,rgba(45,212,191,0.13),transparent_28%),radial-gradient(circle_at_86%_90%,rgba(168,85,247,0.16),transparent_28%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,9,12,0.99)_0%,rgba(7,9,12,0.94)_44%,rgba(7,9,12,0.6)_72%,rgba(7,9,12,0.18)_100%)]" />
+          </div>
           <div className="relative z-10 flex flex-wrap items-start justify-between gap-4">
             <div className="max-w-4xl">
               <p className="text-[10px] font-black uppercase tracking-[0.28em] text-lime-300">
