@@ -5,6 +5,14 @@ import { getLootboxOpenAvailability } from "@/components/lootboxes/lootbox-card-
 
 const LOOTBOX_SHARD_PILE_SRC = "/assets/lootboxes/shards-pile.webp";
 
+const LOOTBOX_BACKGROUND_BY_TIER: Record<string, string> = {
+  common: "/assets/lootboxes/common-background.webp",
+  rare: "/assets/lootboxes/rare-background.webp",
+  epic: "/assets/lootboxes/epic-background.webp",
+  legendary: "/assets/lootboxes/legendary-background.webp",
+  mythic: "/assets/lootboxes/mythic-background.webp",
+};
+
 export function LootboxCard({
   tier,
   busy,
@@ -37,9 +45,20 @@ export function LootboxCard({
     shardBalance,
     eligibility: tier.eligibility,
   });
+  const backgroundSrc = LOOTBOX_BACKGROUND_BY_TIER[tier.id] ?? LOOTBOX_BACKGROUND_BY_TIER.common;
 
   return (
     <article className="motion-surface motion-3d-card motion-light-sweep group relative overflow-hidden rounded-[24px] border border-white/8 bg-[linear-gradient(180deg,rgba(15,18,24,0.98),rgba(6,8,12,0.99))] p-4 shadow-[0_18px_54px_rgba(0,0,0,0.24)] transition duration-300 hover:border-emerald-300/18">
+      <Image
+        src={backgroundSrc}
+        alt=""
+        fill
+        unoptimized
+        sizes="(min-width: 1280px) 20vw, (min-width: 768px) 40vw, 92vw"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.48] saturate-[1.12] transition duration-500 group-hover:scale-[1.04] group-hover:opacity-[0.58]"
+      />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(5,7,12,0.72)_0%,rgba(5,7,12,0.46)_34%,rgba(5,7,12,0.78)_70%,rgba(5,7,12,0.96)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_34%,rgba(16,185,129,0.13),transparent_30%),linear-gradient(90deg,rgba(5,7,12,0.54)_0%,transparent_44%,rgba(5,7,12,0.46)_100%)]" />
       <div className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-emerald-200/20 to-transparent" />
       <div className="relative z-10 flex items-start justify-between gap-3">
         <div className="min-w-0">
