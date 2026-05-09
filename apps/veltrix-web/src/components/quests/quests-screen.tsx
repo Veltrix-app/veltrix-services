@@ -215,14 +215,14 @@ export function QuestsScreen() {
         ) : error ? (
           <EmptyNotice text={error} tone="error" />
         ) : spotlightQuests.length > 0 ? (
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_repeat(2,minmax(18rem,0.85fr))]">
+          <div className="grid gap-3.5 xl:grid-cols-[minmax(0,1.5fr)_repeat(2,minmax(0,1fr))]">
             {spotlightQuests.map((quest, index) => (
               <Link
                 key={quest.id}
                 href={`/quests/${quest.id}`}
                 prefetch={false}
                 className={`motion-surface motion-3d-card motion-light-sweep group relative overflow-hidden rounded-[28px] border border-white/8 bg-[radial-gradient(circle_at_18%_0%,rgba(34,211,238,0.12),transparent_30%),linear-gradient(180deg,rgba(18,21,27,0.98),rgba(7,9,14,0.99))] shadow-[0_24px_74px_rgba(0,0,0,0.34)] transition hover:border-cyan-300/24 ${
-                  index === 0 ? "min-h-[320px] p-5 sm:p-6" : "min-h-[320px] p-4 sm:p-5"
+                  index === 0 ? "min-h-[248px] p-4 sm:p-5" : "min-h-[208px] p-3.5 sm:p-4"
                 }`}
                 >
                 <div className="motion-ambient-grid opacity-[0.13]" />
@@ -261,17 +261,17 @@ export function QuestsScreen() {
                   </div>
 
                   <h3
-                    className={`font-black leading-tight tracking-[-0.035em] text-white ${
-                      index === 0 ? "mt-8 text-[1.85rem]" : "mt-7 text-[1.35rem]"
+                    className={`font-semibold leading-6 text-white ${
+                      index === 0 ? "mt-7 text-[1.08rem]" : "mt-5 text-[0.94rem]"
                     }`}
                   >
                     {quest.title}
                   </h3>
-                  <p className="mt-3 line-clamp-3 text-[13px] leading-6 text-slate-300">
+                  <p className="mt-2.5 line-clamp-2 text-[12px] leading-5 text-slate-300">
                     {quest.description || "Mission lane with live verification pressure and a direct route into action."}
                   </p>
 
-                  <div className="mt-5 flex flex-wrap gap-1.5">
+                  <div className="mt-4 flex flex-wrap gap-1.5">
                     <MetricPill label="XP" value={String(quest.xp)} />
                     {quest.shardPool ? <ShardBoostPill pool={quest.shardPool} /> : null}
                     <MetricPill label="Mode" value={quest.completionMode ?? "manual"} />
@@ -308,19 +308,19 @@ export function QuestsScreen() {
         ) : error ? (
           <EmptyNotice text={error} tone="error" />
         ) : filteredQuests.length > 0 ? (
-          <div className="grid gap-3.5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-6">
             {filteredQuests.map((quest) => (
               <Link
                 key={quest.id}
                 href={`/quests/${quest.id}`}
                 prefetch={false}
-                className="motion-surface motion-3d-card motion-light-sweep group relative min-h-[18rem] overflow-hidden rounded-[24px] border border-white/8 bg-[radial-gradient(circle_at_15%_0%,rgba(34,211,238,0.09),transparent_28%),linear-gradient(180deg,rgba(15,18,23,0.98),rgba(6,8,12,0.99))] p-4 shadow-[0_18px_58px_rgba(0,0,0,0.24)] transition hover:border-cyan-300/18"
+                className="motion-surface motion-3d-card motion-light-sweep group relative min-h-[14.5rem] overflow-hidden rounded-[22px] border border-white/8 bg-[radial-gradient(circle_at_15%_0%,rgba(34,211,238,0.08),transparent_28%),linear-gradient(180deg,rgba(15,18,23,0.98),rgba(6,8,12,0.99))] p-3.5 shadow-[0_16px_46px_rgba(0,0,0,0.22)] transition hover:border-cyan-300/18"
               >
                 <FeatureBadgeMark
                   badge="quest"
-                  className="absolute -right-5 bottom-6 h-28 w-28 opacity-[0.16] mix-blend-screen transition duration-300 group-hover:opacity-[0.24]"
+                  className="absolute -right-4 bottom-4 h-20 w-20 opacity-[0.14] mix-blend-screen transition duration-300 group-hover:opacity-[0.22]"
                   imageClassName="rotate-[8deg]"
-                  sizes="112px"
+                  sizes="80px"
                 />
                 <div className="relative z-10 flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -330,17 +330,15 @@ export function QuestsScreen() {
                 </div>
 
                 <div className="relative z-10 mt-3 min-w-0">
-                  <p className="line-clamp-2 text-[1.12rem] font-black leading-tight tracking-[-0.03em] text-white">{quest.title}</p>
+                  <p className="truncate text-[0.94rem] font-semibold text-white">{quest.title}</p>
                   <p className="mt-2 truncate text-[10px] uppercase tracking-[0.16em] text-slate-500">
                     {quest.projectName}
                   </p>
                 </div>
 
-                <div className="relative z-10 mt-4 rounded-[16px] border border-white/8 bg-black/20 px-3 py-2 text-[11px] text-slate-400">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="truncate">{quest.campaignTitle}</span>
-                    <span className="shrink-0 text-slate-300">{quest.rewardCount} rewards</span>
-                  </div>
+                <div className="relative z-10 mt-3 flex items-center justify-between gap-3 text-[11px] text-slate-500">
+                  <span className="truncate">{quest.campaignTitle}</span>
+                  <span>{quest.rewardCount} rewards</span>
                 </div>
 
                 <div className="relative z-10 mt-4 flex flex-wrap gap-1.5">
