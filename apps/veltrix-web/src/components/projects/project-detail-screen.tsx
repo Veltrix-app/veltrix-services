@@ -224,11 +224,11 @@ export function ProjectDetailScreen() {
             tone="cyan"
             fallbackLabel="Project world art offline"
             className="absolute inset-0"
-            imgClassName="h-full w-full object-cover opacity-[0.72] saturate-125"
+            imgClassName="h-full w-full object-cover opacity-[0.92] brightness-110 contrast-110 saturate-125"
           />
         ) : null}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_54%_26%,rgba(34,211,238,0.22),transparent_28%),radial-gradient(circle_at_14%_28%,rgba(190,255,74,0.13),transparent_24%),linear-gradient(90deg,rgba(0,0,0,0.95),rgba(0,0,0,0.72)_38%,rgba(0,0,0,0.26)_70%,rgba(0,0,0,0.74)),linear-gradient(180deg,rgba(4,7,10,0.12),rgba(3,5,8,0.96))]" />
-        <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#050608] to-transparent" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_58%_26%,rgba(34,211,238,0.14),transparent_31%),radial-gradient(circle_at_14%_28%,rgba(190,255,74,0.1),transparent_23%),linear-gradient(90deg,rgba(0,0,0,0.78),rgba(0,0,0,0.52)_34%,rgba(0,0,0,0.16)_62%,rgba(0,0,0,0.46)),linear-gradient(180deg,rgba(4,7,10,0.02),rgba(3,5,8,0.68))]" />
+        <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-[#050608] to-transparent" />
 
         <div className="relative z-10 grid min-h-[620px] gap-6 p-5 sm:p-7 xl:grid-cols-[minmax(0,1fr)_410px] xl:items-end">
           <div className="max-w-4xl self-end pb-2">
