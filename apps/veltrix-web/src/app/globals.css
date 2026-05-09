@@ -75,6 +75,8 @@ body::before {
   inset: -14%;
   z-index: 0;
   pointer-events: none;
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
 }
 
 .vyntro-shell-background::before {
@@ -101,7 +103,8 @@ body::before {
     180% 180%;
   mask-image: radial-gradient(circle at 50% 22%, black, transparent 90%);
   opacity: 0.66;
-  animation: vyntro-shell-grid-drift 34s linear infinite;
+  will-change: transform;
+  animation: vyntro-shell-grid-drift 52s ease-in-out infinite alternate;
 }
 
 .vyntro-shell-background::after {
@@ -119,7 +122,8 @@ body::before {
     100% 100%;
   mix-blend-mode: soft-light;
   opacity: 0.22;
-  animation: vyntro-texture-shift 8s steps(2, end) infinite;
+  will-change: transform;
+  animation: vyntro-texture-shift 18s ease-in-out infinite;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -551,32 +555,11 @@ body::before {
 }
 
 @keyframes vyntro-shell-grid-drift {
-  0% {
-    background-position:
-      0 0,
-      0 0,
-      0 0,
-      0 0,
-      0 0,
-      -90% -90%;
+  from {
+    transform: translate3d(-24px, -18px, 0);
   }
-  50% {
-    background-position:
-      43px 43px,
-      -43px 43px,
-      1.8% -1.2%,
-      -1.4% 1.8%,
-      0.8% 1.4%,
-      12% 12%;
-  }
-  100% {
-    background-position:
-      86px 86px,
-      -86px 86px,
-      0 0,
-      0 0,
-      0 0,
-      112% 112%;
+  to {
+    transform: translate3d(24px, 18px, 0);
   }
 }
 
@@ -585,14 +568,11 @@ body::before {
   100% {
     transform: translate3d(0, 0, 0);
   }
-  25% {
-    transform: translate3d(1px, -1px, 0);
+  33% {
+    transform: translate3d(1.5px, -1px, 0);
   }
-  50% {
-    transform: translate3d(-1px, 1px, 0);
-  }
-  75% {
-    transform: translate3d(1px, 1px, 0);
+  66% {
+    transform: translate3d(-1.2px, 1.4px, 0);
   }
 }
 
