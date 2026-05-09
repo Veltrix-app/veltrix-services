@@ -28,10 +28,12 @@ export function FeatureBadgeMark({
   priority?: boolean;
   sizes?: string;
 }) {
+  const hasPositionUtility = /\b(?:absolute|relative|fixed|sticky)\b/.test(className);
+
   return (
     <span
       aria-hidden="true"
-      className={`pointer-events-none relative inline-flex shrink-0 ${className}`}
+      className={`pointer-events-none inline-flex shrink-0 ${hasPositionUtility ? "" : "relative"} ${className}`}
     >
       <Image
         src={featureBadgeAssets[badge]}
