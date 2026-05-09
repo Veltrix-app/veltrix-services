@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
@@ -20,6 +21,11 @@ function getQuestTone(status: string) {
   if (status === "pending") return "warning";
   if (status === "rejected") return "danger";
   return "info";
+}
+
+function getQuestStatusLabel(status: string) {
+  if (status === "open") return "active";
+  return status;
 }
 
 export function QuestsScreen() {
@@ -47,6 +53,7 @@ export function QuestsScreen() {
           ...quest,
           campaignTitle: linkedCampaign?.title ?? "Mission lane",
           projectName: linkedProject?.name ?? "Project",
+          projectLogo: linkedProject?.logo ?? null,
           campaignFeatured: linkedCampaign?.featured ?? false,
           imageUrl: linkedCampaign?.bannerUrl ?? linkedCampaign?.thumbnailUrl ?? linkedProject?.bannerUrl ?? null,
           rewardCount,
@@ -178,14 +185,6 @@ export function QuestsScreen() {
                   <span />
                   <span />
                 </div>
-                <FeatureBadgeMark
-                  badge="quest"
-                  className={`motion-soft-float absolute right-3 top-12 h-20 w-20 opacity-[0.26] mix-blend-screen transition duration-300 group-hover:opacity-[0.42] ${
-                    index === 0 ? "sm:h-28 sm:w-28" : ""
-                  }`}
-                  imageClassName="rotate-[10deg]"
-                  sizes="112px"
-                />
                 {quest.campaignFeatured && quest.imageUrl ? (
                   <>
                     <ArtworkImage
@@ -203,16 +202,21 @@ export function QuestsScreen() {
 
                 <div className="relative z-10 flex h-full flex-col">
                   <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="flex flex-wrap gap-2">
-                      <CardPill>{quest.projectName}</CardPill>
-                      <CardPill>{quest.campaignTitle}</CardPill>
+                    <div className="flex min-w-0 items-start gap-2.5">
+                      <ProjectLogoMark name={quest.projectName} logo={quest.projectLogo} size={index === 0 ? "lg" : "md"} />
+                      <div className="min-w-0 pt-1">
+                        <CardPill>{quest.projectName}</CardPill>
+                        <p className="mt-2 max-w-[16rem] truncate text-[9px] font-bold uppercase tracking-[0.16em] text-slate-500">
+                          {quest.campaignTitle}
+                        </p>
+                      </div>
                     </div>
-                    <StatusChip label={quest.status} tone={getQuestTone(quest.status)} />
+                    <QuestStatusMark status={quest.status} prominent={index === 0} />
                   </div>
 
                   <h3
                     className={`font-semibold leading-6 text-white ${
-                      index === 0 ? "mt-6 text-[1.08rem]" : "mt-5 text-[0.94rem]"
+                      index === 0 ? "mt-7 text-[1.08rem]" : "mt-5 text-[0.94rem]"
                     }`}
                   >
                     {quest.title}
@@ -266,20 +270,18 @@ export function QuestsScreen() {
                 prefetch={false}
                 className="motion-surface motion-3d-card motion-light-sweep group relative overflow-hidden rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(7,9,12,0.98))] p-3.5 transition hover:border-cyan-300/16 hover:bg-[linear-gradient(180deg,rgba(15,19,22,0.98),rgba(8,10,13,0.98))]"
               >
-                <FeatureBadgeMark
-                  badge="quest"
-                  className="absolute -right-2 top-10 h-16 w-16 opacity-[0.18] mix-blend-screen transition duration-300 group-hover:opacity-[0.34]"
-                  imageClassName="rotate-[12deg]"
-                  sizes="72px"
-                />
                 <div className="relative z-10 flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="truncate text-[0.94rem] font-semibold text-white">{quest.title}</p>
-                    <p className="mt-2 truncate text-[10px] uppercase tracking-[0.16em] text-slate-500">
-                      {quest.projectName}
-                    </p>
+                    <ProjectLogoMark name={quest.projectName} logo={quest.projectLogo} />
                   </div>
-                  <StatusChip label={quest.status} tone={getQuestTone(quest.status)} />
+                  <QuestStatusMark status={quest.status} compact />
+                </div>
+
+                <div className="relative z-10 mt-3 min-w-0">
+                  <p className="truncate text-[0.94rem] font-semibold text-white">{quest.title}</p>
+                  <p className="mt-2 truncate text-[10px] uppercase tracking-[0.16em] text-slate-500">
+                    {quest.projectName}
+                  </p>
                 </div>
 
                 <div className="relative z-10 mt-3 flex items-center justify-between gap-3 text-[11px] text-slate-500">
@@ -310,6 +312,72 @@ export function QuestsScreen() {
         )}
       </section>
     </div>
+  );
+}
+
+function QuestStatusMark({
+  status,
+  compact = false,
+  prominent = false,
+}: {
+  status: string;
+  compact?: boolean;
+  prominent?: boolean;
+}) {
+  return (
+    <div className="flex shrink-0 flex-col items-end gap-1.5">
+      <FeatureBadgeMark
+        badge="quest"
+        className={`motion-soft-float opacity-[0.92] mix-blend-screen transition duration-300 group-hover:opacity-100 ${
+          compact ? "h-11 w-11" : prominent ? "h-16 w-16" : "h-[52px] w-[52px]"
+        }`}
+        imageClassName="rotate-[8deg]"
+        sizes={compact ? "44px" : prominent ? "64px" : "52px"}
+      />
+      <StatusChip label={getQuestStatusLabel(status)} tone={getQuestTone(status)} />
+    </div>
+  );
+}
+
+function ProjectLogoMark({
+  name,
+  logo,
+  size = "md",
+}: {
+  name: string;
+  logo: string | null;
+  size?: "md" | "lg";
+}) {
+  const [failed, setFailed] = useState(false);
+  const initial = name.trim().slice(0, 1).toUpperCase() || "V";
+  const dimension = size === "lg" ? "h-[52px] w-[52px] rounded-[18px]" : "h-11 w-11 rounded-2xl";
+  const textSize = size === "lg" ? "text-base" : "text-sm";
+  const logoSource = logo?.trim() ?? "";
+  const showLogo =
+    !failed &&
+    (logoSource.startsWith("/") ||
+      logoSource.startsWith("http://") ||
+      logoSource.startsWith("https://") ||
+      logoSource.startsWith("data:image/"));
+
+  return (
+    <span
+      className={`relative inline-flex shrink-0 items-center justify-center overflow-hidden border border-white/10 bg-[radial-gradient(circle_at_35%_22%,rgba(255,255,255,0.12),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.075),rgba(255,255,255,0.025))] shadow-[0_14px_34px_rgba(0,0,0,0.22)] ${dimension}`}
+    >
+      {showLogo ? (
+        <Image
+          src={logoSource}
+          alt={`${name} logo`}
+          fill
+          unoptimized
+          sizes={size === "lg" ? "52px" : "44px"}
+          className="object-cover"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <span className={`font-black text-white ${textSize}`}>{initial}</span>
+      )}
+    </span>
   );
 }
 
