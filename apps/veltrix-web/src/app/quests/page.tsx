@@ -6,8 +6,8 @@ export default function QuestsPage() {
   return (
     <AppShell
       eyebrow="Quests"
-      title="Mission board"
-      description="Scan quest lanes quickly from a compact grid with featured spotlights at the top."
+      title="Mission command"
+      description="Find active quest lanes, boosted shard routes and reward-linked missions from one premium board."
     >
       <ProtectedState allowPreview previewLabel="Quest preview">
         <QuestsScreen />

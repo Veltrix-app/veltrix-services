@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Flame, Search, ShieldCheck, Sparkles, Target, Trophy } from "lucide-react";
 import { ArtworkImage } from "@/components/ui/artwork-image";
 import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 import { ShardBadge } from "@/components/ui/shard-badge";
@@ -95,73 +95,119 @@ export function QuestsScreen() {
   const openCount = enrichedQuests.filter((quest) => quest.status !== "approved").length;
   const pendingCount = enrichedQuests.filter((quest) => quest.status === "pending").length;
   const rewardLinkedCount = enrichedQuests.filter((quest) => quest.rewardCount > 0).length;
+  const shardBoostCount = enrichedQuests.filter((quest) => quest.shardPool).length;
+  const featuredCount = enrichedQuests.filter((quest) => quest.campaignFeatured).length;
+  const availableXp = enrichedQuests
+    .filter((quest) => quest.status !== "approved")
+    .reduce((total, quest) => total + quest.xp, 0);
+  const priorityQuest = spotlightQuests[0] ?? enrichedQuests[0] ?? null;
 
   return (
-    <div className="space-y-7">
-      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.42fr)_300px]">
-        <div className="relative overflow-hidden rounded-[22px] border border-white/6 bg-[radial-gradient(circle_at_top_left,rgba(74,217,255,0.12),transparent_26%),linear-gradient(180deg,rgba(13,15,18,0.99),rgba(6,8,11,0.99))] p-4 shadow-[0_20px_54px_rgba(0,0,0,0.24)]">
+    <div className="space-y-6">
+      <section className="motion-light-sweep relative overflow-hidden rounded-[34px] border border-white/8 bg-[linear-gradient(180deg,rgba(13,17,24,0.99),rgba(5,7,11,0.99))] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.38)] sm:p-6">
+        <Image
+          src="/assets/public-home/quest-pressure.webp"
+          alt=""
+          fill
+          priority
+          unoptimized
+          sizes="100vw"
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover object-[50%_58%] opacity-[0.31] saturate-[1.12]"
+        />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_10%,rgba(34,211,238,0.2),transparent_28%),radial-gradient(circle_at_80%_16%,rgba(168,85,247,0.22),transparent_30%),linear-gradient(90deg,rgba(4,6,10,0.96)_0%,rgba(4,6,10,0.78)_50%,rgba(4,6,10,0.38)_100%)]" />
+        <div className="motion-ambient-grid opacity-[0.16]" />
+        <div className="motion-shard-field">
+          <span />
+          <span />
+          <span />
+        </div>
         <FeatureBadgeMark
           badge="quest"
-          className="absolute right-4 top-3 h-32 w-32 opacity-[0.24] mix-blend-screen sm:h-40 sm:w-40"
+          className="absolute -right-4 bottom-0 h-44 w-44 opacity-[0.42] mix-blend-screen sm:h-64 sm:w-64 xl:right-10"
           imageClassName="rotate-[8deg]"
-          sizes="160px"
+          priority
+          sizes="256px"
         />
-        <div className="relative z-10 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-cyan-300">Quest lanes</p>
-            <h2 className="mt-2.5 text-[1rem] font-semibold tracking-[-0.03em] text-white sm:text-[1.12rem]">
-              Spotlight the missions that matter, then scan the rest fast
-            </h2>
-            <p className="mt-1.5 max-w-3xl text-[12px] leading-5 text-slate-400">
-              Featured quests stay visual. Everything else stays dense, dark and easy to scan.
+
+        <div className="relative z-10 grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-end">
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-[0.26em] text-cyan-200">
+              Mission command
             </p>
+            <h2 className="mt-4 max-w-4xl text-[2.15rem] font-black leading-[0.96] tracking-[-0.06em] text-white sm:text-[3.2rem] lg:text-[4rem]">
+              Find the next quest worth doing.
+            </h2>
+            <p className="mt-4 max-w-2xl text-[13px] leading-6 text-slate-300 sm:text-sm">
+              Scan active missions, boosted shard lanes, XP pressure and reward-linked tasks from one premium board.
+            </p>
+
+            <div className="mt-6 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+              <label className="flex min-h-12 items-center gap-3 rounded-full border border-white/10 bg-black/30 px-4 py-2 shadow-[0_16px_44px_rgba(0,0,0,0.22)] backdrop-blur-xl">
+                <Search className="h-4 w-4 shrink-0 text-cyan-100/70" />
+                <input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Quest, project or mission lane..."
+                  className="w-full bg-transparent text-[13px] font-semibold text-white outline-none placeholder:text-slate-500"
+                />
+              </label>
+
+              <div className="flex flex-wrap gap-2">
+                <FilterButton active={filter === "all"} onClick={() => setFilter("all")} label="All" />
+                <FilterButton active={filter === "open"} onClick={() => setFilter("open")} label="Open" />
+                <FilterButton active={filter === "high-xp"} onClick={() => setFilter("high-xp")} label="High XP" />
+              </div>
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <BoardStat label="Open quests" value={String(openCount)} />
-            <BoardStat label="Pending" value={String(pendingCount)} />
-            <BoardStat label="Reward-linked" value={String(rewardLinkedCount)} />
+          <div className="rounded-[24px] border border-white/10 bg-black/34 p-4 shadow-[0_22px_70px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">
+                  Priority lane
+                </p>
+                <p className="mt-2 line-clamp-2 text-[1.35rem] font-black leading-tight tracking-[-0.04em] text-white">
+                  {priorityQuest?.title ?? "Quest lane forming"}
+                </p>
+              </div>
+              <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cyan-300/18 bg-cyan-300/[0.075] text-cyan-100">
+                <Target className="h-5 w-5" />
+              </span>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <SignalCard label="Open" value={String(openCount)} meta="missions" icon={<Flame className="h-3.5 w-3.5" />} />
+              <SignalCard label="XP" value={String(availableXp)} meta="available" icon={<Sparkles className="h-3.5 w-3.5" />} />
+              <SignalCard label="Rewards" value={String(rewardLinkedCount)} meta="linked" icon={<Trophy className="h-3.5 w-3.5" />} />
+              <SignalCard label="Shards" value={String(shardBoostCount)} meta="boosted" icon={<ShieldCheck className="h-3.5 w-3.5" />} />
+            </div>
+
+            {priorityQuest ? (
+              <Link
+                href={`/quests/${priorityQuest.id}`}
+                prefetch={false}
+                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-cyan-200 px-4 py-3 text-[11px] font-black uppercase tracking-[0.15em] text-black transition hover:brightness-110"
+              >
+                Open priority quest
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            ) : null}
           </div>
         </div>
+      </section>
 
-        <div className="relative z-10 mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
-          <label className="flex items-center gap-3 rounded-full border border-white/8 bg-white/[0.03] px-4 py-2">
-            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">Find</span>
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Quest, project or mission lane..."
-              className="w-full bg-transparent text-[13px] text-white outline-none placeholder:text-slate-500"
-            />
-          </label>
-
-          <div className="flex flex-wrap gap-2">
-            <FilterButton active={filter === "all"} onClick={() => setFilter("all")} label="All" />
-            <FilterButton active={filter === "open"} onClick={() => setFilter("open")} label="Open" />
-            <FilterButton active={filter === "high-xp"} onClick={() => setFilter("high-xp")} label="High XP" />
-          </div>
-        </div>
-        </div>
-
-        <div className="rounded-[22px] border border-white/6 bg-[radial-gradient(circle_at_bottom_right,rgba(74,217,255,0.12),transparent_28%),linear-gradient(180deg,rgba(13,14,18,0.98),rgba(8,9,12,0.98))] p-4">
-          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-400">Mission signal</p>
-          <p className="mt-2.5 text-[1rem] font-semibold tracking-[-0.02em] text-white">
-            Quest pressure
-          </p>
-
-          <div className="mt-4 space-y-2.5">
-            <SignalCard label="Open now" value={String(openCount)} meta="active missions" />
-            <SignalCard label="Pending" value={String(pendingCount)} meta="needs review" />
-            <SignalCard label="Reward linked" value={String(rewardLinkedCount)} meta="payout-ready" />
-          </div>
-        </div>
+      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <BoardStat label="Featured lanes" value={String(featuredCount)} detail="visual campaign pressure" />
+        <BoardStat label="Open missions" value={String(openCount)} detail="not approved yet" />
+        <BoardStat label="Pending review" value={String(pendingCount)} detail="waiting signal" />
+        <BoardStat label="Shard boosts" value={String(shardBoostCount)} detail="sponsored pools" />
       </section>
 
       <section className="space-y-4">
         <SectionHeading
           eyebrow="Spotlights"
-          title="Featured quests"
-          description="Only the top mission spotlights carry imagery, so the rest of the board can stay dense and calm."
+          title="Featured mission lanes"
+          description="The top quests get the visual treatment first, so members understand where momentum and rewards are most active."
         />
 
         {loading ? (
@@ -169,14 +215,14 @@ export function QuestsScreen() {
         ) : error ? (
           <EmptyNotice text={error} tone="error" />
         ) : spotlightQuests.length > 0 ? (
-          <div className="grid gap-3.5 xl:grid-cols-[minmax(0,1.5fr)_repeat(2,minmax(0,1fr))]">
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_repeat(2,minmax(18rem,0.85fr))]">
             {spotlightQuests.map((quest, index) => (
               <Link
                 key={quest.id}
                 href={`/quests/${quest.id}`}
                 prefetch={false}
-                className={`motion-surface motion-3d-card motion-light-sweep group relative overflow-hidden rounded-[26px] border border-white/6 bg-[linear-gradient(180deg,rgba(18,20,24,0.98),rgba(9,11,15,0.98))] shadow-[0_20px_56px_rgba(0,0,0,0.32)] transition hover:border-cyan-300/18 ${
-                  index === 0 ? "min-h-[248px] p-4.5 sm:p-5" : "min-h-[208px] p-3.5 sm:p-4"
+                className={`motion-surface motion-3d-card motion-light-sweep group relative overflow-hidden rounded-[28px] border border-white/8 bg-[radial-gradient(circle_at_18%_0%,rgba(34,211,238,0.12),transparent_30%),linear-gradient(180deg,rgba(18,21,27,0.98),rgba(7,9,14,0.99))] shadow-[0_24px_74px_rgba(0,0,0,0.34)] transition hover:border-cyan-300/24 ${
+                  index === 0 ? "min-h-[320px] p-5 sm:p-6" : "min-h-[320px] p-4 sm:p-5"
                 }`}
                 >
                 <div className="motion-ambient-grid opacity-[0.13]" />
@@ -195,7 +241,7 @@ export function QuestsScreen() {
                       className="absolute inset-0"
                       imgClassName="h-full w-full object-cover opacity-28"
                     />
-                    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,7,11,0.18),rgba(5,7,11,0.92)_56%,rgba(5,7,11,0.98))]" />
+                    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,7,11,0.28),rgba(5,7,11,0.82)_48%,rgba(5,7,11,0.98))]" />
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(74,217,255,0.18),transparent_34%)]" />
                   </>
                 ) : null}
@@ -215,17 +261,17 @@ export function QuestsScreen() {
                   </div>
 
                   <h3
-                    className={`font-semibold leading-6 text-white ${
-                      index === 0 ? "mt-7 text-[1.08rem]" : "mt-5 text-[0.94rem]"
+                    className={`font-black leading-tight tracking-[-0.035em] text-white ${
+                      index === 0 ? "mt-8 text-[1.85rem]" : "mt-7 text-[1.35rem]"
                     }`}
                   >
                     {quest.title}
                   </h3>
-                  <p className="mt-2.5 line-clamp-2 text-[12px] leading-5 text-slate-300">
+                  <p className="mt-3 line-clamp-3 text-[13px] leading-6 text-slate-300">
                     {quest.description || "Mission lane with live verification pressure and a direct route into action."}
                   </p>
 
-                  <div className="mt-4 flex flex-wrap gap-1.5">
+                  <div className="mt-5 flex flex-wrap gap-1.5">
                     <MetricPill label="XP" value={String(quest.xp)} />
                     {quest.shardPool ? <ShardBoostPill pool={quest.shardPool} /> : null}
                     <MetricPill label="Mode" value={quest.completionMode ?? "manual"} />
@@ -254,7 +300,7 @@ export function QuestsScreen() {
         <SectionHeading
           eyebrow="Grid"
           title="All quests"
-          description="Below the spotlight row, the quest board stays text-first and dense so you can scan more missions at once."
+          description="A cleaner mission grid for fast scanning: logo first, quest state top-right, reward context below."
         />
 
         {loading ? (
@@ -262,14 +308,20 @@ export function QuestsScreen() {
         ) : error ? (
           <EmptyNotice text={error} tone="error" />
         ) : filteredQuests.length > 0 ? (
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-6">
+          <div className="grid gap-3.5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
             {filteredQuests.map((quest) => (
               <Link
                 key={quest.id}
                 href={`/quests/${quest.id}`}
                 prefetch={false}
-                className="motion-surface motion-3d-card motion-light-sweep group relative overflow-hidden rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(7,9,12,0.98))] p-3.5 transition hover:border-cyan-300/16 hover:bg-[linear-gradient(180deg,rgba(15,19,22,0.98),rgba(8,10,13,0.98))]"
+                className="motion-surface motion-3d-card motion-light-sweep group relative min-h-[18rem] overflow-hidden rounded-[24px] border border-white/8 bg-[radial-gradient(circle_at_15%_0%,rgba(34,211,238,0.09),transparent_28%),linear-gradient(180deg,rgba(15,18,23,0.98),rgba(6,8,12,0.99))] p-4 shadow-[0_18px_58px_rgba(0,0,0,0.24)] transition hover:border-cyan-300/18"
               >
+                <FeatureBadgeMark
+                  badge="quest"
+                  className="absolute -right-5 bottom-6 h-28 w-28 opacity-[0.16] mix-blend-screen transition duration-300 group-hover:opacity-[0.24]"
+                  imageClassName="rotate-[8deg]"
+                  sizes="112px"
+                />
                 <div className="relative z-10 flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <ProjectLogoMark name={quest.projectName} logo={quest.projectLogo} />
@@ -278,15 +330,17 @@ export function QuestsScreen() {
                 </div>
 
                 <div className="relative z-10 mt-3 min-w-0">
-                  <p className="truncate text-[0.94rem] font-semibold text-white">{quest.title}</p>
+                  <p className="line-clamp-2 text-[1.12rem] font-black leading-tight tracking-[-0.03em] text-white">{quest.title}</p>
                   <p className="mt-2 truncate text-[10px] uppercase tracking-[0.16em] text-slate-500">
                     {quest.projectName}
                   </p>
                 </div>
 
-                <div className="relative z-10 mt-3 flex items-center justify-between gap-3 text-[11px] text-slate-500">
-                  <span className="truncate">{quest.campaignTitle}</span>
-                  <span>{quest.rewardCount} rewards</span>
+                <div className="relative z-10 mt-4 rounded-[16px] border border-white/8 bg-black/20 px-3 py-2 text-[11px] text-slate-400">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="truncate">{quest.campaignTitle}</span>
+                    <span className="shrink-0 text-slate-300">{quest.rewardCount} rewards</span>
+                  </div>
                 </div>
 
                 <div className="relative z-10 mt-4 flex flex-wrap gap-1.5">
@@ -406,11 +460,12 @@ function SectionHeading({
   );
 }
 
-function BoardStat({ label, value }: { label: string; value: string }) {
+function BoardStat({ label, value, detail }: { label: string; value: string; detail: string }) {
   return (
-    <div className="rounded-full border border-white/8 bg-white/[0.03] px-3.5 py-1.5">
-      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">{label}</p>
-      <p className="mt-1 text-[13px] font-semibold text-white">{value}</p>
+    <div className="motion-surface relative overflow-hidden rounded-[22px] border border-white/8 bg-[radial-gradient(circle_at_85%_0%,rgba(34,211,238,0.12),transparent_30%),linear-gradient(180deg,rgba(15,18,24,0.88),rgba(7,9,13,0.94))] px-4 py-3 shadow-[0_16px_46px_rgba(0,0,0,0.18)]">
+      <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">{label}</p>
+      <p className="mt-2 text-[1.35rem] font-black tracking-[-0.04em] text-white">{value}</p>
+      <p className="mt-1 truncate text-[10px] uppercase tracking-[0.13em] text-slate-500">{detail}</p>
     </div>
   );
 }
@@ -419,16 +474,21 @@ function SignalCard({
   label,
   value,
   meta,
+  icon,
 }: {
   label: string;
   value: string;
   meta: string;
+  icon: ReactNode;
 }) {
   return (
-    <div className="rounded-[18px] border border-white/6 bg-white/[0.03] px-3.5 py-3">
-      <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-500">{label}</p>
-      <p className="mt-2 text-[13px] font-semibold text-white">{value}</p>
-      <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-slate-500">{meta}</p>
+    <div className="min-w-0 rounded-[18px] border border-white/8 bg-white/[0.035] px-3 py-3">
+      <div className="flex items-center justify-between gap-2">
+        <p className="truncate text-[9px] font-black uppercase tracking-[0.16em] text-slate-500">{label}</p>
+        <span className="text-cyan-100/70">{icon}</span>
+      </div>
+      <p className="mt-2 truncate text-[1.05rem] font-black tracking-[-0.03em] text-white">{value}</p>
+      <p className="mt-1 truncate text-[10px] uppercase tracking-[0.14em] text-slate-500">{meta}</p>
     </div>
   );
 }
