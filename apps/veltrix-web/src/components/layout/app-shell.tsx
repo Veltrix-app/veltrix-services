@@ -535,7 +535,7 @@ export function AppShell({
   const hasRaidHero = pathname === "/raids";
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(148,98,255,0.12),transparent_18%),linear-gradient(180deg,#050608_0%,#040507_36%,#020304_100%)] text-white">
+    <div className="vyntro-shell-background min-h-screen bg-[radial-gradient(circle_at_top,rgba(148,98,255,0.12),transparent_18%),linear-gradient(180deg,#050608_0%,#040507_36%,#020304_100%)] text-white">
       <VyntroCursor />
       <header className="sticky top-0 z-40 border-b border-white/6 bg-[#030406]/86 backdrop-blur-2xl">
         <div className="mx-auto max-w-[1720px] px-4 py-4 sm:px-6 lg:px-8">
@@ -611,11 +611,15 @@ export function AppShell({
         </div>
       </header>
 
-      {hasRaidHero ? <RaidPageHero eyebrow={eyebrow} title={title} description={description} /> : null}
+      {hasRaidHero ? (
+        <div className="relative z-10">
+          <RaidPageHero eyebrow={eyebrow} title={title} description={description} />
+        </div>
+      ) : null}
 
       <div
-        className={`mx-auto max-w-[1720px] px-4 sm:px-6 lg:px-8 ${
-          hasRaidHero ? "relative z-10 -mt-24 pb-6 lg:-mt-32 lg:pb-7" : "py-6 lg:py-7"
+        className={`relative z-10 mx-auto max-w-[1720px] px-4 sm:px-6 lg:px-8 ${
+          hasRaidHero ? "-mt-24 pb-6 lg:-mt-32 lg:pb-7" : "py-6 lg:py-7"
         }`}
       >
         {!hasRaidHero && !hidePageHeader ? (
