@@ -705,7 +705,7 @@ function MissionLaneCard({
       contentClassName="max-w-[18rem]"
       mediaLayer={
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -right-16 bottom-[-4.8rem] h-[18.5rem] w-[22rem] sm:-right-20 sm:bottom-[-5.1rem] sm:h-[20rem] sm:w-[24rem]">
+          <div className="absolute -right-16 bottom-[-2.8rem] h-[18.5rem] w-[22rem] sm:-right-20 sm:bottom-[-3rem] sm:h-[20rem] sm:w-[24rem]">
             <Image
               src="/assets/project-world/mission-lane.webp"
               alt=""
@@ -747,7 +747,7 @@ function RewardVaultCard({ reward, rewardCount }: { reward: LiveReward | null; r
       contentClassName="max-w-[18rem]"
       mediaLayer={
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -right-12 bottom-[-4.2rem] h-[18rem] w-[20rem] sm:-right-14 sm:bottom-[-4.4rem] sm:h-[19.5rem] sm:w-[22rem]">
+          <div className="absolute -right-12 bottom-[-2.5rem] h-[18rem] w-[20rem] sm:-right-14 sm:bottom-[-2.7rem] sm:h-[19.5rem] sm:w-[22rem]">
             <Image
               src="/assets/project-world/claim-your-rewards.webp"
               alt=""
@@ -812,7 +812,7 @@ function TokenTrustCard({
       contentClassName="max-w-[18.5rem]"
       mediaLayer={
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -right-16 bottom-[-4.9rem] h-[18.5rem] w-[22rem] sm:-right-20 sm:bottom-[-5.4rem] sm:h-[20.5rem] sm:w-[24rem]">
+          <div className="absolute -right-16 bottom-[-2.9rem] h-[18.5rem] w-[22rem] sm:-right-20 sm:bottom-[-3.1rem] sm:h-[20.5rem] sm:w-[24rem]">
             <Image
               src="/assets/project-world/token-and-trust.webp"
               alt=""
@@ -853,7 +853,7 @@ function StandingCard({ reputation }: { reputation?: LiveProjectReputation }) {
   return (
     <div className="motion-card-3d relative overflow-hidden rounded-[26px] border border-white/7 bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,0.13),transparent_34%),linear-gradient(180deg,rgba(15,17,22,0.9),rgba(7,8,12,0.95))] p-4">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -right-16 bottom-[-5.2rem] h-[19rem] w-[22rem] sm:-right-20 sm:bottom-[-5.4rem] sm:h-[21rem] sm:w-[24rem]">
+        <div className="absolute -right-16 bottom-[-3rem] h-[19rem] w-[22rem] sm:-right-20 sm:bottom-[-3.2rem] sm:h-[21rem] sm:w-[24rem]">
           <Image
             src="/assets/project-world/your-standing.webp"
             alt=""
