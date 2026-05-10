@@ -22,6 +22,7 @@
 
 html {
   color-scheme: dark;
+  scrollbar-color: rgba(190, 255, 74, 0.34) rgba(255, 255, 255, 0.035);
 }
 
 body {
@@ -42,6 +43,29 @@ a {
 
 button {
   cursor: pointer;
+}
+
+::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+::-webkit-scrollbar-thumb {
+  border: 2px solid rgba(3, 4, 6, 0.96);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(190, 255, 74, 0.42), rgba(34, 211, 238, 0.28)),
+    rgba(255, 255, 255, 0.1);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background:
+    linear-gradient(180deg, rgba(190, 255, 74, 0.62), rgba(34, 211, 238, 0.42)),
+    rgba(255, 255, 255, 0.16);
 }
 
 ::selection {
@@ -271,6 +295,22 @@ body::before {
 
 .glass-button:active {
   transform: translateY(1px) scale(0.99);
+}
+
+.vyntro-shell-background :is(input, textarea, select) {
+  transition:
+    border-color 220ms ease,
+    background 220ms ease,
+    box-shadow 220ms ease,
+    color 220ms ease;
+}
+
+.vyntro-shell-background :is(input, textarea, select):focus {
+  border-color: rgba(190, 255, 74, 0.22);
+  box-shadow:
+    0 0 0 1px rgba(190, 255, 74, 0.16),
+    0 0 0 5px rgba(34, 211, 238, 0.055),
+    0 16px 42px rgba(0, 0, 0, 0.2);
 }
 
 .panel-card {
@@ -530,6 +570,13 @@ body::before {
 }
 
 .motion-press {
+  --vyntro-feedback-x: 50%;
+  --vyntro-feedback-y: 50%;
+  --vyntro-magnetic-x: 0px;
+  --vyntro-magnetic-y: 0px;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   transform: translateZ(0);
   transition:
     transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -539,13 +586,51 @@ body::before {
     color 220ms ease;
 }
 
+.motion-press::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at var(--vyntro-feedback-x) var(--vyntro-feedback-y), rgba(255, 255, 255, 0.16), transparent 34%),
+    radial-gradient(circle at var(--vyntro-feedback-x) var(--vyntro-feedback-y), rgba(190, 255, 74, 0.11), transparent 48%);
+  opacity: 0;
+  transition:
+    opacity 220ms ease,
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.motion-press > * {
+  position: relative;
+  z-index: 1;
+}
+
+.motion-press:hover {
+  transform: translate3d(var(--vyntro-magnetic-x), var(--vyntro-magnetic-y), 0) translateY(-1px);
+}
+
+.motion-press:hover::before,
+.motion-press:focus-visible::before {
+  opacity: 1;
+}
+
 .motion-press:not(:disabled):active {
-  transform: translateY(1px) scale(0.985);
+  transform: translate3d(
+      calc(var(--vyntro-magnetic-x) * 0.45),
+      calc(var(--vyntro-magnetic-y) * 0.45 + 1px),
+      0
+    )
+    scale(0.985);
 }
 
 .motion-press:focus-visible {
-  outline: 2px solid rgba(190, 255, 74, 0.48);
-  outline-offset: 3px;
+  outline: none;
+  box-shadow:
+    0 0 0 1px rgba(190, 255, 74, 0.34),
+    0 0 0 5px rgba(190, 255, 74, 0.08),
+    0 18px 46px rgba(0, 0, 0, 0.28);
 }
 
 .motion-active-glow {

@@ -7,6 +7,7 @@ const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 const FINE_POINTER_QUERY = "(hover: hover) and (pointer: fine)";
 const REVEAL_SELECTOR = "main section, main article, main [data-vyntro-reveal]";
 const DEPTH_CARD_SELECTOR = ".motion-3d-card, [data-vyntro-depth-card]";
+const FEEDBACK_CONTROL_SELECTOR = ".motion-press, .glass-button, [data-vyntro-feedback]";
 
 function clamp(value: number, min = 0, max = 1) {
   return Math.min(max, Math.max(min, value));
@@ -131,6 +132,78 @@ function bindDepthCards() {
   };
 }
 
+function bindFeedbackControls() {
+  const cleanupByControl = new Map<HTMLElement, () => void>();
+
+  const attachControl = (control: HTMLElement) => {
+    if (cleanupByControl.has(control)) {
+      return;
+    }
+
+    let frameId = 0;
+    let nextX = 0.5;
+    let nextY = 0.5;
+
+    const applyFeedback = () => {
+      frameId = 0;
+      const rect = control.getBoundingClientRect();
+      const magneticLimit = Math.min(3.5, Math.max(1.2, Math.min(rect.width, rect.height) * 0.045));
+      const magneticX = (nextX - 0.5) * magneticLimit;
+      const magneticY = (nextY - 0.5) * magneticLimit;
+
+      control.style.setProperty("--vyntro-feedback-x", `${(nextX * 100).toFixed(2)}%`);
+      control.style.setProperty("--vyntro-feedback-y", `${(nextY * 100).toFixed(2)}%`);
+      control.style.setProperty("--vyntro-magnetic-x", `${magneticX.toFixed(2)}px`);
+      control.style.setProperty("--vyntro-magnetic-y", `${magneticY.toFixed(2)}px`);
+    };
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const rect = control.getBoundingClientRect();
+      nextX = clamp((event.clientX - rect.left) / rect.width);
+      nextY = clamp((event.clientY - rect.top) / rect.height);
+
+      if (!frameId) {
+        frameId = window.requestAnimationFrame(applyFeedback);
+      }
+    };
+
+    const handlePointerLeave = () => {
+      if (frameId) {
+        window.cancelAnimationFrame(frameId);
+        frameId = 0;
+      }
+
+      control.style.removeProperty("--vyntro-feedback-x");
+      control.style.removeProperty("--vyntro-feedback-y");
+      control.style.removeProperty("--vyntro-magnetic-x");
+      control.style.removeProperty("--vyntro-magnetic-y");
+    };
+
+    control.addEventListener("pointermove", handlePointerMove, { passive: true });
+    control.addEventListener("pointerleave", handlePointerLeave);
+
+    cleanupByControl.set(control, () => {
+      control.removeEventListener("pointermove", handlePointerMove);
+      control.removeEventListener("pointerleave", handlePointerLeave);
+      handlePointerLeave();
+    });
+  };
+
+  const scanForControls = () => {
+    document.querySelectorAll<HTMLElement>(FEEDBACK_CONTROL_SELECTOR).forEach(attachControl);
+  };
+
+  const observer = new MutationObserver(scanForControls);
+  scanForControls();
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  return () => {
+    observer.disconnect();
+    cleanupByControl.forEach((cleanup) => cleanup());
+    cleanupByControl.clear();
+  };
+}
+
 export function VyntroMotionLayer() {
   const pathname = usePathname();
 
@@ -146,7 +219,7 @@ export function VyntroMotionLayer() {
     root.classList.add("vyntro-route-motion");
 
     if (!reducedMotion && finePointer) {
-      cleanupCallbacks.push(bindGlobalPointerLight(), bindDepthCards());
+      cleanupCallbacks.push(bindGlobalPointerLight(), bindDepthCards(), bindFeedbackControls());
     }
 
     targets.forEach((element, index) => {
