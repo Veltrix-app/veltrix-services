@@ -4,13 +4,15 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   ArrowDownUp,
+  ArrowRight,
   BadgeDollarSign,
   RefreshCw,
+  ShieldCheck,
   Sparkles,
+  WalletCards,
 } from "lucide-react";
 import { DefiSafetyPanel } from "@/components/defi/defi-safety-panel";
 import { useAuth } from "@/components/providers/auth-provider";
-import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 import { useVyntroSwap } from "@/hooks/use-vyntro-swap";
 import {
   formatSwapTokenAmount,
@@ -22,6 +24,11 @@ import {
 import { DefiRouteNav } from "@/components/defi/defi-route-nav";
 
 const DEFAULT_SWAP_TOKENS = getAllSwapTokens();
+const SWAP_HERO_IMAGE = "/assets/defi/swap-hero.webp";
+
+function toBackgroundImage(value: string) {
+  return `url("${value.replaceAll('"', '\\"')}")`;
+}
 
 const accentStyles: Record<SwapToken["accent"], string> = {
   cyan: "border-cyan-300/14 bg-cyan-300/10 text-cyan-100",
@@ -152,51 +159,22 @@ export function SwapScreen() {
 
   return (
     <div className="space-y-5">
+      <SwapHero
+        buyToken={buyToken}
+        feeBps={swap.quotePayload?.config.platformFeeBps ?? 0}
+        provider={recommended?.provider ?? "0x first / Uniswap fallback"}
+        sellToken={sellToken}
+        slippageBps={slippageBps}
+        walletReady={walletReady}
+      />
+
       <DefiRouteNav compact />
 
-      <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <div className="relative overflow-hidden rounded-[30px] border border-white/6 bg-[radial-gradient(circle_at_14%_0%,rgba(74,217,255,0.17),transparent_30%),radial-gradient(circle_at_88%_10%,rgba(190,255,74,0.1),transparent_24%),linear-gradient(180deg,rgba(13,15,20,0.99),rgba(6,7,10,0.995))] p-5 sm:p-6">
-          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.04),transparent_38%)]" />
-          <FeatureBadgeMark
-            badge="swap"
-            className="absolute right-5 top-8 h-32 w-32 opacity-[0.24] mix-blend-screen sm:h-40 sm:w-40"
-            imageClassName="rotate-[8deg]"
-            sizes="160px"
-          />
-          <div className="relative z-10 max-w-4xl">
-            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-200">
-              VYNTRO Swap
-            </p>
-            <h1 className="mt-4 max-w-4xl text-[clamp(1.75rem,3vw,3.35rem)] font-black leading-[0.94] tracking-[-0.05em] text-white">
-              Move into the right asset before the next DeFi action.
-            </h1>
-            <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-400">
-              Swap through a VYNTRO-native interface while routes are powered by external liquidity.
-              You approve and sign from your wallet; VYNTRO never takes custody.
-            </p>
-          </div>
-        </div>
-
-        <DefiSafetyPanel
-          route="swap"
-          actionSlot={
-            <div className="grid gap-2">
-              <SafetyLine label="Wallet" value={walletReady ? "Verified" : "Connect first"} />
-              <SafetyLine
-                label="Provider"
-                value={recommended ? recommended.provider : "0x first / Uniswap fallback"}
-              />
-              <SafetyLine
-                label="Fee"
-                value={`${swap.quotePayload?.config.platformFeeBps ?? 0} bps`}
-              />
-            </div>
-          }
-        />
-      </section>
-
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_390px]">
-        <div className="rounded-[30px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,18,23,0.98),rgba(7,9,12,0.99))] p-4 shadow-[0_24px_90px_rgba(0,0,0,0.32)] sm:p-5">
+        <div
+          id="swap-panel"
+          className="rounded-[30px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,18,23,0.98),rgba(7,9,12,0.99))] p-4 shadow-[0_24px_90px_rgba(0,0,0,0.32)] sm:p-5"
+        >
           <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_56px_minmax(0,1fr)]">
             <SwapTokenField
               amount={sellAmount}
@@ -282,7 +260,18 @@ export function SwapScreen() {
         </div>
 
         <aside className="space-y-4">
-          <div className="rounded-[28px] border border-white/6 bg-white/[0.03] p-5">
+          <DefiSafetyPanel
+            route="swap"
+            actionSlot={
+              <div className="grid gap-2">
+                <SafetyLine label="Wallet" value={walletReady ? "Verified" : "Connect first"} />
+                <SafetyLine label="Provider" value={recommended ? recommended.provider : "0x first / Uniswap fallback"} />
+                <SafetyLine label="Fee" value={`${swap.quotePayload?.config.platformFeeBps ?? 0} bps`} />
+              </div>
+            }
+          />
+
+          <div id="route-detail" className="rounded-[28px] border border-white/6 bg-white/[0.03] p-5">
             <p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-200">
               Route detail
             </p>
@@ -322,6 +311,147 @@ export function SwapScreen() {
           </div>
         </aside>
       </section>
+    </div>
+  );
+}
+
+function SwapHero({
+  buyToken,
+  feeBps,
+  provider,
+  sellToken,
+  slippageBps,
+  walletReady,
+}: {
+  buyToken: SwapToken;
+  feeBps: number;
+  provider: string;
+  sellToken: SwapToken;
+  slippageBps: number;
+  walletReady: boolean;
+}) {
+  return (
+    <section className="motion-surface motion-light-sweep relative overflow-hidden rounded-[34px] border border-white/7 bg-[#05080b] shadow-[0_32px_110px_rgba(0,0,0,0.38)]">
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-[0.98] brightness-[0.96] contrast-110 saturate-125"
+        style={{ backgroundImage: toBackgroundImage(SWAP_HERO_IMAGE) }}
+      />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_52%_25%,rgba(168,85,247,0.16),transparent_32%),radial-gradient(circle_at_80%_48%,rgba(190,255,74,0.14),transparent_28%),linear-gradient(90deg,rgba(1,3,7,0.9),rgba(2,4,10,0.66)_35%,rgba(3,4,10,0.22)_62%,rgba(3,5,9,0.72)),linear-gradient(180deg,rgba(4,6,10,0.04),rgba(3,5,8,0.76))]" />
+      <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#050608] to-transparent" />
+
+      <div className="relative z-10 grid min-h-[540px] gap-6 p-5 sm:p-7 xl:grid-cols-[minmax(0,1fr)_410px] xl:items-end">
+        <div className="max-w-4xl self-end pb-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <SwapHeroChip tone="violet">Route finder</SwapHeroChip>
+            <SwapHeroChip tone="lime">Wallet signs</SwapHeroChip>
+            <SwapHeroChip tone="cyan">Quote before swap</SwapHeroChip>
+          </div>
+
+          <h1 className="mt-7 max-w-[11ch] text-[4rem] font-black leading-[0.88] tracking-normal text-white [text-shadow:0_18px_70px_rgba(0,0,0,0.72)] sm:text-[5.4rem] xl:text-[7rem]">
+            Swap route
+          </h1>
+          <p className="mt-5 max-w-2xl text-[15px] leading-7 text-slate-100 sm:text-[1rem]">
+            Move into the right asset before the next DeFi action. VYNTRO compares the route, shows the safety posture and keeps custody in your wallet.
+          </p>
+
+          <div className="mt-7 flex flex-wrap gap-3">
+            <a
+              href="#swap-panel"
+              className="motion-press inline-flex items-center gap-2 rounded-full bg-lime-300 px-5 py-3 text-[11px] font-black uppercase tracking-[0.16em] text-black transition hover:bg-lime-200"
+            >
+              <ArrowDownUp className="h-4 w-4" />
+              Open swap panel
+              <ArrowRight className="h-4 w-4" />
+            </a>
+            <a
+              href="#route-detail"
+              className="motion-press inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.06] px-5 py-3 text-[11px] font-black uppercase tracking-[0.16em] text-white backdrop-blur-xl transition hover:border-cyan-300/24 hover:bg-cyan-300/10"
+            >
+              Route detail
+              <WalletCards className="h-4 w-4" />
+            </a>
+          </div>
+
+          <div className="mt-6 grid max-w-3xl gap-2.5 sm:grid-cols-3">
+            <SwapHeroSignal label="Pair" value={`${sellToken.symbol} -> ${buyToken.symbol}`} />
+            <SwapHeroSignal label="Slippage" value={formatBps(slippageBps)} />
+            <SwapHeroSignal label="Custody" value="Never held" />
+          </div>
+        </div>
+
+        <div className="motion-surface relative overflow-hidden rounded-[28px] border border-white/9 bg-black/48 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.34)] backdrop-blur-xl sm:p-5">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(190,255,74,0.14),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.04),transparent_45%)]" />
+          <div className="relative z-10">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-lime-300">Quote posture</p>
+                <h2 className="mt-2 text-[1.35rem] font-black text-white">
+                  {walletReady ? "Wallet ready for route discovery." : "Connect wallet before signing."}
+                </h2>
+              </div>
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-lime-300/18 bg-lime-300/10 text-lime-100">
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+            </div>
+
+            <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/8">
+              <div
+                className="h-full rounded-full bg-[linear-gradient(90deg,#c4b5fd,#74f7ff,#beff4a)] shadow-[0_0_24px_rgba(190,255,74,0.28)]"
+                style={{ width: walletReady ? "84%" : "42%" }}
+              />
+            </div>
+
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <SwapHeroPanelMetric label="Provider" value={provider} sub="Best available route" />
+              <SwapHeroPanelMetric label="Fee" value={`${feeBps} bps`} sub="Shown before signature" />
+              <SwapHeroPanelMetric label="Sell" value={sellToken.symbol} sub={sellToken.label} />
+              <SwapHeroPanelMetric label="Buy" value={buyToken.symbol} sub={buyToken.label} />
+            </div>
+
+            <div className="mt-4 rounded-[20px] border border-white/8 bg-white/[0.04] p-3.5">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Safe signing rule</p>
+              <p className="mt-2 text-[13px] font-black leading-5 text-white">
+                Quote first, review impact, then sign from your wallet.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SwapHeroChip({ children, tone }: { children: string; tone: "lime" | "cyan" | "violet" }) {
+  const toneClass =
+    tone === "lime"
+      ? "border-lime-300/18 bg-lime-300/14 text-lime-100"
+      : tone === "cyan"
+        ? "border-cyan-300/18 bg-cyan-300/12 text-cyan-100"
+        : "border-violet-300/18 bg-violet-300/12 text-violet-100";
+
+  return (
+    <span className={`rounded-full border px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.14em] backdrop-blur-xl ${toneClass}`}>
+      {children}
+    </span>
+  );
+}
+
+function SwapHeroSignal({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[18px] border border-white/8 bg-black/26 px-3.5 py-3 backdrop-blur-md">
+      <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">{label}</p>
+      <p className="mt-1.5 truncate text-[13px] font-black text-white">{value}</p>
+    </div>
+  );
+}
+
+function SwapHeroPanelMetric({ label, value, sub }: { label: string; value: string; sub: string }) {
+  return (
+    <div className="rounded-[18px] border border-white/8 bg-black/28 p-3.5">
+      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">{label}</p>
+      <p className="mt-2 truncate text-[1.05rem] font-black text-white">{value}</p>
+      <p className="mt-1 truncate text-[10px] font-bold text-slate-400">{sub}</p>
     </div>
   );
 }
