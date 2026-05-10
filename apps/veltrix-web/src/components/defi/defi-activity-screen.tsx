@@ -2,9 +2,11 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, ExternalLink, History, RefreshCw } from "lucide-react";
+import { ArrowRight, ExternalLink, History, RefreshCw, ShieldCheck } from "lucide-react";
 import { DefiSafetyPanel } from "@/components/defi/defi-safety-panel";
+import { DefiRouteNav } from "@/components/defi/defi-route-nav";
 import { useAuth } from "@/components/providers/auth-provider";
+import { CinematicRouteHero } from "@/components/ui/cinematic-route-hero";
 import { StatusChip } from "@/components/ui/status-chip";
 import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useDefiActivity } from "@/hooks/use-defi-activity";
@@ -19,6 +21,8 @@ const filters: Array<{ value: FilterValue; label: string }> = [
   { value: "swap", label: "Swaps" },
   { value: "xp", label: "XP claims" },
 ];
+
+const ACTIVITY_HERO_IMAGE = "/assets/defi/defi-hero.webp";
 
 function shortenWallet(address?: string | null) {
   if (!address) return "No wallet";
@@ -65,15 +69,42 @@ export function DefiActivityScreen() {
 
   return (
     <div className="space-y-5">
-      <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <CinematicRouteHero
+        chips={["Proof log", "Basescan", "XP claims", "Wallet scoped"]}
+        description="Every DeFi move needs a clean trail. Vault transactions, market actions, swaps and XP claims are gathered into one proof center before rewards scale."
+        imagePosition="center"
+        imageSrc={ACTIVITY_HERO_IMAGE}
+        panelIcon={History}
+        panelStats={[
+          { label: "Proofs", value: String(summary.totalItems), sub: "tracked items" },
+          { label: "Confirmed", value: String(summary.confirmedTransactions), sub: "on-chain" },
+          { label: "XP", value: String(summary.xpClaims), sub: "claim records" },
+          { label: "Wallet", value: walletReady ? "Linked" : "Needed", sub: shortenWallet(profile?.wallet) },
+        ]}
+        panelText="The activity route separates proof from balance noise, so members can review exactly what happened before claiming or escalating."
+        panelTitle={walletReady ? "Proof trail is wallet scoped." : "Connect wallet to unlock proof."}
+        primaryCta={{ href: "#proof-center", label: "Open proof log", icon: <History className="h-4 w-4" /> }}
+        secondaryCta={{ href: "/defi/portfolio", label: "Portfolio read", icon: <ShieldCheck className="h-4 w-4" /> }}
+        stats={[
+          { label: "Vault tx", value: String(summary.vaultTransactions) },
+          { label: "Market tx", value: String(summary.marketTransactions) },
+          { label: "Pending", value: String(summary.pendingTransactions) },
+        ]}
+        title="Activity"
+        tone="violet"
+      />
+
+      <DefiRouteNav compact />
+
+      <section id="proof-center" className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="relative overflow-hidden rounded-[30px] border border-white/6 bg-[radial-gradient(circle_at_12%_0%,rgba(190,255,74,0.13),transparent_28%),radial-gradient(circle_at_90%_18%,rgba(74,217,255,0.1),transparent_28%),linear-gradient(180deg,rgba(13,15,19,0.99),rgba(6,7,10,0.995))] p-5 shadow-[0_24px_90px_rgba(0,0,0,0.36)] sm:p-6">
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.03),transparent_35%)]" />
           <div className="relative z-10 max-w-4xl">
             <p className="text-[10px] font-black uppercase tracking-[0.28em] text-lime-300">
               DeFi proof center
             </p>
-            <h2 className="mt-4 max-w-3xl text-[clamp(1.7rem,2.8vw,3.25rem)] font-black leading-[0.96] tracking-[-0.05em] text-white">
-              One timeline for every vault, lending and XP proof.
+            <h2 className="mt-3 max-w-3xl text-[clamp(1.35rem,2vw,2.25rem)] font-black leading-[1] tracking-[-0.04em] text-white">
+              Timeline, status and on-chain references.
             </h2>
             <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-400">
               This is the audit trail users need before the XP economy gets bigger: wallet-linked

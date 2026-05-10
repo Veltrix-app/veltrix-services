@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { AlertTriangle, ArrowRight, BookOpenCheck, ShieldCheck, WalletCards } from "lucide-react";
 import { DefiSafetyPanel } from "@/components/defi/defi-safety-panel";
+import { DefiRouteNav } from "@/components/defi/defi-route-nav";
+import { CinematicRouteHero } from "@/components/ui/cinematic-route-hero";
 import {
   borrowLendingRiskTopics,
   getBorrowLendingRiskSummary,
@@ -35,6 +37,8 @@ const toneStyles = {
   text: string;
   icon: typeof ShieldCheck;
 }>;
+
+const RISK_HERO_IMAGE = "/assets/defi/lending-hero.webp";
 
 export function BorrowRiskMiniPanel() {
   const summary = getBorrowLendingRiskSummary();
@@ -95,40 +99,32 @@ export function DefiRiskEducationScreen() {
 
   return (
     <div className="space-y-5">
-      <section className="relative overflow-hidden rounded-[30px] border border-white/6 bg-[radial-gradient(circle_at_14%_0%,rgba(251,191,36,0.12),transparent_28%),radial-gradient(circle_at_84%_12%,rgba(190,255,74,0.12),transparent_28%),linear-gradient(180deg,rgba(13,15,19,0.99),rgba(6,7,10,0.995))] p-5 shadow-[0_24px_90px_rgba(0,0,0,0.36)] sm:p-6">
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.035),transparent_34%)]" />
+      <CinematicRouteHero
+        chips={["Collateral", "Liquidation", "Repay discipline", "Wallet control"]}
+        description={`${summary.copy} Keep collateral, liquidation, repay and route order readable before users touch advanced DeFi actions.`}
+        imagePosition="center"
+        imageSrc={RISK_HERO_IMAGE}
+        panelIcon={AlertTriangle}
+        panelStats={[
+          { label: "Topics", value: String(borrowLendingRiskTopics.length), sub: "risk reads" },
+          { label: "Custody", value: "Never held", sub: "wallet signed" },
+          { label: "Mode", value: "Conservative", sub: "route order" },
+          { label: "Proof", value: "Required", sub: "before XP" },
+        ]}
+        panelText="The guide keeps borrowing from feeling like a black box: every risky action gets a plain-language checkpoint before the user signs."
+        panelTitle={summary.headline}
+        primaryCta={{ href: "#risk-checklist", label: "Open checklist", icon: <BookOpenCheck className="h-4 w-4" /> }}
+        secondaryCta={{ href: "/defi/borrow-lending", label: "Open lending", icon: <WalletCards className="h-4 w-4" /> }}
+        stats={[
+          { label: "Safety posture", value: "Route first" },
+          { label: "Borrow flow", value: "Sequential" },
+          { label: "Wallet", value: "User controlled" },
+        ]}
+        title="Risk Guide"
+        tone="amber"
+      />
 
-        <div className="relative z-10 grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="max-w-4xl">
-            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-lime-300">
-              Borrow/lending education
-            </p>
-            <h2 className="mt-4 max-w-3xl text-[clamp(1.8rem,3vw,3.6rem)] font-black leading-[0.94] tracking-[-0.05em] text-white">
-              {summary.headline}
-            </h2>
-            <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-400">
-              {summary.copy} This page keeps the essentials short: wallet control, collateral,
-              liquidation, repay and the safest order of operations.
-            </p>
-          </div>
-
-          <div className="rounded-[24px] border border-lime-300/10 bg-lime-300/[0.055] p-4">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full border border-lime-300/14 bg-lime-300/10 text-lime-200">
-              <WalletCards className="h-5 w-5" />
-            </div>
-            <p className="mt-4 text-[10px] font-black uppercase tracking-[0.22em] text-lime-300">
-              VYNTRO posture
-            </p>
-            <p className="mt-2 text-[1.05rem] font-black tracking-[-0.03em] text-white">
-              Product layer only, wallet signs every move.
-            </p>
-            <p className="mt-2 text-[12px] leading-6 text-slate-400">
-              We make the route understandable and track proof. We do not custody funds, guarantee
-              yield or hide the downside of borrowing.
-            </p>
-          </div>
-        </div>
-      </section>
+      <DefiRouteNav compact />
 
       <DefiSafetyPanel compact route="risk-guide" showGlobalContract />
 
@@ -166,7 +162,7 @@ export function DefiRiskEducationScreen() {
         })}
       </section>
 
-      <section className="rounded-[30px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,18,23,0.98),rgba(7,9,12,0.99))] p-5">
+      <section id="risk-checklist" className="rounded-[30px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,18,23,0.98),rgba(7,9,12,0.99))] p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.26em] text-lime-300">

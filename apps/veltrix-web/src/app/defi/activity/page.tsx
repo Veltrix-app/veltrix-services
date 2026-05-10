@@ -8,6 +8,7 @@ export default function DefiActivityPage() {
       eyebrow="DeFi / Activity"
       title="DeFi proof history"
       description="A wallet-scoped proof center for vault transactions, borrow/lending actions, XP claims and the on-chain references behind them."
+      hidePageHeader
     >
       <ProtectedState allowPreview previewLabel="DeFi activity preview">
         <DefiActivityScreen />

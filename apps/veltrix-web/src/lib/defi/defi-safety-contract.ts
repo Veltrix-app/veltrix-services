@@ -209,7 +209,7 @@ const SAFETY_SURFACES = {
   "risk-guide": {
     route: "risk-guide",
     eyebrow: "Risk guide",
-    headline: "Keep the scary parts understandable.",
+    headline: "Keep risk legible before execution.",
     copy:
       "The guide explains wallet control, collateral, liquidation, repay and safe order in short language users can act on.",
     primaryMove: "Read the guide before opening advanced borrow/lending actions.",

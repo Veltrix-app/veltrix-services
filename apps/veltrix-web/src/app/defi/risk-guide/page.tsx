@@ -8,6 +8,7 @@ export default function DefiRiskGuidePage() {
       eyebrow="DeFi / Risk guide"
       title="Borrow/lending risk guide"
       description="A compact education layer for collateral, liquidation, repay discipline and non-custodial wallet flow before users touch advanced DeFi actions."
+      hidePageHeader
     >
       <ProtectedState allowPreview previewLabel="Risk guide preview">
         <DefiRiskEducationScreen />

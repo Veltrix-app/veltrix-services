@@ -8,6 +8,7 @@ export default function DefiPortfolioPage() {
       eyebrow="DeFi / Portfolio"
       title="Portfolio dashboard"
       description="One wallet-scoped DeFi overview for vaults, supplied markets, borrowed markets, claimable XP and the next safe action."
+      hidePageHeader
     >
       <ProtectedState allowPreview previewLabel="Portfolio preview">
         <DefiPortfolioScreen />

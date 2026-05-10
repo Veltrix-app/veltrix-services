@@ -6,11 +6,14 @@ import {
   BadgeCheck,
   Gem,
   RefreshCw,
+  ShieldCheck,
   ShieldAlert,
   WalletCards,
 } from "lucide-react";
 import { DefiSafetyPanel } from "@/components/defi/defi-safety-panel";
+import { DefiRouteNav } from "@/components/defi/defi-route-nav";
 import { useAuth } from "@/components/providers/auth-provider";
+import { CinematicRouteHero } from "@/components/ui/cinematic-route-hero";
 import { StatusChip } from "@/components/ui/status-chip";
 import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useDefiXpEligibility } from "@/hooks/use-defi-xp-eligibility";
@@ -22,6 +25,8 @@ import {
   type DefiPortfolioRow,
 } from "@/lib/defi/defi-portfolio";
 import type { DefiXpMissionSlug } from "@/lib/defi/defi-xp-eligibility";
+
+const PORTFOLIO_HERO_IMAGE = "/assets/defi/defi-hero.webp";
 
 function getPortfolioTone(status: DefiPortfolioRead["status"]) {
   if (status === "risk-watch" || status === "read-error") return "warning";
@@ -59,16 +64,43 @@ export function DefiPortfolioScreen() {
 
   return (
     <div className="space-y-5">
-      <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <CinematicRouteHero
+        chips={["Wallet read", "Vaults", "Markets", "XP posture"]}
+        description="Read your full DeFi posture before you move capital. Vault positions, supplied markets, borrowed exposure and claimable XP stay in one calm command view."
+        imagePosition="center"
+        imageSrc={PORTFOLIO_HERO_IMAGE}
+        panelIcon={WalletCards}
+        panelStats={[
+          { label: "Vaults", value: String(portfolio.vaultRows.length), sub: "detected rows" },
+          { label: "Supplied", value: String(portfolio.supplyRows.length), sub: "market rows" },
+          { label: "Borrowed", value: String(portfolio.borrowRows.length), sub: "risk rows" },
+          { label: "XP", value: String(totalsToHeroValue(portfolio.totals.completedXp)), sub: "completed" },
+        ]}
+        panelText={portfolio.description}
+        panelTitle={portfolio.headline}
+        primaryCta={{ href: "#portfolio-read", label: "Open cockpit", icon: <WalletCards className="h-4 w-4" /> }}
+        secondaryCta={{ href: "/defi/activity", label: "Review proof", icon: <ShieldCheck className="h-4 w-4" /> }}
+        stats={[
+          { label: "Health", value: portfolio.health.label },
+          { label: "Status", value: portfolio.status },
+          { label: "Next action", value: portfolio.nextSafeAction },
+        ]}
+        title="Portfolio"
+        tone="cyan"
+      />
+
+      <DefiRouteNav compact />
+
+      <section id="portfolio-read" className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="relative overflow-hidden rounded-[30px] border border-white/6 bg-[radial-gradient(circle_at_12%_0%,rgba(190,255,74,0.14),transparent_30%),radial-gradient(circle_at_85%_10%,rgba(74,217,255,0.12),transparent_28%),linear-gradient(180deg,rgba(13,15,19,0.99),rgba(6,7,10,0.995))] p-5">
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.035),transparent_35%)]" />
           <div className="relative z-10 flex flex-wrap items-start justify-between gap-4">
             <div className="max-w-4xl">
               <p className="text-[10px] font-black uppercase tracking-[0.28em] text-lime-300">
-                Portfolio dashboard
+                Command read
               </p>
-              <h2 className="mt-4 max-w-3xl text-[clamp(1.65rem,2.8vw,3.2rem)] font-black leading-[0.95] tracking-[-0.05em] text-white">
-                Your DeFi position in one calm read.
+              <h2 className="mt-3 max-w-3xl text-[clamp(1.35rem,2vw,2.25rem)] font-black leading-[1] tracking-[-0.04em] text-white">
+                Position, exposure and claimable XP.
               </h2>
               <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-400">
                 Vaults, supplied markets, borrowed markets, claimable XP and the next safe action
@@ -330,6 +362,10 @@ function MetricCard({ label, value }: { label: string; value: string }) {
       </div>
     </div>
   );
+}
+
+function totalsToHeroValue(value: number) {
+  return value > 0 ? `${value} XP` : "Pending";
 }
 
 function RoutePill({ href, label }: { href: string; label: string }) {
