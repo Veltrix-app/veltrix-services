@@ -144,6 +144,8 @@ test("platform quest seed migration attaches catalog to VYNTRO project without d
   );
 
   assert.match(sql, new RegExp(PLATFORM_QUEST_PROJECT_ID, "g"));
+  assert.match(sql, /add column if not exists description text/);
+  assert.match(sql, /add column if not exists verification_config jsonb/);
   assert.match(sql, /'platformQuestSlug'\s*,\s*platform_quests\.slug/);
   for (const quest of PLATFORM_QUESTS) {
     assert.match(sql, new RegExp(`'${quest.slug}'`));

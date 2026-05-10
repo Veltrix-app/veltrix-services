@@ -1,6 +1,22 @@
 -- VYNTRO platform quest pack v1
 -- Attaches platform-owned quests to the existing VYNTRO project context.
 
+alter table public.quests
+  add column if not exists campaign_id uuid,
+  add column if not exists description text,
+  add column if not exists type text,
+  add column if not exists quest_type text,
+  add column if not exists xp integer not null default 0,
+  add column if not exists action_label text,
+  add column if not exists action_url text,
+  add column if not exists proof_required boolean not null default false,
+  add column if not exists proof_type text not null default 'none',
+  add column if not exists verification_type text not null default 'manual_review',
+  add column if not exists verification_provider text,
+  add column if not exists verification_config jsonb not null default '{}'::jsonb,
+  add column if not exists completion_mode text,
+  add column if not exists auto_approve boolean not null default false;
+
 with platform_quests as (
   select *
   from (
@@ -219,7 +235,7 @@ select
   platform_quests.description,
   platform_quests.quest_type,
   platform_quests.quest_type,
-  'open',
+  'active',
   platform_quests.project_points,
   platform_quests.action_label,
   platform_quests.action_url,
