@@ -13,6 +13,7 @@ import {
   Flame,
   Gem,
   History,
+  Pickaxe,
   MessageSquareText,
   Send,
   ShieldCheck,
@@ -26,6 +27,7 @@ import { CinematicRouteHero } from "@/components/ui/cinematic-route-hero";
 import { ShardBadge } from "@/components/ui/shard-badge";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 import { buildLootboxInventoryRead } from "@/lib/lootboxes/lootbox-inventory-read";
+import { buildShardHubSnapshot } from "@/lib/lootboxes/shard-hub";
 
 const LOOTBOX_HERO_IMAGE = "/assets/lootboxes/lootbox-hero.webp";
 
@@ -49,12 +51,13 @@ export function LootboxShopScreen() {
     shardBalance,
     lootboxTiers,
     featuredShardPools,
+    quests,
     inventory,
     openLootbox,
     requestLootboxClaim,
     equipLootboxUtility,
   } =
-    useLiveUserData({ datasets: ["lootboxes", "inventory", "featuredShardPools"] });
+    useLiveUserData({ datasets: ["lootboxes", "inventory", "featuredShardPools", "quests"] });
   const [busyTier, setBusyTier] = useState<string | null>(null);
   const [claimingItemId, setClaimingItemId] = useState<string | null>(null);
   const [equippingItemId, setEquippingItemId] = useState<string | null>(null);
@@ -72,6 +75,17 @@ export function LootboxShopScreen() {
         featuredShardPools,
       }),
     [featuredShardPools, lootboxTiers, shardBalance]
+  );
+  const shardHub = useMemo(
+    () =>
+      buildShardHubSnapshot({
+        shardBalance,
+        quests,
+        lootboxTiers,
+        featuredShardPools,
+        inventory,
+      }),
+    [featuredShardPools, inventory, lootboxTiers, quests, shardBalance]
   );
   const activeSeasonAccessItem =
     inventoryRead.items.find((item) => item.utility.isActiveSeasonAccess) ?? null;
@@ -184,6 +198,8 @@ export function LootboxShopScreen() {
 
       {message ? <Notice text={message.text} tone={message.tone === "error" ? "error" : "default"} /> : null}
 
+      <ShardHubCommandCenter snapshot={shardHub} />
+
       <LootboxChamberHeader
         count={lootboxTiers.length}
         shardBalance={shardBalance}
@@ -224,6 +240,150 @@ export function LootboxShopScreen() {
 type InventoryRead = ReturnType<typeof buildLootboxInventoryRead>;
 type InventoryReadItem = InventoryRead["items"][number];
 type LootboxHuntRoute = ReturnType<typeof buildLootboxHuntRoute>;
+type ShardHubRead = ReturnType<typeof buildShardHubSnapshot>;
+
+function ShardHubCommandCenter({ snapshot }: { snapshot: ShardHubRead }) {
+  const nextQuestHref = snapshot.nextQuest ? `/quests/${snapshot.nextQuest.id}` : "/quests";
+  const nextSpendHref = snapshot.nextSpendTarget?.ready ? "#lootbox-chambers" : nextQuestHref;
+  const spendMeta = snapshot.nextSpendTarget
+    ? snapshot.nextSpendTarget.ready
+      ? "Ready to open"
+      : `${snapshot.nextSpendTarget.shortfall} shards away`
+    : "No chamber target";
+
+  return (
+    <section className="grid gap-3 xl:grid-cols-[minmax(0,1.2fr)_minmax(360px,0.8fr)]">
+      <div className="relative overflow-hidden rounded-[28px] border border-emerald-300/14 bg-[radial-gradient(circle_at_14%_0%,rgba(16,185,129,0.16),transparent_28%),radial-gradient(circle_at_84%_18%,rgba(34,211,238,0.12),transparent_30%),linear-gradient(180deg,rgba(10,16,22,0.98),rgba(5,8,13,0.99))] p-4 shadow-[0_22px_70px_rgba(0,0,0,0.28)] sm:p-5">
+        <div className="pointer-events-none absolute -right-10 -top-14 h-48 w-48 opacity-45">
+          <Image
+            src="/assets/lootboxes/shards-pile.webp"
+            alt=""
+            fill
+            sizes="192px"
+            className="motion-soft-float object-contain drop-shadow-[0_26px_56px_rgba(16,185,129,0.2)]"
+          />
+        </div>
+        <div className="relative z-10">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-emerald-300/18 bg-emerald-300/[0.08] text-emerald-100">
+              <Sparkles className="h-4 w-4" />
+            </span>
+            <span className="rounded-full border border-emerald-300/18 bg-emerald-300/[0.075] px-3 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-emerald-100">
+              Shard hub
+            </span>
+            <span className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-slate-400">
+              Daily loop
+            </span>
+          </div>
+
+          <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-end">
+            <div>
+              <ShardBadge value={snapshot.balance} label="available shards" className="px-4 py-1.5" />
+              <h2 className="mt-4 max-w-3xl text-[1.7rem] font-black leading-[0.98] tracking-[-0.055em] text-white sm:text-[2.35rem]">
+                Earn today, spend when the vault is ready.
+              </h2>
+              <p className="mt-3 max-w-2xl text-[12px] leading-5 text-slate-400">
+                Daily and weekly shard quests feed directly into lootbox chambers. The hub keeps the
+                next earning route and the closest spend target visible before users scroll.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <HeroStat label="Daily" value={String(snapshot.dailyQuestCount)} meta="open loops" />
+              <HeroStat label="Weekly" value={String(snapshot.weeklyQuestCount)} meta="streak routes" />
+              <HeroStat label="Earnable" value={`+${snapshot.earnableShardTotal}`} meta="open shards" />
+              <HeroStat label="Pools" value={String(snapshot.activePoolCount)} meta={`${snapshot.remainingPoolShards} left`} />
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
+            <Link
+              href={nextQuestHref}
+              className="group rounded-[20px] border border-emerald-300/16 bg-emerald-300/[0.06] p-4 transition hover:border-emerald-200/30 hover:bg-emerald-300/[0.09]"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-100">
+                  Earn shards
+                </p>
+                <Pickaxe className="h-4 w-4 text-emerald-100/70 transition group-hover:text-emerald-100" />
+              </div>
+              <p className="mt-2 line-clamp-2 text-[14px] font-semibold text-white">
+                {snapshot.nextQuest?.title ?? "Open shard quests"}
+              </p>
+              <p className="mt-2 text-[11px] text-emerald-100/65">
+                {snapshot.nextQuest
+                  ? `+${snapshot.nextQuest.shardRewardAmount ?? 0} shards / ${snapshot.nextQuest.platformQuestCadence ?? "quest"}`
+                  : "Find the next shard-bearing platform quest."}
+              </p>
+            </Link>
+
+            <Link
+              href={nextSpendHref}
+              className="group rounded-[20px] border border-amber-300/16 bg-amber-300/[0.06] p-4 transition hover:border-amber-200/30 hover:bg-amber-300/[0.09]"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-100">
+                  Spend shards
+                </p>
+                <Archive className="h-4 w-4 text-amber-100/70 transition group-hover:text-amber-100" />
+              </div>
+              <p className="mt-2 line-clamp-2 text-[14px] font-semibold text-white">
+                {snapshot.nextSpendTarget?.label ?? "Lootbox chambers"}
+              </p>
+              <p className="mt-2 text-[11px] text-amber-100/65">{spendMeta}</p>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <aside className="rounded-[28px] border border-white/8 bg-[radial-gradient(circle_at_top,rgba(168,85,247,0.11),transparent_34%),linear-gradient(180deg,rgba(13,16,22,0.97),rgba(6,8,13,0.98))] p-4 shadow-[0_18px_54px_rgba(0,0,0,0.24)] sm:p-5">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-violet-200">
+              Recent shard pulse
+            </p>
+            <h3 className="mt-2 text-[1rem] font-semibold text-white">Earn and spend trail</h3>
+          </div>
+          <History className="h-4 w-4 text-violet-100/70" />
+        </div>
+
+        <div className="mt-4 space-y-2">
+          {snapshot.recentActivity.length ? (
+            snapshot.recentActivity.map((activity) => (
+              <div
+                key={activity.id}
+                className="flex items-center justify-between gap-3 rounded-[16px] border border-white/8 bg-white/[0.03] px-3 py-3"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-[12px] font-semibold text-white">{activity.label}</p>
+                  <p className="mt-1 truncate text-[10px] uppercase tracking-[0.12em] text-slate-500">
+                    {activity.meta}
+                  </p>
+                </div>
+                <span
+                  className={`rounded-full border px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.12em] ${
+                    activity.tone === "spend"
+                      ? "border-amber-300/16 bg-amber-300/[0.06] text-amber-100"
+                      : "border-emerald-300/16 bg-emerald-300/[0.06] text-emerald-100"
+                  }`}
+                >
+                  {activity.tone}
+                </span>
+              </div>
+            ))
+          ) : (
+            <div className="rounded-[16px] border border-white/8 bg-white/[0.03] p-4">
+              <p className="text-[12px] font-semibold text-white">No shard activity yet.</p>
+              <p className="mt-1 text-[11px] leading-5 text-slate-500">
+                Complete a shard quest or open a box and the loop will appear here.
+              </p>
+            </div>
+          )}
+        </div>
+      </aside>
+    </section>
+  );
+}
 
 function LootboxChamberHeader({
   count,
