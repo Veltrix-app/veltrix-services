@@ -8,8 +8,9 @@ export default function CampaignsPage() {
       eyebrow="Campaigns"
       title="Mission Select"
       description="Launch into live campaign lanes with real XP budgets, steps and clear-rate pressure."
+      hidePageHeader
     >
-      <ProtectedState allowPreview previewLabel="Mission preview">
+      <ProtectedState allowPreview previewLabel="Mission preview" showPreviewBanner={false}>
         <CampaignsScreen />
       </ProtectedState>
     </AppShell>

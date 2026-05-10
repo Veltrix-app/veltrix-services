@@ -3,12 +3,15 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Layers3 } from "lucide-react";
+import { CinematicRouteHero } from "@/components/ui/cinematic-route-hero";
 import { StatusChip } from "@/components/ui/status-chip";
 import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 
 type CampaignFilter = "all" | "featured" | "high-xp";
+
+const CAMPAIGNS_HERO_IMAGE = "/assets/campaigns/campaigns-hero.webp";
 
 export function CampaignsScreen() {
   const { loading, error, campaigns, projects, quests } = useLiveUserData({
@@ -79,7 +82,32 @@ export function CampaignsScreen() {
 
   return (
     <div className="space-y-7">
-      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.42fr)_300px]">
+      <CinematicRouteHero
+        imageSrc={CAMPAIGNS_HERO_IMAGE}
+        imagePosition="center 48%"
+        title="Campaign lanes"
+        description="Launch into live campaign paths with visible XP budgets, quest steps and completion pressure before choosing where to move."
+        chips={["Mission select", "XP budgets", "Featured lanes"]}
+        stats={[
+          { label: "Campaigns", value: String(campaignCount) },
+          { label: "Featured", value: String(featuredCount) },
+          { label: "Avg clear", value: `${averageClearRate}%` },
+        ]}
+        panelTitle="Pick the lane with the clearest pressure"
+        panelText="Featured campaigns stay elevated first, then the dense board keeps every active route easy to scan."
+        panelStats={[
+          { label: "Open", value: String(campaignCount), sub: "lanes" },
+          { label: "Featured", value: String(featuredCount), sub: "priority" },
+          { label: "Clear", value: `${averageClearRate}%`, sub: "average" },
+          { label: "Visible", value: String(filteredCampaigns.length), sub: "filtered" },
+        ]}
+        panelIcon={Layers3}
+        primaryCta={{ href: "#campaign-board", label: "Open board" }}
+        secondaryCta={{ href: "#campaign-grid", label: "All lanes" }}
+        tone="violet"
+      />
+
+      <section id="campaign-board" className="grid scroll-mt-28 gap-4 xl:grid-cols-[minmax(0,1.42fr)_300px]">
         <div className="motion-surface motion-light-sweep overflow-hidden rounded-[22px] border border-white/6 bg-[radial-gradient(circle_at_top_left,rgba(163,230,53,0.12),transparent_26%),linear-gradient(180deg,rgba(13,15,18,0.99),rgba(6,8,11,0.99))] p-4 shadow-[0_20px_54px_rgba(0,0,0,0.24)]">
         <div className="relative z-10 flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -204,7 +232,7 @@ export function CampaignsScreen() {
         )}
       </section>
 
-      <section className="space-y-4">
+      <section id="campaign-grid" className="space-y-4 scroll-mt-28">
         <SectionHeading
           eyebrow="Grid"
           title="All campaign lanes"

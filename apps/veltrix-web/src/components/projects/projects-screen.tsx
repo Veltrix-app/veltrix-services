@@ -3,12 +3,15 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Compass } from "lucide-react";
+import { CinematicRouteHero } from "@/components/ui/cinematic-route-hero";
 import { StatusChip } from "@/components/ui/status-chip";
 import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 
 type ProjectFilter = "all" | "featured" | "ecosystem";
+
+const PROJECTS_HERO_IMAGE = "/assets/projects/projects-hero.webp";
 
 function formatCompactNumber(value: number) {
   return new Intl.NumberFormat("en", {
@@ -88,7 +91,32 @@ export function ProjectsScreen() {
 
   return (
     <div className="space-y-5">
-      <section className="grid gap-3.5 xl:grid-cols-[minmax(0,1.48fr)_280px]">
+      <CinematicRouteHero
+        imageSrc={PROJECTS_HERO_IMAGE}
+        imagePosition="center 48%"
+        title="Project worlds"
+        description="Scout live ecosystems, featured spaces and the next launch worlds worth opening from one high-signal project board."
+        chips={["World directory", "Featured spaces", "Live ecosystems"]}
+        stats={[
+          { label: "Projects", value: String(snapshot.total) },
+          { label: "Featured", value: String(snapshot.featured) },
+          { label: "Members", value: formatCompactNumber(totalMembers) },
+        ]}
+        panelTitle="Open the strongest worlds first"
+        panelText="Featured and active ecosystems stay elevated while the directory remains compact for fast comparison."
+        panelStats={[
+          { label: "Live", value: String(snapshot.live), sub: "ecosystems" },
+          { label: "Featured", value: String(snapshot.featured), sub: "priority" },
+          { label: "Members", value: formatCompactNumber(totalMembers), sub: "network" },
+          { label: "Directory", value: String(filteredProjects.length), sub: "visible" },
+        ]}
+        panelIcon={Compass}
+        primaryCta={{ href: "#project-board", label: "Open board" }}
+        secondaryCta={{ href: "#project-directory", label: "Directory" }}
+        tone="violet"
+      />
+
+      <section id="project-board" className="grid scroll-mt-28 gap-3.5 xl:grid-cols-[minmax(0,1.48fr)_280px]">
         <div className="rounded-[22px] border border-white/6 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.12),transparent_26%),linear-gradient(180deg,rgba(13,14,18,0.98),rgba(8,9,12,0.98))] p-4 shadow-[0_16px_40px_rgba(0,0,0,0.2)]">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="max-w-2xl">
@@ -207,7 +235,7 @@ export function ProjectsScreen() {
         )}
       </section>
 
-      <section className="space-y-4">
+      <section id="project-directory" className="space-y-4 scroll-mt-28">
         <SectionHeading
           eyebrow="Hot spaces"
           title="Activity read"

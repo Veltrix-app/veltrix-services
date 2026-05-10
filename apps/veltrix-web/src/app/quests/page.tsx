@@ -8,8 +8,9 @@ export default function QuestsPage() {
       eyebrow="Quests"
       title="Mission command"
       description="Find active quest lanes, boosted shard routes and reward-linked missions from one premium board."
+      hidePageHeader
     >
-      <ProtectedState allowPreview previewLabel="Quest preview">
+      <ProtectedState allowPreview previewLabel="Quest preview" showPreviewBanner={false}>
         <QuestsScreen />
       </ProtectedState>
     </AppShell>

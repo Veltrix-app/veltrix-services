@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { ArrowRight, Flame, Search, ShieldCheck, Sparkles, Target, Trophy } from "lucide-react";
 import { ArtworkImage } from "@/components/ui/artwork-image";
+import { CinematicRouteHero } from "@/components/ui/cinematic-route-hero";
 import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 import { ShardBadge } from "@/components/ui/shard-badge";
 import { StatusChip } from "@/components/ui/status-chip";
@@ -15,6 +16,8 @@ import { resolveBestFeaturedShardPool } from "@/lib/lootboxes/featured-shard-poo
 import type { LiveFeaturedShardPool } from "@/types/live";
 
 type QuestFilter = "all" | "open" | "high-xp";
+
+const QUEST_HERO_IMAGE = "/assets/quests/quest-hero.webp";
 
 function getQuestTone(status: string) {
   if (status === "approved") return "positive";
@@ -104,44 +107,39 @@ export function QuestsScreen() {
 
   return (
     <div className="space-y-6">
-      <section className="motion-light-sweep relative overflow-hidden rounded-[34px] border border-white/8 bg-[linear-gradient(180deg,rgba(13,17,24,0.99),rgba(5,7,11,0.99))] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.38)] sm:p-6">
-        <Image
-          src="/assets/public-home/quest-pressure.webp"
-          alt=""
-          fill
-          priority
-          unoptimized
-          sizes="100vw"
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover object-[50%_58%] opacity-[0.31] saturate-[1.12]"
-        />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_10%,rgba(34,211,238,0.2),transparent_28%),radial-gradient(circle_at_80%_16%,rgba(168,85,247,0.22),transparent_30%),linear-gradient(90deg,rgba(4,6,10,0.96)_0%,rgba(4,6,10,0.78)_50%,rgba(4,6,10,0.38)_100%)]" />
-        <div className="motion-ambient-grid opacity-[0.16]" />
-        <div className="motion-shard-field">
-          <span />
-          <span />
-          <span />
-        </div>
-        <FeatureBadgeMark
-          badge="quest"
-          className="absolute -right-4 bottom-0 h-44 w-44 opacity-[0.42] mix-blend-screen sm:h-64 sm:w-64 xl:right-10"
-          imageClassName="rotate-[8deg]"
-          priority
-          sizes="256px"
-        />
+      <CinematicRouteHero
+        imageSrc={QUEST_HERO_IMAGE}
+        imagePosition="center 50%"
+        title="Quest board"
+        description="Scan active missions, boosted shard lanes, XP pressure and reward-linked tasks from one premium command surface."
+        chips={["Featured quests", "Shard hunts", "XP routes"]}
+        stats={[
+          { label: "Open missions", value: String(openCount) },
+          { label: "Available XP", value: String(availableXp) },
+          { label: "Shard boosts", value: String(shardBoostCount) },
+        ]}
+        panelTitle={priorityQuest?.title ?? "Quest lane forming"}
+        panelText="The strongest available mission stays visible first, while filters keep the full quest grid fast to scan."
+        panelStats={[
+          { label: "Rewards", value: String(rewardLinkedCount), sub: "linked" },
+          { label: "Pending", value: String(pendingCount), sub: "review" },
+          { label: "Featured", value: String(featuredCount), sub: "lanes" },
+          { label: "Priority", value: priorityQuest ? "Ready" : "Forming", sub: "next move" },
+        ]}
+        panelIcon={Target}
+        primaryCta={{ href: "#quest-board", label: "Open quests" }}
+        secondaryCta={{ href: "#quest-controls", label: "Filter board" }}
+        tone="cyan"
+      />
 
-        <div className="relative z-10 grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-end">
+      <section
+        id="quest-controls"
+        className="motion-surface motion-light-sweep scroll-mt-28 overflow-hidden rounded-[26px] border border-white/8 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.12),transparent_28%),linear-gradient(180deg,rgba(13,17,24,0.98),rgba(6,8,12,0.99))] p-4 shadow-[0_18px_58px_rgba(0,0,0,0.28)] sm:p-5"
+      >
+        <div className="relative z-10 grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-center">
           <div className="min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-[0.26em] text-cyan-200">
-              Mission command
-            </p>
-            <h2 className="mt-4 max-w-4xl text-[2.15rem] font-black leading-[0.96] tracking-[-0.06em] text-white sm:text-[3.2rem] lg:text-[4rem]">
-              Find the next quest worth doing.
-            </h2>
-            <p className="mt-4 max-w-2xl text-[13px] leading-6 text-slate-300 sm:text-sm">
-              Scan active missions, boosted shard lanes, XP pressure and reward-linked tasks from one premium board.
-            </p>
-
-            <div className="mt-6 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-200">Mission filters</p>
+            <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
               <label className="flex min-h-12 items-center gap-3 rounded-full border border-white/10 bg-black/30 px-4 py-2 shadow-[0_16px_44px_rgba(0,0,0,0.22)] backdrop-blur-xl">
                 <Search className="h-4 w-4 shrink-0 text-cyan-100/70" />
                 <input
@@ -160,43 +158,16 @@ export function QuestsScreen() {
             </div>
           </div>
 
-          <div className="rounded-[24px] border border-white/10 bg-black/34 p-4 shadow-[0_22px_70px_rgba(0,0,0,0.32)] backdrop-blur-xl">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">
-                  Priority lane
-                </p>
-                <p className="mt-2 line-clamp-2 text-[1.35rem] font-black leading-tight tracking-[-0.04em] text-white">
-                  {priorityQuest?.title ?? "Quest lane forming"}
-                </p>
-              </div>
-              <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cyan-300/18 bg-cyan-300/[0.075] text-cyan-100">
-                <Target className="h-5 w-5" />
-              </span>
-            </div>
-
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              <SignalCard label="Open" value={String(openCount)} meta="missions" icon={<Flame className="h-3.5 w-3.5" />} />
-              <SignalCard label="XP" value={String(availableXp)} meta="available" icon={<Sparkles className="h-3.5 w-3.5" />} />
-              <SignalCard label="Rewards" value={String(rewardLinkedCount)} meta="linked" icon={<Trophy className="h-3.5 w-3.5" />} />
-              <SignalCard label="Shards" value={String(shardBoostCount)} meta="boosted" icon={<ShieldCheck className="h-3.5 w-3.5" />} />
-            </div>
-
-            {priorityQuest ? (
-              <Link
-                href={`/quests/${priorityQuest.id}`}
-                prefetch={false}
-                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-cyan-200 px-4 py-3 text-[11px] font-black uppercase tracking-[0.15em] text-black transition hover:brightness-110"
-              >
-                Open priority quest
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            ) : null}
+          <div className="grid grid-cols-2 gap-2">
+            <SignalCard label="Open" value={String(openCount)} meta="missions" icon={<Flame className="h-3.5 w-3.5" />} />
+            <SignalCard label="XP" value={String(availableXp)} meta="available" icon={<Sparkles className="h-3.5 w-3.5" />} />
+            <SignalCard label="Rewards" value={String(rewardLinkedCount)} meta="linked" icon={<Trophy className="h-3.5 w-3.5" />} />
+            <SignalCard label="Shards" value={String(shardBoostCount)} meta="boosted" icon={<ShieldCheck className="h-3.5 w-3.5" />} />
           </div>
         </div>
       </section>
 
-      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <section id="quest-board" className="grid scroll-mt-28 gap-3 md:grid-cols-2 xl:grid-cols-4">
         <BoardStat label="Featured lanes" value={String(featuredCount)} detail="visual campaign pressure" />
         <BoardStat label="Open missions" value={String(openCount)} detail="not approved yet" />
         <BoardStat label="Pending review" value={String(pendingCount)} detail="waiting signal" />
