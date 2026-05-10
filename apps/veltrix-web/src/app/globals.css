@@ -86,6 +86,25 @@ body::before {
   opacity: 0.28;
 }
 
+html.vyntro-route-loading body::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 80;
+  height: 2px;
+  width: 100%;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent, rgba(190, 255, 74, 0.92), rgba(34, 211, 238, 0.82), transparent),
+    linear-gradient(90deg, rgba(190, 255, 74, 0.18), rgba(34, 211, 238, 0.18));
+  box-shadow:
+    0 0 24px rgba(190, 255, 74, 0.24),
+    0 0 30px rgba(34, 211, 238, 0.14);
+  transform-origin: left center;
+  animation: vyntro-route-progress 760ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 .vyntro-shell-background {
   position: relative;
   isolation: isolate;
@@ -677,6 +696,28 @@ body::before {
   animation: vyntro-reveal-pulse 1.8s ease-in-out infinite;
 }
 
+.vyntro-state-scan {
+  transform: translateX(-130%) skewX(-12deg);
+  animation: vyntro-state-scan 3.4s ease-in-out infinite;
+}
+
+.vyntro-state-pulse {
+  animation: vyntro-state-pulse 3.2s ease-in-out infinite;
+}
+
+.vyntro-state-meter {
+  transform-origin: left center;
+  animation: vyntro-state-meter 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.vyntro-state-skeleton {
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent),
+    rgba(255, 255, 255, 0.035);
+  background-size: 220% 100%, 100% 100%;
+  animation: vyntro-state-skeleton 1.9s ease-in-out infinite;
+}
+
 @keyframes vyntro-ambient-drift {
   from {
     background-position: 0 0;
@@ -704,6 +745,24 @@ body::before {
   }
   to {
     filter: brightness(1);
+    transform: scaleX(1);
+  }
+}
+
+@keyframes vyntro-route-progress {
+  0% {
+    opacity: 0;
+    transform: scaleX(0.08);
+  }
+  18% {
+    opacity: 1;
+  }
+  72% {
+    opacity: 1;
+    transform: scaleX(0.86);
+  }
+  100% {
+    opacity: 0;
     transform: scaleX(1);
   }
 }
@@ -809,6 +868,61 @@ body::before {
   }
 }
 
+@keyframes vyntro-state-scan {
+  0%,
+  42%,
+  100% {
+    opacity: 0;
+    transform: translateX(-130%) skewX(-12deg);
+  }
+  58% {
+    opacity: 1;
+  }
+  86% {
+    opacity: 0;
+    transform: translateX(360%) skewX(-12deg);
+  }
+}
+
+@keyframes vyntro-state-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.02),
+      0 0 20px rgba(190, 255, 74, 0.04);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.08),
+      0 0 30px rgba(34, 211, 238, 0.1);
+  }
+}
+
+@keyframes vyntro-state-meter {
+  0% {
+    opacity: 0.58;
+    transform: scaleX(0.2) translateX(0);
+  }
+  48% {
+    opacity: 1;
+    transform: scaleX(0.62) translateX(22%);
+  }
+  100% {
+    opacity: 0.62;
+    transform: scaleX(0.22) translateX(145%);
+  }
+}
+
+@keyframes vyntro-state-skeleton {
+  0%,
+  100% {
+    background-position: 220% 0, 0 0;
+  }
+  50% {
+    background-position: -60% 0, 0 0;
+  }
+}
+
 @keyframes vyntro-active-glow {
   0%,
   100% {
@@ -881,7 +995,11 @@ body::before {
   }
 
   .motion-active-glow,
-  .motion-signal-dot {
+  .motion-signal-dot,
+  .vyntro-state-scan,
+  .vyntro-state-pulse,
+  .vyntro-state-meter,
+  .vyntro-state-skeleton {
     animation: none;
   }
 }

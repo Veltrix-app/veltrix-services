@@ -6,6 +6,7 @@ import { BellRing, Radar, ShieldAlert, Sparkles } from "lucide-react";
 import { CommunityStatusPanel } from "@/components/community/community-status-panel";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
+import { VyntroState, resolveVyntroStateVariant } from "@/components/ui/vyntro-state";
 import { useCommunityJourney } from "@/hooks/use-community-journey";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 
@@ -375,22 +376,28 @@ function QuickLink({ href, label }: { href: string; label: string }) {
 
 function EmptyNotice({ text }: { text: string }) {
   return (
-    <div className="rounded-[16px] border border-white/8 bg-black/20 px-3 py-3.5 text-[11px] text-slate-300">
-      {text}
-    </div>
+    <VyntroState
+      compact
+      title={text}
+      variant="empty"
+      description="No live notification signal is visible for this lane yet."
+    />
   );
 }
 
 function Notice({ text, tone }: { text: string; tone: "default" | "error" }) {
   return (
-    <div
-        className={`rounded-[16px] px-3 py-3.5 text-[11px] ${
+    <VyntroState
+      compact
+      title={text}
+      variant={resolveVyntroStateVariant(text, tone)}
+      description={
         tone === "error"
-          ? "border border-rose-400/20 bg-rose-500/10 text-rose-200"
-          : "border border-white/8 bg-black/20 text-slate-300"
-      }`}
-    >
-      {text}
-    </div>
+          ? "The notification rail could not read the current signal feed."
+          : text.toLowerCase().startsWith("loading")
+            ? "Syncing quests, raids, rewards and community alerts."
+            : "No live notification signal is visible for this lane yet."
+      }
+    />
   );
 }

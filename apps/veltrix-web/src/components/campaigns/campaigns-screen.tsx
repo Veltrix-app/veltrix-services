@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { ArrowRight, Layers3 } from "lucide-react";
 import { CinematicRouteHero } from "@/components/ui/cinematic-route-hero";
 import { StatusChip } from "@/components/ui/status-chip";
+import { VyntroState, resolveVyntroStateVariant } from "@/components/ui/vyntro-state";
 import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 
@@ -398,14 +399,17 @@ function EmptyNotice({
   tone?: "default" | "error";
 }) {
   return (
-    <div
-      className={`rounded-[24px] border px-4 py-5 text-sm ${
+    <VyntroState
+      compact
+      title={text}
+      variant={resolveVyntroStateVariant(text, tone)}
+      description={
         tone === "error"
-          ? "border-rose-400/20 bg-rose-500/10 text-rose-200"
-          : "border-white/8 bg-black/20 text-slate-300"
-      }`}
-    >
-      {text}
-    </div>
+          ? "The campaign board could not read the live activation lane."
+          : text.toLowerCase().startsWith("loading")
+            ? "Syncing campaigns, quests and linked project pressure."
+            : "No matching campaign signal is visible for this board state."
+      }
+    />
   );
 }

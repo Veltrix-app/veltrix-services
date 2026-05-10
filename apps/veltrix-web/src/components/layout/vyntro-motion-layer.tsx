@@ -217,6 +217,16 @@ export function VyntroMotionLayer() {
     root.classList.remove("vyntro-route-motion");
     void root.offsetWidth;
     root.classList.add("vyntro-route-motion");
+    root.classList.add("vyntro-route-loading");
+
+    const routePulseId = window.setTimeout(() => {
+      root.classList.remove("vyntro-route-loading");
+    }, reducedMotion ? 120 : 760);
+
+    cleanupCallbacks.push(() => {
+      window.clearTimeout(routePulseId);
+      root.classList.remove("vyntro-route-loading");
+    });
 
     if (!reducedMotion && finePointer) {
       cleanupCallbacks.push(bindGlobalPointerLight(), bindDepthCards(), bindFeedbackControls());

@@ -16,6 +16,7 @@ import {
 import { Surface } from "@/components/ui/surface";
 import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 import { StatusChip } from "@/components/ui/status-chip";
+import { VyntroState, resolveVyntroStateVariant } from "@/components/ui/vyntro-state";
 import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
@@ -632,15 +633,18 @@ function RouteTile({ href, label }: { href: string; label: string }) {
 
 function Notice({ text, tone }: { text: string; tone: "default" | "error" }) {
   return (
-    <div
-      className={`rounded-[16px] px-3 py-3.5 text-[11px] ${
+    <VyntroState
+      compact
+      title={text}
+      variant={resolveVyntroStateVariant(text, tone)}
+      description={
         tone === "error"
-          ? "border border-rose-400/20 bg-rose-500/10 text-rose-200"
-          : "border border-white/8 bg-black/20 text-slate-300"
-      }`}
-    >
-      {text}
-    </div>
+          ? "The leaderboard could not read the current member rank lane."
+          : text.toLowerCase().startsWith("loading")
+            ? "Syncing rank, XP and contribution tier signals."
+            : "No matching member rank signal is visible yet."
+      }
+    />
   );
 }
 

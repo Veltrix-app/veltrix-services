@@ -10,6 +10,7 @@ import { CinematicRouteHero } from "@/components/ui/cinematic-route-hero";
 import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 import { ShardBadge } from "@/components/ui/shard-badge";
 import { StatusChip } from "@/components/ui/status-chip";
+import { VyntroState, resolveVyntroStateVariant } from "@/components/ui/vyntro-state";
 import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 import { resolveBestFeaturedShardPool } from "@/lib/lootboxes/featured-shard-pools";
@@ -553,14 +554,17 @@ function EmptyNotice({
   tone?: "default" | "error";
 }) {
   return (
-    <div
-      className={`rounded-[24px] border px-4 py-5 text-sm ${
+    <VyntroState
+      compact
+      title={text}
+      variant={resolveVyntroStateVariant(text, tone)}
+      description={
         tone === "error"
-          ? "border-rose-400/20 bg-rose-500/10 text-rose-200"
-          : "border-white/8 bg-black/20 text-slate-300"
-      }`}
-    >
-      {text}
-    </div>
+          ? "The quest board could not read the live mission lane."
+          : text.toLowerCase().startsWith("loading")
+            ? "Syncing quests, rewards, shard pools and project context."
+            : "No matching mission signal is visible for the current filters."
+      }
+    />
   );
 }

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { SignInScreen } from "@/components/auth/sign-in-screen";
 import { useAuth } from "@/components/providers/auth-provider";
+import { VyntroInlineLoading } from "@/components/ui/vyntro-state";
 import { publicAuthRoutes } from "@/lib/account/public-auth";
 
 export function ProtectedState({
@@ -33,11 +34,7 @@ export function ProtectedState({
       );
     }
 
-    return (
-      <div className="rounded-[22px] border border-white/10 bg-white/[0.04] px-5 py-6 text-sm text-slate-300">
-        Loading account...
-      </div>
-    );
+    return <VyntroInlineLoading />;
   }
 
   if (!authConfigured || !session) {
