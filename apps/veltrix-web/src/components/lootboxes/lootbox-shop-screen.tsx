@@ -22,9 +22,12 @@ import {
 } from "lucide-react";
 import { LootboxCard } from "@/components/lootboxes/lootbox-card";
 import { buildLootboxHuntRoute } from "@/components/lootboxes/lootbox-hunt-route";
+import { CinematicRouteHero } from "@/components/ui/cinematic-route-hero";
 import { ShardBadge } from "@/components/ui/shard-badge";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 import { buildLootboxInventoryRead } from "@/lib/lootboxes/lootbox-inventory-read";
+
+const LOOTBOX_HERO_IMAGE = "/assets/lootboxes/lootbox-hero.webp";
 
 type LootboxReveal = {
   tierLabel: string;
@@ -154,99 +157,30 @@ export function LootboxShopScreen() {
 
   return (
     <div className="space-y-6">
-      <section className="motion-light-sweep relative overflow-hidden rounded-[34px] border border-white/8 bg-[linear-gradient(180deg,rgba(12,16,22,0.99),rgba(5,7,11,0.99))] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.42)] sm:p-6">
-        <Image
-          src="/assets/lootboxes/mythic-background.webp"
-          alt=""
-          fill
-          unoptimized
-          priority
-          sizes="100vw"
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.34] saturate-[1.08]"
-        />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_16%,rgba(244,63,94,0.2),transparent_24%),radial-gradient(circle_at_20%_8%,rgba(16,185,129,0.16),transparent_27%),linear-gradient(90deg,rgba(4,6,10,0.94)_0%,rgba(4,6,10,0.7)_48%,rgba(4,6,10,0.36)_100%)]" />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-rose-200/28 to-transparent" />
-        <div className="motion-ambient-grid opacity-[0.16]" />
-        <div className="motion-shard-field">
-          <span />
-          <span />
-          <span />
-        </div>
-        <div className="pointer-events-none absolute -bottom-8 right-0 hidden h-72 w-72 opacity-80 md:block xl:right-8">
-          <Image
-            src="/assets/lootboxes/mythic-lootbox.webp"
-            alt=""
-            fill
-            sizes="288px"
-            className="motion-soft-float object-contain drop-shadow-[0_34px_80px_rgba(244,63,94,0.34)]"
-            priority
-          />
-        </div>
-
-        <div className="relative z-10 grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-end">
-          <div className="min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-[0.26em] text-emerald-200">
-              Shard Vault
-            </p>
-            <h1 className="mt-4 max-w-3xl text-[2.25rem] font-black leading-[0.95] tracking-[-0.06em] text-white sm:text-[3.4rem] lg:text-[4.25rem]">
-              Open the reward chambers.
-            </h1>
-            <p className="mt-4 max-w-2xl text-[13px] leading-6 text-slate-300 sm:text-sm">
-              Hunt boosted quests and raids, collect shards, then spend them on rarity-gated lootboxes with vault-backed rewards.
-            </p>
-            <div className="mt-6 flex flex-wrap items-center gap-2">
-              <ShardBadge value={shardBalance} label="vault balance" className="py-2" />
-              <Link
-                href={huntRoute.primaryHref}
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-emerald-300 px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.15em] text-black transition hover:brightness-110"
-              >
-                {huntRoute.primaryCta}
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href="#lootbox-chambers"
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.15em] text-slate-100 transition hover:border-white/18 hover:bg-white/[0.075]"
-              >
-                View boxes
-              </Link>
-            </div>
-          </div>
-
-          <div className="rounded-[24px] border border-white/10 bg-black/34 p-4 shadow-[0_22px_70px_rgba(0,0,0,0.3)] backdrop-blur-xl">
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">
-              Current route
-            </p>
-            <div className="mt-3 flex items-center justify-between gap-3">
-              <div>
-                <p className="text-[1.4rem] font-black tracking-[-0.04em] text-white">
-                  {huntRoute.targetTierLabel}
-                </p>
-                <p className="mt-1 text-[11px] uppercase tracking-[0.14em] text-slate-500">
-                  {huntRoute.shortfallLabel}
-                </p>
-              </div>
-              <ShardBadge value={huntRoute.targetPriceShards} className="py-1.5" />
-            </div>
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              <HeroStat label="Boosts" value={String(huntRoute.activeBoostCount)} meta="featured pools" />
-              <HeroStat label="Claimable" value={String(inventoryRead.summary.claimable)} meta="ready rewards" />
-            </div>
-            <div className="mt-3 rounded-[18px] border border-white/8 bg-white/[0.035] p-3">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-500">
-                  Season pass
-                </span>
-                <span className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-200">
-                  {activeSeasonAccessItem ? "Active" : "None"}
-                </span>
-              </div>
-              <p className="mt-2 line-clamp-2 text-[11px] leading-5 text-slate-500">
-                {activeSeasonAccessItem?.utility.seasonAccessLabel ?? "Premium gates can unlock from the vault."}
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+      <CinematicRouteHero
+        chips={["Shard vault", "Rarity gates", "Featured hunt loop"]}
+        description="Hunt boosted quests and raids, collect shards, then spend them inside rarity-gated chambers built for cosmetics, perks and vault-backed reward moments."
+        imagePosition="center"
+        imageSrc={LOOTBOX_HERO_IMAGE}
+        panelIcon={Archive}
+        panelStats={[
+          { label: "Balance", value: String(shardBalance), sub: "available shards" },
+          { label: "Target", value: huntRoute.targetTierLabel, sub: huntRoute.shortfallLabel },
+          { label: "Boosts", value: String(huntRoute.activeBoostCount), sub: "featured pools" },
+          { label: "Claimable", value: String(inventoryRead.summary.claimable), sub: "ready rewards" },
+        ]}
+        panelText={activeSeasonAccessItem?.utility.seasonAccessLabel ?? "Season pass and premium gates can unlock from the vault as the reward economy grows."}
+        panelTitle="Open the reward chambers."
+        primaryCta={{ href: huntRoute.primaryHref, label: huntRoute.primaryCta, icon: <Gem className="h-4 w-4" /> }}
+        secondaryCta={{ href: "#lootbox-chambers", label: "View boxes", icon: <Archive className="h-4 w-4" /> }}
+        stats={[
+          { label: "Chambers", value: String(lootboxTiers.length) },
+          { label: "Shard balance", value: String(shardBalance) },
+          { label: "Season pass", value: activeSeasonAccessItem ? "Active" : "None" },
+        ]}
+        title="Shard vault"
+        tone="amber"
+      />
 
       {message ? <Notice text={message.text} tone={message.tone === "error" ? "error" : "default"} /> : null}
 

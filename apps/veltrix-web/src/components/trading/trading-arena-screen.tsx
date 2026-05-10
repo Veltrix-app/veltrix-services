@@ -6,11 +6,11 @@ import {
   ArrowRight,
   BarChart3,
   Clock3,
-  Coins,
-  ShieldCheck,
   Trophy,
   Wallet,
 } from "lucide-react";
+import { DefiRouteNav } from "@/components/defi/defi-route-nav";
+import { CinematicRouteHero } from "@/components/ui/cinematic-route-hero";
 import {
   formatTradingCost,
   formatTradingReward,
@@ -25,6 +25,8 @@ type CompetitionsResponse = {
   competitions?: TradingCompetitionRead[];
   error?: string;
 };
+
+const TRADING_HERO_IMAGE = "/assets/trading/trading-arena-hero.webp";
 
 function getItems(payload: CompetitionsResponse | null) {
   return payload?.items ?? payload?.competitions ?? [];
@@ -153,62 +155,34 @@ export function TradingArenaScreen() {
 
   return (
     <div className="space-y-5">
-      <section className="relative overflow-hidden rounded-[34px] border border-white/6 bg-[radial-gradient(circle_at_12%_0%,rgba(56,189,248,0.16),transparent_30%),radial-gradient(circle_at_84%_18%,rgba(190,255,74,0.12),transparent_28%),linear-gradient(180deg,rgba(12,15,21,0.99),rgba(5,7,10,0.995))] p-5 shadow-[0_28px_110px_rgba(0,0,0,0.38)] sm:p-7">
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,rgba(255,255,255,0.04),transparent_36%)]" />
+      <CinematicRouteHero
+        chips={["Live board", "Cost capped", "No custody"]}
+        description="Enter competitive DeFi arenas where verified wallets, trading windows, cost controls and reward settlement stay visible before members join the board."
+        imagePosition="center"
+        imageSrc={TRADING_HERO_IMAGE}
+        panelIcon={Trophy}
+        panelStats={[
+          { label: "Live", value: String(liveCount), sub: "arenas now" },
+          { label: "Tracked", value: String(trackedCount), sub: "premium mode" },
+          { label: "Usage", value: formatTradingCost(estimatedCost), sub: "metered cost" },
+          { label: "Custody", value: "None", sub: "wallet-owned" },
+        ]}
+        panelText="Trading Arena is the competition layer for projects that want real activity, visible rules and a clean route into reward settlement."
+        panelTitle={liveCount > 0 ? "Arena pressure is live." : "Arena layer is ready."}
+        primaryCta={{ href: "#arena-board", label: "Open arenas", icon: <Trophy className="h-4 w-4" /> }}
+        secondaryCta={{ href: "#arena-rules", label: "View modes", icon: <BarChart3 className="h-4 w-4" /> }}
+        stats={[
+          { label: "Live now", value: String(liveCount) },
+          { label: "Tracking", value: String(trackedCount) },
+          { label: "Cost", value: formatTradingCost(estimatedCost) },
+        ]}
+        title="Trading Arena"
+        tone="violet"
+      />
 
-        <div className="relative z-10 grid gap-6 xl:grid-cols-[minmax(0,1fr)_390px]">
-          <div className="max-w-4xl">
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-sky-200">
-              Trading competitions
-            </p>
-            <h2 className="mt-4 max-w-4xl text-[clamp(2rem,4.4vw,5.4rem)] font-black leading-[0.9] tracking-[-0.07em] text-white">
-              Snapshot or live-tracked arenas for real trading activity.
-            </h2>
-            <p className="mt-5 max-w-3xl text-sm leading-7 text-slate-400">
-              Projects can launch a competition, define pairs, set rewards and choose between
-              low-cost snapshots or premium live tracking. Members join with a verified wallet and
-              compete on volume, ROI and trust-aware consistency.
-            </p>
+      <DefiRouteNav compact />
 
-            <div className="mt-7 flex flex-wrap gap-3">
-              <span className="inline-flex items-center gap-2 rounded-full border border-lime-300/12 bg-lime-300/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.16em] text-lime-100">
-                <ShieldCheck className="h-4 w-4" />
-                No custody
-              </span>
-              <span className="inline-flex items-center gap-2 rounded-full border border-sky-300/12 bg-sky-300/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.16em] text-sky-100">
-                <BarChart3 className="h-4 w-4" />
-                Live board
-              </span>
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.04] px-4 py-2 text-[11px] font-black uppercase tracking-[0.16em] text-slate-300">
-                <Coins className="h-4 w-4" />
-                Cost capped
-              </span>
-            </div>
-          </div>
-
-          <div className="rounded-[28px] border border-white/7 bg-black/24 p-5">
-            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-lime-300">
-              Operator read
-            </p>
-            <div className="mt-5 grid gap-3">
-              <div className="rounded-[20px] border border-white/6 bg-white/[0.035] p-4">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Live now</p>
-                <p className="mt-2 text-2xl font-black text-white">{liveCount}</p>
-              </div>
-              <div className="rounded-[20px] border border-white/6 bg-white/[0.035] p-4">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Premium tracking</p>
-                <p className="mt-2 text-2xl font-black text-white">{trackedCount}</p>
-              </div>
-              <div className="rounded-[20px] border border-white/6 bg-white/[0.035] p-4">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Metered usage</p>
-                <p className="mt-2 text-2xl font-black text-white">{formatTradingCost(estimatedCost)}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="grid gap-4 xl:grid-cols-3">
+      <section id="arena-rules" className="scroll-mt-28 grid gap-4 xl:grid-cols-3">
         <div className="rounded-[28px] border border-white/6 bg-[linear-gradient(180deg,rgba(14,17,22,0.98),rgba(7,9,12,0.99))] p-5">
           <Wallet className="h-5 w-5 text-lime-200" />
           <h3 className="mt-4 text-xl font-black tracking-[-0.04em] text-white">Snapshot mode</h3>
@@ -242,7 +216,7 @@ export function TradingArenaScreen() {
         </section>
       ) : null}
 
-      <section>
+      <section id="arena-board" className="scroll-mt-28">
         <div className="mb-4 flex items-end justify-between gap-4">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.26em] text-lime-300">

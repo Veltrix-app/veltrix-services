@@ -116,7 +116,7 @@ function TopNavLink({
   return (
     <Link
       href={href}
-      className={`motion-press inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-2.5 text-[10px] font-bold uppercase tracking-[0.13em] transition min-[1720px]:px-2.5 min-[1720px]:text-[11px] ${
+      className={`motion-press inline-flex shrink-0 items-center gap-1.5 rounded-full px-1.5 py-2.5 text-[10px] font-bold uppercase tracking-[0.13em] transition min-[1700px]:px-2 min-[1880px]:px-2.5 ${
         active
           ? "motion-active-glow border border-white/10 bg-white/[0.09] text-white"
           : "border border-transparent text-slate-400 hover:border-white/8 hover:bg-white/[0.04] hover:text-white"
@@ -161,7 +161,7 @@ function TopNavItem({
     <div className="group relative">
       <Link
         href={item.href}
-        className={`motion-press inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-2.5 text-[10px] font-bold uppercase tracking-[0.13em] transition min-[1720px]:px-2.5 min-[1720px]:text-[11px] ${
+        className={`motion-press inline-flex shrink-0 items-center gap-1.5 rounded-full px-1.5 py-2.5 text-[10px] font-bold uppercase tracking-[0.13em] transition min-[1700px]:px-2 min-[1880px]:px-2.5 ${
           active
             ? "motion-active-glow border border-white/10 bg-white/[0.09] text-white"
             : "border border-transparent text-slate-400 hover:border-white/8 hover:bg-white/[0.04] hover:text-white"
@@ -558,13 +558,13 @@ export function AppShell({
               </div>
             </Link>
 
-            <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 overflow-hidden 2xl:flex min-[1720px]:gap-1">
+            <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 overflow-hidden 2xl:flex min-[1880px]:gap-1">
               {primaryNavItems.map((item) => (
                 <TopNavItem key={item.href} pathname={pathname} item={item} />
               ))}
             </nav>
 
-            <label className="hidden min-w-[180px] w-[min(16vw,230px)] shrink items-center gap-2.5 rounded-full border border-white/8 bg-white/[0.03] px-3.5 py-3 2xl:flex">
+            <label className="hidden min-w-[150px] w-[min(10vw,190px)] shrink items-center gap-2.5 rounded-full border border-white/8 bg-white/[0.03] px-3.5 py-3 min-[2000px]:flex">
               <Search className="h-4 w-4 text-slate-500" />
               <input
                 type="search"

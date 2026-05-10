@@ -8,8 +8,9 @@ export default function RewardsPage() {
       eyebrow="Rewards"
       title="Reward vault"
       description="Track live rewards, claimable payouts and rarity pressure as the payoff layer of the same member journey."
+      hidePageHeader
     >
-      <ProtectedState allowPreview previewLabel="Rewards preview">
+      <ProtectedState allowPreview previewLabel="Rewards preview" showPreviewBanner={false}>
         <RewardsScreen />
       </ProtectedState>
     </AppShell>

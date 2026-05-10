@@ -4,7 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { ArrowRight, BadgeCheck, Crown, Sparkles } from "lucide-react";
+import { ArrowRight, BadgeCheck, Crown, Gift, Sparkles, Trophy } from "lucide-react";
+import { CinematicRouteHero } from "@/components/ui/cinematic-route-hero";
 import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 import { ShardBadge } from "@/components/ui/shard-badge";
 import { StatusChip } from "@/components/ui/status-chip";
@@ -13,6 +14,8 @@ import { useLiveUserData } from "@/hooks/use-live-user-data";
 import { VYNTRO_MEMBER_PASSES } from "@/lib/lootboxes/lootbox-pass-catalog";
 
 type RewardFilter = "all" | "claimable" | "high-value";
+
+const REWARD_HERO_IMAGE = "/assets/rewards/reward-vault-hero.webp";
 
 export function RewardsScreen() {
   const {
@@ -140,7 +143,32 @@ export function RewardsScreen() {
 
   return (
     <div className="space-y-7">
-      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.42fr)_300px]">
+      <CinematicRouteHero
+        chips={["Claimable payouts", "Vault pressure", "Shard loop"]}
+        description="Track every payoff lane from one premium vault surface. Claimable rewards, queued distributions, pass utility and lootbox pressure stay readable before members take action."
+        imagePosition="center"
+        imageSrc={REWARD_HERO_IMAGE}
+        panelIcon={Gift}
+        panelStats={[
+          { label: "Rewards", value: String(enrichedRewards.length), sub: "visible lanes" },
+          { label: "Claimable", value: String(claimableRewardCount), sub: "ready now" },
+          { label: "Queued", value: String(pendingDistributionCount), sub: "payout pressure" },
+          { label: "Shards", value: String(shardBalance), sub: "vault balance" },
+        ]}
+        panelText="The reward vault keeps direct unlocks, campaign payouts and shard-driven next actions together without hiding the claim state."
+        panelTitle={claimableRewardCount > 0 ? "Rewards are waiting." : "Vault is watching payoff lanes."}
+        primaryCta={{ href: "#reward-board", label: "Open reward board", icon: <Gift className="h-4 w-4" /> }}
+        secondaryCta={{ href: "/lootboxes", label: "Spend shards", icon: <Trophy className="h-4 w-4" /> }}
+        stats={[
+          { label: "Claimable", value: String(claimableRewardCount) },
+          { label: "Locked", value: String(lockedCount) },
+          { label: "High value", value: String(highValueCount) },
+        ]}
+        title="Reward vault"
+        tone="amber"
+      />
+
+      <section id="reward-board" className="scroll-mt-28 grid gap-4 xl:grid-cols-[minmax(0,1.42fr)_300px]">
         <div className="relative overflow-hidden rounded-[22px] border border-white/6 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.12),transparent_26%),linear-gradient(180deg,rgba(13,15,18,0.99),rgba(6,8,11,0.99))] p-4 shadow-[0_20px_54px_rgba(0,0,0,0.24)]">
         <FeatureBadgeMark
           badge="reward"

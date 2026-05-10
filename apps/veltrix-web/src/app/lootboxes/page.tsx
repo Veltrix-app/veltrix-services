@@ -8,8 +8,9 @@ export default function LootboxesPage() {
       eyebrow="Lootboxes"
       title="Shard vault"
       description="Spend earned shards on VYNTRO lootboxes, cosmetics and perk unlocks."
+      hidePageHeader
     >
-      <ProtectedState allowPreview previewLabel="Lootbox preview">
+      <ProtectedState allowPreview previewLabel="Lootbox preview" showPreviewBanner={false}>
         <LootboxShopScreen />
       </ProtectedState>
     </AppShell>
