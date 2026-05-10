@@ -48,7 +48,7 @@ export function VyntroWalletWidget({
   const { leaderboard, shardBalance, loading } = useLiveUserData({
     datasets: ["leaderboard", "lootboxes"],
   });
-  const [collapsed, setCollapsed] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
 
   const currentLeaderboardRank = useMemo(
     () => leaderboard.findIndex((user) => user.isCurrentUser) + 1,
@@ -66,7 +66,7 @@ export function VyntroWalletWidget({
         type="button"
         onClick={() => setCollapsed(false)}
         aria-label="Open VYNTRO wallet"
-        className="motion-press fixed right-0 top-1/2 z-30 hidden -translate-y-1/2 items-center gap-1.5 rounded-l-[22px] border border-r-0 border-cyan-200/15 bg-[#071012]/88 py-3 pl-2.5 pr-2 text-left shadow-[0_18px_60px_rgba(0,0,0,0.46),0_0_36px_rgba(34,211,238,0.09)] backdrop-blur-2xl transition hover:border-lime-300/25 hover:bg-[#091412]/94 md:flex"
+        className="motion-press fixed right-0 top-1/2 z-50 hidden -translate-y-1/2 items-center gap-2 rounded-l-[22px] border border-r-0 border-cyan-200/15 bg-[#071012]/88 py-3 pl-3 pr-2 text-left shadow-[0_18px_60px_rgba(0,0,0,0.46),0_0_36px_rgba(34,211,238,0.09)] backdrop-blur-2xl transition hover:border-lime-300/25 hover:bg-[#091412]/94 md:flex"
       >
         <span className="relative h-9 w-9 overflow-hidden rounded-full border border-violet-300/24 bg-black shadow-[0_0_22px_rgba(139,92,246,0.22)]">
           <Image
@@ -77,14 +77,21 @@ export function VyntroWalletWidget({
             className="object-cover"
           />
         </span>
-        <span className="sr-only">Wallet Lv {level} / {rankLabel}</span>
+        <span className="min-w-0 pr-1">
+          <span className="block text-[9px] font-black uppercase tracking-[0.22em] text-lime-200">
+            Wallet
+          </span>
+          <span className="mt-1 hidden text-[10px] font-bold uppercase tracking-[0.14em] text-slate-300 lg:block">
+            Lv {level} / {rankLabel}
+          </span>
+        </span>
         <ChevronLeft className="h-3.5 w-3.5 text-cyan-100/70" />
       </button>
     );
   }
 
   return (
-    <aside className="fixed right-2 top-1/2 z-30 hidden w-[14.25rem] -translate-y-1/2 md:block 2xl:right-3">
+    <aside className="fixed right-2 top-1/2 z-50 hidden w-[14.25rem] -translate-y-1/2 md:block 2xl:right-3">
       <div className="motion-surface motion-light-sweep relative overflow-hidden rounded-[26px] border border-white/8 bg-[linear-gradient(180deg,rgba(10,14,19,0.92),rgba(3,5,8,0.9))] p-3 shadow-[0_24px_90px_rgba(0,0,0,0.58),0_0_44px_rgba(34,211,238,0.07)] backdrop-blur-2xl">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_5%,rgba(163,230,53,0.12),transparent_32%),radial-gradient(circle_at_95%_8%,rgba(139,92,246,0.16),transparent_30%),linear-gradient(135deg,rgba(103,232,249,0.07),transparent_42%)]" />
         <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full border border-lime-300/10 bg-lime-300/[0.04] blur-xl" />
