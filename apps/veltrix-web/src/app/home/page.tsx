@@ -8,8 +8,9 @@ export default function ProductHomePage() {
       eyebrow="Home"
       title="Your live launch world"
       description="See what is live now, where your next momentum comes from and which projects, quests or rewards deserve attention first."
+      hidePageHeader
     >
-      <ProtectedState allowPreview previewLabel="Product preview">
+      <ProtectedState allowPreview previewLabel="Product preview" showPreviewBanner={false}>
         <HomeScreen />
       </ProtectedState>
     </AppShell>

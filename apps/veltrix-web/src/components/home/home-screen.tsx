@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowRight, Radar, Shield, Sparkles, Swords, Wallet } from "lucide-react";
+import { ArrowRight, Gift, Layers3, Radar, Rocket, Shield, Sparkles, Swords, Target, Wallet } from "lucide-react";
 import { CommunityStatusPanel } from "@/components/community/community-status-panel";
 import { ArtworkImage } from "@/components/ui/artwork-image";
 import { ContributionTierBadge } from "@/components/ui/contribution-tier-badge";
@@ -11,6 +11,12 @@ import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useCommunityJourney } from "@/hooks/use-community-journey";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
+
+const HOME_HERO_IMAGE = "/assets/home/home-hero.webp";
+
+function toBackgroundImage(value: string) {
+  return `url("${value.replaceAll('"', '\\"')}")`;
+}
 
 function getQuestTone(status: string) {
   if (status === "approved") return "positive";
@@ -128,7 +134,25 @@ export function HomeScreen() {
   ];
 
   return (
-      <div className="space-y-5">
+    <div className="space-y-5">
+      <HomeHero
+        username={profile?.username ?? "Guest member"}
+        tier={profile?.contributionTier ?? "explorer"}
+        campaignCount={campaigns.length}
+        questCount={quests.length}
+        raidCount={raids.length}
+        claimableRewardCount={claimableRewardCount}
+        approvedQuestCount={approvedQuestCount}
+        pendingQuestCount={pendingQuestCount}
+        signalCount={notifications.length}
+        primaryHref={spotlightLead ? `/campaigns/${spotlightLead.id}` : "/quests"}
+        primaryLabel={spotlightLead ? "Open campaign" : "Open quests"}
+        nextHref={claimableRewardCount > 0 ? "/rewards" : "/projects"}
+        nextLabel={claimableRewardCount > 0 ? "View rewards" : "Explore projects"}
+        nextTitle={spotlightLead?.title ?? dailyQuests[0]?.title ?? "Find the next useful launch route"}
+        nextMeta={spotlightLead?.projectName ?? dailyQuests[0]?.verificationProvider ?? "VYNTRO"}
+      />
+
       <section className="grid gap-3.5 xl:grid-cols-[minmax(0,1.48fr)_280px]">
         <div className="rounded-[28px] border border-white/6 bg-[radial-gradient(circle_at_top_left,rgba(128,91,255,0.2),transparent_24%),radial-gradient(circle_at_78%_20%,rgba(0,209,255,0.14),transparent_24%),linear-gradient(180deg,rgba(10,11,15,0.995),rgba(6,7,10,0.995))] p-4 shadow-[0_22px_72px_rgba(0,0,0,0.38)]">
           <div className="flex flex-wrap items-end justify-between gap-4">
@@ -575,6 +599,177 @@ export function HomeScreen() {
           </div>
         </div>
       </section>
+    </div>
+  );
+}
+
+function HomeHero({
+  username,
+  tier,
+  campaignCount,
+  questCount,
+  raidCount,
+  claimableRewardCount,
+  approvedQuestCount,
+  pendingQuestCount,
+  signalCount,
+  primaryHref,
+  primaryLabel,
+  nextHref,
+  nextLabel,
+  nextTitle,
+  nextMeta,
+}: {
+  username: string;
+  tier: string;
+  campaignCount: number;
+  questCount: number;
+  raidCount: number;
+  claimableRewardCount: number;
+  approvedQuestCount: number;
+  pendingQuestCount: number;
+  signalCount: number;
+  primaryHref: string;
+  primaryLabel: string;
+  nextHref: string;
+  nextLabel: string;
+  nextTitle: string;
+  nextMeta: string;
+}) {
+  const momentumScore = Math.min(
+    100,
+    Math.max(12, approvedQuestCount * 14 + claimableRewardCount * 18 + campaignCount * 6 + raidCount * 4)
+  );
+
+  return (
+    <section className="motion-surface motion-light-sweep relative overflow-hidden rounded-[34px] border border-white/7 bg-[#05080b] shadow-[0_32px_110px_rgba(0,0,0,0.38)]">
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-[0.98] brightness-[0.98] contrast-110 saturate-125"
+        style={{ backgroundImage: toBackgroundImage(HOME_HERO_IMAGE) }}
+      />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_66%_16%,rgba(168,85,247,0.18),transparent_32%),linear-gradient(90deg,rgba(1,3,7,0.9),rgba(2,4,10,0.66)_36%,rgba(3,4,10,0.2)_64%,rgba(3,5,9,0.66)),linear-gradient(180deg,rgba(4,6,10,0.04),rgba(3,5,8,0.72))]" />
+      <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#050608] to-transparent" />
+
+      <div className="relative z-10 grid min-h-[560px] gap-6 p-5 sm:p-7 xl:grid-cols-[minmax(0,1fr)_410px] xl:items-end">
+        <div className="max-w-4xl self-end pb-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusChip label="Live command" tone="positive" />
+            <StatusChip label={`${campaignCount} campaigns`} tone="info" />
+            <StatusChip label={`${questCount} quests`} tone="info" />
+            <StatusChip label={`${claimableRewardCount} rewards`} tone={claimableRewardCount > 0 ? "positive" : "default"} />
+          </div>
+
+          <h1 className="mt-7 max-w-[11ch] text-[4.2rem] font-black leading-[0.86] tracking-normal text-white [text-shadow:0_18px_70px_rgba(0,0,0,0.72)] sm:text-[5.6rem] xl:text-[7.2rem]">
+            VYNTRO
+          </h1>
+          <p className="mt-5 max-w-2xl text-[15px] leading-7 text-slate-100 sm:text-[1rem]">
+            Your live launch world for quests, raids, rewards and project momentum. Open the strongest route first, then keep the whole board moving.
+          </p>
+
+          <div className="mt-7 flex flex-wrap gap-3">
+            <Link
+              href={primaryHref}
+              className="motion-press inline-flex items-center gap-2 rounded-full bg-lime-300 px-5 py-3 text-[11px] font-black uppercase tracking-[0.16em] text-black transition hover:bg-lime-200"
+            >
+              <Rocket className="h-4 w-4" />
+              {primaryLabel}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href={nextHref}
+              className="motion-press inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.06] px-5 py-3 text-[11px] font-black uppercase tracking-[0.16em] text-white backdrop-blur-xl transition hover:border-cyan-300/24 hover:bg-cyan-300/10"
+            >
+              {nextLabel}
+              <Gift className="h-4 w-4" />
+            </Link>
+          </div>
+
+          <div className="mt-6 grid max-w-3xl gap-2.5 sm:grid-cols-3">
+            <HeroSignal icon={<Target className="h-4 w-4" />} label="Quest pressure" value={`${approvedQuestCount}/${questCount}`} />
+            <HeroSignal icon={<Swords className="h-4 w-4" />} label="Raid lane" value={`${raidCount} live`} />
+            <HeroSignal icon={<Radar className="h-4 w-4" />} label="Signals" value={`${signalCount} updates`} />
+          </div>
+        </div>
+
+        <div className="motion-surface relative overflow-hidden rounded-[28px] border border-white/9 bg-black/46 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.34)] backdrop-blur-xl sm:p-5">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(190,255,74,0.12),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.04),transparent_45%)]" />
+          <div className="relative z-10">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-lime-300">Command status</p>
+                <h2 className="mt-2 text-[1.35rem] font-black text-white">{username}</h2>
+              </div>
+              <ContributionTierBadge tier={tier} size="sm" />
+            </div>
+
+            <div className="mt-5">
+              <div className="flex items-end justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Momentum</p>
+                  <p className="mt-1 text-4xl font-black text-white">{momentumScore}%</p>
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-lime-300/18 bg-lime-300/10 text-lime-200">
+                  <Layers3 className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/8">
+                <div
+                  className="h-full rounded-full bg-[linear-gradient(90deg,#beff4a,#74f7ff,#c4b5fd)] shadow-[0_0_24px_rgba(190,255,74,0.28)]"
+                  style={{ width: `${momentumScore}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <HeroPanelMetric label="Campaigns" value={String(campaignCount)} sub="Live lanes" />
+              <HeroPanelMetric label="Quests" value={String(questCount)} sub={`${pendingQuestCount} pending`} />
+              <HeroPanelMetric label="Raids" value={String(raidCount)} sub="Pushes" />
+              <HeroPanelMetric label="Rewards" value={String(claimableRewardCount)} sub="Claimable" />
+            </div>
+
+            <Link
+              href={primaryHref}
+              className="mt-4 block rounded-[20px] border border-white/8 bg-white/[0.04] p-3.5 transition hover:border-lime-300/20 hover:bg-lime-300/[0.06]"
+            >
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Next useful move</p>
+              <p className="mt-2 line-clamp-2 text-[13px] font-black leading-5 text-white">{nextTitle}</p>
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <span className="truncate text-[10px] font-black uppercase tracking-[0.16em] text-cyan-200">{nextMeta}</span>
+                <ArrowRight className="h-4 w-4 shrink-0 text-white/60" />
+              </div>
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function HeroSignal({
+  icon,
+  label,
+  value,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-[18px] border border-white/8 bg-black/26 px-3.5 py-3 backdrop-blur-md">
+      <div className="flex items-center gap-2 text-cyan-200">{icon}</div>
+      <p className="mt-2 text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">{label}</p>
+      <p className="mt-1 text-[13px] font-black text-white">{value}</p>
+    </div>
+  );
+}
+
+function HeroPanelMetric({ label, value, sub }: { label: string; value: string; sub: string }) {
+  return (
+    <div className="rounded-[18px] border border-white/8 bg-black/28 p-3.5">
+      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">{label}</p>
+      <p className="mt-2 text-[1.35rem] font-black text-white">{value}</p>
+      <p className="mt-1 text-[10px] font-bold text-slate-400">{sub}</p>
     </div>
   );
 }
