@@ -17,7 +17,12 @@ import {
 import { DefiRouteNav } from "@/components/defi/defi-route-nav";
 import { DefiSafetyPanel } from "@/components/defi/defi-safety-panel";
 import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
-import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
+
+const DEFI_HERO_IMAGE = "/assets/defi/defi-hero.webp";
+
+function toBackgroundImage(value: string) {
+  return `url("${value.replaceAll('"', '\\"')}")`;
+}
 
 const defiShowcaseRoutes = [
   {
@@ -150,44 +155,7 @@ export function DefiLandingScreen() {
       <div className="pointer-events-none absolute inset-x-[-8%] top-[-10rem] h-[28rem] bg-[linear-gradient(115deg,rgba(190,255,74,0.08),transparent_28%),linear-gradient(90deg,transparent,rgba(0,132,255,0.08)_54%,transparent)]" />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:72px_72px] opacity-35 [mask-image:linear-gradient(180deg,black,transparent_72%)]" />
 
-      <div className="relative overflow-hidden rounded-[30px] border border-white/8 bg-[linear-gradient(135deg,rgba(12,18,22,0.92),rgba(5,7,11,0.98)_58%,rgba(8,13,10,0.96))] px-4 py-4 shadow-[0_24px_90px_rgba(0,0,0,0.26)] sm:px-5 sm:py-5">
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-lime-300/50 via-cyan-200/20 to-transparent" />
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_28rem] xl:items-end">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-lime-300/14 bg-lime-300/[0.08] text-lime-200">
-                <ShieldCheck className="h-[18px] w-[18px]" />
-              </div>
-              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-lime-300">
-                DeFi command center
-              </p>
-            </div>
-            <h1 className="mt-4 max-w-4xl text-4xl font-black leading-[0.92] tracking-normal text-white sm:text-5xl lg:text-6xl">
-              Choose the route before capital moves.
-            </h1>
-            <p className="mt-4 max-w-3xl text-[13px] leading-6 text-slate-300 sm:text-[14px]">
-              Swap, vaults, lending, trading and proof history stay visibly separated, so every wallet action starts with the next safe move.
-            </p>
-          </div>
-
-          <div className="grid gap-2 sm:grid-cols-3 xl:grid-cols-1">
-            {commandStats.map((stat) => (
-              <div key={stat.label} className="border-l border-white/8 px-3.5 py-2.5">
-                <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">
-                  {stat.label}
-                </p>
-                <div className="mt-1.5">
-                  {isXpDisplay(stat.label, stat.value) ? (
-                    <XpValue size="sm">{stat.value}</XpValue>
-                  ) : (
-                    <p className="text-sm font-black text-white">{stat.value}</p>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <DefiHero />
 
       <div className="relative mt-3">
         <DefiRouteNav compact />
@@ -315,5 +283,134 @@ export function DefiLandingScreen() {
         />
       </div>
     </section>
+  );
+}
+
+function DefiHero() {
+  return (
+    <section className="motion-surface motion-light-sweep relative overflow-hidden rounded-[34px] border border-white/7 bg-[#05080b] shadow-[0_32px_110px_rgba(0,0,0,0.38)]">
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-[0.98] brightness-[0.96] contrast-110 saturate-125"
+        style={{ backgroundImage: toBackgroundImage(DEFI_HERO_IMAGE) }}
+      />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_58%_18%,rgba(168,85,247,0.16),transparent_30%),radial-gradient(circle_at_18%_52%,rgba(34,211,238,0.13),transparent_28%),linear-gradient(90deg,rgba(1,3,7,0.9),rgba(2,4,10,0.68)_35%,rgba(3,4,10,0.24)_62%,rgba(3,5,9,0.72)),linear-gradient(180deg,rgba(4,6,10,0.04),rgba(3,5,8,0.76))]" />
+      <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#050608] to-transparent" />
+
+      <div className="relative z-10 grid min-h-[560px] gap-6 p-5 sm:p-7 xl:grid-cols-[minmax(0,1fr)_410px] xl:items-end">
+        <div className="max-w-4xl self-end pb-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <HeroChip tone="lime">Never custody</HeroChip>
+            <HeroChip tone="cyan">Route separated</HeroChip>
+            <HeroChip tone="violet">Proof before XP</HeroChip>
+          </div>
+
+          <h1 className="mt-7 max-w-[12ch] text-[3.4rem] font-black leading-[0.88] tracking-normal text-white [text-shadow:0_18px_70px_rgba(0,0,0,0.72)] sm:text-[4.8rem] xl:text-[6.6rem]">
+            DeFi command center
+          </h1>
+          <p className="mt-5 max-w-2xl text-[15px] leading-7 text-slate-100 sm:text-[1rem]">
+            Choose the route before capital moves. Swap, vaults, lending, trading and proof history stay separated so every wallet action starts with a safer next move.
+          </p>
+
+          <div className="mt-7 flex flex-wrap gap-3">
+            <Link
+              href="/defi/swap"
+              className="motion-press inline-flex items-center gap-2 rounded-full bg-lime-300 px-5 py-3 text-[11px] font-black uppercase tracking-[0.16em] text-black transition hover:bg-lime-200"
+            >
+              <ArrowRightLeft className="h-4 w-4" />
+              Open swap
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href="/defi/portfolio"
+              className="motion-press inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.06] px-5 py-3 text-[11px] font-black uppercase tracking-[0.16em] text-white backdrop-blur-xl transition hover:border-cyan-300/24 hover:bg-cyan-300/10"
+            >
+              Portfolio read
+              <WalletCards className="h-4 w-4" />
+            </Link>
+          </div>
+
+          <div className="mt-6 grid max-w-3xl gap-2.5 sm:grid-cols-3">
+            {commandStats.map((stat) => (
+              <HeroSignal key={stat.label} label={stat.label} value={stat.value} />
+            ))}
+          </div>
+        </div>
+
+        <div className="motion-surface relative overflow-hidden rounded-[28px] border border-white/9 bg-black/48 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.34)] backdrop-blur-xl sm:p-5">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.13),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.04),transparent_45%)]" />
+          <div className="relative z-10">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-200">Safety posture</p>
+                <h2 className="mt-2 text-[1.35rem] font-black text-white">Move only after the route is clear.</h2>
+              </div>
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cyan-300/18 bg-cyan-300/10 text-cyan-100">
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+            </div>
+
+            <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/8">
+              <div className="h-full w-[82%] rounded-full bg-[linear-gradient(90deg,#74f7ff,#beff4a,#c4b5fd)] shadow-[0_0_24px_rgba(116,247,255,0.28)]" />
+            </div>
+
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <HeroPanelMetric label="Custody" value="0" sub="VYNTRO never holds funds" />
+              <HeroPanelMetric label="Routes" value="4" sub="Swap, vaults, lending, trading" />
+              <HeroPanelMetric label="Proof" value="On" sub="Activity before XP" />
+              <HeroPanelMetric label="Risk" value="Split" sub="Each route isolated" />
+            </div>
+
+            <Link
+              href="/defi/risk-guide"
+              className="mt-4 block rounded-[20px] border border-white/8 bg-white/[0.04] p-3.5 transition hover:border-cyan-300/20 hover:bg-cyan-300/[0.06]"
+            >
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Next safe move</p>
+              <p className="mt-2 line-clamp-2 text-[13px] font-black leading-5 text-white">
+                Review route discipline before signing a transaction.
+              </p>
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <span className="truncate text-[10px] font-black uppercase tracking-[0.16em] text-lime-200">Open risk guide</span>
+                <ArrowRight className="h-4 w-4 shrink-0 text-white/60" />
+              </div>
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function HeroChip({ children, tone }: { children: string; tone: "lime" | "cyan" | "violet" }) {
+  const toneClass =
+    tone === "lime"
+      ? "border-lime-300/18 bg-lime-300/14 text-lime-100"
+      : tone === "cyan"
+        ? "border-cyan-300/18 bg-cyan-300/12 text-cyan-100"
+        : "border-violet-300/18 bg-violet-300/12 text-violet-100";
+
+  return (
+    <span className={`rounded-full border px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.14em] backdrop-blur-xl ${toneClass}`}>
+      {children}
+    </span>
+  );
+}
+
+function HeroSignal({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[18px] border border-white/8 bg-black/26 px-3.5 py-3 backdrop-blur-md">
+      <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">{label}</p>
+      <p className="mt-1.5 text-[13px] font-black text-white">{value}</p>
+    </div>
+  );
+}
+
+function HeroPanelMetric({ label, value, sub }: { label: string; value: string; sub: string }) {
+  return (
+    <div className="rounded-[18px] border border-white/8 bg-black/28 p-3.5">
+      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">{label}</p>
+      <p className="mt-2 text-[1.35rem] font-black text-white">{value}</p>
+      <p className="mt-1 text-[10px] font-bold leading-4 text-slate-400">{sub}</p>
+    </div>
   );
 }
