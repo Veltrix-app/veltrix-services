@@ -17,7 +17,72 @@ alter table public.quests
   add column if not exists completion_mode text,
   add column if not exists auto_approve boolean not null default false;
 
-with platform_quests as (
+alter table public.campaigns
+  add column if not exists project_id uuid,
+  add column if not exists title text,
+  add column if not exists short_description text not null default '',
+  add column if not exists long_description text not null default '',
+  add column if not exists status text not null default 'active',
+  add column if not exists xp_budget integer not null default 0,
+  add column if not exists featured boolean not null default false,
+  add column if not exists completion_rate integer not null default 0,
+  add column if not exists campaign_mode text not null default 'offchain',
+  add column if not exists reward_type text not null default 'perk',
+  add column if not exists reward_pool_amount numeric not null default 0,
+  add column if not exists min_xp_required numeric not null default 0,
+  add column if not exists activity_threshold numeric not null default 0,
+  add column if not exists lock_days integer not null default 0;
+
+with inserted_platform_campaign as (
+  insert into public.campaigns (
+    project_id,
+    title,
+    short_description,
+    long_description,
+    status,
+    xp_budget,
+    featured,
+    completion_rate,
+    campaign_mode,
+    reward_type,
+    reward_pool_amount,
+    min_xp_required,
+    activity_threshold,
+    lock_days
+  )
+  select
+    'c0951cfd-b434-41d5-977d-813156934493'::uuid,
+    'VYNTRO Platform Quests',
+    'Default VYNTRO platform quests for onboarding, daily, weekly and shard-earning actions.',
+    'Default VYNTRO platform quests for onboarding, daily, weekly and shard-earning actions.',
+    'active',
+    550,
+    true,
+    0,
+    'offchain',
+    'shards',
+    0,
+    0,
+    0,
+    0
+  where not exists (
+    select 1
+    from public.campaigns existing
+    where existing.project_id = 'c0951cfd-b434-41d5-977d-813156934493'::uuid
+      and existing.title = 'VYNTRO Platform Quests'
+  )
+  returning id
+),
+platform_campaign as (
+  select id from inserted_platform_campaign
+  union all
+  select existing.id
+  from public.campaigns existing
+  where existing.project_id = 'c0951cfd-b434-41d5-977d-813156934493'::uuid
+    and existing.title = 'VYNTRO Platform Quests'
+  limit 1
+),
+platform_quests as (
   select *
   from (
     values
@@ -230,7 +295,7 @@ insert into public.quests (
 )
 select
   'c0951cfd-b434-41d5-977d-813156934493'::uuid,
-  null,
+  platform_campaign.id,
   platform_quests.title,
   platform_quests.description,
   platform_quests.quest_type,
@@ -253,6 +318,7 @@ select
   platform_quests.completion_mode,
   platform_quests.completion_mode in ('rule_auto', 'integration_auto')
 from platform_quests
+cross join platform_campaign
 where not exists (
   select 1
   from public.quests existing
