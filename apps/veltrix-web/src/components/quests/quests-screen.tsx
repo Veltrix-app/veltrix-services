@@ -4,7 +4,20 @@ import Link from "next/link";
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { ArrowRight, Flame, Search, ShieldCheck, Sparkles, Target, Trophy } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  CircleDot,
+  Flame,
+  List,
+  Map,
+  Route,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  Target,
+  Trophy,
+} from "lucide-react";
 import { ArtworkImage } from "@/components/ui/artwork-image";
 import { CinematicRouteHero } from "@/components/ui/cinematic-route-hero";
 import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
@@ -14,9 +27,12 @@ import { VyntroState, resolveVyntroStateVariant } from "@/components/ui/vyntro-s
 import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 import { resolveBestFeaturedShardPool } from "@/lib/lootboxes/featured-shard-pools";
+import { buildQuestJourneyMap } from "@/lib/quests/quest-map";
+import type { QuestJourneyLane, QuestJourneyMap } from "@/lib/quests/quest-map";
 import type { LiveFeaturedShardPool } from "@/types/live";
 
 type QuestFilter = "all" | "open" | "high-xp";
+type QuestView = "board" | "map";
 
 const QUEST_HERO_IMAGE = "/assets/quests/quest-hero.webp";
 const XP_ECONOMY_CARD_IMAGE = "/assets/quests/xp-economy-card.webp";
@@ -39,6 +55,7 @@ export function QuestsScreen() {
   });
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<QuestFilter>("all");
+  const [view, setView] = useState<QuestView>("board");
 
   const enrichedQuests = useMemo(() => {
     return quests
@@ -97,6 +114,7 @@ export function QuestsScreen() {
   }, [enrichedQuests, filter, query]);
 
   const spotlightQuests = filteredQuests.slice(0, 3);
+  const questMap = useMemo(() => buildQuestJourneyMap(filteredQuests), [filteredQuests]);
   const openCount = enrichedQuests.filter((quest) => quest.status !== "approved").length;
   const pendingCount = enrichedQuests.filter((quest) => quest.status === "pending").length;
   const rewardLinkedCount = enrichedQuests.filter((quest) => quest.rewardCount > 0).length;
@@ -158,6 +176,20 @@ export function QuestsScreen() {
                 <FilterButton active={filter === "high-xp"} onClick={() => setFilter("high-xp")} label="High XP" />
               </div>
             </div>
+            <div className="mt-3 inline-flex rounded-full border border-white/8 bg-black/24 p-1">
+              <ViewButton
+                active={view === "board"}
+                onClick={() => setView("board")}
+                label="Board"
+                icon={<List className="h-3.5 w-3.5" />}
+              />
+              <ViewButton
+                active={view === "map"}
+                onClick={() => setView("map")}
+                label="Map"
+                icon={<Map className="h-3.5 w-3.5" />}
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
@@ -169,35 +201,39 @@ export function QuestsScreen() {
         </div>
       </section>
 
-      <section id="quest-board" className="grid scroll-mt-28 gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <BoardStat label="Featured lanes" value={String(featuredCount)} detail="visual campaign pressure" />
-        <BoardStat label="Open missions" value={String(openCount)} detail="not approved yet" />
-        <BoardStat label="Pending review" value={String(pendingCount)} detail="waiting signal" />
-        <BoardStat label="Shard boosts" value={String(shardBoostCount)} detail="sponsored pools" />
-      </section>
+      {view === "map" ? (
+        <QuestJourneyView loading={loading} error={error} questMap={questMap} />
+      ) : (
+        <>
+          <section id="quest-board" className="grid scroll-mt-28 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <BoardStat label="Featured lanes" value={String(featuredCount)} detail="visual campaign pressure" />
+            <BoardStat label="Open missions" value={String(openCount)} detail="not approved yet" />
+            <BoardStat label="Pending review" value={String(pendingCount)} detail="waiting signal" />
+            <BoardStat label="Shard boosts" value={String(shardBoostCount)} detail="sponsored pools" />
+          </section>
 
-      <section className="space-y-4">
-        <SectionHeading
-          eyebrow="Spotlights"
-          title="Featured mission lanes"
-          description="The top quests get the visual treatment first, so members understand where momentum and rewards are most active."
-        />
+          <section className="space-y-4">
+            <SectionHeading
+              eyebrow="Spotlights"
+              title="Featured mission lanes"
+              description="The top quests get the visual treatment first, so members understand where momentum and rewards are most active."
+            />
 
-        {loading ? (
-          <EmptyNotice text="Loading quest spotlights..." />
-        ) : error ? (
-          <EmptyNotice text={error} tone="error" />
-        ) : spotlightQuests.length > 0 ? (
-          <div className="grid gap-3.5 xl:grid-cols-[minmax(0,1.5fr)_repeat(2,minmax(0,1fr))]">
-            {spotlightQuests.map((quest, index) => (
-              <Link
-                key={quest.id}
-                href={`/quests/${quest.id}`}
-                prefetch={false}
-                className={`motion-surface motion-3d-card motion-light-sweep group relative overflow-hidden rounded-[28px] border border-white/8 bg-[radial-gradient(circle_at_18%_0%,rgba(34,211,238,0.12),transparent_30%),linear-gradient(180deg,rgba(18,21,27,0.98),rgba(7,9,14,0.99))] shadow-[0_24px_74px_rgba(0,0,0,0.34)] transition hover:border-cyan-300/24 ${
-                  index === 0 ? "min-h-[248px] p-4 sm:p-5" : "min-h-[208px] p-3.5 sm:p-4"
-                }`}
-                >
+            {loading ? (
+              <EmptyNotice text="Loading quest spotlights..." />
+            ) : error ? (
+              <EmptyNotice text={error} tone="error" />
+            ) : spotlightQuests.length > 0 ? (
+              <div className="grid gap-3.5 xl:grid-cols-[minmax(0,1.5fr)_repeat(2,minmax(0,1fr))]">
+                {spotlightQuests.map((quest, index) => (
+                  <Link
+                    key={quest.id}
+                    href={`/quests/${quest.id}`}
+                    prefetch={false}
+                    className={`motion-surface motion-3d-card motion-light-sweep group relative overflow-hidden rounded-[28px] border border-white/8 bg-[radial-gradient(circle_at_18%_0%,rgba(34,211,238,0.12),transparent_30%),linear-gradient(180deg,rgba(18,21,27,0.98),rgba(7,9,14,0.99))] shadow-[0_24px_74px_rgba(0,0,0,0.34)] transition hover:border-cyan-300/24 ${
+                      index === 0 ? "min-h-[248px] p-4 sm:p-5" : "min-h-[208px] p-3.5 sm:p-4"
+                    }`}
+                  >
                 <div className="motion-ambient-grid opacity-[0.13]" />
                 <div className="motion-shard-field opacity-60">
                   <span />
@@ -266,34 +302,34 @@ export function QuestsScreen() {
                     </span>
                   </div>
                 </div>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <EmptyNotice text="No featured quests are visible yet." />
-        )}
-      </section>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <EmptyNotice text="No featured quests are visible yet." />
+            )}
+          </section>
 
-      <section className="space-y-4">
-        <SectionHeading
-          eyebrow="Grid"
-          title="All quests"
-          description="A cleaner mission grid for fast scanning: logo first, quest state top-right, reward context below."
-        />
+          <section className="space-y-4">
+            <SectionHeading
+              eyebrow="Grid"
+              title="All quests"
+              description="A cleaner mission grid for fast scanning: logo first, quest state top-right, reward context below."
+            />
 
-        {loading ? (
-          <EmptyNotice text="Loading quests..." />
-        ) : error ? (
-          <EmptyNotice text={error} tone="error" />
-        ) : filteredQuests.length > 0 ? (
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-6">
-            {filteredQuests.map((quest) => (
-              <Link
-                key={quest.id}
-                href={`/quests/${quest.id}`}
-                prefetch={false}
-                className="motion-surface motion-3d-card motion-light-sweep group relative min-h-[14.5rem] overflow-hidden rounded-[22px] border border-white/8 bg-[radial-gradient(circle_at_15%_0%,rgba(34,211,238,0.08),transparent_28%),linear-gradient(180deg,rgba(15,18,23,0.98),rgba(6,8,12,0.99))] p-3.5 shadow-[0_16px_46px_rgba(0,0,0,0.22)] transition hover:border-cyan-300/18"
-              >
+            {loading ? (
+              <EmptyNotice text="Loading quests..." />
+            ) : error ? (
+              <EmptyNotice text={error} tone="error" />
+            ) : filteredQuests.length > 0 ? (
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-6">
+                {filteredQuests.map((quest) => (
+                  <Link
+                    key={quest.id}
+                    href={`/quests/${quest.id}`}
+                    prefetch={false}
+                    className="motion-surface motion-3d-card motion-light-sweep group relative min-h-[14.5rem] overflow-hidden rounded-[22px] border border-white/8 bg-[radial-gradient(circle_at_15%_0%,rgba(34,211,238,0.08),transparent_28%),linear-gradient(180deg,rgba(15,18,23,0.98),rgba(6,8,12,0.99))] p-3.5 shadow-[0_16px_46px_rgba(0,0,0,0.22)] transition hover:border-cyan-300/18"
+                  >
                 <Image
                   src={XP_ECONOMY_CARD_IMAGE}
                   alt=""
@@ -343,13 +379,239 @@ export function QuestsScreen() {
                     <ArrowRight className="h-3.5 w-3.5" />
                   </span>
                 </div>
-              </Link>
-            ))}
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <EmptyNotice text="No quests match this board filter yet." />
+            )}
+          </section>
+        </>
+      )}
+    </div>
+  );
+}
+
+function QuestJourneyView({
+  loading,
+  error,
+  questMap,
+}: {
+  loading: boolean;
+  error: string | null;
+  questMap: QuestJourneyMap;
+}) {
+  if (loading) {
+    return <EmptyNotice text="Loading quest journey..." />;
+  }
+
+  if (error) {
+    return <EmptyNotice text={error} tone="error" />;
+  }
+
+  if (questMap.totalCount === 0) {
+    return <EmptyNotice text="No quests match this journey filter yet." />;
+  }
+
+  return (
+    <section id="quest-board" className="scroll-mt-28 space-y-4">
+      <div className="grid gap-3 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.55fr)]">
+        <div className="motion-surface motion-light-sweep relative overflow-hidden rounded-[28px] border border-white/8 bg-[radial-gradient(circle_at_12%_0%,rgba(34,211,238,0.14),transparent_30%),linear-gradient(180deg,rgba(15,18,24,0.96),rgba(6,8,12,0.99))] p-4 shadow-[0_22px_66px_rgba(0,0,0,0.28)] sm:p-5">
+          <div className="motion-ambient-grid opacity-[0.14]" />
+          <div className="relative z-10 flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-200">Journey map</p>
+              <h2 className="mt-3 text-[1.15rem] font-semibold tracking-[-0.02em] text-white">
+                Quest route by platform behavior
+              </h2>
+              <p className="mt-2 max-w-2xl text-[12px] leading-5 text-slate-400">
+                The same filtered quests are grouped into progression lanes, so members can see where to start,
+                what repeats, and which shard route is worth chasing next.
+              </p>
+            </div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-[18px] border border-cyan-300/14 bg-cyan-300/[0.08] text-cyan-100">
+              <Route className="h-5 w-5" />
+            </div>
           </div>
+
+          <div className="relative z-10 mt-5 grid gap-2 sm:grid-cols-4">
+            <BoardStat label="Progress" value={`${questMap.progressPercent}%`} detail="approved route" />
+            <BoardStat label="Open" value={String(questMap.openCount)} detail="journey nodes" />
+            <BoardStat label="XP" value={String(questMap.xpAvailable)} detail="available" />
+            <BoardStat label="Shards" value={String(questMap.shardsAvailable)} detail="earnable" />
+          </div>
+        </div>
+
+        <NextJourneyQuest questMap={questMap} />
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+        {questMap.lanes.map((lane, index) => (
+          <JourneyLanePanel key={lane.id} lane={lane} index={index} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function NextJourneyQuest({ questMap }: { questMap: QuestJourneyMap }) {
+  const quest = questMap.nextQuest;
+
+  return (
+    <div className="motion-surface relative overflow-hidden rounded-[28px] border border-white/8 bg-[radial-gradient(circle_at_80%_0%,rgba(16,185,129,0.13),transparent_31%),linear-gradient(180deg,rgba(15,18,24,0.94),rgba(6,8,12,0.99))] p-4 shadow-[0_22px_66px_rgba(0,0,0,0.24)] sm:p-5">
+      <div className="relative z-10 flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-200">Next move</p>
+          <h3 className="mt-3 text-[1rem] font-semibold text-white">
+            {quest?.title ?? "No open route"}
+          </h3>
+          <p className="mt-2 line-clamp-2 text-[12px] leading-5 text-slate-400">
+            {quest?.description || "All visible journey nodes are settled for the current filter."}
+          </p>
+        </div>
+        <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[16px] border border-emerald-300/14 bg-emerald-300/[0.08] text-emerald-100">
+          <CircleDot className="h-4 w-4" />
+        </span>
+      </div>
+
+      <div className="relative z-10 mt-4 flex flex-wrap gap-1.5">
+        {quest ? (
+          <>
+            <MetricPill label="XP" value={String(quest.xp)} />
+            {Number(quest.shardRewardAmount ?? 0) > 0 ? (
+              <ShardBadge
+                value={`+${Math.floor(Number(quest.shardRewardAmount))}`}
+                label="shards"
+                size="sm"
+                className="border-cyan-300/16 bg-cyan-300/[0.07] p-1 text-[8px] shadow-none"
+              />
+            ) : null}
+            <MetricPill label="State" value={getQuestStatusLabel(quest.status)} />
+          </>
         ) : (
-          <EmptyNotice text="No quests match this board filter yet." />
+          <MetricPill label="Done" value={`${questMap.completedCount}/${questMap.totalCount}`} />
         )}
-      </section>
+      </div>
+
+      {quest ? (
+        <Link
+          href={`/quests/${quest.id}`}
+          prefetch={false}
+          className="relative z-10 mt-5 inline-flex min-h-10 w-full items-center justify-between rounded-full border border-emerald-300/16 bg-emerald-300/[0.08] px-4 text-[11px] font-black uppercase tracking-[0.16em] text-emerald-100 transition hover:border-emerald-200/28 hover:bg-emerald-300/[0.12]"
+        >
+          Open next quest
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      ) : null}
+    </div>
+  );
+}
+
+function JourneyLanePanel({ lane, index }: { lane: QuestJourneyLane; index: number }) {
+  const visibleQuests = lane.quests.slice(0, 4);
+  const hiddenCount = Math.max(0, lane.quests.length - visibleQuests.length);
+
+  return (
+    <div className="motion-surface motion-light-sweep relative min-h-[25rem] overflow-hidden rounded-[26px] border border-white/8 bg-[radial-gradient(circle_at_14%_0%,rgba(34,211,238,0.1),transparent_30%),linear-gradient(180deg,rgba(14,17,23,0.96),rgba(6,8,12,0.99))] p-4 shadow-[0_18px_54px_rgba(0,0,0,0.22)]">
+      <div className="relative z-10 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[9px] font-black uppercase tracking-[0.22em] text-cyan-200/80">
+            {String(index + 1).padStart(2, "0")} / {lane.eyebrow}
+          </p>
+          <h3 className="mt-2 truncate text-[1rem] font-semibold text-white">{lane.title}</h3>
+          <p className="mt-1 line-clamp-2 text-[12px] leading-5 text-slate-400">{lane.description}</p>
+        </div>
+        <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[16px] border border-white/8 bg-white/[0.035] text-cyan-100">
+          {lane.completedCount === lane.totalCount && lane.totalCount > 0 ? (
+            <CheckCircle2 className="h-4 w-4" />
+          ) : (
+            <Route className="h-4 w-4" />
+          )}
+        </span>
+      </div>
+
+      <div className="relative z-10 mt-4">
+        <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
+          <span>{lane.completedCount}/{lane.totalCount} complete</span>
+          <span>{lane.progressPercent}%</span>
+        </div>
+        <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/[0.06]">
+          <div
+            className="h-full rounded-full bg-[linear-gradient(90deg,#22d3ee,#34d399)]"
+            style={{ width: `${lane.progressPercent}%` }}
+          />
+        </div>
+      </div>
+
+      <div className="relative z-10 mt-4 grid grid-cols-3 gap-2">
+        <MiniJourneyStat label="Open" value={String(lane.openCount)} />
+        <MiniJourneyStat label="XP" value={String(lane.xpAvailable)} />
+        <MiniJourneyStat label="Shards" value={String(lane.shardsAvailable)} />
+      </div>
+
+      <div className="relative z-10 mt-4 space-y-2">
+        {visibleQuests.length > 0 ? (
+          visibleQuests.map((quest) => <JourneyQuestNode key={quest.id} quest={quest} />)
+        ) : (
+          <div className="rounded-[18px] border border-dashed border-white/10 bg-white/[0.025] p-4 text-[12px] text-slate-500">
+            No quests in this lane for the current filter.
+          </div>
+        )}
+      </div>
+
+      {hiddenCount > 0 ? (
+        <p className="relative z-10 mt-3 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
+          +{hiddenCount} more nodes in this lane
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function JourneyQuestNode({ quest }: { quest: QuestJourneyLane["quests"][number] }) {
+  const completed = quest.status === "approved";
+  const shardAmount = Math.floor(Number(quest.shardRewardAmount ?? 0));
+
+  return (
+    <Link
+      href={`/quests/${quest.id}`}
+      prefetch={false}
+      className="group flex min-h-[5.35rem] items-center gap-3 rounded-[18px] border border-white/8 bg-black/20 p-3 transition hover:border-cyan-300/18 hover:bg-cyan-300/[0.045]"
+    >
+      <span
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border ${
+          completed
+            ? "border-emerald-300/20 bg-emerald-300/[0.08] text-emerald-100"
+            : "border-cyan-300/16 bg-cyan-300/[0.07] text-cyan-100"
+        }`}
+      >
+        {completed ? <CheckCircle2 className="h-4 w-4" /> : <CircleDot className="h-4 w-4" />}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-[13px] font-semibold text-white">{quest.title}</span>
+        <span className="mt-1 flex flex-wrap gap-1.5">
+          <MetricPill label="XP" value={String(quest.xp)} />
+          {shardAmount > 0 ? (
+            <ShardBadge
+              value={`+${shardAmount}`}
+              label=""
+              size="sm"
+              className="border-cyan-300/16 bg-cyan-300/[0.07] p-1 text-[8px] shadow-none"
+            />
+          ) : null}
+          <MetricPill label="State" value={getQuestStatusLabel(quest.status)} />
+        </span>
+      </span>
+      <ArrowRight className="h-4 w-4 shrink-0 text-slate-500 transition group-hover:translate-x-0.5 group-hover:text-cyan-100" />
+    </Link>
+  );
+}
+
+function MiniJourneyStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0 rounded-[16px] border border-white/8 bg-white/[0.03] px-3 py-2">
+      <p className="truncate text-[8px] font-black uppercase tracking-[0.16em] text-slate-500">{label}</p>
+      <p className="mt-1 truncate text-[0.95rem] font-black text-white">{value}</p>
     </div>
   );
 }
@@ -504,6 +766,32 @@ function FilterButton({
           : "border border-white/8 bg-white/[0.03] text-slate-400 hover:border-white/12 hover:text-white"
       }`}
     >
+      {label}
+    </button>
+  );
+}
+
+function ViewButton({
+  active,
+  onClick,
+  label,
+  icon,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  icon: ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`inline-flex min-h-9 items-center gap-2 rounded-full px-3.5 text-[10px] font-black uppercase tracking-[0.14em] transition ${
+        active
+          ? "bg-cyan-300/12 text-cyan-100 shadow-[0_10px_24px_rgba(34,211,238,0.08)]"
+          : "text-slate-500 hover:text-white"
+      }`}
+    >
+      {icon}
       {label}
     </button>
   );
