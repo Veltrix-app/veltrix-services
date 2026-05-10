@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
   PLATFORM_QUEST_PROJECT_ID,
@@ -131,4 +132,21 @@ test("platform quest shard source is stable for dedupe", () => {
     sourceRef: "platform_quest:weekly-activity-streak:2026-W19",
     action: "claim",
   });
+});
+
+test("platform quest seed migration attaches catalog to VYNTRO project without duplicate social joins", () => {
+  const sql = readFileSync(
+    new URL(
+      "../../../../../database/migrations/vyntro_platform_quest_pack_v1.sql",
+      import.meta.url
+    ),
+    "utf8"
+  );
+
+  assert.match(sql, new RegExp(PLATFORM_QUEST_PROJECT_ID, "g"));
+  assert.match(sql, /'platformQuestSlug'\s*,\s*platform_quests\.slug/);
+  for (const quest of PLATFORM_QUESTS) {
+    assert.match(sql, new RegExp(`'${quest.slug}'`));
+  }
+  assert.doesNotMatch(sql, /discord_join|telegram_join/);
 });
