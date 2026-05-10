@@ -25,7 +25,6 @@ import { CommunityStatusPanel } from "@/components/community/community-status-pa
 import { CommunityMissionLane } from "@/components/community/community-mission-lane";
 import { CommunityRecognitionStrip } from "@/components/community/community-recognition-strip";
 import { ContributionTierBadge } from "@/components/ui/contribution-tier-badge";
-import { FeatureBadgeMark, type FeatureBadgeName } from "@/components/ui/feature-badge-mark";
 import type { LiveCommunityJourneySnapshot } from "@/types/live";
 
 const routeAccentClasses = {
@@ -84,7 +83,6 @@ export function CommunityHomeScreen() {
       live: snapshot.lane === "onboarding",
       icon: ShieldCheck,
       accent: "cyan" as RouteAccent,
-      badge: "profile" as FeatureBadgeName,
     },
     {
       href: "/community",
@@ -94,7 +92,6 @@ export function CommunityHomeScreen() {
       live: snapshot.lane === "active",
       icon: Flame,
       accent: "lime" as RouteAccent,
-      badge: "reputation" as FeatureBadgeName,
     },
     {
       href: "/community/comeback",
@@ -104,7 +101,6 @@ export function CommunityHomeScreen() {
       live: snapshot.lane === "comeback",
       icon: Radar,
       accent: "amber" as RouteAccent,
-      badge: "quest" as FeatureBadgeName,
     },
   ];
 
@@ -173,13 +169,6 @@ export function CommunityHomeScreen() {
             <span />
             <span />
           </div>
-          <FeatureBadgeMark
-            badge="reputation"
-            priority
-            className="absolute -right-8 bottom-[-5.75rem] h-40 w-40 opacity-[0.38] mix-blend-screen sm:h-52 sm:w-52 lg:right-[23rem] xl:right-[28rem]"
-            imageClassName="drop-shadow-[0_0_52px_rgba(168,85,247,0.44)]"
-            sizes="224px"
-          />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-cyan-300/45 via-lime-300/28 to-transparent" />
           <div className="relative z-10 grid min-h-[25.5rem] gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-center xl:grid-cols-[minmax(0,1fr)_25rem]">
             <div className="min-w-0">
@@ -410,7 +399,6 @@ function CommunityRouteCard({
     live: boolean;
     icon: LucideIcon;
     accent: RouteAccent;
-    badge: FeatureBadgeName;
   };
 }) {
   const Icon = route.icon;
@@ -422,11 +410,6 @@ function CommunityRouteCard({
       className="motion-surface motion-3d-card motion-light-sweep group relative min-h-[12.5rem] overflow-hidden rounded-[24px] border border-white/7 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.018)_56%,rgba(0,0,0,0.18))] p-4 shadow-[0_18px_64px_rgba(0,0,0,0.22)] transition duration-300 hover:border-white/13 hover:bg-white/[0.055]"
     >
       <div className="motion-ambient-grid opacity-[0.08]" />
-      <FeatureBadgeMark
-        badge={route.badge}
-        className="absolute -right-8 bottom-[-2.6rem] h-32 w-32 opacity-[0.5] mix-blend-screen transition duration-300 group-hover:opacity-[0.72]"
-        sizes="128px"
-      />
       <div className={`absolute inset-x-0 top-0 h-px bg-gradient-to-r ${accent.line} to-transparent`} />
       <div className="relative z-10 flex items-start justify-between gap-4">
         <div className={`flex h-10 w-10 items-center justify-center rounded-2xl border ${accent.icon}`}>

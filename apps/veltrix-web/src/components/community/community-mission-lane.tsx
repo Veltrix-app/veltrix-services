@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, LockKeyhole, Route } from "lucide-react";
 import { StatusChip } from "@/components/ui/status-chip";
-import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 import type { LiveCommunityJourneySnapshot } from "@/types/live";
 
 type CommunityMissionLaneProps = {
@@ -27,11 +26,6 @@ export function CommunityMissionLane({ snapshot }: CommunityMissionLaneProps) {
     return (
       <div className="motion-surface motion-light-sweep relative overflow-hidden rounded-[26px] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.014),rgba(0,0,0,0.18))] p-5 shadow-[0_20px_70px_rgba(0,0,0,0.24)]">
         <div className="motion-ambient-grid opacity-[0.08]" />
-        <FeatureBadgeMark
-          badge="quest"
-          className="absolute -right-8 bottom-[-2.4rem] h-36 w-36 opacity-[0.48] mix-blend-screen"
-          sizes="144px"
-        />
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-cyan-300/45 via-lime-300/16 to-transparent" />
         <div className="relative z-10 flex h-10 w-10 items-center justify-center rounded-2xl border border-cyan-300/14 bg-cyan-300/[0.08] text-cyan-200">
           <Route className="h-[18px] w-[18px]" />
@@ -52,11 +46,6 @@ export function CommunityMissionLane({ snapshot }: CommunityMissionLaneProps) {
       {snapshot.missionLane.map((item, index) => (
         <article key={item.key} className="motion-surface motion-3d-card motion-light-sweep group relative overflow-hidden rounded-[24px] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.014)_58%,rgba(0,0,0,0.18))] p-4 shadow-[0_18px_64px_rgba(0,0,0,0.22)]">
           <div className="motion-ambient-grid opacity-[0.07]" />
-          <FeatureBadgeMark
-            badge={item.completed ? "reputation" : item.locked ? "profile" : "quest"}
-            className="absolute -right-7 bottom-[-2.8rem] h-32 w-32 opacity-[0.38] mix-blend-screen transition duration-300 group-hover:opacity-[0.58]"
-            sizes="128px"
-          />
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-lime-300/42 via-cyan-200/14 to-transparent" />
           <div className="relative z-10 flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">

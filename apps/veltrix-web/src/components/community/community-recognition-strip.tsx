@@ -1,7 +1,6 @@
 "use client";
 
 import { Crown, Flame, ShieldCheck, Sparkles } from "lucide-react";
-import { FeatureBadgeMark, type FeatureBadgeName } from "@/components/ui/feature-badge-mark";
 import type { LiveCommunityJourneySnapshot } from "@/types/live";
 
 type CommunityRecognitionStripProps = {
@@ -20,7 +19,6 @@ export function CommunityRecognitionStrip({
         icon={Sparkles}
         accent="text-lime-200"
         line="from-lime-300/55 via-lime-300/12"
-        badge="reputation"
       />
       <RecognitionTile
         eyebrow="Streak"
@@ -29,7 +27,6 @@ export function CommunityRecognitionStrip({
         icon={Flame}
         accent="text-cyan-200"
         line="from-cyan-300/55 via-cyan-300/12"
-        badge="quest"
       />
       <RecognitionTile
         eyebrow="Trust"
@@ -38,7 +35,6 @@ export function CommunityRecognitionStrip({
         icon={ShieldCheck}
         accent="text-white"
         line="from-white/35 via-white/10"
-        badge="profile"
       />
       <RecognitionTile
         eyebrow="Next unlock"
@@ -47,7 +43,6 @@ export function CommunityRecognitionStrip({
         icon={Crown}
         accent="text-amber-200"
         line="from-amber-300/55 via-amber-300/12"
-        badge="reward"
       />
     </div>
   );
@@ -60,7 +55,6 @@ function RecognitionTile({
   icon: Icon,
   accent,
   line,
-  badge,
 }: {
   eyebrow: string;
   title: string;
@@ -68,16 +62,10 @@ function RecognitionTile({
   icon: typeof Sparkles;
   accent: string;
   line: string;
-  badge: FeatureBadgeName;
 }) {
   return (
     <div className="motion-surface motion-3d-card motion-light-sweep group relative min-h-[12rem] overflow-hidden rounded-[24px] border border-white/8 bg-[radial-gradient(circle_at_82%_0%,rgba(190,255,74,0.07),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.014)_58%,rgba(0,0,0,0.18))] p-4 shadow-[0_18px_64px_rgba(0,0,0,0.22)]">
       <div className="motion-ambient-grid opacity-[0.07]" />
-      <FeatureBadgeMark
-        badge={badge}
-        className="absolute -right-8 bottom-[-2.4rem] h-32 w-32 opacity-[0.42] mix-blend-screen transition duration-300 group-hover:opacity-[0.64]"
-        sizes="128px"
-      />
       <div className={`absolute inset-x-0 top-0 h-px bg-gradient-to-r ${line} to-transparent`} />
       <div className="relative z-10 flex items-start justify-between gap-3">
         <div className="flex h-9 w-9 items-center justify-center rounded-2xl border border-white/8 bg-white/[0.035] text-slate-200">
