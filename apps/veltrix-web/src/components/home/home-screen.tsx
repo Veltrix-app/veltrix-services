@@ -2,10 +2,25 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowRight, Gift, Layers3, Radar, Rocket, Shield, Sparkles, Swords, Target, Wallet } from "lucide-react";
+import { useMemo } from "react";
+import {
+  ArrowRight,
+  Box,
+  CheckCircle2,
+  Flame,
+  Gift,
+  Radar,
+  Rocket,
+  Shield,
+  Sparkles,
+  Swords,
+  Wallet,
+  Zap,
+} from "lucide-react";
 import { CommunityStatusPanel } from "@/components/community/community-status-panel";
 import { ArtworkImage } from "@/components/ui/artwork-image";
 import { ContributionTierBadge } from "@/components/ui/contribution-tier-badge";
+import { ShardBadge } from "@/components/ui/shard-badge";
 import { StatusChip } from "@/components/ui/status-chip";
 import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -13,6 +28,14 @@ import { useCommunityJourney } from "@/hooks/use-community-journey";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 
 const HOME_HERO_IMAGE = "/assets/home/home-hero.webp";
+
+type HomeNextAction = {
+  href: string;
+  label: string;
+  title: string;
+  meta: string;
+  tone: "lime" | "cyan" | "amber" | "violet";
+};
 
 function toBackgroundImage(value: string) {
   return `url("${value.replaceAll('"', '\\"')}")`;
@@ -39,6 +62,11 @@ function splitIntoColumns<T>(items: T[], count: number) {
   );
 }
 
+function getLevelProgress(xp: number) {
+  const nextXp = Math.max(0, xp);
+  return Math.min(100, Math.max(4, Math.round((nextXp % 1000) / 10)));
+}
+
 export function HomeScreen() {
   const { profile } = useAuth();
   const {
@@ -50,11 +78,29 @@ export function HomeScreen() {
     rewards,
     quests,
     notifications,
+    leaderboard,
+    projectReputation,
+    featuredShardPools,
+    shardBalance,
+    lootboxTiers,
+    inventory,
     approvedQuestCount,
     pendingQuestCount,
     claimableRewardCount,
   } = useLiveUserData({
-    datasets: ["projects", "campaigns", "raids", "rewards", "quests", "notifications"],
+    datasets: [
+      "projects",
+      "campaigns",
+      "raids",
+      "rewards",
+      "quests",
+      "notifications",
+      "leaderboard",
+      "projectReputation",
+      "featuredShardPools",
+      "lootboxes",
+      "inventory",
+    ],
   });
   const {
     snapshot: communitySnapshot,
@@ -95,16 +141,95 @@ export function HomeScreen() {
     .slice(0, 10);
   const hotProjectColumns = splitIntoColumns(hotProjects, 2);
 
-  const dailyQuests = [...quests]
-    .sort(
-      (left, right) =>
-        Number(left.status === "approved") - Number(right.status === "approved") || right.xp - left.xp
-    )
-    .slice(0, 6);
+  const openQuestQueue = useMemo(
+    () =>
+      [...quests].sort(
+        (left, right) =>
+          Number(left.status === "approved") - Number(right.status === "approved") ||
+          Number(right.isPlatformQuest) - Number(left.isPlatformQuest) ||
+          (right.shardRewardAmount ?? 0) - (left.shardRewardAmount ?? 0) ||
+          right.xp - left.xp
+      ),
+    [quests]
+  );
+  const dailyQuests = openQuestQueue.slice(0, 6);
+  const shardQuestQueue = openQuestQueue.filter(
+    (quest) => quest.status !== "approved" && (quest.shardRewardAmount ?? 0) > 0
+  );
   const raidLane = [...raids].sort((left, right) => right.participants - left.participants).slice(0, 6);
   const rewardLane = [...rewards]
     .sort((left, right) => Number(right.claimable) - Number(left.claimable) || right.cost - left.cost)
     .slice(0, 6);
+  const unlockedLootboxTiers = [...lootboxTiers]
+    .filter((tier) => tier.eligibility.unlocked)
+    .sort((left, right) => left.priceShards - right.priceShards);
+  const nextLootboxTier = unlockedLootboxTiers[0] ?? [...lootboxTiers].sort((left, right) => left.priceShards - right.priceShards)[0] ?? null;
+  const shardsUntilLootbox = nextLootboxTier ? Math.max(0, nextLootboxTier.priceShards - shardBalance) : 0;
+  const currentRankIndex = leaderboard.findIndex((user) => user.isCurrentUser);
+  const rankLabel =
+    currentRankIndex >= 0
+      ? `#${currentRankIndex + 1}`
+      : profile?.reputationRank && profile.reputationRank > 0
+        ? `#${profile.reputationRank}`
+        : "Unranked";
+  const strongestProjectRep = [...projectReputation].sort((left, right) => right.xp - left.xp)[0] ?? null;
+  const activeShardPoolCount = featuredShardPools.filter((pool) => pool.status === "active").length;
+  const weeklyShardPotential = shardQuestQueue.reduce(
+    (total, quest) => total + Math.max(0, quest.shardRewardAmount ?? 0),
+    0
+  );
+  const nextAction: HomeNextAction = (() => {
+    const claimableReward = rewardLane.find((reward) => reward.claimable);
+    if (claimableReward) {
+      return {
+        href: `/rewards/${claimableReward.id}`,
+        label: "Claim reward",
+        title: claimableReward.title,
+        meta: `${claimableReward.rarity} reward ready`,
+        tone: "amber",
+      };
+    }
+
+    const shardQuest = shardQuestQueue[0];
+    if (shardQuest) {
+      return {
+        href: `/quests/${shardQuest.id}`,
+        label: "Earn shards",
+        title: shardQuest.title,
+        meta: `+${shardQuest.shardRewardAmount ?? 0} shards`,
+        tone: "lime",
+      };
+    }
+
+    if (nextLootboxTier && shardBalance >= nextLootboxTier.priceShards) {
+      return {
+        href: "/lootboxes",
+        label: "Open lootbox",
+        title: nextLootboxTier.label,
+        meta: `${nextLootboxTier.priceShards} shards entry`,
+        tone: "violet",
+      };
+    }
+
+    const nextQuest = openQuestQueue.find((quest) => quest.status !== "approved");
+    if (nextQuest) {
+      return {
+        href: `/quests/${nextQuest.id}`,
+        label: "Start mission",
+        title: nextQuest.title,
+        meta: `${nextQuest.xp} XP available`,
+        tone: "cyan",
+      };
+    }
+
+    return {
+      href: spotlightLead ? `/campaigns/${spotlightLead.id}` : "/projects",
+      label: spotlightLead ? "Open campaign" : "Explore projects",
+      title: spotlightLead?.title ?? "Find the next useful launch route",
+      meta: spotlightLead?.projectName ?? "VYNTRO",
+      tone: "cyan",
+    };
+  })();
 
   const commandLinks = [
     {
@@ -143,14 +268,33 @@ export function HomeScreen() {
         raidCount={raids.length}
         claimableRewardCount={claimableRewardCount}
         approvedQuestCount={approvedQuestCount}
-        pendingQuestCount={pendingQuestCount}
         signalCount={notifications.length}
-        primaryHref={spotlightLead ? `/campaigns/${spotlightLead.id}` : "/quests"}
-        primaryLabel={spotlightLead ? "Open campaign" : "Open quests"}
+        primaryHref={nextAction.href}
+        primaryLabel={nextAction.label}
         nextHref={claimableRewardCount > 0 ? "/rewards" : "/projects"}
         nextLabel={claimableRewardCount > 0 ? "View rewards" : "Explore projects"}
-        nextTitle={spotlightLead?.title ?? dailyQuests[0]?.title ?? "Find the next useful launch route"}
-        nextMeta={spotlightLead?.projectName ?? dailyQuests[0]?.verificationProvider ?? "VYNTRO"}
+        nextTitle={nextAction.title}
+        nextMeta={nextAction.meta}
+        nextTone={nextAction.tone}
+        level={profile?.level ?? 1}
+        xp={profile?.xp ?? 0}
+        xpProgress={getLevelProgress(profile?.xp ?? 0)}
+        streak={profile?.streak ?? communitySnapshot.streakDays}
+        shardBalance={shardBalance}
+        walletConnected={Boolean(profile?.wallet)}
+        rankLabel={rankLabel}
+        strongestProjectLabel={strongestProjectRep?.projectName ?? "No project rank yet"}
+        weeklyShardPotential={weeklyShardPotential}
+        activeShardPoolCount={activeShardPoolCount}
+        lootboxLabel={
+          nextLootboxTier
+            ? shardsUntilLootbox > 0
+              ? `${shardsUntilLootbox} shards away`
+              : "Ready to open"
+            : "No active box"
+        }
+        inventoryCount={inventory.length}
+        platformQuestCount={quests.filter((quest) => quest.isPlatformQuest).length}
       />
 
       <section className="grid gap-3.5 xl:grid-cols-[minmax(0,1.48fr)_280px]">
@@ -611,7 +755,6 @@ function HomeHero({
   raidCount,
   claimableRewardCount,
   approvedQuestCount,
-  pendingQuestCount,
   signalCount,
   primaryHref,
   primaryLabel,
@@ -619,6 +762,20 @@ function HomeHero({
   nextLabel,
   nextTitle,
   nextMeta,
+  nextTone,
+  level,
+  xp,
+  xpProgress,
+  streak,
+  shardBalance,
+  walletConnected,
+  rankLabel,
+  strongestProjectLabel,
+  weeklyShardPotential,
+  activeShardPoolCount,
+  lootboxLabel,
+  inventoryCount,
+  platformQuestCount,
 }: {
   username: string;
   tier: string;
@@ -627,7 +784,6 @@ function HomeHero({
   raidCount: number;
   claimableRewardCount: number;
   approvedQuestCount: number;
-  pendingQuestCount: number;
   signalCount: number;
   primaryHref: string;
   primaryLabel: string;
@@ -635,11 +791,41 @@ function HomeHero({
   nextLabel: string;
   nextTitle: string;
   nextMeta: string;
+  nextTone: HomeNextAction["tone"];
+  level: number;
+  xp: number;
+  xpProgress: number;
+  streak: number;
+  shardBalance: number;
+  walletConnected: boolean;
+  rankLabel: string;
+  strongestProjectLabel: string;
+  weeklyShardPotential: number;
+  activeShardPoolCount: number;
+  lootboxLabel: string;
+  inventoryCount: number;
+  platformQuestCount: number;
 }) {
   const momentumScore = Math.min(
     100,
-    Math.max(12, approvedQuestCount * 14 + claimableRewardCount * 18 + campaignCount * 6 + raidCount * 4)
+    Math.max(
+      12,
+      approvedQuestCount * 12 +
+        claimableRewardCount * 16 +
+        Math.min(20, streak * 4) +
+        Math.min(16, Math.floor(shardBalance / 10)) +
+        campaignCount * 4 +
+        raidCount * 3
+    )
   );
+  const nextToneClass =
+    nextTone === "amber"
+      ? "bg-amber-300 text-black hover:bg-amber-200"
+      : nextTone === "violet"
+        ? "bg-violet-300 text-black hover:bg-violet-200"
+        : nextTone === "cyan"
+          ? "bg-cyan-300 text-black hover:bg-cyan-200"
+          : "bg-lime-300 text-black hover:bg-lime-200";
 
   return (
     <section className="motion-surface motion-light-sweep relative overflow-hidden rounded-[34px] border border-white/7 bg-[#05080b] shadow-[0_32px_110px_rgba(0,0,0,0.38)]">
@@ -651,26 +837,26 @@ function HomeHero({
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_66%_16%,rgba(168,85,247,0.18),transparent_32%),linear-gradient(90deg,rgba(1,3,7,0.9),rgba(2,4,10,0.66)_36%,rgba(3,4,10,0.2)_64%,rgba(3,5,9,0.66)),linear-gradient(180deg,rgba(4,6,10,0.04),rgba(3,5,8,0.72))]" />
       <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#050608] to-transparent" />
 
-      <div className="relative z-10 grid min-h-[560px] gap-6 p-5 sm:p-7 xl:grid-cols-[minmax(0,1fr)_410px] xl:items-end">
+      <div className="relative z-10 grid min-h-[560px] gap-6 p-5 sm:p-7 xl:grid-cols-[minmax(0,1fr)_430px] xl:items-end">
         <div className="max-w-4xl self-end pb-2">
           <div className="flex flex-wrap items-center gap-2">
-            <StatusChip label="Live command" tone="positive" />
-            <StatusChip label={`${campaignCount} campaigns`} tone="info" />
-            <StatusChip label={`${questCount} quests`} tone="info" />
-            <StatusChip label={`${claimableRewardCount} rewards`} tone={claimableRewardCount > 0 ? "positive" : "default"} />
+            <StatusChip label="Personal command" tone="positive" />
+            <StatusChip label={`Level ${level}`} tone="info" />
+            <StatusChip label={`${streak} day streak`} tone={streak > 0 ? "positive" : "default"} />
+            <StatusChip label={walletConnected ? "Wallet linked" : "Wallet needed"} tone={walletConnected ? "positive" : "warning"} />
           </div>
 
-          <h1 className="mt-7 max-w-[11ch] text-[4.2rem] font-black leading-[0.86] tracking-normal text-white [text-shadow:0_18px_70px_rgba(0,0,0,0.72)] sm:text-[5.6rem] xl:text-[7.2rem]">
-            VYNTRO
+          <h1 className="mt-7 max-w-[12ch] text-[3.3rem] font-black leading-[0.9] tracking-normal text-white [text-shadow:0_18px_70px_rgba(0,0,0,0.72)] sm:text-[4.8rem] xl:text-[6.2rem]">
+            {username}
           </h1>
           <p className="mt-5 max-w-2xl text-[15px] leading-7 text-slate-100 sm:text-[1rem]">
-            Your live launch world for quests, raids, rewards and project momentum. Open the strongest route first, then keep the whole board moving.
+            Your daily VYNTRO command center: earn shards, clear the next mission, open reward loops and keep your reputation moving.
           </p>
 
           <div className="mt-7 flex flex-wrap gap-3">
             <Link
               href={primaryHref}
-              className="motion-press inline-flex items-center gap-2 rounded-full bg-lime-300 px-5 py-3 text-[11px] font-black uppercase tracking-[0.16em] text-black transition hover:bg-lime-200"
+              className={`motion-press inline-flex items-center gap-2 rounded-full px-5 py-3 text-[11px] font-black uppercase tracking-[0.16em] transition ${nextToneClass}`}
             >
               <Rocket className="h-4 w-4" />
               {primaryLabel}
@@ -686,9 +872,9 @@ function HomeHero({
           </div>
 
           <div className="mt-6 grid max-w-3xl gap-2.5 sm:grid-cols-3">
-            <HeroSignal icon={<Target className="h-4 w-4" />} label="Quest pressure" value={`${approvedQuestCount}/${questCount}`} />
-            <HeroSignal icon={<Swords className="h-4 w-4" />} label="Raid lane" value={`${raidCount} live`} />
-            <HeroSignal icon={<Radar className="h-4 w-4" />} label="Signals" value={`${signalCount} updates`} />
+            <HeroSignal icon={<Zap className="h-4 w-4" />} label="XP progress" value={`${xpProgress}% to next`} />
+            <HeroSignal icon={<Flame className="h-4 w-4" />} label="Shard upside" value={`+${weeklyShardPotential} open`} />
+            <HeroSignal icon={<Radar className="h-4 w-4" />} label="Rank" value={rankLabel} />
           </div>
         </div>
 
@@ -697,20 +883,35 @@ function HomeHero({
           <div className="relative z-10">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-lime-300">Command status</p>
-                <h2 className="mt-2 text-[1.35rem] font-black text-white">{username}</h2>
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-lime-300">Today</p>
+                <h2 className="mt-2 text-[1.25rem] font-black text-white">Next best action</h2>
               </div>
               <ContributionTierBadge tier={tier} size="sm" />
             </div>
 
+            <Link
+              href={primaryHref}
+              className="mt-4 block rounded-[22px] border border-lime-300/18 bg-lime-300/[0.07] p-4 transition hover:border-lime-300/30 hover:bg-lime-300/[0.1]"
+            >
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-lime-200">{primaryLabel}</p>
+              <p className="mt-2 line-clamp-2 text-[1rem] font-black leading-6 text-white">{nextTitle}</p>
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <span className="truncate text-[10px] font-black uppercase tracking-[0.16em] text-cyan-200">{nextMeta}</span>
+                <ArrowRight className="h-4 w-4 shrink-0 text-white/70" />
+              </div>
+            </Link>
+
             <div className="mt-5">
               <div className="flex items-end justify-between gap-3">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Momentum</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Momentum score</p>
                   <p className="mt-1 text-4xl font-black text-white">{momentumScore}%</p>
                 </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-lime-300/18 bg-lime-300/10 text-lime-200">
-                  <Layers3 className="h-5 w-5" />
+                <div className="flex flex-col items-end gap-2">
+                  <ShardBadge value={shardBalance} size="sm" />
+                  <span className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-500">
+                    {activeShardPoolCount} shard pools
+                  </span>
                 </div>
               </div>
               <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/8">
@@ -722,23 +923,22 @@ function HomeHero({
             </div>
 
             <div className="mt-5 grid grid-cols-2 gap-3">
-              <HeroPanelMetric label="Campaigns" value={String(campaignCount)} sub="Live lanes" />
-              <HeroPanelMetric label="Quests" value={String(questCount)} sub={`${pendingQuestCount} pending`} />
-              <HeroPanelMetric label="Raids" value={String(raidCount)} sub="Pushes" />
-              <HeroPanelMetric label="Rewards" value={String(claimableRewardCount)} sub="Claimable" />
+              <HeroPanelMetric label="Level" value={String(level)} sub={`${formatCompactNumber(xp)} XP`} icon={<Zap className="h-4 w-4" />} />
+              <HeroPanelMetric label="Streak" value={String(streak)} sub="Daily loop" icon={<Flame className="h-4 w-4" />} />
+              <HeroPanelMetric label="Lootbox" value={lootboxLabel} sub={`${inventoryCount} owned`} icon={<Box className="h-4 w-4" />} />
+              <HeroPanelMetric label="Platform" value={String(platformQuestCount)} sub="VYNTRO quests" icon={<CheckCircle2 className="h-4 w-4" />} />
             </div>
 
-            <Link
-              href={primaryHref}
-              className="mt-4 block rounded-[20px] border border-white/8 bg-white/[0.04] p-3.5 transition hover:border-lime-300/20 hover:bg-lime-300/[0.06]"
-            >
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Next useful move</p>
-              <p className="mt-2 line-clamp-2 text-[13px] font-black leading-5 text-white">{nextTitle}</p>
-              <div className="mt-3 flex items-center justify-between gap-3">
-                <span className="truncate text-[10px] font-black uppercase tracking-[0.16em] text-cyan-200">{nextMeta}</span>
-                <ArrowRight className="h-4 w-4 shrink-0 text-white/60" />
+            <div className="mt-4 rounded-[20px] border border-white/8 bg-white/[0.04] p-3.5">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Strongest project</p>
+                <StatusChip label={`${campaignCount} lanes`} tone="info" />
               </div>
-            </Link>
+              <p className="mt-2 truncate text-[13px] font-black text-white">{strongestProjectLabel}</p>
+              <p className="mt-1 text-[10px] font-bold text-slate-400">
+                {questCount} quests, {raidCount} raids, {signalCount} signals, {claimableRewardCount} claimable.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -764,10 +964,23 @@ function HeroSignal({
   );
 }
 
-function HeroPanelMetric({ label, value, sub }: { label: string; value: string; sub: string }) {
+function HeroPanelMetric({
+  label,
+  value,
+  sub,
+  icon,
+}: {
+  label: string;
+  value: string;
+  sub: string;
+  icon?: ReactNode;
+}) {
   return (
     <div className="rounded-[18px] border border-white/8 bg-black/28 p-3.5">
-      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">{label}</p>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">{label}</p>
+        {icon ? <span className="text-lime-200/80">{icon}</span> : null}
+      </div>
       <p className="mt-2 text-[1.35rem] font-black text-white">{value}</p>
       <p className="mt-1 text-[10px] font-bold text-slate-400">{sub}</p>
     </div>
