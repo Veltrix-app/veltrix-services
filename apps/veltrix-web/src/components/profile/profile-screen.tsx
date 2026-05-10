@@ -9,6 +9,7 @@ import { Copy, ShieldCheck, Signal, Trophy, UserRound, Wallet, Zap } from "lucid
 import { CommunityStatusPanel } from "@/components/community/community-status-panel";
 import { ContributionTierBadge } from "@/components/ui/contribution-tier-badge";
 import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
+import { ShardBadge } from "@/components/ui/shard-badge";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
@@ -16,6 +17,7 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { useCommunityJourney } from "@/hooks/use-community-journey";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 import { buildLootboxInventoryRead } from "@/lib/lootboxes/lootbox-inventory-read";
+import { buildReputationCardRead } from "@/lib/profile/reputation-card";
 import { buildXpProgressionRead } from "@/lib/xp/xp-economy";
 import type { ConnectedAccount } from "@/types/auth";
 
@@ -43,6 +45,7 @@ export function ProfileScreen() {
     xpStakes,
     rewardDistributions,
     inventory,
+    shardBalance,
     claimableDistributionCount,
     reload,
   } = useLiveUserData({
@@ -68,6 +71,7 @@ export function ProfileScreen() {
   const effectiveConnectedAccounts = connectedAccounts;
   const loadoutSyncing = connectedAccountsState === "syncing" || syncingLoadout;
   const [walletCopied, setWalletCopied] = useState(false);
+  const [profileCardCopied, setProfileCardCopied] = useState(false);
   const {
     snapshot: communitySnapshot,
     loading: communityLoading,
@@ -216,6 +220,17 @@ export function ProfileScreen() {
   const activeSeasonAccess =
     inventoryRead.items.find((item) => item.utility.isActiveSeasonAccess)?.utility
       .seasonAccessBadgeLabel ?? null;
+  const reputationCard = useMemo(
+    () =>
+      buildReputationCardRead({
+        profile,
+        shardBalance,
+        equippedCosmetic,
+        activeSeasonAccess,
+        connectedSystemCount: connectedCount,
+      }),
+    [activeSeasonAccess, connectedCount, equippedCosmetic, profile, shardBalance]
+  );
 
   async function handleProviderLink(provider: "discord" | "x") {
     setProviderMessage(null);
@@ -370,6 +385,20 @@ export function ProfileScreen() {
     await navigator.clipboard.writeText(profile.wallet);
     setWalletCopied(true);
     window.setTimeout(() => setWalletCopied(false), 1800);
+  }
+
+  async function handleCopyProfileCard() {
+    if (typeof navigator === "undefined" || !navigator.clipboard) {
+      return;
+    }
+
+    const profileUrl =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/profile`
+        : "/profile";
+    await navigator.clipboard.writeText(`${reputationCard.shareText}\n${profileUrl}`);
+    setProfileCardCopied(true);
+    window.setTimeout(() => setProfileCardCopied(false), 1800);
   }
 
   return (
@@ -545,6 +574,14 @@ export function ProfileScreen() {
                 </div>
               </div>
             </div>
+
+            <ReputationCardPreview
+              read={reputationCard}
+              avatarUrl={profile?.avatarUrl ?? ""}
+              bannerUrl={profile?.bannerUrl ?? ""}
+              copied={profileCardCopied}
+              onCopy={() => void handleCopyProfileCard()}
+            />
 
             <div className="grid gap-3 sm:grid-cols-3">
               <QuickRead label="Profile title" value={profile?.title ?? "Operator"} />
@@ -939,6 +976,118 @@ function ProfileIdentityAvatar() {
   }
 
   return <UserRound className="h-8 w-8" />;
+}
+
+type ReputationCardRead = ReturnType<typeof buildReputationCardRead>;
+
+function ReputationCardPreview({
+  read,
+  avatarUrl,
+  bannerUrl,
+  copied,
+  onCopy,
+}: {
+  read: ReputationCardRead;
+  avatarUrl: string;
+  bannerUrl: string;
+  copied: boolean;
+  onCopy: () => void;
+}) {
+  return (
+    <section className="relative overflow-hidden rounded-[24px] border border-violet-300/16 bg-[radial-gradient(circle_at_10%_0%,rgba(34,211,238,0.16),transparent_30%),radial-gradient(circle_at_84%_14%,rgba(168,85,247,0.18),transparent_30%),linear-gradient(145deg,rgba(10,13,22,0.98),rgba(5,7,13,0.99))] p-4 shadow-[0_22px_70px_rgba(0,0,0,0.3)]">
+      {bannerUrl ? (
+        <>
+          <Image
+            src={bannerUrl}
+            alt=""
+            fill
+            unoptimized
+            sizes="(min-width: 1024px) 760px, 92vw"
+            className="absolute inset-0 h-full w-full object-cover opacity-22 saturate-125"
+          />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,7,13,0.4),rgba(5,7,13,0.96))]" />
+        </>
+      ) : null}
+      <FeatureBadgeMark
+        badge="reputation"
+        className="absolute -right-4 top-7 h-36 w-36 opacity-[0.2] mix-blend-screen"
+        imageClassName="rotate-[10deg]"
+        sizes="160px"
+      />
+
+      <div className="relative z-10 grid gap-4 xl:grid-cols-[minmax(0,1fr)_280px] xl:items-end">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-cyan-300/20 bg-cyan-300/10 text-cyan-100">
+              {avatarUrl ? (
+                <Image
+                  src={avatarUrl}
+                  alt=""
+                  width={44}
+                  height={44}
+                  unoptimized
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <UserRound className="h-6 w-6" />
+              )}
+            </span>
+            <div>
+              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-violet-200">
+                Public reputation card
+              </p>
+              <p className="mt-1 text-[1rem] font-black text-white">{read.username}</p>
+            </div>
+          </div>
+
+          <h2 className="mt-4 max-w-2xl text-[1.65rem] font-black leading-none tracking-[-0.055em] text-white sm:text-[2.25rem]">
+            {read.title}
+          </h2>
+          <p className="mt-3 max-w-2xl text-[12px] leading-5 text-slate-300">{read.headline}</p>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <StatusChip label={read.rankLabel} tone={read.rankLabel === "Unranked" ? "default" : "positive"} />
+            <StatusChip label={read.levelLabel} tone="info" />
+            <ShardBadge value={read.shardLabel.replace(" shards", "")} size="sm" />
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            {read.badges.map((badge) => (
+              <span
+                key={`${badge.label}-${badge.detail}`}
+                className={`rounded-full border px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.14em] ${getReputationBadgeTone(badge.tone)}`}
+              >
+                {badge.label}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid gap-3">
+          <div className="grid grid-cols-2 gap-2">
+            {read.stats.slice(0, 6).map((stat) => (
+              <MiniStat key={stat.label} label={stat.label} value={stat.value} />
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={onCopy}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-violet-300 px-4 py-3 text-[11px] font-black uppercase tracking-[0.15em] text-black transition hover:bg-violet-200"
+          >
+            <Copy className="h-4 w-4" />
+            {copied ? "Copied card" : "Copy profile card"}
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function getReputationBadgeTone(tone: "cyan" | "lime" | "amber" | "violet") {
+  if (tone === "lime") return "border-lime-300/18 bg-lime-300/[0.08] text-lime-100";
+  if (tone === "amber") return "border-amber-300/18 bg-amber-300/[0.08] text-amber-100";
+  if (tone === "violet") return "border-violet-300/18 bg-violet-300/[0.08] text-violet-100";
+  return "border-cyan-300/18 bg-cyan-300/[0.08] text-cyan-100";
 }
 
 function FeatureStat({ label, value }: { label: string; value: string }) {
