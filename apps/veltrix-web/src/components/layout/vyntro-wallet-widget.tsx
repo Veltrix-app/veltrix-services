@@ -66,7 +66,7 @@ export function VyntroWalletWidget({
         type="button"
         onClick={() => setCollapsed(false)}
         aria-label="Open VYNTRO wallet"
-        className="motion-press fixed right-0 top-1/2 z-50 hidden -translate-y-1/2 items-center gap-2 rounded-l-[22px] border border-r-0 border-cyan-200/15 bg-[#071012]/88 py-3 pl-3 pr-2 text-left shadow-[0_18px_60px_rgba(0,0,0,0.46),0_0_36px_rgba(34,211,238,0.09)] backdrop-blur-2xl transition hover:border-lime-300/25 hover:bg-[#091412]/94 md:flex"
+        className="fixed right-0 top-1/2 z-50 hidden -translate-y-1/2 items-center gap-2 overflow-hidden rounded-l-[22px] border border-r-0 border-cyan-200/15 bg-[#071012]/88 py-3 pl-3 pr-2 text-left shadow-[0_18px_60px_rgba(0,0,0,0.46),0_0_36px_rgba(34,211,238,0.09)] backdrop-blur-2xl transition hover:border-lime-300/25 hover:bg-[#091412]/94 md:flex"
       >
         <span className="relative h-9 w-9 overflow-hidden rounded-full border border-violet-300/24 bg-black shadow-[0_0_22px_rgba(139,92,246,0.22)]">
           <Image
