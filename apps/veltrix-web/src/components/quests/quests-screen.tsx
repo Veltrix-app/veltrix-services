@@ -18,6 +18,7 @@ import type { LiveFeaturedShardPool } from "@/types/live";
 type QuestFilter = "all" | "open" | "high-xp";
 
 const QUEST_HERO_IMAGE = "/assets/quests/quest-hero.webp";
+const XP_ECONOMY_CARD_IMAGE = "/assets/quests/xp-economy-card.webp";
 
 function getQuestTone(status: string) {
   if (status === "approved") return "positive";
@@ -287,11 +288,14 @@ export function QuestsScreen() {
                 prefetch={false}
                 className="motion-surface motion-3d-card motion-light-sweep group relative min-h-[14.5rem] overflow-hidden rounded-[22px] border border-white/8 bg-[radial-gradient(circle_at_15%_0%,rgba(34,211,238,0.08),transparent_28%),linear-gradient(180deg,rgba(15,18,23,0.98),rgba(6,8,12,0.99))] p-3.5 shadow-[0_16px_46px_rgba(0,0,0,0.22)] transition hover:border-cyan-300/18"
               >
-                <FeatureBadgeMark
-                  badge="quest"
-                  className="absolute -right-4 bottom-4 h-20 w-20 opacity-[0.14] mix-blend-screen transition duration-300 group-hover:opacity-[0.22]"
-                  imageClassName="rotate-[8deg]"
-                  sizes="80px"
+                <Image
+                  src={XP_ECONOMY_CARD_IMAGE}
+                  alt=""
+                  width={160}
+                  height={104}
+                  unoptimized
+                  className="pointer-events-none absolute -right-10 bottom-1 h-28 w-40 object-contain opacity-[0.13] mix-blend-screen saturate-125 transition duration-300 group-hover:opacity-[0.22]"
+                  sizes="160px"
                 />
                 <div className="relative z-10 flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -347,15 +351,23 @@ function QuestStatusMark({
   compact?: boolean;
   prominent?: boolean;
 }) {
+  if (compact) {
+    return (
+      <div className="flex shrink-0 flex-col items-end gap-1.5">
+        <StatusChip label={getQuestStatusLabel(status)} tone={getQuestTone(status)} />
+      </div>
+    );
+  }
+
   return (
     <div className="flex shrink-0 flex-col items-end gap-1.5">
       <FeatureBadgeMark
         badge="quest"
         className={`motion-soft-float opacity-[0.92] mix-blend-screen transition duration-300 group-hover:opacity-100 ${
-          compact ? "h-11 w-11" : prominent ? "h-16 w-16" : "h-[52px] w-[52px]"
+          prominent ? "h-16 w-16" : "h-[52px] w-[52px]"
         }`}
         imageClassName="rotate-[8deg]"
-        sizes={compact ? "44px" : prominent ? "64px" : "52px"}
+        sizes={prominent ? "64px" : "52px"}
       />
       <StatusChip label={getQuestStatusLabel(status)} tone={getQuestTone(status)} />
     </div>
