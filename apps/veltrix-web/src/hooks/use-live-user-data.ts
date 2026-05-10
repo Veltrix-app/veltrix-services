@@ -817,6 +817,18 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
           verificationProvider,
           completionMode,
         });
+        const platformQuestSlug =
+          typeof verificationConfig?.platformQuestSlug === "string"
+            ? verificationConfig.platformQuestSlug
+            : null;
+        const platformQuestCadence =
+          typeof verificationConfig?.cadence === "string" ? verificationConfig.cadence : null;
+        const shardRewardAmount = Number(verificationConfig?.shardRewardAmount ?? 0);
+        const shardRewardWindow =
+          typeof verificationConfig?.shardRewardWindow === "string"
+            ? verificationConfig.shardRewardWindow
+            : null;
+        const rowStatus = row.status === "active" ? "open" : row.status;
 
         return {
           id: row.id,
@@ -826,7 +838,7 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
           description: row.description ?? "",
           type: row.type ?? row.quest_type ?? "Task",
           questType,
-          status: questStatuses[row.id] ?? row.status ?? "open",
+          status: questStatuses[row.id] ?? rowStatus ?? "open",
           xp: globalXpPlan.globalXp,
           projectPoints,
           actionLabel: row.action_label ?? "Open Task",
@@ -837,6 +849,13 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
           verificationProvider,
           completionMode,
           verificationConfig,
+          isPlatformQuest: verificationConfig?.source === "vyntro_platform_quest",
+          platformQuestSlug,
+          platformQuestCadence,
+          shardRewardAmount: Number.isFinite(shardRewardAmount)
+            ? Math.max(0, Math.floor(shardRewardAmount))
+            : 0,
+          shardRewardWindow,
         };
       });
     if (shouldLoadQuests) {

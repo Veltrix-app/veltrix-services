@@ -481,6 +481,9 @@ export function ProjectDetailScreen() {
                 href: `/quests/${quest.id}`,
                 title: quest.title,
                 meta: `${quest.xp} XP`,
+                platformQuest: quest.isPlatformQuest,
+                cadence: quest.platformQuestCadence,
+                shardRewardAmount: quest.shardRewardAmount,
               }))}
             />
             <ActivationColumn
@@ -1136,7 +1139,15 @@ function ActivationColumn({
 }: {
   title: string;
   emptyText: string;
-  items: Array<{ id: string; href: string; title: string; meta: string }>;
+  items: Array<{
+    id: string;
+    href: string;
+    title: string;
+    meta: string;
+    platformQuest?: boolean;
+    cadence?: string | null;
+    shardRewardAmount?: number;
+  }>;
 }) {
   return (
     <div className="rounded-[24px] border border-white/6 bg-black/20 p-4">
@@ -1149,14 +1160,28 @@ function ActivationColumn({
               href={item.href}
               className="flex items-center justify-between gap-3 rounded-[18px] border border-white/6 bg-white/[0.03] px-3 py-3 transition hover:border-cyan-300/18"
             >
-              <span className="text-sm font-semibold text-white">{item.title}</span>
-              {isXpDisplay(item.meta) ? (
-                <XpValue size="sm">{item.meta}</XpValue>
-              ) : (
-                <span className="text-[11px] font-black uppercase tracking-[0.14em] text-lime-300">
-                  {item.meta}
-                </span>
-              )}
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-semibold text-white">{item.title}</span>
+                {item.platformQuest ? (
+                  <span className="mt-1 flex flex-wrap gap-1.5">
+                    <StatusChip label={item.cadence ?? "platform"} tone="info" />
+                    {Number(item.shardRewardAmount ?? 0) > 0 ? (
+                      <span className="rounded-full border border-cyan-300/16 bg-cyan-300/[0.07] px-2 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-cyan-100">
+                        +{Math.floor(Number(item.shardRewardAmount))} shards
+                      </span>
+                    ) : null}
+                  </span>
+                ) : null}
+              </span>
+              <span className="shrink-0">
+                {isXpDisplay(item.meta) ? (
+                  <XpValue size="sm">{item.meta}</XpValue>
+                ) : (
+                  <span className="text-[11px] font-black uppercase tracking-[0.14em] text-lime-300">
+                    {item.meta}
+                  </span>
+                )}
+              </span>
             </Link>
           ))
         ) : (

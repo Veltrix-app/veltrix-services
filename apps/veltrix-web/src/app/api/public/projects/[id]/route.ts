@@ -255,6 +255,17 @@ function mapQuest(row: QuestRow): LiveQuest {
     verificationProvider,
     completionMode,
   });
+  const platformQuestSlug =
+    typeof verificationConfig?.platformQuestSlug === "string"
+      ? verificationConfig.platformQuestSlug
+      : null;
+  const platformQuestCadence =
+    typeof verificationConfig?.cadence === "string" ? verificationConfig.cadence : null;
+  const shardRewardAmount = Number(verificationConfig?.shardRewardAmount ?? 0);
+  const shardRewardWindow =
+    typeof verificationConfig?.shardRewardWindow === "string"
+      ? verificationConfig.shardRewardWindow
+      : null;
 
   return {
     id: row.id,
@@ -278,6 +289,13 @@ function mapQuest(row: QuestRow): LiveQuest {
     verificationProvider,
     completionMode,
     verificationConfig,
+    isPlatformQuest: verificationConfig?.source === "vyntro_platform_quest",
+    platformQuestSlug,
+    platformQuestCadence,
+    shardRewardAmount: Number.isFinite(shardRewardAmount)
+      ? Math.max(0, Math.floor(shardRewardAmount))
+      : 0,
+    shardRewardWindow,
   };
 }
 

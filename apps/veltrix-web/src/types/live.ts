@@ -77,6 +77,11 @@ export type LiveQuest = {
   verificationProvider: string | null;
   completionMode: string | null;
   verificationConfig: Record<string, unknown> | null;
+  isPlatformQuest?: boolean;
+  platformQuestSlug?: string | null;
+  platformQuestCadence?: string | null;
+  shardRewardAmount?: number;
+  shardRewardWindow?: string | null;
 };
 
 export type LiveNotification = {

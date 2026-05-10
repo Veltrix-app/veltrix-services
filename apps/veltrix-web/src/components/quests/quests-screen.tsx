@@ -245,6 +245,11 @@ export function QuestsScreen() {
                   </p>
 
                   <div className="mt-4 flex flex-wrap gap-1.5">
+                    <PlatformQuestPills
+                      isPlatformQuest={quest.isPlatformQuest}
+                      cadence={quest.platformQuestCadence}
+                      shardRewardAmount={quest.shardRewardAmount}
+                    />
                     <MetricPill label="XP" value={String(quest.xp)} />
                     {quest.shardPool ? <ShardBoostPill pool={quest.shardPool} /> : null}
                     <MetricPill label="Mode" value={quest.completionMode ?? "manual"} />
@@ -318,6 +323,12 @@ export function QuestsScreen() {
                 </div>
 
                 <div className="relative z-10 mt-4 flex flex-wrap gap-1.5">
+                  <PlatformQuestPills
+                    isPlatformQuest={quest.isPlatformQuest}
+                    cadence={quest.platformQuestCadence}
+                    shardRewardAmount={quest.shardRewardAmount}
+                    compact
+                  />
                   <MetricPill label="XP" value={String(quest.xp)} />
                   {quest.shardPool ? <ShardBoostPill pool={quest.shardPool} compact /> : null}
                   <MetricPill label="Mode" value={quest.completionMode ?? "manual"} />
@@ -514,6 +525,36 @@ function MetricPill({ label, value }: { label: string; value: string }) {
       <span>{label}</span>
       {hasXpBadge ? <XpValue size="xs">{value}</XpValue> : <span className="text-white">{value}</span>}
     </span>
+  );
+}
+
+function PlatformQuestPills({
+  isPlatformQuest,
+  cadence,
+  shardRewardAmount,
+  compact = false,
+}: {
+  isPlatformQuest?: boolean;
+  cadence?: string | null;
+  shardRewardAmount?: number;
+  compact?: boolean;
+}) {
+  if (!isPlatformQuest) {
+    return null;
+  }
+
+  return (
+    <>
+      <MetricPill label="Platform" value={cadence ?? "quest"} />
+      {Number(shardRewardAmount ?? 0) > 0 ? (
+        <ShardBadge
+          value={`+${Math.floor(Number(shardRewardAmount))}`}
+          label={compact ? "" : "shards"}
+          size="sm"
+          className="border-cyan-300/16 bg-cyan-300/[0.07] p-1 text-[8px] shadow-none"
+        />
+      ) : null}
+    </>
   );
 }
 
