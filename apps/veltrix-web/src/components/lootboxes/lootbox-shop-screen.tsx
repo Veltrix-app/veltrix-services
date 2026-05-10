@@ -27,6 +27,7 @@ import { CinematicRouteHero } from "@/components/ui/cinematic-route-hero";
 import { ShardBadge } from "@/components/ui/shard-badge";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 import { buildLootboxInventoryRead } from "@/lib/lootboxes/lootbox-inventory-read";
+import { getLootboxRevealAction, getLootboxRevealTone } from "@/lib/lootboxes/lootbox-reveal";
 import { buildShardHubSnapshot } from "@/lib/lootboxes/shard-hub";
 
 const LOOTBOX_HERO_IMAGE = "/assets/lootboxes/lootbox-hero.webp";
@@ -620,7 +621,7 @@ function InventoryVault({
   const activeItems = read.items.slice(0, 8);
 
   return (
-    <section className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_320px]">
+    <section id="reward-vault" className="grid scroll-mt-28 gap-3 xl:grid-cols-[minmax(0,1fr)_320px]">
       <div className="overflow-hidden rounded-[24px] border border-white/8 bg-[radial-gradient(circle_at_12%_0%,rgba(16,185,129,0.1),transparent_28%),linear-gradient(180deg,rgba(13,17,24,0.96),rgba(7,9,14,0.96))] p-4 shadow-[0_18px_52px_rgba(0,0,0,0.24)]">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -1023,10 +1024,16 @@ function LootboxRevealDialog({
   reveal: LootboxReveal;
   onClose: () => void;
 }) {
+  const tone = getLootboxRevealTone(reveal.item.rarity);
+  const action = getLootboxRevealAction(reveal.item.item_type);
+
   return (
-    <div className="motion-reveal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/72 px-4 py-6 backdrop-blur-xl">
-      <div className="motion-reveal-card relative w-full max-w-xl overflow-hidden rounded-[30px] border border-white/10 bg-[radial-gradient(circle_at_50%_0%,rgba(168,85,247,0.24),transparent_30%),radial-gradient(circle_at_20%_12%,rgba(16,185,129,0.13),transparent_24%),linear-gradient(180deg,rgba(12,15,22,0.98),rgba(4,6,10,0.99))] p-5 shadow-[0_34px_110px_rgba(0,0,0,0.62)]">
+    <div className="motion-reveal-backdrop fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/78 px-4 py-6 backdrop-blur-xl">
+      <div
+        className={`motion-reveal-card relative w-full max-w-3xl overflow-hidden rounded-[34px] border ${tone.borderClass} bg-[radial-gradient(circle_at_50%_0%,rgba(168,85,247,0.24),transparent_30%),radial-gradient(circle_at_20%_12%,rgba(16,185,129,0.13),transparent_24%),linear-gradient(180deg,rgba(12,15,22,0.98),rgba(4,6,10,0.99))] p-5 shadow-[0_34px_120px_rgba(0,0,0,0.68)] sm:p-6`}
+      >
         <div className="motion-ambient-grid opacity-[0.14]" />
+        <div className={`pointer-events-none absolute inset-x-12 top-0 h-48 bg-gradient-to-b ${tone.glowClass} blur-3xl`} />
         <div className="motion-shard-field">
           <span />
           <span />
@@ -1041,29 +1048,44 @@ function LootboxRevealDialog({
           <X className="h-4 w-4" />
         </button>
 
-        <div className="grid gap-5 sm:grid-cols-[190px_1fr] sm:items-center">
-          <div className="relative flex min-h-48 items-center justify-center">
-            <div className="absolute inset-x-6 bottom-8 h-14 rounded-full bg-black/50 blur-2xl" />
-            <div className="motion-rarity-aura motion-reveal-pulse" />
+        <div className="relative z-10 grid gap-5 lg:grid-cols-[minmax(240px,0.85fr)_minmax(0,1fr)] lg:items-center">
+          <div className="relative flex min-h-72 items-center justify-center overflow-hidden rounded-[28px] border border-white/8 bg-black/24">
+            <div className="absolute inset-x-8 bottom-12 h-16 rounded-full bg-black/60 blur-2xl" />
+            <div className="motion-rarity-aura motion-reveal-pulse scale-125" />
+            <div className="absolute left-4 top-4 rounded-full border border-white/8 bg-white/[0.04] px-3 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-slate-300">
+              Charging
+            </div>
+            <div className="absolute right-4 top-4 rounded-full border border-white/8 bg-white/[0.04] px-3 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-slate-300">
+              Reveal
+            </div>
             <Image
               src={reveal.tierAssetPath}
               alt={reveal.tierLabel}
-              width={260}
-              height={260}
-              className="motion-reveal-prize relative h-44 w-44 object-contain drop-shadow-[0_26px_42px_rgba(0,0,0,0.52)]"
-              sizes="176px"
+              width={320}
+              height={320}
+              className="motion-reveal-prize relative h-56 w-56 object-contain drop-shadow-[0_30px_50px_rgba(0,0,0,0.58)]"
+              sizes="224px"
             />
           </div>
 
           <div className="min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-200">
-              Lootbox opened
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={`rounded-full border px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.16em] ${tone.badgeClass}`}>
+                {tone.label}
+              </span>
+              <span className="rounded-full border border-white/8 bg-white/[0.035] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.16em] text-slate-300">
+                {reveal.tierLabel}
+              </span>
+            </div>
+
+            <p className="mt-5 text-[10px] font-black uppercase tracking-[0.22em] text-emerald-200">
+              {tone.headline}
             </p>
-            <h2 className="mt-3 text-[1.35rem] font-black tracking-[-0.05em] text-white">
+            <h2 className="mt-3 text-[1.7rem] font-black leading-none tracking-[-0.055em] text-white sm:text-[2.35rem]">
               {reveal.item.label}
             </h2>
             <div className="mt-3 flex flex-wrap gap-2">
-              <span className={`rounded-full border px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.14em] ${getInventoryTone(reveal.item.rarity)}`}>
+              <span className={`rounded-full border px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.14em] ${tone.badgeClass}`}>
                 {reveal.item.rarity}
               </span>
               <span className="rounded-full border border-white/8 bg-white/[0.035] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.14em] text-slate-300">
@@ -1071,20 +1093,44 @@ function LootboxRevealDialog({
               </span>
             </div>
 
-            <div className="mt-5 grid gap-2">
+            <div className="mt-5 grid gap-2 sm:grid-cols-3">
               <RevealRead label="Spent" value={`${reveal.shardSpend} shards`} />
               <RevealRead label="Refund" value={`${reveal.shardRefund} shards`} />
               <RevealRead label="Balance" value={`${reveal.balance} shards`} />
             </div>
 
-            <button
-              type="button"
-              onClick={onClose}
-              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-emerald-300 px-4 py-3 text-[11px] font-black uppercase tracking-[0.15em] text-black transition hover:brightness-105"
-            >
-              <BadgeCheck className="h-4 w-4" />
-              Add to vault
-            </button>
+            <div className="mt-5 grid gap-2 sm:grid-cols-2">
+              <Link
+                href={action.href}
+                onClick={onClose}
+                className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-4 py-3 text-[11px] font-black uppercase tracking-[0.15em] transition ${tone.buttonClass}`}
+              >
+                <BadgeCheck className="h-4 w-4" />
+                {action.label}
+              </Link>
+              <Link
+                href="#lootbox-chambers"
+                onClick={onClose}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-4 py-3 text-[11px] font-black uppercase tracking-[0.15em] text-white transition hover:border-white/18 hover:bg-white/[0.07]"
+              >
+                Open another
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+
+            <div className="mt-4 grid gap-2 sm:grid-cols-3">
+              {["Charge", "Open", "Vault"].map((step, index) => (
+                <div
+                  key={step}
+                  className="rounded-[14px] border border-white/8 bg-white/[0.03] px-3 py-2"
+                >
+                  <p className="text-[8px] font-black uppercase tracking-[0.14em] text-slate-500">
+                    Step {index + 1}
+                  </p>
+                  <p className="mt-1 text-[11px] font-semibold text-white">{step}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
