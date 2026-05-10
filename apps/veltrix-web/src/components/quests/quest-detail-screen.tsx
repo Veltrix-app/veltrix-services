@@ -2,15 +2,20 @@
 
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { useParams } from "next/navigation";
+import { ArrowRight, CheckCircle2, CircleDot, Clock3, Route, Sparkles } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { ArtworkImage } from "@/components/ui/artwork-image";
 import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
+import { ShardBadge } from "@/components/ui/shard-badge";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
+import { buildMissionCockpit } from "@/lib/quests/mission-cockpit";
+import type { MissionCockpit } from "@/lib/quests/mission-cockpit";
 import { XP_SOURCE_TYPES } from "@/lib/xp/xp-economy";
 import {
   claimUserXpAward,
@@ -388,6 +393,19 @@ export function QuestDetailScreen() {
       : linkedCampaign
         ? `${linkedCampaign.title} is the main campaign lane this mission rolls back into.`
         : "Watch the provider and proof state, because this mission is not yet tied to a larger unlock lane.";
+  const usesIntegrationVerification =
+    usesWebsiteVerification || usesDiscordVerification || usesTelegramVerification || usesXVerification;
+  const missionCockpit = buildMissionCockpit({
+    currentQuest,
+    allQuests: quests,
+    linkedRewards,
+    linkedCampaign: linkedCampaign ?? null,
+    accountReadyState,
+    requiredAccount,
+    providerAccountConnected,
+    derivedActionUrl,
+    usesIntegrationVerification,
+  });
 
   async function awardApprovedQuestXp(): Promise<UserXpAwardResponse | null> {
     if (!session?.access_token || currentQuest.xp <= 0) {
@@ -749,7 +767,7 @@ export function QuestDetailScreen() {
 
   return (
     <div className="space-y-5">
-      <section className="relative overflow-hidden rounded-[22px] border border-white/8 bg-[radial-gradient(circle_at_top_left,rgba(186,255,59,0.12),transparent_26%),radial-gradient(circle_at_78%_18%,rgba(0,204,255,0.12),transparent_24%),linear-gradient(180deg,rgba(12,14,18,0.99),rgba(7,9,11,0.99))] p-4 shadow-[0_20px_54px_rgba(0,0,0,0.24)]">
+      <section className="motion-surface motion-light-sweep relative overflow-hidden rounded-[26px] border border-white/8 bg-[radial-gradient(circle_at_top_left,rgba(186,255,59,0.12),transparent_26%),radial-gradient(circle_at_78%_18%,rgba(0,204,255,0.12),transparent_24%),linear-gradient(180deg,rgba(12,14,18,0.99),rgba(7,9,11,0.99))] p-4 shadow-[0_20px_54px_rgba(0,0,0,0.24)] sm:p-5">
         <FeatureBadgeMark
           badge="quest"
           className="absolute right-5 top-8 h-28 w-28 opacity-[0.24] mix-blend-screen sm:h-36 sm:w-36"
@@ -771,6 +789,9 @@ export function QuestDetailScreen() {
             <p className="mt-2.5 max-w-3xl text-[13px] leading-5 text-slate-300">
               {currentQuest.description || "No description yet for this mission."}
             </p>
+            <p className="mt-3 max-w-2xl text-[12px] leading-5 text-lime-100/85">
+              {missionCockpit.headline}
+            </p>
 
             <div className="mt-4 flex flex-wrap gap-1.5">
               <MetricPill label="Type" value={currentQuest.type} />
@@ -780,6 +801,14 @@ export function QuestDetailScreen() {
               ) : null}
               <MetricPill label="Mode" value={currentQuest.completionMode ?? "manual"} />
               <MetricPill label="Provider" value={currentQuest.verificationProvider ?? "custom"} />
+              {missionCockpit.payoff.shards > 0 ? (
+                <ShardBadge
+                  value={`+${missionCockpit.payoff.shards}`}
+                  label="shards"
+                  size="sm"
+                  className="border-cyan-300/16 bg-cyan-300/[0.07] p-1 text-[8px] shadow-none"
+                />
+              ) : null}
             </div>
           </div>
 
@@ -802,7 +831,7 @@ export function QuestDetailScreen() {
               <MetricTile label="Status" value={currentQuest.status} />
               <MetricTile label="Account" value={accountReadyState} />
               <MetricTile label="Proof" value={currentQuest.proofType} />
-              <MetricTile label="Route" value={currentQuest.verificationType} />
+              <MetricTile label="Route" value={missionCockpit.routeLabel} />
             </div>
           </div>
         </div>
@@ -810,13 +839,17 @@ export function QuestDetailScreen() {
 
       {message ? <Notice tone={message.tone} text={message.text} /> : null}
 
+      <MissionCockpitSummary cockpit={missionCockpit} />
+
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.08fr)_300px]">
         <Surface
-          eyebrow="Mission read"
-          title="Mission flow"
-          description="Open the target, execute the move and let the provider route decide whether this clears instantly or waits in the queue."
+          eyebrow="Mission cockpit"
+          title="Action flow"
+          description="Follow the active step, then let the existing verification route decide whether this clears instantly or waits in review."
         >
           <div className="space-y-3.5">
+            <MissionStepRail cockpit={missionCockpit} />
+
             <div className="metric-card rounded-[20px] p-3.5">
               <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">
                 Mission brief
@@ -866,13 +899,15 @@ export function QuestDetailScreen() {
                 className="rounded-full bg-lime-300 px-4 py-2.5 text-[12px] font-black text-black transition hover:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {missionClosed
-                  ? "Mission closed"
+                  ? missionCockpit.primaryCtaLabel
                   : busy
                   ? usesWebsiteVerification
                     ? "Routing launch..."
                     : "Processing..."
                   : derivedActionUrl
-                    ? currentQuest.actionLabel ?? "Open mission"
+                    ? missionCockpit.primaryCtaState === "blocked"
+                      ? missionCockpit.primaryCtaLabel
+                      : currentQuest.actionLabel ?? missionCockpit.primaryCtaLabel
                     : "No destination yet"}
               </button>
 
@@ -977,8 +1012,15 @@ export function QuestDetailScreen() {
           <Surface
             eyebrow="Unlock Pressure"
             title="Potential payoff"
-            description="Rewards connected to the same campaign loop and mission cadence."
+            description="XP, shards and rewards connected to the same campaign loop and mission cadence."
           >
+            <div className="mb-3 grid gap-2 sm:grid-cols-2">
+              <MiniStat label="Global XP" value={`+${missionCockpit.payoff.xp}`} />
+              <MiniStat label="Project pts" value={`+${missionCockpit.payoff.projectPoints}`} />
+              <MiniStat label="Shards" value={`+${missionCockpit.payoff.shards}`} />
+              <MiniStat label="Rewards" value={String(missionCockpit.payoff.rewardCount)} />
+            </div>
+
             {linkedRewards.length > 0 ? (
               <div className="space-y-3">
                 {linkedRewards.map((reward) => (
@@ -1002,8 +1044,146 @@ export function QuestDetailScreen() {
               <Notice tone="default" text="No rewards are linked to this mission yet." />
             )}
           </Surface>
+
+          <NextQuestCard cockpit={missionCockpit} />
         </div>
       </div>
+    </div>
+  );
+}
+
+function MissionCockpitSummary({ cockpit }: { cockpit: MissionCockpit }) {
+  return (
+    <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <CockpitStat
+        label="Route"
+        value={cockpit.routeLabel}
+        detail={cockpit.primaryCtaState === "blocked" ? "account gated" : "ready path"}
+        icon={<Route className="h-3.5 w-3.5" />}
+      />
+      <CockpitStat
+        label="XP"
+        value={`+${cockpit.payoff.xp}`}
+        detail="global reward"
+        icon={<Sparkles className="h-3.5 w-3.5" />}
+      />
+      <CockpitStat
+        label="Shards"
+        value={`+${cockpit.payoff.shards}`}
+        detail="quest payout"
+        icon={<CircleDot className="h-3.5 w-3.5" />}
+      />
+      <CockpitStat
+        label="Next"
+        value={cockpit.nextQuest ? "Queued" : "Clear"}
+        detail={cockpit.nextQuest?.title ?? "no open handoff"}
+        icon={<ArrowRight className="h-3.5 w-3.5" />}
+      />
+    </section>
+  );
+}
+
+function MissionStepRail({ cockpit }: { cockpit: MissionCockpit }) {
+  return (
+    <div className="grid gap-2.5">
+      {cockpit.steps.map((step, index) => (
+        <div
+          key={`${step.label}-${index}`}
+          className={`flex min-h-[4.75rem] items-center gap-3 rounded-[18px] border px-3.5 py-3 ${
+            step.state === "complete"
+              ? "border-lime-300/18 bg-lime-300/[0.055]"
+              : step.state === "active"
+                ? "border-cyan-300/18 bg-cyan-300/[0.06]"
+                : "border-white/8 bg-black/18"
+          }`}
+        >
+          <span
+            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border ${
+              step.state === "complete"
+                ? "border-lime-300/20 text-lime-100"
+                : step.state === "active"
+                  ? "border-cyan-300/20 text-cyan-100"
+                  : "border-white/10 text-slate-500"
+            }`}
+          >
+            {step.state === "complete" ? (
+              <CheckCircle2 className="h-4 w-4" />
+            ) : step.state === "active" ? (
+              <CircleDot className="h-4 w-4" />
+            ) : (
+              <Clock3 className="h-4 w-4" />
+            )}
+          </span>
+          <span className="min-w-0">
+            <span className="block text-[12px] font-semibold text-white">{step.label}</span>
+            <span className="mt-1 block text-[11px] leading-5 text-slate-400">{step.detail}</span>
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function NextQuestCard({ cockpit }: { cockpit: MissionCockpit }) {
+  if (!cockpit.nextQuest) {
+    return null;
+  }
+
+  return (
+    <Surface
+      eyebrow="Next Quest"
+      title="Continue the route"
+      description="A direct handoff keeps the mission loop moving after this action."
+    >
+      <Link
+        href={`/quests/${cockpit.nextQuest.id}`}
+        className="group block rounded-[18px] border border-white/8 bg-black/20 p-3.5 transition hover:border-cyan-300/24 hover:bg-cyan-300/[0.045]"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="truncate text-[13px] font-semibold text-white">{cockpit.nextQuest.title}</p>
+            <p className="mt-1 line-clamp-2 text-[11px] leading-5 text-slate-400">
+              {cockpit.nextQuest.description || "Next open mission in your active quest route."}
+            </p>
+          </div>
+          <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-slate-500 transition group-hover:translate-x-0.5 group-hover:text-cyan-100" />
+        </div>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          <MetricPill label="XP" value={`+${cockpit.nextQuest.xp}`} />
+          {Number(cockpit.nextQuest.shardRewardAmount ?? 0) > 0 ? (
+            <ShardBadge
+              value={`+${Math.floor(Number(cockpit.nextQuest.shardRewardAmount))}`}
+              label="shards"
+              size="sm"
+              className="border-cyan-300/16 bg-cyan-300/[0.07] p-1 text-[8px] shadow-none"
+            />
+          ) : null}
+          <MetricPill label="State" value={cockpit.nextQuest.status} />
+        </div>
+      </Link>
+    </Surface>
+  );
+}
+
+function CockpitStat({
+  label,
+  value,
+  detail,
+  icon,
+}: {
+  label: string;
+  value: string;
+  detail: string;
+  icon: ReactNode;
+}) {
+  return (
+    <div className="motion-surface relative min-w-0 overflow-hidden rounded-[20px] border border-white/8 bg-[radial-gradient(circle_at_85%_0%,rgba(34,211,238,0.1),transparent_30%),linear-gradient(180deg,rgba(15,18,24,0.88),rgba(7,9,13,0.94))] px-4 py-3 shadow-[0_14px_38px_rgba(0,0,0,0.16)]">
+      <div className="flex items-center justify-between gap-2">
+        <p className="truncate text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">{label}</p>
+        <span className="text-cyan-100/70">{icon}</span>
+      </div>
+      <p className="mt-2 truncate text-[1.05rem] font-black tracking-[-0.03em] text-white">{value}</p>
+      <p className="mt-1 truncate text-[10px] uppercase tracking-[0.13em] text-slate-500">{detail}</p>
     </div>
   );
 }
