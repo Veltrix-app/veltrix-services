@@ -81,8 +81,8 @@ export function CommunityHomeScreen() {
       label: "Onboarding path",
       copy: "Link providers, verify the wallet and clear the first steps.",
       live: snapshot.lane === "onboarding",
-      icon: ShieldCheck,
       accent: "cyan" as RouteAccent,
+      artwork: "/assets/community/readiness.webp",
     },
     {
       href: "/community",
@@ -90,8 +90,8 @@ export function CommunityHomeScreen() {
       label: "Active path",
       copy: "Recognition, live missions and reward pressure stay here.",
       live: snapshot.lane === "active",
-      icon: Flame,
       accent: "lime" as RouteAccent,
+      artwork: "/assets/community/momentum.webp",
     },
     {
       href: "/community/comeback",
@@ -99,8 +99,8 @@ export function CommunityHomeScreen() {
       label: "Comeback path",
       copy: "Signals and reactivation nudges stay out of the full backlog.",
       live: snapshot.lane === "comeback",
-      icon: Radar,
       accent: "amber" as RouteAccent,
+      artwork: "/assets/community/re-entry.webp",
     },
   ];
 
@@ -397,11 +397,10 @@ function CommunityRouteCard({
     label: string;
     copy: string;
     live: boolean;
-    icon: LucideIcon;
     accent: RouteAccent;
+    artwork: string;
   };
 }) {
-  const Icon = route.icon;
   const accent = routeAccentClasses[route.accent];
 
   return (
@@ -410,10 +409,28 @@ function CommunityRouteCard({
       className="motion-surface motion-3d-card motion-light-sweep group relative min-h-[12.5rem] overflow-hidden rounded-[24px] border border-white/7 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.018)_56%,rgba(0,0,0,0.18))] p-4 shadow-[0_18px_64px_rgba(0,0,0,0.22)] transition duration-300 hover:border-white/13 hover:bg-white/[0.055]"
     >
       <div className="motion-ambient-grid opacity-[0.08]" />
+      <div className="pointer-events-none absolute -right-7 bottom-[-3.2rem] h-36 w-36 opacity-[0.76] transition duration-300 group-hover:scale-[1.04] group-hover:opacity-95 sm:-right-8 sm:bottom-[-3.4rem] sm:h-40 sm:w-40">
+        <Image
+          src={route.artwork}
+          alt=""
+          fill
+          unoptimized
+          sizes="160px"
+          className="object-contain saturate-125 drop-shadow-[0_0_34px_rgba(190,255,74,0.18)]"
+        />
+      </div>
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(7,9,12,0.98)_0%,rgba(7,9,12,0.88)_48%,rgba(7,9,12,0.46)_78%,rgba(7,9,12,0.2)_100%)]" />
       <div className={`absolute inset-x-0 top-0 h-px bg-gradient-to-r ${accent.line} to-transparent`} />
       <div className="relative z-10 flex items-start justify-between gap-4">
-        <div className={`flex h-10 w-10 items-center justify-center rounded-2xl border ${accent.icon}`}>
-          <Icon className="h-[18px] w-[18px]" />
+        <div className={`relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border ${accent.icon}`}>
+          <Image
+            src={route.artwork}
+            alt=""
+            width={54}
+            height={54}
+            unoptimized
+            className="h-11 w-11 object-contain saturate-125 drop-shadow-[0_0_20px_rgba(190,255,74,0.32)]"
+          />
         </div>
         <ArrowRight className="h-4 w-4 text-slate-600 transition group-hover:translate-x-0.5 group-hover:text-white" />
       </div>
