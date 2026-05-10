@@ -109,14 +109,21 @@ body::before {
 
 .vyntro-shell-background::after {
   background-image:
+    radial-gradient(
+      circle at var(--vyntro-global-x, 50%) var(--vyntro-global-y, 34%),
+      rgba(190, 255, 74, 0.08),
+      transparent 18%
+    ),
     radial-gradient(circle at 18% 24%, rgba(255, 255, 255, 0.16) 0 1px, transparent 1.35px),
     radial-gradient(circle at 72% 64%, rgba(190, 255, 74, 0.12) 0 1px, transparent 1.45px),
     linear-gradient(180deg, rgba(255, 255, 255, 0.046), transparent 34%, rgba(255, 255, 255, 0.026));
   background-position:
     0 0,
+    0 0,
     2px 3px,
     0 0;
   background-size:
+    100% 100%,
     4px 4px,
     7px 7px,
     100% 100%;
@@ -358,6 +365,10 @@ body::before {
 }
 
 .motion-3d-card {
+  --vyntro-card-x: 50%;
+  --vyntro-card-y: 18%;
+  --vyntro-card-rotate-x: 1.4deg;
+  --vyntro-card-rotate-y: -1.8deg;
   transform-origin: center;
   transform-style: preserve-3d;
   will-change: transform;
@@ -370,8 +381,10 @@ body::before {
   pointer-events: none;
   z-index: 2;
   background:
-    radial-gradient(circle at 24% 18%, rgba(255, 255, 255, 0.12), transparent 32%),
-    linear-gradient(140deg, rgba(255, 255, 255, 0.055), transparent 44%);
+    radial-gradient(circle at var(--vyntro-card-x) var(--vyntro-card-y), rgba(255, 255, 255, 0.18), transparent 30%),
+    radial-gradient(circle at calc(100% - var(--vyntro-card-x)) calc(100% - var(--vyntro-card-y)), rgba(34, 211, 238, 0.08), transparent 36%),
+    linear-gradient(140deg, rgba(255, 255, 255, 0.06), transparent 45%);
+  mix-blend-mode: screen;
   opacity: 0;
   transform: translateZ(18px) scale(0.98);
   transition:
@@ -380,12 +393,14 @@ body::before {
 }
 
 .motion-3d-card:hover {
-  transform: perspective(960px) translateY(-6px) rotateX(1.4deg) rotateY(-1.8deg) scale(1.006);
-  box-shadow: 0 34px 92px rgba(0, 0, 0, 0.38);
+  transform: perspective(960px) translateY(-6px) rotateX(var(--vyntro-card-rotate-x)) rotateY(var(--vyntro-card-rotate-y)) scale(1.006);
+  box-shadow:
+    0 34px 92px rgba(0, 0, 0, 0.38),
+    0 0 46px rgba(34, 211, 238, 0.045);
 }
 
 .motion-3d-card:hover::after {
-  opacity: 0.55;
+  opacity: 0.64;
   transform: translateZ(24px) scale(1);
 }
 
