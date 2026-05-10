@@ -311,18 +311,50 @@ body::before {
   text-wrap: balance;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  html.vyntro-route-motion main {
+    animation: vyntro-page-enter 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .vyntro-reveal-node {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translate3d(0, 18px, 0) scale(0.992);
+    transition:
+      opacity 720ms cubic-bezier(0.22, 1, 0.36, 1),
+      filter 720ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 720ms cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: calc(var(--vyntro-reveal-index, 0) * 42ms);
+    will-change: opacity, filter, transform;
+  }
+
+  .vyntro-reveal-node.is-visible {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  .vyntro-reveal-node.is-visible .motion-progress-pulse,
+  .vyntro-reveal-node.is-visible [data-vyntro-meter-fill] {
+    transform-origin: left center;
+    animation: vyntro-meter-fill 920ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+
 .motion-surface {
   transform: translateZ(0);
   transition:
-    transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 260ms ease,
-    box-shadow 260ms ease,
-    background 260ms ease;
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 360ms ease,
+    box-shadow 420ms ease,
+    background 360ms ease;
 }
 
 .motion-surface:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 26px 74px rgba(0, 0, 0, 0.32);
+  transform: translate3d(0, -4px, 0);
+  box-shadow:
+    0 30px 84px rgba(0, 0, 0, 0.36),
+    0 0 38px rgba(34, 211, 238, 0.035);
 }
 
 .motion-3d-card {
@@ -381,15 +413,15 @@ body::before {
     transparent 100%
   );
   opacity: 0;
-  transform: translateX(-36%);
+  transform: translate3d(-115%, 0, 0);
   transition:
-    opacity 260ms ease,
-    transform 620ms cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 300ms ease,
+    transform 860ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .motion-light-sweep:hover::before {
-  opacity: 1;
-  transform: translateX(36%);
+  opacity: 0.95;
+  transform: translate3d(115%, 0, 0);
 }
 
 .motion-ambient-grid {
@@ -554,6 +586,28 @@ body::before {
   }
 }
 
+@keyframes vyntro-page-enter {
+  from {
+    opacity: 0.96;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes vyntro-meter-fill {
+  from {
+    filter: brightness(1.25);
+    transform: scaleX(0.18);
+  }
+  to {
+    filter: brightness(1);
+    transform: scaleX(1);
+  }
+}
+
 @keyframes vyntro-shell-grid-drift {
   from {
     transform: translate3d(-24px, -18px, 0);
@@ -714,9 +768,16 @@ body::before {
   .motion-3d-card,
   .motion-3d-card:hover,
   .motion-3d-card:active,
+  .vyntro-reveal-node,
+  .vyntro-reveal-node.is-visible,
   .motion-press,
   .motion-press:not(:disabled):active {
     transform: none;
+  }
+
+  .vyntro-reveal-node {
+    opacity: 1;
+    filter: none;
   }
 
   .motion-active-glow,
