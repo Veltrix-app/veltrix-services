@@ -30,6 +30,7 @@ import {
   type MainPageSignalBanner,
 } from "@/lib/navigation/page-signal-banners";
 import { VyntroCursor } from "@/components/layout/vyntro-cursor";
+import { VyntroWalletWidget } from "@/components/layout/vyntro-wallet-widget";
 
 const primaryNavItems = [
   { href: "/home", label: "Home", icon: Home },
@@ -650,6 +651,8 @@ export function AppShell({
 
         <main className={hasRaidHero || hidePageHeader ? "" : "mt-8 lg:mt-10"}>{children}</main>
       </div>
+
+      <VyntroWalletWidget accountReady={accountReady} profile={profile} />
     </div>
   );
 }
