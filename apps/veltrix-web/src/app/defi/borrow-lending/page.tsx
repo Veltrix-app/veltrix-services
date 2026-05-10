@@ -8,8 +8,9 @@ export default function DefiBorrowLendingPage() {
       eyebrow="DeFi / Borrow lending"
       title="Borrow / lending"
       description="Supply, withdraw, enable collateral, borrow and repay through a separated advanced DeFi route with live Base reads and clear risk gates."
+      hidePageHeader
     >
-      <ProtectedState allowPreview previewLabel="Borrow/lending preview">
+      <ProtectedState allowPreview previewLabel="Borrow/lending preview" showPreviewBanner={false}>
         <BorrowLendingScreen />
       </ProtectedState>
     </AppShell>

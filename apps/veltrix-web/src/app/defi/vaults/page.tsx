@@ -8,8 +8,9 @@ export default function DefiVaultsPage() {
       eyebrow="DeFi / Vaults"
       title="Vault missions"
       description="A separate VYNTRO product surface for verified DeFi actions, starting with calm vault discovery before the quest and XP economy lands around it."
+      hidePageHeader
     >
-      <ProtectedState allowPreview previewLabel="DeFi preview">
+      <ProtectedState allowPreview previewLabel="DeFi preview" showPreviewBanner={false}>
         <DefiMissionsScreen />
       </ProtectedState>
     </AppShell>

@@ -2,11 +2,14 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Flame, Swords } from "lucide-react";
+import { CinematicRouteHero } from "@/components/ui/cinematic-route-hero";
 import { StatusChip } from "@/components/ui/status-chip";
 import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { RaidBadgeMark } from "@/components/raids/raid-badge-mark";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
+
+const RAID_HERO_IMAGE = "/assets/raids/raid-hero.webp";
 
 export function RaidsScreen() {
   const { raids, loading, error } = useLiveUserData({
@@ -26,6 +29,31 @@ export function RaidsScreen() {
 
   return (
     <div className="space-y-7">
+      <CinematicRouteHero
+        chips={["Live pushes", "Squad pressure", "Proof before claim"]}
+        description="Coordinate the highest-value pushes from one command layer. Hot raids stay visible, squad momentum stays readable and every confirmation routes back into VYNTRO proof."
+        imagePosition="center"
+        imageSrc={RAID_HERO_IMAGE}
+        panelIcon={Swords}
+        panelStats={[
+          { label: "Open", value: String(sortedRaids.length), sub: "raids live" },
+          { label: "Urgent", value: String(urgentCount), sub: "hot lanes" },
+          { label: "Squads", value: String(liveParticipants), sub: "members in" },
+          { label: "Clear", value: `${averageProgress}%`, sub: "avg progress" },
+        ]}
+        panelText="The raid surface keeps discovery, timers and confirmation pressure together without turning the board into noise."
+        panelTitle={urgentCount > 0 ? "Hot lanes need attention." : "Board is calm and readable."}
+        primaryCta={{ href: "#raid-board", label: "Open raid board", icon: <Swords className="h-4 w-4" /> }}
+        secondaryCta={{ href: "#raid-spotlights", label: "View spotlights", icon: <Flame className="h-4 w-4" /> }}
+        stats={[
+          { label: "Open raids", value: String(sortedRaids.length) },
+          { label: "Squads live", value: String(liveParticipants) },
+          { label: "Urgent now", value: String(urgentCount) },
+        ]}
+        title="Raid command center"
+        tone="rose"
+      />
+
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1.42fr)_300px]">
         <div className="motion-surface motion-light-sweep overflow-hidden rounded-[22px] border border-white/6 bg-[radial-gradient(circle_at_top_left,rgba(251,113,133,0.12),transparent_26%),linear-gradient(180deg,rgba(13,15,18,0.99),rgba(6,8,11,0.99))] p-4 shadow-[0_20px_54px_rgba(0,0,0,0.24)]">
         <div className="relative z-10 flex flex-wrap items-end justify-between gap-4">
@@ -62,7 +90,7 @@ export function RaidsScreen() {
         </div>
       </section>
 
-      <section className="space-y-4">
+      <section id="raid-spotlights" className="scroll-mt-28 space-y-4">
         <SectionHeading
           eyebrow="Spotlights"
           title="Hot raids"
@@ -134,7 +162,7 @@ export function RaidsScreen() {
         )}
       </section>
 
-      <section className="space-y-4">
+      <section id="raid-board" className="scroll-mt-28 space-y-4">
         <SectionHeading
           eyebrow="Grid"
           title="All raid pushes"

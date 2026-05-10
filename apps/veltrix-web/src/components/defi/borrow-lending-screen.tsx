@@ -3,8 +3,10 @@
 import { useMemo, useState } from "react";
 import { AlertTriangle, ArrowRight, Layers3, RefreshCw, ShieldCheck } from "lucide-react";
 import { DefiSafetyPanel } from "@/components/defi/defi-safety-panel";
+import { DefiRouteNav } from "@/components/defi/defi-route-nav";
 import { BorrowRiskMiniPanel } from "@/components/defi/risk-education-screen";
 import { useAuth } from "@/components/providers/auth-provider";
+import { CinematicRouteHero } from "@/components/ui/cinematic-route-hero";
 import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 import { StatusChip } from "@/components/ui/status-chip";
 import { XpValue } from "@/components/ui/xp-badge";
@@ -52,6 +54,8 @@ const accentStyles = {
     dot: "bg-amber-300",
   },
 } satisfies Record<MoonwellMarketAccent, Record<string, string>>;
+
+const LENDING_HERO_IMAGE = "/assets/defi/lending-hero.webp";
 
 const actionOptions: Array<{
   kind: MoonwellMarketTransactionKind;
@@ -170,7 +174,45 @@ export function BorrowLendingScreen() {
 
   return (
     <div className="space-y-5">
-      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_360px]">
+      <CinematicRouteHero
+        chips={["Supply", "Collateral gates", "Repay discipline"]}
+        description="Route supply, collateral, borrowing and repayment from one risk-aware cockpit. Every action stays wallet-owned, every market read stays visible and every borrow decision starts with safety."
+        imagePosition="center"
+        imageSrc={LENDING_HERO_IMAGE}
+        panelIcon={Layers3}
+        panelStats={[
+          { label: "Markets", value: String(marketsRead.markets.length), sub: "Base reads" },
+          {
+            label: "Wallet",
+            value: walletReady ? "Ready" : "Connect",
+            sub: walletReady ? "verified" : "needed",
+          },
+          { label: "Route", value: "5 moves", sub: "supply to repay" },
+          {
+            label: "Risk",
+            value: borrowPreflight?.label ?? "Preflight",
+            sub: "before borrow",
+          },
+        ]}
+        panelText="Borrowing only becomes useful when collateral posture, liquidity and repayment discipline are clear before the signature."
+        panelTitle={walletReady ? "Market route is ready." : "Connect wallet before signing."}
+        primaryCta={{ href: "#lending-console", label: "Open lending console", icon: <Layers3 className="h-4 w-4" /> }}
+        secondaryCta={{ href: "#risk-notes", label: "Review risk gates", icon: <ShieldCheck className="h-4 w-4" /> }}
+        stats={[
+          {
+            label: "Market read",
+            value: marketsRead.status === "loading" ? "Reading Base" : "Live markets",
+          },
+          { label: "Wallet", value: walletReady ? "Verified" : "Connect first" },
+          { label: "Custody", value: "Never held" },
+        ]}
+        title="Borrow / lending"
+        tone="lime"
+      />
+
+      <DefiRouteNav compact />
+
+      <section id="lending-console" className="scroll-mt-28 grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_360px]">
         <div className="relative overflow-hidden rounded-[28px] border border-white/6 bg-[radial-gradient(circle_at_18%_6%,rgba(190,255,74,0.12),transparent_26%),linear-gradient(180deg,rgba(13,15,19,0.99),rgba(7,9,12,0.995))] p-5">
           <FeatureBadgeMark
             badge="lending"
@@ -412,7 +454,7 @@ export function BorrowLendingScreen() {
             </div>
           </div>
 
-          <aside className="space-y-4">
+          <aside id="risk-notes" className="scroll-mt-28 space-y-4">
             <DefiSafetyPanel compact route="borrow-lending" />
             <BorrowRiskMiniPanel />
             <RiskCard selectedMarket={selectedMarket} />

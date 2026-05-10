@@ -532,7 +532,7 @@ export function AppShell({
   const accountReady = Boolean(session);
   const walletReady = Boolean(profile?.wallet);
   const mainPageSignalBanner = getMainPageSignalBanner(pathname);
-  const hasRaidHero = pathname === "/raids";
+  const hasRaidHero = pathname === "/raids" && !hidePageHeader;
 
   return (
     <div className="vyntro-shell-background min-h-screen bg-[radial-gradient(circle_at_top,rgba(148,98,255,0.12),transparent_18%),linear-gradient(180deg,#050608_0%,#040507_36%,#020304_100%)] text-white">

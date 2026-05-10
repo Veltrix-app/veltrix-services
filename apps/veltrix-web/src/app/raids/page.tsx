@@ -8,8 +8,9 @@ export default function RaidsPage() {
       eyebrow="Raids"
       title="Live raid board"
       description="Read coordinated pushes, timers and squad pressure from one calmer live-operations surface."
+      hidePageHeader
     >
-      <ProtectedState allowPreview previewLabel="Raid preview">
+      <ProtectedState allowPreview previewLabel="Raid preview" showPreviewBanner={false}>
         <RaidsScreen />
       </ProtectedState>
     </AppShell>

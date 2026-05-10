@@ -32,8 +32,10 @@ import {
   type MoonwellVaultPositionRead,
   type MoonwellVaultTransactionKind,
 } from "@/lib/defi/moonwell-vaults";
+import { DefiRouteNav } from "@/components/defi/defi-route-nav";
 import { DefiSafetyPanel } from "@/components/defi/defi-safety-panel";
 import { useAuth } from "@/components/providers/auth-provider";
+import { CinematicRouteHero } from "@/components/ui/cinematic-route-hero";
 import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 import { StatusChip } from "@/components/ui/status-chip";
 import { XpValue } from "@/components/ui/xp-badge";
@@ -44,6 +46,7 @@ import { useMoonwellVaultTransactions } from "@/hooks/use-moonwell-vault-transac
 
 const overview = buildDefiMissionOverview();
 const primaryVault = getPrimaryVaultMission();
+const VAULT_HERO_IMAGE = "/assets/defi/vault-hero.webp";
 
 const accentStyles = {
   lime: {
@@ -156,7 +159,34 @@ export function DefiMissionsScreen() {
 
   return (
     <div className="space-y-5">
-      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.42fr)_320px]">
+      <CinematicRouteHero
+        chips={["Base vaults", "Wallet signs", "Proof-backed XP"]}
+        description="Enter vault routes from a calm command surface. Deposit and withdraw from your own wallet while VYNTRO keeps the proof, safety posture and future XP layer readable."
+        imagePosition="center"
+        imageSrc={VAULT_HERO_IMAGE}
+        panelIcon={Wallet}
+        panelStats={[
+          { label: "Vaults", value: String(overview.vaults.length), sub: "tracked routes" },
+          { label: "Read", value: readStatusLabel, sub: "wallet posture" },
+          { label: "Custody", value: "Never held", sub: "wallet owned" },
+          { label: "XP", value: defiXp.trackingReady ? "Live" : "Warming", sub: "eligibility rail" },
+        ]}
+        panelText="Vault actions stay separated from swaps and lending so members understand what they are signing before money moves."
+        panelTitle={walletReady ? "Vault reads are active." : "Connect wallet to verify vaults."}
+        primaryCta={{ href: "#vault-console", label: "Open vault console", icon: <Wallet className="h-4 w-4" /> }}
+        secondaryCta={{ href: "#risk-notes", label: "Review safety", icon: <ShieldCheck className="h-4 w-4" /> }}
+        stats={[
+          { label: "Tracked vaults", value: String(overview.vaults.length) },
+          { label: "Network", value: "Base" },
+          { label: "Custody", value: "Non-custodial" },
+        ]}
+        title="Vault missions"
+        tone="cyan"
+      />
+
+      <DefiRouteNav compact />
+
+      <section id="vault-console" className="scroll-mt-28 grid gap-4 xl:grid-cols-[minmax(0,1.42fr)_320px]">
         <div className="relative overflow-hidden rounded-[28px] border border-white/6 bg-[radial-gradient(circle_at_12%_4%,rgba(190,255,74,0.13),transparent_22%),radial-gradient(circle_at_84%_12%,rgba(74,217,255,0.12),transparent_24%),linear-gradient(180deg,rgba(13,15,19,0.995),rgba(6,7,10,0.995))] p-4 shadow-[0_22px_72px_rgba(0,0,0,0.36)] sm:p-5">
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.025),transparent_34%)]" />
           <FeatureBadgeMark
