@@ -1304,8 +1304,14 @@ function WorldFeatureCard({
 
   const body = (
     <div
-      className={`motion-card-3d group relative h-full overflow-hidden rounded-[26px] border border-white/7 bg-[radial-gradient(circle_at_top_right,var(--tw-gradient-from),transparent_38%),linear-gradient(180deg,rgba(15,17,22,0.9),rgba(7,8,12,0.95))] p-4 ${accents}`}
+      className={`motion-surface motion-3d-card motion-light-sweep group relative h-full overflow-hidden rounded-[26px] border border-white/7 bg-[radial-gradient(circle_at_top_right,var(--tw-gradient-from),transparent_38%),linear-gradient(180deg,rgba(15,17,22,0.9),rgba(7,8,12,0.95))] p-4 shadow-[0_20px_62px_rgba(0,0,0,0.28)] transition hover:-translate-y-1 hover:border-white/12 hover:shadow-[0_30px_88px_rgba(0,0,0,0.38),0_0_44px_var(--project-world-glow)] ${accents}`}
     >
+      <div className="motion-ambient-grid opacity-[0.1] transition duration-500 group-hover:opacity-[0.18]" />
+      <div className="motion-shard-field opacity-35 transition duration-500 group-hover:opacity-70">
+        <span />
+        <span />
+        <span />
+      </div>
       {mediaLayer}
       <div className={`relative z-10 ${contentClassName}`}>
         <div className="flex items-start justify-between gap-3">
@@ -1313,15 +1319,15 @@ function WorldFeatureCard({
             <p className="text-[10px] font-black uppercase tracking-[0.24em]">{eyebrow}</p>
             <h2 className="mt-3 line-clamp-2 text-2xl font-black text-white">{title}</h2>
           </div>
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border bg-white/[0.045]">
+          <span className="motion-soft-float flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border bg-white/[0.045] transition duration-300 group-hover:bg-white/[0.075]">
             {icon}
           </span>
         </div>
         <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-400">{description}</p>
         {children}
-        <span className="mt-5 inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.14em] text-white">
+        <span className="mt-5 inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.14em] text-white transition group-hover:text-[rgb(var(--project-world-primary))]">
           {ctaLabel}
-          <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+          <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-1" />
         </span>
       </div>
     </div>
