@@ -9,6 +9,11 @@ import { VyntroState, resolveVyntroStateVariant } from "@/components/ui/vyntro-s
 import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { RaidBadgeMark } from "@/components/raids/raid-badge-mark";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
+import {
+  getRaidCardCtaLabel,
+  getRaidCardStatus,
+  getRaidCardToneClass,
+} from "@/lib/raids/raid-card-state";
 
 const RAID_HERO_IMAGE = "/assets/raids/raid-hero.webp";
 
@@ -177,15 +182,32 @@ export function RaidsScreen() {
         ) : sortedRaids.length > 0 ? (
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-6">
             {sortedRaids.map((raid) => (
+              (() => {
+                const status = getRaidCardStatus({
+                  completed: raid.completed,
+                  progress: raid.progress,
+                });
+
+                return (
               <Link
                 key={raid.id}
                 href={`/raids/${raid.id}`}
                 prefetch={false}
-                className="motion-surface motion-3d-card motion-light-sweep group relative overflow-hidden rounded-[22px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,17,20,0.98),rgba(7,9,12,0.98))] p-3.5 transition hover:border-rose-300/16 hover:bg-[linear-gradient(180deg,rgba(21,17,19,0.98),rgba(8,10,13,0.98))]"
+                className={`motion-surface motion-3d-card motion-light-sweep group relative overflow-hidden rounded-[22px] border p-3.5 transition ${getRaidCardToneClass(raid.completed)}`}
               >
                 <div className="motion-ambient-grid opacity-[0.07]" />
+                {raid.completed ? (
+                  <>
+                    <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(52,211,153,0.16),transparent_34%,rgba(186,255,59,0.08)_68%,transparent)] opacity-80" />
+                    <div className="pointer-events-none absolute -inset-px rounded-[22px] border border-emerald-200/18 shadow-[inset_0_0_28px_rgba(52,211,153,0.13)]" />
+                  </>
+                ) : null}
                 <RaidBadgeMark
-                  className="absolute right-2 top-9 h-16 w-16 opacity-[0.24] transition duration-300 group-hover:opacity-[0.38]"
+                  className={`absolute right-2 top-9 h-16 w-16 transition duration-300 ${
+                    raid.completed
+                      ? "opacity-[0.42] drop-shadow-[0_0_20px_rgba(52,211,153,0.28)] group-hover:opacity-[0.56]"
+                      : "opacity-[0.24] group-hover:opacity-[0.38]"
+                  }`}
                   imageClassName="rotate-[10deg]"
                 />
                 <div className="relative z-10 flex items-start justify-between gap-3">
@@ -195,7 +217,7 @@ export function RaidsScreen() {
                       {raid.community}
                     </p>
                   </div>
-                  <StatusChip label={raid.progress >= 50 ? "Hot" : "Live"} tone={raid.progress >= 50 ? "warning" : "default"} />
+                  <StatusChip label={status.label} tone={status.tone} />
                 </div>
 
                 <div className="relative z-10 mt-3 flex items-center justify-between gap-3 text-[11px] text-slate-500">
@@ -210,14 +232,20 @@ export function RaidsScreen() {
 
                 <div className="relative z-10 mt-4 flex items-center justify-between border-t border-white/6 pt-3">
                   <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
-                    Open raid
+                    {getRaidCardCtaLabel(raid.completed)}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-sm font-semibold text-rose-200">
+                  <span
+                    className={`inline-flex items-center gap-1 text-sm font-semibold ${
+                      raid.completed ? "text-emerald-100" : "text-rose-200"
+                    }`}
+                  >
                     View
                     <ArrowRight className="h-3.5 w-3.5" />
                   </span>
                 </div>
               </Link>
+                );
+              })()
             ))}
           </div>
         ) : (

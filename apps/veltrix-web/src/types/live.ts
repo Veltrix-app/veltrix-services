@@ -125,6 +125,7 @@ export type LiveRaid = {
   sourceExternalId?: string | null;
   endsAt?: string | null;
   generatedBy?: string | null;
+  completed?: boolean;
 };
 
 export type LiveFeaturedShardPool = {

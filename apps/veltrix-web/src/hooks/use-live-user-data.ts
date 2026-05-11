@@ -890,6 +890,11 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
     }
 
     const nowMs = Date.now();
+    const confirmedRaidIds = new Set(
+      Array.isArray(userProgressResult.data?.confirmed_raids)
+        ? (userProgressResult.data.confirmed_raids as string[])
+        : []
+    );
     const nextRaids = (raidsResult.data ?? [])
       .filter((row) => {
         if (!row.ends_at) return true;
@@ -918,6 +923,7 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
         sourceExternalId: row.source_external_id ?? null,
         endsAt: row.ends_at ?? null,
         generatedBy: row.generated_by ?? null,
+        completed: confirmedRaidIds.has(row.id),
       }));
     if (shouldLoadRaids) {
       setRaids(nextRaids);
