@@ -5,7 +5,25 @@ import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Copy, ShieldCheck, Signal, Trophy, UserRound, Wallet, Zap } from "lucide-react";
+import {
+  Award,
+  BadgeCheck,
+  CheckCircle2,
+  Copy,
+  Flame,
+  Gem,
+  LockKeyhole,
+  Medal,
+  PackageCheck,
+  ShieldCheck,
+  Signal,
+  Sparkles,
+  Star,
+  Trophy,
+  UserRound,
+  Wallet,
+  Zap,
+} from "lucide-react";
 import { CommunityStatusPanel } from "@/components/community/community-status-panel";
 import { ContributionTierBadge } from "@/components/ui/contribution-tier-badge";
 import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
@@ -17,6 +35,7 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { useCommunityJourney } from "@/hooks/use-community-journey";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 import { buildLootboxInventoryRead } from "@/lib/lootboxes/lootbox-inventory-read";
+import { buildAchievementBadgesRead } from "@/lib/profile/achievement-badges";
 import { buildReputationCardRead } from "@/lib/profile/reputation-card";
 import { buildXpProgressionRead } from "@/lib/xp/xp-economy";
 import type { ConnectedAccount } from "@/types/auth";
@@ -220,6 +239,45 @@ export function ProfileScreen() {
   const activeSeasonAccess =
     inventoryRead.items.find((item) => item.utility.isActiveSeasonAccess)?.utility
       .seasonAccessBadgeLabel ?? null;
+  const completedPlatformQuestCount = useMemo(
+    () => quests.filter((quest) => quest.status === "approved" && quest.isPlatformQuest).length,
+    [quests]
+  );
+  const completedDeFiQuestCount = useMemo(
+    () =>
+      quests.filter((quest) => {
+        if (quest.status !== "approved") {
+          return false;
+        }
+
+        const haystack = [
+          quest.title,
+          quest.description,
+          quest.type,
+          quest.questType,
+          quest.platformQuestSlug,
+          quest.verificationProvider,
+          quest.actionUrl,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+
+        return /swap|defi|vault|wallet|onchain|pool|liquidity|stake/.test(haystack);
+      }).length,
+    [quests]
+  );
+  const openShardQuestCount = useMemo(
+    () =>
+      quests.filter(
+        (quest) => quest.status !== "approved" && Math.max(0, quest.shardRewardAmount ?? 0) > 0
+      ).length,
+    [quests]
+  );
+  const trustedProjectCount = useMemo(
+    () => projectReputation.filter((item) => item.trustScore >= 80).length,
+    [projectReputation]
+  );
   const reputationCard = useMemo(
     () =>
       buildReputationCardRead({
@@ -228,8 +286,47 @@ export function ProfileScreen() {
         equippedCosmetic,
         activeSeasonAccess,
         connectedSystemCount: connectedCount,
-      }),
+    }),
     [activeSeasonAccess, connectedCount, equippedCosmetic, profile, shardBalance]
+  );
+  const achievementBadges = useMemo(
+    () =>
+      buildAchievementBadgesRead({
+        level: profile?.level ?? 1,
+        streak: profile?.streak ?? 0,
+        questsCompleted: Math.max(
+          profile?.questsCompleted ?? 0,
+          quests.filter((quest) => quest.status === "approved").length
+        ),
+        raidsCompleted: profile?.raidsCompleted ?? 0,
+        rewardsClaimed: profile?.rewardsClaimed ?? 0,
+        shardBalance,
+        walletConnected: Boolean(profile?.wallet),
+        connectedSystemCount: connectedCount,
+        projectCount: projectReputation.length,
+        trustedProjectCount,
+        completedPlatformQuestCount,
+        completedDeFiQuestCount,
+        openShardQuestCount,
+        inventoryItems: inventoryRead.items,
+      }),
+    [
+      completedDeFiQuestCount,
+      completedPlatformQuestCount,
+      connectedCount,
+      inventoryRead.items,
+      openShardQuestCount,
+      profile?.level,
+      profile?.questsCompleted,
+      profile?.raidsCompleted,
+      profile?.rewardsClaimed,
+      profile?.streak,
+      profile?.wallet,
+      projectReputation.length,
+      quests,
+      shardBalance,
+      trustedProjectCount,
+    ]
   );
 
   async function handleProviderLink(provider: "discord" | "x") {
@@ -582,6 +679,8 @@ export function ProfileScreen() {
               copied={profileCardCopied}
               onCopy={() => void handleCopyProfileCard()}
             />
+
+            <AchievementBadgesPanel read={achievementBadges} />
 
             <div className="grid gap-3 sm:grid-cols-3">
               <QuickRead label="Profile title" value={profile?.title ?? "Operator"} />
@@ -979,6 +1078,7 @@ function ProfileIdentityAvatar() {
 }
 
 type ReputationCardRead = ReturnType<typeof buildReputationCardRead>;
+type AchievementBadgesRead = ReturnType<typeof buildAchievementBadgesRead>;
 
 function ReputationCardPreview({
   read,
@@ -1081,6 +1181,131 @@ function ReputationCardPreview({
       </div>
     </section>
   );
+}
+
+function AchievementBadgesPanel({ read }: { read: AchievementBadgesRead }) {
+  const featured = read.featuredBadge ?? read.nextBadge;
+
+  return (
+    <section className="relative overflow-hidden rounded-[24px] border border-white/10 bg-[radial-gradient(circle_at_12%_0%,rgba(132,204,22,0.13),transparent_30%),radial-gradient(circle_at_90%_10%,rgba(251,191,36,0.14),transparent_28%),linear-gradient(145deg,rgba(8,12,20,0.96),rgba(4,6,12,0.99))] p-4">
+      <FeatureBadgeMark
+        badge="reward"
+        className="absolute -right-3 top-8 h-28 w-28 opacity-[0.16] mix-blend-screen"
+        imageClassName="rotate-[9deg]"
+        sizes="128px"
+      />
+
+      <div className="relative z-10 flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-amber-300/18 bg-amber-300/[0.08] text-amber-100">
+              <Award className="h-4 w-4" />
+            </span>
+            <div>
+              <p className="font-display text-[9px] font-black uppercase tracking-[0.18em] text-amber-200">
+                Achievement Badges
+              </p>
+              <h2 className="mt-1 text-[1.1rem] font-black text-white">
+                {read.unlockedCount}/{read.totalCount} badges unlocked
+              </h2>
+            </div>
+          </div>
+          <p className="mt-3 max-w-2xl text-[12px] leading-5 text-slate-300">
+            {featured
+              ? `${featured.label}: ${featured.description}`
+              : "Badges will light up as soon as your first live actions land."}
+          </p>
+        </div>
+
+        <div className="grid gap-2 sm:grid-cols-3 xl:min-w-[360px]">
+          <MiniStat label="Completion" value={`${read.completionPercent}%`} />
+          <MiniStat label="Unlocked" value={String(read.unlockedCount)} />
+          <MiniStat label="Next" value={read.nextBadge?.label ?? "Complete"} />
+        </div>
+      </div>
+
+      <div className="relative z-10 mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {read.badges.map((badge) => (
+          <div
+            key={badge.id}
+            className={`rounded-[18px] border p-3.5 ${getAchievementBadgeTone(badge.tone, badge.status)}`}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex min-w-0 items-start gap-2.5">
+                <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/25">
+                  <AchievementBadgeIcon id={badge.id} />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[12px] font-black text-white">{badge.label}</p>
+                  <p className="mt-1 text-[11px] leading-5 text-slate-300">{badge.description}</p>
+                </div>
+              </div>
+              {badge.status === "unlocked" ? (
+                <CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-lime-200" />
+              ) : (
+                <LockKeyhole className="mt-1 h-4 w-4 shrink-0 text-slate-500" />
+              )}
+            </div>
+
+            <div className="mt-3">
+              <div className="flex items-center justify-between gap-3 text-[10px] font-bold uppercase tracking-[0.13em] text-slate-500">
+                <span>{badge.status === "unlocked" ? "Unlocked" : "Progress"}</span>
+                <span>
+                  {Math.min(badge.current, badge.target)}/{badge.target}
+                </span>
+              </div>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/[0.07]">
+                <div
+                  className={`h-full rounded-full ${getAchievementProgressTone(badge.tone)}`}
+                  style={{ width: `${badge.progress}%` }}
+                />
+              </div>
+            </div>
+
+            <Link
+              href={badge.route}
+              className="mt-3 inline-flex min-h-9 items-center justify-center rounded-full border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.13em] text-white transition hover:border-cyan-300/35 hover:bg-white/[0.07]"
+            >
+              {badge.status === "unlocked" ? "View badge" : badge.ctaLabel}
+            </Link>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function AchievementBadgeIcon({ id }: { id: string }) {
+  if (id === "streak-builder") return <Flame className="h-4 w-4 text-lime-100" />;
+  if (id === "shard-hunter") return <Gem className="h-4 w-4 text-amber-100" />;
+  if (id === "defi-explorer") return <Zap className="h-4 w-4 text-violet-100" />;
+  if (id === "raid-confirmed") return <ShieldCheck className="h-4 w-4 text-rose-100" />;
+  if (id === "vault-collector") return <PackageCheck className="h-4 w-4 text-amber-100" />;
+  if (id === "profile-flex") return <Sparkles className="h-4 w-4 text-violet-100" />;
+  if (id === "trusted-contributor") return <BadgeCheck className="h-4 w-4 text-lime-100" />;
+  if (id === "early-member") return <Star className="h-4 w-4 text-cyan-100" />;
+  if (id === "season-pass") return <Medal className="h-4 w-4 text-rose-100" />;
+  if (id === "mythic-signal") return <Trophy className="h-4 w-4 text-violet-100" />;
+  if (id === "reward-claimer") return <Award className="h-4 w-4 text-amber-100" />;
+  return <CheckCircle2 className="h-4 w-4 text-cyan-100" />;
+}
+
+function getAchievementBadgeTone(tone: "cyan" | "lime" | "amber" | "violet" | "rose", status: "unlocked" | "locked") {
+  const opacity = status === "unlocked" ? "" : " opacity-70";
+
+  if (tone === "lime") return `border-lime-300/16 bg-lime-300/[0.055]${opacity}`;
+  if (tone === "amber") return `border-amber-300/16 bg-amber-300/[0.055]${opacity}`;
+  if (tone === "violet") return `border-violet-300/16 bg-violet-300/[0.055]${opacity}`;
+  if (tone === "rose") return `border-rose-300/16 bg-rose-300/[0.055]${opacity}`;
+  return `border-cyan-300/16 bg-cyan-300/[0.055]${opacity}`;
+}
+
+function getAchievementProgressTone(tone: "cyan" | "lime" | "amber" | "violet" | "rose") {
+  if (tone === "lime") return "bg-lime-300";
+  if (tone === "amber") return "bg-amber-300";
+  if (tone === "violet") return "bg-violet-300";
+  if (tone === "rose") return "bg-rose-300";
+  return "bg-cyan-300";
 }
 
 function getReputationBadgeTone(tone: "cyan" | "lime" | "amber" | "violet") {
