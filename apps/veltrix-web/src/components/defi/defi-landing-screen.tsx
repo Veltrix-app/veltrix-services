@@ -10,12 +10,26 @@ import {
   CheckCircle2,
   History,
   Layers3,
+  Radio,
+  RefreshCw,
   ShieldCheck,
   Wallet,
   WalletCards,
 } from "lucide-react";
 import { DefiRouteNav } from "@/components/defi/defi-route-nav";
 import { DefiSafetyPanel } from "@/components/defi/defi-safety-panel";
+import { useAuth } from "@/components/providers/auth-provider";
+import { StatusChip } from "@/components/ui/status-chip";
+import { useDefiActivity } from "@/hooks/use-defi-activity";
+import { useDefiXpEligibility } from "@/hooks/use-defi-xp-eligibility";
+import { useMoonwellMarkets } from "@/hooks/use-moonwell-markets";
+import { useMoonwellVaultPositions } from "@/hooks/use-moonwell-vault-positions";
+import {
+  buildDefiActionConsoleRead,
+  type DefiActionConsoleMetric,
+  type DefiActionConsoleTone,
+} from "@/lib/defi/defi-action-console";
+import { buildDefiPortfolioRead } from "@/lib/defi/defi-portfolio";
 
 const DEFI_HERO_IMAGE = "/assets/defi/defi-hero.webp";
 
@@ -145,6 +159,38 @@ const commandStats = [
 ] as const;
 
 export function DefiLandingScreen() {
+  const { session, profile } = useAuth();
+  const vaults = useMoonwellVaultPositions();
+  const markets = useMoonwellMarkets();
+  const defiXp = useDefiXpEligibility({
+    accessToken: session?.access_token,
+    wallet: profile?.wallet,
+    vaultPositions: vaults.positions,
+    markets: markets.markets,
+  });
+  const defiActivity = useDefiActivity({
+    accessToken: session?.access_token,
+    wallet: profile?.wallet,
+  });
+  const portfolio = buildDefiPortfolioRead({
+    walletReady: Boolean(profile?.wallet),
+    vaultPositions: vaults.positions,
+    markets: markets.markets,
+    xpSnapshot: defiXp.snapshot,
+  });
+  const consoleRead = buildDefiActionConsoleRead({
+    walletReady: Boolean(profile?.wallet),
+    portfolio,
+    activity: defiActivity.activity,
+  });
+
+  function refreshConsole() {
+    vaults.refresh();
+    markets.refresh();
+    defiXp.refresh();
+    defiActivity.refresh();
+  }
+
   return (
     <section className="relative -mt-2 overflow-hidden pb-4">
       <div className="pointer-events-none absolute inset-x-[-8%] top-[-10rem] h-[28rem] bg-[linear-gradient(115deg,rgba(190,255,74,0.08),transparent_28%),linear-gradient(90deg,transparent,rgba(0,132,255,0.08)_54%,transparent)]" />
@@ -155,6 +201,8 @@ export function DefiLandingScreen() {
       <div className="relative mt-3">
         <DefiRouteNav compact />
       </div>
+
+      <DefiActionConsole read={consoleRead} onRefresh={refreshConsole} />
 
       <div className="relative mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_25.5rem] xl:items-start">
         <div className="grid gap-4">
@@ -273,6 +321,213 @@ export function DefiLandingScreen() {
       </div>
     </section>
   );
+}
+
+function DefiActionConsole({
+  onRefresh,
+  read,
+}: {
+  onRefresh: () => void;
+  read: ReturnType<typeof buildDefiActionConsoleRead>;
+}) {
+  return (
+    <section className="motion-surface motion-light-sweep relative mt-4 overflow-hidden rounded-[32px] border border-white/8 bg-[radial-gradient(circle_at_12%_0%,rgba(190,255,74,0.14),transparent_30%),radial-gradient(circle_at_82%_8%,rgba(34,211,238,0.13),transparent_28%),linear-gradient(180deg,rgba(8,11,15,0.99),rgba(3,5,9,0.995))] p-4 shadow-[0_28px_96px_rgba(0,0,0,0.32)] sm:p-5">
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.045),transparent_34%,rgba(255,255,255,0.025))]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-lime-300/55 via-cyan-200/18 to-transparent" />
+
+      <div className="relative z-10 grid gap-4 xl:grid-cols-[minmax(0,1fr)_23rem]">
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="max-w-3xl">
+              <div className="flex flex-wrap items-center gap-2">
+                <StatusChip label={read.kicker} tone={read.tone === "danger" ? "danger" : read.tone} />
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-black/24 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-cyan-100">
+                  <Radio className="h-3.5 w-3.5 text-cyan-200" />
+                  {read.routeSignal}
+                </span>
+              </div>
+              <h2 className="mt-4 max-w-3xl text-[clamp(1.55rem,2.8vw,3.35rem)] font-black leading-[0.94] tracking-normal text-white">
+                {read.headline}
+              </h2>
+              <p className="mt-4 max-w-3xl text-[13px] leading-6 text-slate-300 sm:text-sm">
+                {read.description}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={onRefresh}
+                className="motion-press inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-4 py-3 text-[10px] font-black uppercase tracking-[0.14em] text-slate-200 transition hover:border-cyan-300/24 hover:bg-cyan-300/10 hover:text-white"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                Refresh
+              </button>
+              <Link
+                href={read.primaryAction.href}
+                className="motion-press inline-flex items-center gap-2 rounded-full bg-lime-300 px-4 py-3 text-[10px] font-black uppercase tracking-[0.14em] text-black transition hover:bg-lime-200"
+              >
+                {read.primaryAction.label}
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
+            {read.metrics.map((metric) => (
+              <ConsoleMetric key={metric.label} metric={metric} />
+            ))}
+          </div>
+
+          <div className="grid gap-3 lg:grid-cols-5">
+            {read.routes.map((route) => (
+              <Link
+                key={route.href}
+                href={route.href}
+                className="group min-h-[10.5rem] rounded-[22px] border border-white/7 bg-black/24 p-4 transition duration-300 hover:-translate-y-0.5 hover:border-lime-300/18 hover:bg-white/[0.045]"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">
+                      {route.eyebrow}
+                    </p>
+                    <h3 className="mt-2 text-[1rem] font-black tracking-normal text-white">
+                      {route.label}
+                    </h3>
+                  </div>
+                  <StatusChip label={route.state} tone={route.tone === "danger" ? "danger" : route.tone} />
+                </div>
+                <p className="mt-4 line-clamp-3 text-[12px] leading-5 text-slate-400">
+                  {route.detail}
+                </p>
+                <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/7 pt-3">
+                  <span className={toneTextClass(route.tone)}>Open route</span>
+                  <ArrowRight className="h-4 w-4 text-slate-600 transition group-hover:translate-x-0.5 group-hover:text-lime-200" />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <aside className="grid gap-3">
+          <div className="rounded-[26px] border border-cyan-300/10 bg-black/28 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-200">
+                  Status rail
+                </p>
+                <h3 className="mt-2 text-[1.1rem] font-black tracking-normal text-white">
+                  {read.walletSignal}
+                </h3>
+              </div>
+              <ShieldCheck className="h-5 w-5 text-cyan-200" />
+            </div>
+            <div className="mt-4 grid gap-2">
+              {read.safetyRail.map((metric) => (
+                <SafetyRailMetric key={metric.label} metric={metric} />
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-[26px] border border-lime-300/10 bg-black/28 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-lime-200">
+                  Onchain activity
+                </p>
+                <h3 className="mt-2 text-[1.1rem] font-black tracking-normal text-white">
+                  Recent proof
+                </h3>
+              </div>
+              <Link
+                href="/defi/activity"
+                className="rounded-full border border-white/8 bg-white/[0.035] px-3 py-2 text-[9px] font-black uppercase tracking-[0.12em] text-slate-300 transition hover:border-lime-300/20 hover:text-white"
+              >
+                Open
+              </Link>
+            </div>
+            <div className="mt-4 space-y-2">
+              {read.activity.length > 0 ? (
+                read.activity.map((item) => (
+                  <Link
+                    key={item.id}
+                    href={item.href ?? "/defi/activity"}
+                    className="block rounded-[18px] border border-white/6 bg-white/[0.025] p-3 transition hover:border-cyan-300/18 hover:bg-cyan-300/[0.055]"
+                    target={item.href ? "_blank" : undefined}
+                    rel={item.href ? "noreferrer" : undefined}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="line-clamp-1 text-[12px] font-black text-white">{item.label}</p>
+                      <StatusChip label={item.status} tone={item.tone === "danger" ? "danger" : item.tone} />
+                    </div>
+                    <p className="mt-2 line-clamp-2 text-[11px] leading-5 text-slate-400">
+                      {item.detail}
+                    </p>
+                  </Link>
+                ))
+              ) : (
+                <div className="rounded-[18px] border border-white/6 bg-white/[0.025] p-3">
+                  <p className="text-[12px] font-black text-white">No recent DeFi proof yet.</p>
+                  <p className="mt-2 text-[11px] leading-5 text-slate-400">
+                    Complete a swap, vault, lending or XP action to light up this rail.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+  );
+}
+
+function ConsoleMetric({ metric }: { metric: DefiActionConsoleMetric }) {
+  return (
+    <div className="rounded-[20px] border border-white/7 bg-black/22 p-4">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">
+          {metric.label}
+        </p>
+        <span className={`h-2 w-2 rounded-full ${toneDotClass(metric.tone)}`} />
+      </div>
+      <p className="mt-3 text-[1.45rem] font-black leading-none text-white">{metric.value}</p>
+      <p className="mt-2 line-clamp-2 text-[11px] leading-5 text-slate-400">{metric.detail}</p>
+    </div>
+  );
+}
+
+function SafetyRailMetric({ metric }: { metric: DefiActionConsoleMetric }) {
+  return (
+    <div className="rounded-[18px] border border-white/6 bg-white/[0.025] p-3">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">
+            {metric.label}
+          </p>
+          <p className="mt-1.5 text-[12px] font-black text-white">{metric.value}</p>
+        </div>
+        <span className={`mt-1 h-2 w-2 rounded-full ${toneDotClass(metric.tone)}`} />
+      </div>
+      <p className="mt-2 line-clamp-3 text-[11px] leading-5 text-slate-400">{metric.detail}</p>
+    </div>
+  );
+}
+
+function toneDotClass(tone: DefiActionConsoleTone) {
+  if (tone === "positive") return "bg-lime-300 shadow-[0_0_16px_rgba(190,255,74,0.45)]";
+  if (tone === "warning") return "bg-amber-300 shadow-[0_0_16px_rgba(251,191,36,0.45)]";
+  if (tone === "danger") return "bg-rose-300 shadow-[0_0_16px_rgba(253,164,175,0.45)]";
+  if (tone === "info") return "bg-cyan-300 shadow-[0_0_16px_rgba(103,232,249,0.45)]";
+  return "bg-slate-500";
+}
+
+function toneTextClass(tone: DefiActionConsoleTone) {
+  const base = "text-[9px] font-black uppercase tracking-[0.14em]";
+  if (tone === "positive") return `${base} text-lime-200`;
+  if (tone === "warning") return `${base} text-amber-200`;
+  if (tone === "danger") return `${base} text-rose-200`;
+  if (tone === "info") return `${base} text-cyan-200`;
+  return `${base} text-slate-400`;
 }
 
 function DefiHero() {
