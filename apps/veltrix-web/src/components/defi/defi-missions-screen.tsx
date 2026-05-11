@@ -34,6 +34,7 @@ import {
 } from "@/lib/defi/moonwell-vaults";
 import { DefiRouteNav } from "@/components/defi/defi-route-nav";
 import { DefiSafetyPanel } from "@/components/defi/defi-safety-panel";
+import { MissionCompletionMoment } from "@/components/completion/mission-completion-moment";
 import { useAuth } from "@/components/providers/auth-provider";
 import { CinematicRouteHero } from "@/components/ui/cinematic-route-hero";
 import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
@@ -43,6 +44,10 @@ import { useDefiXpEligibility } from "@/hooks/use-defi-xp-eligibility";
 import { useMoonwellMarkets } from "@/hooks/use-moonwell-markets";
 import { useMoonwellVaultPositions } from "@/hooks/use-moonwell-vault-positions";
 import { useMoonwellVaultTransactions } from "@/hooks/use-moonwell-vault-transactions";
+import {
+  buildMissionCompletionMoment,
+  type MissionCompletionMoment as MissionCompletionMomentRead,
+} from "@/lib/completion/mission-completion-moment";
 
 const overview = buildDefiMissionOverview();
 const primaryVault = getPrimaryVaultMission();
@@ -115,6 +120,7 @@ export function DefiMissionsScreen() {
   const [flowPreviewOpen, setFlowPreviewOpen] = useState(false);
   const [vaultAction, setVaultAction] = useState<MoonwellVaultTransactionKind>("deposit");
   const [vaultAmount, setVaultAmount] = useState("");
+  const [completionMoment, setCompletionMoment] = useState<MissionCompletionMomentRead | null>(null);
 
   const selectedVault = useMemo(
     () => overview.vaults.find((vault) => vault.slug === selectedSlug) ?? primaryVault,
@@ -159,6 +165,10 @@ export function DefiMissionsScreen() {
 
   return (
     <div className="space-y-5">
+      <MissionCompletionMoment
+        read={completionMoment}
+        onClose={() => setCompletionMoment(null)}
+      />
       <CinematicRouteHero
         chips={["Base vaults", "Wallet signs", "Proof-backed XP"]}
         description="Enter vault routes from a calm command surface. Deposit and withdraw from your own wallet while VYNTRO keeps the proof, safety posture and future XP layer readable."
@@ -519,6 +529,18 @@ export function DefiMissionsScreen() {
         onClaim={async (missionSlug) => {
           const result = await defiXp.claimMission(missionSlug);
           if (result.ok) {
+            const mission = defiXp.snapshot.missions.find((item) => item.slug === missionSlug);
+            setCompletionMoment(
+              buildMissionCompletionMoment({
+                kind: "defi",
+                title: mission?.title ?? "DeFi XP mission",
+                xpAwarded: result.payload?.xpAwarded ?? mission?.xp ?? 0,
+                primaryHref: "/defi/activity",
+                primaryLabel: "Open activity",
+                secondaryHref: "/xp",
+                secondaryLabel: "XP cockpit",
+              })
+            );
             await reloadProfile();
           }
         }}

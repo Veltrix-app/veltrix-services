@@ -540,6 +540,7 @@ export function AppShell({
     <div className="vyntro-shell-background min-h-screen bg-[radial-gradient(circle_at_top,rgba(148,98,255,0.12),transparent_18%),linear-gradient(180deg,#050608_0%,#040507_36%,#020304_100%)] text-white">
       <VyntroCursor />
       <VyntroMotionLayer />
+      <div aria-hidden="true" className="vyntro-route-veil" />
       <header className="sticky top-0 z-40 border-b border-white/6 bg-[#030406]/86 backdrop-blur-2xl">
         <div className="mx-auto max-w-[1720px] px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3 2xl:gap-4">
@@ -629,6 +630,7 @@ export function AppShell({
       ) : null}
 
       <div
+        data-vyntro-route-stage
         className={`relative z-10 mx-auto max-w-[1720px] px-4 sm:px-6 lg:px-8 ${
           hasRaidHero ? "-mt-24 pb-6 lg:-mt-32 lg:pb-7" : "py-6 lg:py-7"
         }`}

@@ -105,6 +105,28 @@ html.vyntro-route-loading body::after {
   animation: vyntro-route-progress 760ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+.vyntro-route-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--vyntro-route-accent, rgba(34, 211, 238, 0.18)) 52%, transparent),
+      transparent
+    ),
+    linear-gradient(180deg, rgba(5, 8, 12, 0.04), rgba(5, 8, 12, 0.18));
+  transform: translate3d(calc(var(--vyntro-route-shift, 0) * -2.5%), 0, 0);
+}
+
+[data-vyntro-route-stage] {
+  transform-origin: center top;
+  will-change: transform, opacity, filter;
+}
+
 .vyntro-shell-background {
   position: relative;
   isolation: isolate;
@@ -380,6 +402,14 @@ html.vyntro-route-loading body::after {
 @media (prefers-reduced-motion: no-preference) {
   html.vyntro-route-motion main {
     animation: vyntro-page-enter 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  html.vyntro-route-motion [data-vyntro-route-stage] {
+    animation: vyntro-route-stage 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  html.vyntro-route-motion .vyntro-route-veil {
+    animation: vyntro-route-veil 680ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   .vyntro-reveal-node {
@@ -738,6 +768,37 @@ html.vyntro-route-loading body::after {
   }
 }
 
+@keyframes vyntro-route-stage {
+  0% {
+    opacity: 0;
+    filter: blur(7px);
+    transform: translate3d(calc(var(--vyntro-route-shift, 0) * 14px), 10px, 0) scale(0.992);
+  }
+  42% {
+    opacity: 1;
+    filter: blur(1px);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes vyntro-route-veil {
+  0% {
+    opacity: 0;
+    transform: translate3d(calc(var(--vyntro-route-shift, 0) * -3%), 0, 0);
+  }
+  22% {
+    opacity: 0.34;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(calc(var(--vyntro-route-shift, 0) * 3%), 0, 0);
+  }
+}
+
 @keyframes vyntro-meter-fill {
   from {
     filter: brightness(1.25);
@@ -984,9 +1045,14 @@ html.vyntro-route-loading body::after {
   .motion-3d-card:active,
   .vyntro-reveal-node,
   .vyntro-reveal-node.is-visible,
+  [data-vyntro-route-stage],
   .motion-press,
   .motion-press:not(:disabled):active {
     transform: none;
+  }
+
+  .vyntro-route-veil {
+    display: none;
   }
 
   .vyntro-reveal-node {

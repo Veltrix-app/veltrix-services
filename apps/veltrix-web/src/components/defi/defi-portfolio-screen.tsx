@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import {
   ArrowRight,
   BadgeCheck,
@@ -12,6 +13,7 @@ import {
 } from "lucide-react";
 import { DefiSafetyPanel } from "@/components/defi/defi-safety-panel";
 import { DefiRouteNav } from "@/components/defi/defi-route-nav";
+import { MissionCompletionMoment } from "@/components/completion/mission-completion-moment";
 import { useAuth } from "@/components/providers/auth-provider";
 import { CinematicRouteHero } from "@/components/ui/cinematic-route-hero";
 import { StatusChip } from "@/components/ui/status-chip";
@@ -25,6 +27,10 @@ import {
   type DefiPortfolioRow,
 } from "@/lib/defi/defi-portfolio";
 import type { DefiXpMissionSlug } from "@/lib/defi/defi-xp-eligibility";
+import {
+  buildMissionCompletionMoment,
+  type MissionCompletionMoment as MissionCompletionMomentRead,
+} from "@/lib/completion/mission-completion-moment";
 
 const PORTFOLIO_HERO_IMAGE = "/assets/defi/defi-hero.webp";
 
@@ -39,6 +45,7 @@ export function DefiPortfolioScreen() {
   const { session, profile, reloadProfile } = useAuth();
   const vaults = useMoonwellVaultPositions();
   const markets = useMoonwellMarkets();
+  const [completionMoment, setCompletionMoment] = useState<MissionCompletionMomentRead | null>(null);
   const defiXp = useDefiXpEligibility({
     accessToken: session?.access_token,
     wallet: profile?.wallet,
@@ -64,6 +71,10 @@ export function DefiPortfolioScreen() {
 
   return (
     <div className="space-y-5">
+      <MissionCompletionMoment
+        read={completionMoment}
+        onClose={() => setCompletionMoment(null)}
+      />
       <CinematicRouteHero
         chips={["Wallet read", "Vaults", "Markets", "XP posture"]}
         description="Read your full DeFi posture before you move capital. Vault positions, supplied markets, borrowed exposure and claimable XP stay in one calm command view."
@@ -191,6 +202,18 @@ export function DefiPortfolioScreen() {
           onClaim={async (missionSlug) => {
             const result = await defiXp.claimMission(missionSlug);
             if (result.ok) {
+              const mission = defiXp.snapshot.missions.find((item) => item.slug === missionSlug);
+              setCompletionMoment(
+                buildMissionCompletionMoment({
+                  kind: "defi",
+                  title: mission?.title ?? "DeFi XP mission",
+                  xpAwarded: result.payload?.xpAwarded ?? mission?.xp ?? 0,
+                  primaryHref: "/defi/activity",
+                  primaryLabel: "Open activity",
+                  secondaryHref: "/xp",
+                  secondaryLabel: "XP cockpit",
+                })
+              );
               await reloadProfile();
             }
           }}

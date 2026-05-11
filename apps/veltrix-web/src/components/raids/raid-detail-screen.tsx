@@ -8,6 +8,7 @@ import { ShardBadge } from "@/components/ui/shard-badge";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
+import { MissionCompletionMoment } from "@/components/completion/mission-completion-moment";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 import { resolveBestFeaturedShardPool } from "@/lib/lootboxes/featured-shard-pools";
@@ -18,6 +19,10 @@ import {
   describeXpAward,
   type UserXpAwardResponse,
 } from "@/lib/xp/xp-award-client";
+import {
+  buildMissionCompletionMoment,
+  type MissionCompletionMoment as MissionCompletionMomentRead,
+} from "@/lib/completion/mission-completion-moment";
 
 async function confirmRaidForUser(accessToken: string, raidId: string) {
   const response = await fetch(`/api/raids/${raidId}/confirm`, {
@@ -59,6 +64,7 @@ export function RaidDetailScreen() {
   });
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ tone: "default" | "error" | "success"; text: string } | null>(null);
+  const [completionMoment, setCompletionMoment] = useState<MissionCompletionMomentRead | null>(null);
 
   const raid = raids.find((item) => item.id === raidId);
 
@@ -128,6 +134,18 @@ export function RaidDetailScreen() {
           ? `${successText} XP sync needs attention: ${xpAwardError}`
           : describeXpAward(xpAward, successText),
       });
+      setCompletionMoment(
+        buildMissionCompletionMoment({
+          kind: "raid",
+          title: currentRaid.title,
+          xpAwarded: xpAward?.xpAwarded ?? currentRaid.reward,
+          shardsAwarded: shardAward?.granted ? shardAward.amount : 0,
+          primaryHref: "/raids",
+          primaryLabel: "Open raid board",
+          secondaryHref: "/home",
+          secondaryLabel: "Back to cockpit",
+        })
+      );
     } catch (nextError) {
       setMessage({
         tone: "error",
@@ -140,6 +158,10 @@ export function RaidDetailScreen() {
 
   return (
     <div className="space-y-5">
+      <MissionCompletionMoment
+        read={completionMoment}
+        onClose={() => setCompletionMoment(null)}
+      />
       <section className="relative overflow-hidden rounded-[22px] border border-white/8 bg-[radial-gradient(circle_at_top_left,rgba(251,113,133,0.14),transparent_26%),radial-gradient(circle_at_78%_18%,rgba(255,196,0,0.08),transparent_22%),linear-gradient(180deg,rgba(12,14,18,0.99),rgba(7,9,11,0.99))] p-4 shadow-[0_20px_54px_rgba(0,0,0,0.24)]">
         <RaidBadgeMark
           className="absolute right-[22rem] top-8 hidden h-24 w-24 opacity-[0.34] xl:inline-flex"

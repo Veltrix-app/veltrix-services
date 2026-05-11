@@ -12,6 +12,7 @@ import { ShardBadge } from "@/components/ui/shard-badge";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
+import { MissionCompletionMoment } from "@/components/completion/mission-completion-moment";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 import { buildMissionCockpit } from "@/lib/quests/mission-cockpit";
@@ -22,6 +23,10 @@ import {
   describeXpAward,
   type UserXpAwardResponse,
 } from "@/lib/xp/xp-award-client";
+import {
+  buildMissionCompletionMoment,
+  type MissionCompletionMoment as MissionCompletionMomentRead,
+} from "@/lib/completion/mission-completion-moment";
 
 function getStatusTone(status: string) {
   if (status === "approved") return "positive";
@@ -199,6 +204,7 @@ export function QuestDetailScreen() {
   const [message, setMessage] = useState<{ tone: "default" | "error" | "success"; text: string } | null>(
     null
   );
+  const [completionMoment, setCompletionMoment] = useState<MissionCompletionMomentRead | null>(null);
   const returnRecheckCleanupRef = useRef<(() => void) | null>(null);
 
   const quest = quests.find((item) => item.id === questId);
@@ -458,6 +464,22 @@ export function QuestDetailScreen() {
     return describeXpAward(result.xpAward, fallback);
   }
 
+  function showCompletionMoment(result: { xpAward: UserXpAwardResponse | null }) {
+    setCompletionMoment(
+      buildMissionCompletionMoment({
+        kind: "quest",
+        title: currentQuest.title,
+        xpAwarded: result.xpAward?.xpAwarded ?? currentQuest.xp,
+        shardsAwarded: currentQuest.shardRewardAmount ?? 0,
+        streakDays: profile?.streak ?? 0,
+        primaryHref: "/quests",
+        primaryLabel: "Open quest map",
+        secondaryHref: linkedProject ? `/projects/${linkedProject.id}` : "/home",
+        secondaryLabel: linkedProject ? "Project page" : "Back to cockpit",
+      })
+    );
+  }
+
   async function handleOpenTask() {
     if (missionClosed) {
       setMessage({
@@ -594,6 +616,9 @@ export function QuestDetailScreen() {
               ? describeCompletionWithXp(completionText, xpAwardResult)
               : completionText,
         });
+        if (usesWebsiteVerification || verificationStatus === "approved") {
+          showCompletionMoment(xpAwardResult);
+        }
 
         if (missionWindow) {
           if (!shouldOpenExternalImmediately || missionWindow.location.href === "about:blank") {
@@ -661,6 +686,7 @@ export function QuestDetailScreen() {
                 tone: "success",
                 text: describeCompletionWithXp(completionText, xpAwardResult),
               });
+              showCompletionMoment(xpAwardResult);
             } catch {
               // Leave the mission pending if the one-time return check cannot complete.
             }
@@ -767,6 +793,10 @@ export function QuestDetailScreen() {
 
   return (
     <div className="space-y-5">
+      <MissionCompletionMoment
+        read={completionMoment}
+        onClose={() => setCompletionMoment(null)}
+      />
       <section className="motion-surface motion-light-sweep relative overflow-hidden rounded-[26px] border border-white/8 bg-[radial-gradient(circle_at_top_left,rgba(186,255,59,0.12),transparent_26%),radial-gradient(circle_at_78%_18%,rgba(0,204,255,0.12),transparent_24%),linear-gradient(180deg,rgba(12,14,18,0.99),rgba(7,9,11,0.99))] p-4 shadow-[0_20px_54px_rgba(0,0,0,0.24)] sm:p-5">
         <FeatureBadgeMark
           badge="quest"

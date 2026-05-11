@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import { ArtworkImage } from "@/components/ui/artwork-image";
+import { MissionCompletionMoment } from "@/components/completion/mission-completion-moment";
 import { FeatureBadgeMark } from "@/components/ui/feature-badge-mark";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
@@ -11,6 +12,10 @@ import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useCommunityJourney } from "@/hooks/use-community-journey";
+import {
+  buildMissionCompletionMoment,
+  type MissionCompletionMoment as MissionCompletionMomentRead,
+} from "@/lib/completion/mission-completion-moment";
 
 export function RewardDetailScreen() {
   const params = useParams<{ id: string }>();
@@ -24,6 +29,7 @@ export function RewardDetailScreen() {
   const [message, setMessage] = useState<{ tone: "default" | "error" | "success"; text: string } | null>(
     null
   );
+  const [completionMoment, setCompletionMoment] = useState<MissionCompletionMomentRead | null>(null);
 
   const reward = rewards.find((item) => item.id === rewardId);
   const campaign = campaigns.find((item) => item.id === reward?.campaignId);
@@ -82,6 +88,16 @@ export function RewardDetailScreen() {
     }
 
     await reload();
+    setCompletionMoment(
+      buildMissionCompletionMoment({
+        kind: "reward",
+        title: currentReward.title,
+        primaryHref: "/rewards",
+        primaryLabel: "Open rewards",
+        secondaryHref: project ? `/projects/${project.id}` : "/home",
+        secondaryLabel: project ? "Project page" : "Back to cockpit",
+      })
+    );
     setMessage({
       tone: "success",
       text: result.alreadyClaimed
@@ -93,6 +109,8 @@ export function RewardDetailScreen() {
 
   return (
     <div className="space-y-5">
+      <MissionCompletionMoment read={completionMoment} onClose={() => setCompletionMoment(null)} />
+
       <section className="relative overflow-hidden rounded-[22px] border border-white/8 bg-[radial-gradient(circle_at_top_left,rgba(255,196,0,0.14),transparent_26%),radial-gradient(circle_at_78%_18%,rgba(251,191,36,0.08),transparent_22%),linear-gradient(180deg,rgba(12,14,18,0.99),rgba(7,9,11,0.99))] p-4 shadow-[0_20px_54px_rgba(0,0,0,0.24)]">
         <FeatureBadgeMark
           badge="reward"

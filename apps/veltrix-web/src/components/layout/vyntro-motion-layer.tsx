@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
@@ -8,6 +8,13 @@ const FINE_POINTER_QUERY = "(hover: hover) and (pointer: fine)";
 const REVEAL_SELECTOR = "main section, main article, main [data-vyntro-reveal]";
 const DEPTH_CARD_SELECTOR = ".motion-3d-card, [data-vyntro-depth-card]";
 const FEEDBACK_CONTROL_SELECTOR = ".motion-press, .glass-button, [data-vyntro-feedback]";
+const ROUTE_ORDER = ["/home", "/quests", "/projects", "/lootboxes", "/profile"];
+
+type RouteMotionProfile = {
+  family: string;
+  accent: string;
+  shift: number;
+};
 
 function clamp(value: number, min = 0, max = 1) {
   return Math.min(max, Math.max(min, value));
@@ -27,6 +34,31 @@ function getRevealTargets() {
 
     return !element.parentElement?.closest("section, article");
   });
+}
+
+function getRouteMotionProfile(pathname: string, previousPathname: string | null): RouteMotionProfile {
+  const route = ROUTE_ORDER.find((item) => pathname === item || pathname.startsWith(`${item}/`));
+  const previousRoute = previousPathname
+    ? ROUTE_ORDER.find((item) => previousPathname === item || previousPathname.startsWith(`${item}/`))
+    : null;
+  const currentIndex = route ? ROUTE_ORDER.indexOf(route) : -1;
+  const previousIndex = previousRoute ? ROUTE_ORDER.indexOf(previousRoute) : currentIndex;
+  const direction = currentIndex >= 0 && previousIndex >= 0 ? Math.sign(currentIndex - previousIndex) : 0;
+
+  switch (route) {
+    case "/quests":
+      return { family: "quests", accent: "rgba(190,255,74,0.3)", shift: direction || 1 };
+    case "/projects":
+      return { family: "projects", accent: "rgba(34,211,238,0.28)", shift: direction || 1 };
+    case "/lootboxes":
+      return { family: "lootboxes", accent: "rgba(52,211,153,0.26)", shift: direction || 1 };
+    case "/profile":
+      return { family: "profile", accent: "rgba(167,139,250,0.26)", shift: direction || 1 };
+    case "/home":
+      return { family: "home", accent: "rgba(190,255,74,0.24)", shift: direction || -1 };
+    default:
+      return { family: "default", accent: "rgba(34,211,238,0.2)", shift: direction || 0 };
+  }
 }
 
 function bindGlobalPointerLight() {
@@ -206,11 +238,13 @@ function bindFeedbackControls() {
 
 export function VyntroMotionLayer() {
   const pathname = usePathname();
+  const previousPathnameRef = useRef<string | null>(null);
 
   useEffect(() => {
     const reducedMotion = window.matchMedia(REDUCED_MOTION_QUERY).matches;
     const finePointer = window.matchMedia(FINE_POINTER_QUERY).matches;
     const root = document.documentElement;
+    const routeProfile = getRouteMotionProfile(pathname, previousPathnameRef.current);
     const targets = getRevealTargets();
     const cleanupCallbacks: Array<() => void> = [];
 
@@ -218,6 +252,10 @@ export function VyntroMotionLayer() {
     void root.offsetWidth;
     root.classList.add("vyntro-route-motion");
     root.classList.add("vyntro-route-loading");
+    root.setAttribute("data-vyntro-route-family", routeProfile.family);
+    root.style.setProperty("--vyntro-route-accent", routeProfile.accent);
+    root.style.setProperty("--vyntro-route-shift", String(routeProfile.shift));
+    previousPathnameRef.current = pathname;
 
     const routePulseId = window.setTimeout(() => {
       root.classList.remove("vyntro-route-loading");
@@ -226,6 +264,9 @@ export function VyntroMotionLayer() {
     cleanupCallbacks.push(() => {
       window.clearTimeout(routePulseId);
       root.classList.remove("vyntro-route-loading");
+      root.style.removeProperty("--vyntro-route-accent");
+      root.style.removeProperty("--vyntro-route-shift");
+      root.removeAttribute("data-vyntro-route-family");
     });
 
     if (!reducedMotion && finePointer) {
