@@ -6,9 +6,11 @@ import { useMemo } from "react";
 import {
   ArrowRight,
   Box,
+  CalendarDays,
   CheckCircle2,
   Flame,
   Gift,
+  LockKeyhole,
   Radar,
   Rocket,
   Shield,
@@ -28,6 +30,7 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { useCommunityJourney } from "@/hooks/use-community-journey";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 import { buildLiveActivityFeed } from "@/lib/activity/live-activity-feed";
+import { buildStreakLadderRead } from "@/lib/streaks/streak-ladder";
 
 const HOME_HERO_IMAGE = "/assets/home/home-hero.webp";
 
@@ -188,6 +191,14 @@ export function HomeScreen() {
     (total, quest) => total + Math.max(0, quest.shardRewardAmount ?? 0),
     0
   );
+  const streakLadder = useMemo(
+    () =>
+      buildStreakLadderRead({
+        currentStreak: profile?.streak ?? communitySnapshot.streakDays,
+        quests,
+      }),
+    [communitySnapshot.streakDays, profile?.streak, quests]
+  );
   const nextAction: HomeNextAction = (() => {
     const claimableReward = rewardLane.find((reward) => reward.claimable);
     if (claimableReward) {
@@ -308,6 +319,8 @@ export function HomeScreen() {
       />
 
       <LiveActivityFeedPanel feed={activityFeed} compact />
+
+      <StreakLadderPanel read={streakLadder} />
 
       <section className="grid gap-3.5 xl:grid-cols-[minmax(0,1.48fr)_280px]">
         <div className="rounded-[28px] border border-white/6 bg-[radial-gradient(circle_at_top_left,rgba(128,91,255,0.2),transparent_24%),radial-gradient(circle_at_78%_20%,rgba(0,209,255,0.14),transparent_24%),linear-gradient(180deg,rgba(10,11,15,0.995),rgba(6,7,10,0.995))] p-4 shadow-[0_22px_72px_rgba(0,0,0,0.38)]">
@@ -951,6 +964,126 @@ function HomeHero({
                 {questCount} quests, {raidCount} raids, {signalCount} signals, {claimableRewardCount} claimable.
               </p>
             </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+type StreakLadderRead = ReturnType<typeof buildStreakLadderRead>;
+
+function StreakLadderPanel({ read }: { read: StreakLadderRead }) {
+  return (
+    <section className="relative overflow-hidden rounded-[28px] border border-white/7 bg-[radial-gradient(circle_at_8%_0%,rgba(251,191,36,0.16),transparent_28%),radial-gradient(circle_at_92%_20%,rgba(34,211,238,0.12),transparent_28%),linear-gradient(145deg,rgba(10,12,16,0.98),rgba(5,7,11,0.99))] p-4 shadow-[0_22px_76px_rgba(0,0,0,0.32)] sm:p-5">
+      <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(251,191,36,0.75),rgba(34,211,238,0.45),transparent)]" />
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.15fr)_260px] xl:items-stretch">
+        <div className="rounded-[22px] border border-amber-300/14 bg-amber-300/[0.055] p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-200">
+                Daily / Weekly Ladder
+              </p>
+              <h2 className="mt-2 text-[1.3rem] font-black text-white">
+                {read.currentStreak} day streak
+              </h2>
+            </div>
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-amber-300/18 bg-black/24 text-amber-100">
+              <Flame className="h-5 w-5" />
+            </span>
+          </div>
+
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            <HeroPanelMetric
+              label="Daily"
+              value={read.dailyStatus === "claimed" ? "Done" : "Open"}
+              sub="Today"
+              icon={<CalendarDays className="h-4 w-4" />}
+            />
+            <HeroPanelMetric
+              label="Weekly"
+              value={`${read.weeklyProgress.current}/${read.weeklyProgress.target}`}
+              sub={read.weeklyStatus}
+              icon={<CheckCircle2 className="h-4 w-4" />}
+            />
+            <HeroPanelMetric
+              label="Boost"
+              value={read.multiplierLabel}
+              sub="XP preview"
+              icon={<Zap className="h-4 w-4" />}
+            />
+          </div>
+
+          <div className="mt-4">
+            <div className="flex items-center justify-between gap-3 text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
+              <span>Weekly actions</span>
+              <span>{read.weeklyProgress.percent}%</span>
+            </div>
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/[0.07]">
+              <div
+                className="h-full rounded-full bg-[linear-gradient(90deg,#fbbf24,#bef264,#67e8f9)] shadow-[0_0_22px_rgba(251,191,36,0.26)]"
+                style={{ width: `${read.weeklyProgress.percent}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-3">
+          {read.milestones.map((milestone) => (
+            <div
+              key={milestone.day}
+              className={`relative overflow-hidden rounded-[22px] border p-4 ${
+                milestone.status === "claimed"
+                  ? "border-lime-300/16 bg-lime-300/[0.055]"
+                  : milestone.status === "next"
+                    ? "border-cyan-300/18 bg-cyan-300/[0.06]"
+                    : "border-white/8 bg-white/[0.035] opacity-70"
+              }`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
+                    {milestone.label}
+                  </p>
+                  <p className="mt-2 text-[15px] font-black text-white">{milestone.reward}</p>
+                </div>
+                {milestone.status === "claimed" ? (
+                  <CheckCircle2 className="h-4 w-4 text-lime-200" />
+                ) : milestone.status === "next" ? (
+                  <Flame className="h-4 w-4 text-cyan-200" />
+                ) : (
+                  <LockKeyhole className="h-4 w-4 text-slate-500" />
+                )}
+              </div>
+              <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
+                <div
+                  className="h-full rounded-full bg-white/70"
+                  style={{ width: `${milestone.progress}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="rounded-[22px] border border-cyan-300/14 bg-cyan-300/[0.055] p-4">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-200">
+            Next streak move
+          </p>
+          <p className="mt-2 text-[15px] font-black leading-6 text-white">
+            {read.nextAction?.label ?? "Keep streak alive"}
+          </p>
+          <p className="mt-2 text-[11px] leading-5 text-slate-300">
+            {read.nextAction?.meta ?? "Open the next verified action to protect the rhythm."}
+          </p>
+          <div className="mt-4 flex items-center justify-between gap-3">
+            <ShardBadge value={`+${read.weeklyShardUpside}`} size="sm" />
+            <Link
+              href={read.nextAction?.href ?? "/quests"}
+              className="motion-press inline-flex items-center gap-2 rounded-full bg-cyan-300 px-3.5 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-black transition hover:bg-cyan-200"
+            >
+              Go
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
           </div>
         </div>
       </div>
