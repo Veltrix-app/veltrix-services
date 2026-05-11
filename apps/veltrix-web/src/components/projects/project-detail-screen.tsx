@@ -1060,7 +1060,13 @@ function TokenTrustCard({
 
 function StandingCard({ reputation }: { reputation?: LiveProjectReputation }) {
   return (
-    <div className="motion-card-3d relative overflow-hidden rounded-[26px] border border-white/7 bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,0.13),transparent_34%),linear-gradient(180deg,rgba(15,17,22,0.9),rgba(7,8,12,0.95))] p-4">
+    <div className="motion-surface motion-3d-card motion-light-sweep group relative overflow-hidden rounded-[26px] border border-white/7 bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,0.13),transparent_34%),linear-gradient(180deg,rgba(15,17,22,0.9),rgba(7,8,12,0.95))] p-4 shadow-[0_20px_62px_rgba(0,0,0,0.28)] transition hover:-translate-y-1 hover:border-amber-300/18 hover:shadow-[0_30px_88px_rgba(0,0,0,0.38),0_0_44px_rgba(250,204,21,0.08)]">
+      <div className="motion-ambient-grid opacity-[0.1] transition duration-500 group-hover:opacity-[0.18]" />
+      <div className="motion-shard-field opacity-35 transition duration-500 group-hover:opacity-70">
+        <span />
+        <span />
+        <span />
+      </div>
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -right-16 bottom-[-3rem] h-[19rem] w-[22rem] sm:-right-20 sm:bottom-[-3.2rem] sm:h-[21rem] sm:w-[24rem]">
           <Image
@@ -1069,7 +1075,7 @@ function StandingCard({ reputation }: { reputation?: LiveProjectReputation }) {
             fill
             unoptimized
             sizes="384px"
-            className="h-full w-full object-contain opacity-[0.82] drop-shadow-[0_0_46px_rgba(250,204,21,0.18)] [mask-image:linear-gradient(90deg,transparent_0%,black_30%,black_100%)]"
+            className="h-full w-full object-contain opacity-[0.82] drop-shadow-[0_0_46px_rgba(250,204,21,0.18)] transition duration-700 group-hover:scale-[1.035] group-hover:opacity-[0.9] [mask-image:linear-gradient(90deg,transparent_0%,black_30%,black_100%)]"
           />
         </div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_84%_66%,rgba(250,204,21,0.16),transparent_34%),radial-gradient(circle_at_76%_22%,rgba(168,85,247,0.14),transparent_32%)]" />
@@ -1085,7 +1091,7 @@ function StandingCard({ reputation }: { reputation?: LiveProjectReputation }) {
               Level {reputation?.level ?? 0}
             </h2>
           </div>
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-amber-300/18 bg-amber-300/[0.08] text-amber-200">
+          <span className="motion-soft-float flex h-12 w-12 items-center justify-center rounded-2xl border border-amber-300/18 bg-amber-300/[0.08] text-amber-200 transition duration-300 group-hover:bg-amber-300/[0.12]">
             <Crown className="h-5 w-5" />
           </span>
         </div>
