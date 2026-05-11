@@ -12,6 +12,10 @@ import type { Session } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { publicEnv } from "@/lib/env";
 import { mapProfile } from "@/lib/auth";
+import {
+  findProviderIdentities,
+  type ReplaceableIdentityProvider,
+} from "@/lib/auth/identity-provider-replacement";
 import type {
   ConnectedAccount,
   ProfileAssetKind,
@@ -244,6 +248,25 @@ async function fetchConnectedAccountsSnapshotViaApi(params: {
     return Array.isArray(payload.accounts) ? (payload.accounts as ConnectedAccount[]) : [];
   } finally {
     window.clearTimeout(timeout);
+  }
+}
+
+async function unlinkManagedProviderViaApi(params: {
+  accessToken: string;
+  provider: ReplaceableIdentityProvider;
+}) {
+  const response = await fetch("/api/identity/provider", {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${params.accessToken}`,
+    },
+    body: JSON.stringify({ provider: params.provider }),
+  });
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok || !payload?.ok) {
+    throw new Error(payload?.error || "Identity provider unlink failed.");
   }
 }
 
@@ -733,7 +756,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function linkProvider(provider: LinkableProvider) {
-    if (!publicEnv.authConfigured || !supabase || !authUserId) {
+    if (!publicEnv.authConfigured || !supabase || !authUserId || !session?.access_token) {
       return { ok: false, error: "You need an active pilot session before linking providers." };
     }
 
@@ -741,9 +764,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
 
     const nextProvider = provider === "x" ? "x" : "discord";
+    const existingProviderAccount = connectedAccounts.find(
+      (account) => account.provider === provider && account.status === "connected"
+    );
+
+    if (existingProviderAccount) {
+      const { data: currentUser, error: currentUserError } = await supabase.auth.getUser();
+      if (currentUserError) {
+        setLoading(false);
+        setError(currentUserError.message);
+        return { ok: false, error: currentUserError.message };
+      }
+
+      const identitiesToUnlink = findProviderIdentities(
+        currentUser.user?.identities,
+        provider
+      );
+
+      for (const identity of identitiesToUnlink) {
+        const { error: unlinkError } = await supabase.auth.unlinkIdentity(identity);
+        if (unlinkError) {
+          setLoading(false);
+          setError(unlinkError.message);
+          return { ok: false, error: unlinkError.message };
+        }
+      }
+
+      try {
+        await unlinkManagedProviderViaApi({
+          accessToken: session.access_token,
+          provider,
+        });
+        applyConnectedAccountSnapshot(
+          connectedAccounts.filter((account) => account.provider !== provider)
+        );
+      } catch (unlinkError) {
+        const message =
+          unlinkError instanceof Error ? unlinkError.message : "Identity provider unlink failed.";
+        setLoading(false);
+        setError(message);
+        return { ok: false, error: message };
+      }
+    }
+
     const redirectTo =
       typeof window !== "undefined"
-        ? `${window.location.origin}/profile?linked=${provider}`
+        ? `${window.location.origin}/profile?linked=${provider}${
+            existingProviderAccount ? "&replace=1" : ""
+          }`
         : undefined;
 
     const { data, error: linkError } = await supabase.auth.linkIdentity({

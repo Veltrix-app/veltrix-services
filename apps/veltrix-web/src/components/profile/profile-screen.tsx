@@ -38,6 +38,7 @@ import { buildLootboxInventoryRead } from "@/lib/lootboxes/lootbox-inventory-rea
 import { buildAchievementBadgesRead } from "@/lib/profile/achievement-badges";
 import { buildReputationCardRead } from "@/lib/profile/reputation-card";
 import { buildXpProgressionRead } from "@/lib/xp/xp-economy";
+import { getProviderReplaceButtonLabel } from "@/lib/auth/identity-provider-replacement";
 import type { ConnectedAccount } from "@/types/auth";
 
 export function ProfileScreen() {
@@ -180,10 +181,10 @@ export function ProfileScreen() {
         eyebrow: "Squad comms",
         hint: "Required for server joins, raid pressure and community-gated missions.",
         accent: "text-cyan-200",
-        cta:
-          providerMap.get("discord")?.status === "connected"
-            ? "Refresh Discord link"
-            : "Link Discord",
+        cta: getProviderReplaceButtonLabel({
+          provider: "discord",
+          connected: providerMap.get("discord")?.status === "connected",
+        }),
         missionCount: providerMissionPressure.discord,
         account: providerMap.get("discord") ?? null,
       },
@@ -206,10 +207,10 @@ export function ProfileScreen() {
         eyebrow: "Signal graph",
         hint: "Required for follow quests, social mission gating and signal-based campaign pressure.",
         accent: "text-amber-200",
-        cta:
-          providerMap.get("x")?.status === "connected"
-            ? "Refresh X link"
-            : "Link X",
+        cta: getProviderReplaceButtonLabel({
+          provider: "x",
+          connected: providerMap.get("x")?.status === "connected",
+        }),
         missionCount: providerMissionPressure.x,
         account: providerMap.get("x") ?? null,
       },
@@ -346,7 +347,7 @@ export function ProfileScreen() {
 
     setProviderMessage({
       tone: "default",
-      text: `Routing ${provider.toUpperCase()} through the live identity link now.`,
+      text: `Routing ${provider.toUpperCase()} through the live identity link now. Choose the account you want VYNTRO to use on the provider screen.`,
     });
   }
 
