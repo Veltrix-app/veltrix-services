@@ -5,6 +5,10 @@ import {
   type SwapToken,
 } from "../defi/vyntro-swap";
 import type { ProjectTokenPriceSnapshot } from "../defi/vyntro-prices";
+import {
+  buildProjectWorldTheme,
+  type ProjectWorldTheme,
+} from "./project-world-theme";
 import type {
   LiveCampaign,
   LiveProject,
@@ -98,6 +102,7 @@ export type ProjectShowcasePremiumCommand = {
 
 export type ProjectShowcaseModel = {
   project: LiveProject;
+  worldTheme: ProjectWorldTheme;
   heroImageUrl: string | null;
   headline: string;
   story: string;
@@ -805,6 +810,7 @@ export function buildProjectShowcase(input: {
 
   return {
     project,
+    worldTheme: buildProjectWorldTheme(project),
     heroImageUrl,
     headline: project.name,
     story:

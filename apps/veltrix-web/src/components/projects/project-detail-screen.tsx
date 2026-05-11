@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { useParams } from "next/navigation";
 import {
   Activity,
@@ -18,6 +18,7 @@ import {
   Globe2,
   LineChart,
   ShieldCheck,
+  Sparkles,
   Swords,
   Target,
   Users,
@@ -337,10 +338,11 @@ export function ProjectDetailScreen() {
   const questCount = getProjectMetric(showcase.metrics, "Quests", String(projectQuests.length));
   const rewardCount = getProjectMetric(showcase.metrics, "Rewards", String(projectRewards.length));
   const tokenMove = formatTokenMove(showcase.token.price?.priceChange24hPercent);
+  const worldThemeStyle = showcase.worldTheme.cssVars as CSSProperties;
 
   return (
-    <div className="space-y-4">
-      <section className="motion-surface motion-light-sweep relative overflow-hidden rounded-[34px] border border-white/7 bg-[#05080b] shadow-[0_32px_110px_rgba(0,0,0,0.38)]">
+    <div className="project-world-theme space-y-4" style={worldThemeStyle}>
+      <section className="motion-surface motion-light-sweep relative overflow-hidden rounded-[34px] border border-[var(--project-world-border)] bg-[#05080b] shadow-[0_32px_110px_rgba(0,0,0,0.38),0_0_80px_var(--project-world-glow)]">
         {showcase.heroImageUrl ? (
           <div
             aria-hidden="true"
@@ -348,17 +350,24 @@ export function ProjectDetailScreen() {
             style={{ backgroundImage: toBackgroundImage(showcase.heroImageUrl) }}
           />
         ) : null}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_58%_26%,rgba(34,211,238,0.14),transparent_31%),radial-gradient(circle_at_14%_28%,rgba(190,255,74,0.1),transparent_23%),linear-gradient(90deg,rgba(0,0,0,0.78),rgba(0,0,0,0.52)_34%,rgba(0,0,0,0.16)_62%,rgba(0,0,0,0.46)),linear-gradient(180deg,rgba(4,7,10,0.02),rgba(3,5,8,0.68))]" />
+        <div className="absolute inset-0 bg-[image:var(--project-world-hero)]" />
         <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-[#050608] to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[image:var(--project-world-line)]" />
+        <div className="pointer-events-none absolute -right-24 top-20 h-72 w-72 rounded-full bg-[rgb(var(--project-world-primary)/0.18)] blur-3xl" />
+        <div className="pointer-events-none absolute -left-28 bottom-16 h-72 w-72 rounded-full bg-[rgb(var(--project-world-secondary)/0.12)] blur-3xl" />
 
         <div className="relative z-10 grid min-h-[620px] gap-6 p-5 sm:p-7 xl:grid-cols-[minmax(0,1fr)_410px] xl:items-end">
           <div className="max-w-4xl self-end pb-2">
             <div className="flex flex-wrap items-center gap-3">
-              <LogoMark project={project} size="hero" />
+              <LogoMark project={project} size="hero" themed />
               <div className="flex flex-wrap gap-2">
                 {showcase.badges.map((badge) => (
                   <StatusChip key={badge} label={badge} tone="info" />
                 ))}
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--project-world-border)] bg-[rgb(var(--project-world-primary)/0.12)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[rgb(var(--project-world-primary))]">
+                  <Sparkles className="h-3 w-3" />
+                  {showcase.worldTheme.label}
+                </span>
               </div>
             </div>
 
@@ -372,7 +381,7 @@ export function ProjectDetailScreen() {
             <div className="mt-7 flex flex-wrap gap-3">
               <Link
                 href={`/communities/${project.id}`}
-                className="motion-press inline-flex items-center gap-2 rounded-full bg-lime-300 px-5 py-3 text-[11px] font-black uppercase tracking-[0.16em] text-black transition hover:bg-lime-200"
+                className="motion-press inline-flex items-center gap-2 rounded-full bg-[rgb(var(--project-world-primary))] px-5 py-3 text-[11px] font-black uppercase tracking-[0.16em] text-black transition hover:brightness-110"
               >
                 <Users className="h-4 w-4" />
                 Join community
@@ -380,7 +389,7 @@ export function ProjectDetailScreen() {
               </Link>
               <Link
                 href={showcase.token.swapHref}
-                className="motion-press inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.06] px-5 py-3 text-[11px] font-black uppercase tracking-[0.16em] text-white backdrop-blur-xl transition hover:border-cyan-300/24 hover:bg-cyan-300/10"
+                className="motion-press inline-flex items-center gap-2 rounded-full border border-[var(--project-world-border)] bg-[rgb(var(--project-world-secondary)/0.08)] px-5 py-3 text-[11px] font-black uppercase tracking-[0.16em] text-white backdrop-blur-xl transition hover:bg-[rgb(var(--project-world-secondary)/0.14)]"
               >
                 Open swap
                 <Coins className="h-4 w-4" />
@@ -398,7 +407,7 @@ export function ProjectDetailScreen() {
                     href={link.href}
                     target="_blank"
                     rel="noreferrer"
-                    className="motion-press inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3.5 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-slate-200 transition hover:border-white/18 hover:text-white"
+                    className="motion-press inline-flex items-center gap-2 rounded-full border border-[var(--project-world-border)] bg-black/30 px-3.5 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-slate-200 transition hover:bg-[rgb(var(--project-world-primary)/0.1)] hover:text-white"
                   >
                     {link.label}
                     <ExternalLink className="h-3.5 w-3.5" />
@@ -410,6 +419,7 @@ export function ProjectDetailScreen() {
 
           <WorldStatusPanel
             showcaseScore={showcase.readinessScore}
+            themeLabel={showcase.worldTheme.signature}
             nextAction={showcase.nextAction}
             tokenLabel={showcase.token.label}
             tokenPrice={showcase.token.price?.formattedPrice ?? "Pending"}
@@ -422,7 +432,7 @@ export function ProjectDetailScreen() {
         </div>
       </section>
 
-      <section className="motion-surface rounded-[28px] border border-white/7 bg-[linear-gradient(180deg,rgba(13,16,20,0.84),rgba(7,9,13,0.88))] p-2 shadow-[0_20px_70px_rgba(0,0,0,0.28)] backdrop-blur-xl">
+      <section className="motion-surface rounded-[28px] border border-[var(--project-world-border)] bg-[var(--project-world-panel)] p-2 shadow-[0_20px_70px_rgba(0,0,0,0.28)] backdrop-blur-xl">
         <div className="grid gap-2 md:grid-cols-3 xl:grid-cols-6">
           <WorldRouteLink href="#story" icon={<BookOpen className="h-5 w-5" />} label="Story" detail="Lore and identity" active />
           <WorldRouteLink href="#market" icon={<LineChart className="h-5 w-5" />} label="Market" detail="Token route" />
@@ -460,6 +470,8 @@ export function ProjectDetailScreen() {
         />
         <StandingCard reputation={reputation} />
       </section>
+
+      <ProjectWorldThemePanel showcase={showcase} project={project} />
 
       <section id="story" className="grid gap-5 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
         <StoryWorldPanel project={project} story={showcase.story} />
@@ -553,19 +565,22 @@ export function ProjectDetailScreen() {
 function LogoMark({
   project,
   size = "md",
+  themed = false,
 }: {
   project: Pick<LiveProject, "logo" | "name">;
   size?: "md" | "hero";
+  themed?: boolean;
 }) {
   const rootSize =
     size === "hero"
-      ? "h-20 w-20 rounded-[26px] shadow-[0_0_44px_rgba(34,211,238,0.18)]"
+      ? "h-20 w-20 rounded-[26px] shadow-[0_0_44px_var(--project-world-glow)]"
       : "h-12 w-12 rounded-2xl";
   const textSize = size === "hero" ? "text-2xl" : "text-sm";
+  const tone = themed ? "border-[var(--project-world-border)] bg-[rgb(var(--project-world-primary)/0.09)]" : "border-white/12 bg-white/[0.055]";
 
   return (
     <div
-      className={`flex shrink-0 items-center justify-center overflow-hidden border border-white/12 bg-white/[0.055] ${rootSize}`}
+      className={`flex shrink-0 items-center justify-center overflow-hidden border ${tone} ${rootSize}`}
     >
       {project.logo ? (
         <ArtworkImage
@@ -585,19 +600,20 @@ function LogoMark({
 function SectionKicker({ icon, label }: { icon: ReactNode; label: string }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-lime-300/18 bg-lime-300/[0.08] text-lime-200">
+      <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-[var(--project-world-border)] bg-[rgb(var(--project-world-primary)/0.08)] text-[rgb(var(--project-world-primary))]">
         {icon}
       </span>
-      <p className="text-[10px] font-black uppercase tracking-[0.24em] text-lime-300">
+      <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[rgb(var(--project-world-primary))]">
         {label}
       </p>
-      <span className="h-px flex-1 bg-gradient-to-r from-lime-300/30 to-transparent" />
+      <span className="h-px flex-1 bg-[image:var(--project-world-line)]" />
     </div>
   );
 }
 
 function WorldStatusPanel({
   showcaseScore,
+  themeLabel,
   nextAction,
   tokenLabel,
   tokenPrice,
@@ -608,6 +624,7 @@ function WorldStatusPanel({
   quests,
 }: {
   showcaseScore: number;
+  themeLabel: string;
   nextAction: string;
   tokenLabel: string;
   tokenPrice: string;
@@ -618,22 +635,23 @@ function WorldStatusPanel({
   quests: string;
 }) {
   return (
-    <aside className="self-end rounded-[30px] border border-white/10 bg-black/42 p-4 shadow-[0_22px_90px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
+    <aside className="self-end rounded-[30px] border border-[var(--project-world-border)] bg-black/42 p-4 shadow-[0_22px_90px_rgba(0,0,0,0.42),0_0_54px_var(--project-world-glow)] backdrop-blur-2xl">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.24em] text-lime-300">
+          <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[rgb(var(--project-world-primary))]">
             World status
           </p>
           <h2 className="mt-3 text-3xl font-black text-white">{showcaseScore}%</h2>
+          <p className="mt-1 text-[11px] font-bold text-slate-400">{themeLabel}</p>
         </div>
-        <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-lime-300/18 bg-lime-300/[0.08] text-lime-200">
+        <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--project-world-border)] bg-[rgb(var(--project-world-primary)/0.08)] text-[rgb(var(--project-world-primary))]">
           <ShieldCheck className="h-5 w-5" />
         </span>
       </div>
 
       <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/8">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-lime-300 via-cyan-200 to-violet-300"
+          className="h-full rounded-full bg-[linear-gradient(90deg,rgb(var(--project-world-primary)),rgb(var(--project-world-secondary)),rgb(var(--project-world-tertiary)))]"
           style={{ width: `${Math.max(6, Math.min(100, showcaseScore))}%` }}
         />
       </div>
@@ -662,8 +680,72 @@ function WorldStatusMetric({ label, value, sub }: { label: string; value: string
         {label}
       </p>
       <p className="mt-2 truncate text-xl font-black text-white">{value}</p>
-      <p className="mt-1 truncate text-[11px] font-semibold text-cyan-100/75">{sub}</p>
+      <p className="mt-1 truncate text-[11px] font-semibold text-[rgb(var(--project-world-secondary)/0.78)]">{sub}</p>
     </div>
+  );
+}
+
+function ProjectWorldThemePanel({
+  project,
+  showcase,
+}: {
+  project: LiveProject;
+  showcase: ProjectShowcaseModel;
+}) {
+  const worldSignals = [
+    {
+      label: "Accent",
+      value: showcase.worldTheme.tone,
+      detail: project.brandAccent || "Inferred from project metadata",
+    },
+    {
+      label: "Mood",
+      value: showcase.worldTheme.mood,
+      detail: project.brandMood || "Generated world posture",
+    },
+    {
+      label: "Media",
+      value: showcase.worldTheme.hasCustomMedia ? "Custom" : "Generated",
+      detail: showcase.worldTheme.signature,
+    },
+  ];
+
+  return (
+    <section className="relative overflow-hidden rounded-[30px] border border-[var(--project-world-border)] bg-[var(--project-world-panel)] p-4 shadow-[0_22px_80px_rgba(0,0,0,0.3),0_0_60px_var(--project-world-glow)] sm:p-5">
+      <div className="pointer-events-none absolute inset-0 bg-[image:var(--project-world-radial)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[image:var(--project-world-line)]" />
+      <div className="relative z-10 grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px] xl:items-center">
+        <div>
+          <SectionKicker icon={<Sparkles className="h-4 w-4" />} label="Project world theme" />
+          <h2 className="mt-4 max-w-3xl text-2xl font-black tracking-normal text-white sm:text-3xl">
+            {project.name} now has its own visual atmosphere.
+          </h2>
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">
+            The page theme is generated from brand accent, mood, logo and banner state, then pushed into
+            the hero, route rail, command panels, status chips and world modules as one coherent project skin.
+          </p>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+          {worldSignals.map((signal) => (
+            <div
+              key={signal.label}
+              className="rounded-[22px] border border-white/7 bg-black/24 p-4"
+            >
+              <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">
+                {signal.label}
+              </p>
+              <p className="mt-2 truncate text-base font-black capitalize text-white">
+                {signal.value}
+              </p>
+              <p className="mt-1 line-clamp-2 text-[11px] leading-5 text-[rgb(var(--project-world-secondary)/0.8)]">
+                {signal.detail}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
