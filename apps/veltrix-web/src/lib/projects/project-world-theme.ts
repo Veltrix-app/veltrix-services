@@ -180,7 +180,7 @@ export function buildProjectWorldTheme(project: Pick<
       "--project-world-tertiary": seed.tertiary,
       "--project-world-ink": "255 255 255",
       "--project-world-muted": "148 163 184",
-      "--project-world-border": `rgba(${seed.primary},0.18)`,
+      "--project-world-border": `rgba(${seed.primary},0.1)`,
       "--project-world-glow": seed.glow,
       "--project-world-panel": seed.panel,
       "--project-world-hero": seed.heroOverlay,

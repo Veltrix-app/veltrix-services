@@ -18,7 +18,6 @@ import {
   Globe2,
   LineChart,
   ShieldCheck,
-  Sparkles,
   Swords,
   Target,
   Users,
@@ -342,7 +341,7 @@ export function ProjectDetailScreen() {
 
   return (
     <div className="project-world-theme space-y-4" style={worldThemeStyle}>
-      <section className="motion-surface motion-light-sweep relative overflow-hidden rounded-[34px] border border-[var(--project-world-border)] bg-[#05080b] shadow-[0_32px_110px_rgba(0,0,0,0.38),0_0_80px_var(--project-world-glow)]">
+      <section className="motion-surface motion-light-sweep relative overflow-hidden rounded-[34px] border border-white/[0.055] bg-[#05080b] shadow-[0_32px_110px_rgba(0,0,0,0.38),0_0_70px_var(--project-world-glow)]">
         {showcase.heroImageUrl ? (
           <div
             aria-hidden="true"
@@ -364,10 +363,6 @@ export function ProjectDetailScreen() {
                 {showcase.badges.map((badge) => (
                   <StatusChip key={badge} label={badge} tone="info" />
                 ))}
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--project-world-border)] bg-[rgb(var(--project-world-primary)/0.12)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[rgb(var(--project-world-primary))]">
-                  <Sparkles className="h-3 w-3" />
-                  {showcase.worldTheme.label}
-                </span>
               </div>
             </div>
 
@@ -419,7 +414,6 @@ export function ProjectDetailScreen() {
 
           <WorldStatusPanel
             showcaseScore={showcase.readinessScore}
-            themeLabel={showcase.worldTheme.signature}
             nextAction={showcase.nextAction}
             tokenLabel={showcase.token.label}
             tokenPrice={showcase.token.price?.formattedPrice ?? "Pending"}
@@ -432,7 +426,7 @@ export function ProjectDetailScreen() {
         </div>
       </section>
 
-      <section className="motion-surface rounded-[28px] border border-[var(--project-world-border)] bg-[var(--project-world-panel)] p-2 shadow-[0_20px_70px_rgba(0,0,0,0.28)] backdrop-blur-xl">
+      <section className="motion-surface rounded-[28px] border border-white/[0.055] bg-[var(--project-world-panel)] p-2 shadow-[0_20px_70px_rgba(0,0,0,0.28)] backdrop-blur-xl">
         <div className="grid gap-2 md:grid-cols-3 xl:grid-cols-6">
           <WorldRouteLink href="#story" icon={<BookOpen className="h-5 w-5" />} label="Story" detail="Lore and identity" active />
           <WorldRouteLink href="#market" icon={<LineChart className="h-5 w-5" />} label="Market" detail="Token route" />
@@ -470,8 +464,6 @@ export function ProjectDetailScreen() {
         />
         <StandingCard reputation={reputation} />
       </section>
-
-      <ProjectWorldThemePanel showcase={showcase} project={project} />
 
       <section id="story" className="grid gap-5 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
         <StoryWorldPanel project={project} story={showcase.story} />
@@ -613,7 +605,6 @@ function SectionKicker({ icon, label }: { icon: ReactNode; label: string }) {
 
 function WorldStatusPanel({
   showcaseScore,
-  themeLabel,
   nextAction,
   tokenLabel,
   tokenPrice,
@@ -624,7 +615,6 @@ function WorldStatusPanel({
   quests,
 }: {
   showcaseScore: number;
-  themeLabel: string;
   nextAction: string;
   tokenLabel: string;
   tokenPrice: string;
@@ -635,16 +625,15 @@ function WorldStatusPanel({
   quests: string;
 }) {
   return (
-    <aside className="self-end rounded-[30px] border border-[var(--project-world-border)] bg-black/42 p-4 shadow-[0_22px_90px_rgba(0,0,0,0.42),0_0_54px_var(--project-world-glow)] backdrop-blur-2xl">
+    <aside className="self-end rounded-[30px] border border-white/[0.06] bg-black/42 p-4 shadow-[0_22px_90px_rgba(0,0,0,0.42),0_0_44px_var(--project-world-glow)] backdrop-blur-2xl">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[rgb(var(--project-world-primary))]">
             World status
           </p>
           <h2 className="mt-3 text-3xl font-black text-white">{showcaseScore}%</h2>
-          <p className="mt-1 text-[11px] font-bold text-slate-400">{themeLabel}</p>
         </div>
-        <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--project-world-border)] bg-[rgb(var(--project-world-primary)/0.08)] text-[rgb(var(--project-world-primary))]">
+        <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/[0.07] bg-[rgb(var(--project-world-primary)/0.08)] text-[rgb(var(--project-world-primary))]">
           <ShieldCheck className="h-5 w-5" />
         </span>
       </div>
@@ -682,70 +671,6 @@ function WorldStatusMetric({ label, value, sub }: { label: string; value: string
       <p className="mt-2 truncate text-xl font-black text-white">{value}</p>
       <p className="mt-1 truncate text-[11px] font-semibold text-[rgb(var(--project-world-secondary)/0.78)]">{sub}</p>
     </div>
-  );
-}
-
-function ProjectWorldThemePanel({
-  project,
-  showcase,
-}: {
-  project: LiveProject;
-  showcase: ProjectShowcaseModel;
-}) {
-  const worldSignals = [
-    {
-      label: "Accent",
-      value: showcase.worldTheme.tone,
-      detail: project.brandAccent || "Inferred from project metadata",
-    },
-    {
-      label: "Mood",
-      value: showcase.worldTheme.mood,
-      detail: project.brandMood || "Generated world posture",
-    },
-    {
-      label: "Media",
-      value: showcase.worldTheme.hasCustomMedia ? "Custom" : "Generated",
-      detail: showcase.worldTheme.signature,
-    },
-  ];
-
-  return (
-    <section className="relative overflow-hidden rounded-[30px] border border-[var(--project-world-border)] bg-[var(--project-world-panel)] p-4 shadow-[0_22px_80px_rgba(0,0,0,0.3),0_0_60px_var(--project-world-glow)] sm:p-5">
-      <div className="pointer-events-none absolute inset-0 bg-[image:var(--project-world-radial)]" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[image:var(--project-world-line)]" />
-      <div className="relative z-10 grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px] xl:items-center">
-        <div>
-          <SectionKicker icon={<Sparkles className="h-4 w-4" />} label="Project world theme" />
-          <h2 className="mt-4 max-w-3xl text-2xl font-black tracking-normal text-white sm:text-3xl">
-            {project.name} now has its own visual atmosphere.
-          </h2>
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">
-            The page theme is generated from brand accent, mood, logo and banner state, then pushed into
-            the hero, route rail, command panels, status chips and world modules as one coherent project skin.
-          </p>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-          {worldSignals.map((signal) => (
-            <div
-              key={signal.label}
-              className="rounded-[22px] border border-white/7 bg-black/24 p-4"
-            >
-              <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">
-                {signal.label}
-              </p>
-              <p className="mt-2 truncate text-base font-black capitalize text-white">
-                {signal.value}
-              </p>
-              <p className="mt-1 line-clamp-2 text-[11px] leading-5 text-[rgb(var(--project-world-secondary)/0.8)]">
-                {signal.detail}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
   );
 }
 
@@ -941,15 +866,15 @@ function WorldRouteLink({
     <span
       className={`group flex min-h-[92px] items-center gap-3 rounded-[22px] border px-4 py-3 transition ${
         active
-          ? "border-lime-300/22 bg-lime-300/[0.075] shadow-[0_0_42px_rgba(190,255,74,0.08)]"
-          : "border-white/7 bg-black/20 hover:border-cyan-300/18 hover:bg-white/[0.035]"
+          ? "border-[var(--project-world-border)] bg-[rgb(var(--project-world-primary)/0.07)] shadow-[0_0_34px_var(--project-world-glow)]"
+          : "border-white/[0.045] bg-black/20 hover:border-[var(--project-world-border)] hover:bg-white/[0.035]"
       }`}
     >
       <span
         className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border ${
           active
-            ? "border-lime-300/22 bg-lime-300/[0.09] text-lime-200"
-            : "border-white/9 bg-white/[0.045] text-cyan-100"
+            ? "border-[var(--project-world-border)] bg-[rgb(var(--project-world-primary)/0.09)] text-[rgb(var(--project-world-primary))]"
+            : "border-white/[0.055] bg-white/[0.045] text-[rgb(var(--project-world-secondary))]"
         }`}
       >
         {icon}
