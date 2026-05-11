@@ -535,7 +535,7 @@ export function useLiveUserData(options?: UseLiveUserDataOptions) {
     const shouldLoadInventory = requestedDatasetSet.has("inventory");
     const shouldLoadLootboxState = shouldLoadLootboxes || shouldLoadInventory;
     const shouldLoadUserProgress =
-      shouldLoadJoinedCommunityIds || shouldLoadQuests || shouldLoadRewards;
+      shouldLoadJoinedCommunityIds || shouldLoadQuests || shouldLoadRewards || shouldLoadRaids;
 
     const [
       connectedAccountsResult,
