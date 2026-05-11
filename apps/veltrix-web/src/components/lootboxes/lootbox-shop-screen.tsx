@@ -28,6 +28,8 @@ import { ShardBadge } from "@/components/ui/shard-badge";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 import { buildLootboxInventoryRead } from "@/lib/lootboxes/lootbox-inventory-read";
 import { getLootboxRevealAction, getLootboxRevealTone } from "@/lib/lootboxes/lootbox-reveal";
+import { buildRewardsVaultView } from "@/lib/lootboxes/rewards-vault";
+import type { RewardsVaultFilter, RewardsVaultView } from "@/lib/lootboxes/rewards-vault";
 import { buildShardHubSnapshot } from "@/lib/lootboxes/shard-hub";
 
 const LOOTBOX_HERO_IMAGE = "/assets/lootboxes/lootbox-hero.webp";
@@ -62,12 +64,17 @@ export function LootboxShopScreen() {
   const [busyTier, setBusyTier] = useState<string | null>(null);
   const [claimingItemId, setClaimingItemId] = useState<string | null>(null);
   const [equippingItemId, setEquippingItemId] = useState<string | null>(null);
+  const [vaultFilter, setVaultFilter] = useState<RewardsVaultFilter>("all");
   const [reveal, setReveal] = useState<LootboxReveal | null>(null);
   const [message, setMessage] = useState<{
     tone: "default" | "success" | "error";
     text: string;
   } | null>(null);
   const inventoryRead = useMemo(() => buildLootboxInventoryRead(inventory), [inventory]);
+  const vaultView = useMemo(
+    () => buildRewardsVaultView(inventoryRead, vaultFilter),
+    [inventoryRead, vaultFilter]
+  );
   const huntRoute = useMemo(
     () =>
       buildLootboxHuntRoute({
@@ -227,6 +234,9 @@ export function LootboxShopScreen() {
 
       <InventoryVault
         read={inventoryRead}
+        view={vaultView}
+        activeFilter={vaultFilter}
+        onFilterChange={setVaultFilter}
         claimingItemId={claimingItemId}
         equippingItemId={equippingItemId}
         onRequestClaim={(inventoryItemId) => void handleRequestClaim(inventoryItemId)}
@@ -607,18 +617,24 @@ function SeasonAccessConsole({ item }: { item: InventoryReadItem | null }) {
 
 function InventoryVault({
   read,
+  view,
+  activeFilter,
+  onFilterChange,
   claimingItemId,
   equippingItemId,
   onRequestClaim,
   onEquipUtility,
 }: {
   read: InventoryRead;
+  view: RewardsVaultView;
+  activeFilter: RewardsVaultFilter;
+  onFilterChange: (filter: RewardsVaultFilter) => void;
   claimingItemId: string | null;
   equippingItemId: string | null;
   onRequestClaim: (inventoryItemId: string) => void;
   onEquipUtility: (inventoryItemId: string) => void;
 }) {
-  const activeItems = read.items.slice(0, 8);
+  const activeItems = view.items.slice(0, 8);
 
   return (
     <section id="reward-vault" className="grid scroll-mt-28 gap-3 xl:grid-cols-[minmax(0,1fr)_320px]">
@@ -632,7 +648,7 @@ function InventoryVault({
               Claim and fulfillment lane
             </h2>
             <p className="mt-1.5 max-w-2xl text-[12px] leading-5 text-slate-400">
-              Lootbox unlocks now show whether they are ready, queued, applied or fulfilled.
+              Lootbox unlocks now show ownership, equipped profile utility, rarity pressure and fulfillment status in one vault.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
@@ -641,6 +657,40 @@ function InventoryVault({
             <VaultMetric label="Review" value={read.summary.pendingReview} tone="warning" />
             <VaultMetric label="High rarity" value={read.summary.highRarity} tone="rare" />
             <VaultMetric label="Passes" value={read.summary.seasonAccess} tone="access" />
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,0.95fr)_minmax(280px,0.55fr)]">
+          <VaultFeaturedItem
+            item={view.featuredItem}
+            nextAction={view.nextAction}
+            claimableCount={view.claimableCount}
+            equippedCount={view.equippedCount}
+            rareCount={view.rareCount}
+          />
+          <div className="rounded-[22px] border border-white/8 bg-black/18 p-3">
+            <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">
+              Vault filters
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {view.filters.map((filter) => (
+                <button
+                  key={filter.id}
+                  type="button"
+                  onClick={() => onFilterChange(filter.id)}
+                  className={`inline-flex min-h-9 items-center gap-2 rounded-full border px-3 text-[9px] font-black uppercase tracking-[0.13em] transition ${
+                    activeFilter === filter.id
+                      ? "border-emerald-300/22 bg-emerald-300/[0.09] text-emerald-100"
+                      : "border-white/8 bg-white/[0.035] text-slate-500 hover:border-white/14 hover:text-white"
+                  }`}
+                >
+                  {filter.label}
+                  <span className="rounded-full bg-black/24 px-1.5 py-0.5 text-[8px] text-white">
+                    {filter.count}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -662,11 +712,18 @@ function InventoryVault({
                 <Archive className="h-4 w-4" />
               </span>
               <div>
-                <p className="text-[12px] font-semibold text-white">No lootbox unlocks yet.</p>
+                <p className="text-[12px] font-semibold text-white">No vault items match this filter.</p>
                 <p className="mt-1 text-[11px] text-slate-500">
-                  Open a box and the reward will land here first.
+                  Switch filters, open a box, or earn more shards through the quest map.
                 </p>
               </div>
+              <Link
+                href={view.nextAction.href}
+                className="ml-auto hidden shrink-0 items-center gap-2 rounded-full border border-emerald-300/18 bg-emerald-300/[0.08] px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-emerald-100 transition hover:border-emerald-200/32 sm:inline-flex"
+              >
+                {view.nextAction.label}
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
             </div>
           )}
         </div>
@@ -714,11 +771,88 @@ function InventoryVault({
             {read.summary.autoApplied}
           </p>
           <p className="mt-1 text-[11px] leading-5 text-slate-500">
-            Shard refunds stay visible in the vault without creating manual work.
+            Equipped titles, profile cosmetics and pass access now stay readable as owned profile utility.
           </p>
         </div>
+
+        <Link
+          href={view.nextAction.href}
+          className={`mt-4 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full border px-3 text-[10px] font-black uppercase tracking-[0.13em] transition ${
+            view.nextAction.tone === "claim"
+              ? "border-emerald-300/20 bg-emerald-300/[0.09] text-emerald-100 hover:bg-emerald-300/[0.13]"
+              : view.nextAction.tone === "equip"
+                ? "border-violet-300/20 bg-violet-300/[0.09] text-violet-100 hover:bg-violet-300/[0.13]"
+                : view.nextAction.tone === "earn"
+                  ? "border-cyan-300/20 bg-cyan-300/[0.09] text-cyan-100 hover:bg-cyan-300/[0.13]"
+                  : "border-amber-300/20 bg-amber-300/[0.09] text-amber-100 hover:bg-amber-300/[0.13]"
+          }`}
+        >
+          {view.nextAction.tone === "earn" ? <Pickaxe className="h-3.5 w-3.5" /> : <ArrowRight className="h-3.5 w-3.5" />}
+          {view.nextAction.label}
+        </Link>
       </aside>
     </section>
+  );
+}
+
+function VaultFeaturedItem({
+  item,
+  nextAction,
+  claimableCount,
+  equippedCount,
+  rareCount,
+}: {
+  item: InventoryReadItem | null;
+  nextAction: RewardsVaultView["nextAction"];
+  claimableCount: number;
+  equippedCount: number;
+  rareCount: number;
+}) {
+  return (
+    <div className="relative overflow-hidden rounded-[22px] border border-emerald-300/12 bg-[radial-gradient(circle_at_15%_0%,rgba(16,185,129,0.14),transparent_34%),linear-gradient(180deg,rgba(8,13,18,0.9),rgba(4,7,11,0.96))] p-4">
+      <div className="pointer-events-none absolute -right-10 -top-10 opacity-20">
+        <Image src="/assets/lootboxes/shards-pile.webp" alt="" width={160} height={160} unoptimized />
+      </div>
+      <div className="relative z-10 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-200">
+            Featured vault item
+          </p>
+          <h3 className="mt-2 truncate text-[1rem] font-semibold text-white">
+            {item?.label ?? "Vault is ready"}
+          </h3>
+          <p className="mt-1 line-clamp-2 text-[12px] leading-5 text-slate-400">
+            {item
+              ? item.fulfillment.nextStep
+              : "Open boxes from earned shards and your rewards, profile flexes and claim requests will collect here."}
+          </p>
+        </div>
+        <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] border border-emerald-300/18 bg-emerald-300/[0.08] text-emerald-100">
+          <Trophy className="h-4 w-4" />
+        </span>
+      </div>
+      <div className="relative z-10 mt-4 grid grid-cols-3 gap-2">
+        <VaultMiniMetric label="Claim" value={claimableCount} />
+        <VaultMiniMetric label="Equip" value={equippedCount} />
+        <VaultMiniMetric label="Rare" value={rareCount} />
+      </div>
+      <Link
+        href={nextAction.href}
+        className="relative z-10 mt-4 inline-flex min-h-10 w-full items-center justify-between rounded-full border border-emerald-300/16 bg-emerald-300/[0.08] px-4 text-[10px] font-black uppercase tracking-[0.13em] text-emerald-100 transition hover:border-emerald-200/30 hover:bg-emerald-300/[0.13]"
+      >
+        {nextAction.label}
+        <ArrowRight className="h-3.5 w-3.5" />
+      </Link>
+    </div>
+  );
+}
+
+function VaultMiniMetric({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="min-w-0 rounded-[14px] border border-white/8 bg-white/[0.035] px-2.5 py-2">
+      <p className="truncate text-[8px] font-black uppercase tracking-[0.14em] text-slate-500">{label}</p>
+      <p className="mt-1 text-[0.95rem] font-black text-white">{value}</p>
+    </div>
   );
 }
 
