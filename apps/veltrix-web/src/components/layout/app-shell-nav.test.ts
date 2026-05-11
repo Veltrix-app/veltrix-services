@@ -60,3 +60,18 @@ test("app shell exposes the global command palette trigger", () => {
   assert.match(paletteSource, /metaKey \|\| event\.ctrlKey/);
   assert.match(paletteSource, /buildCommandPaletteActions/);
 });
+
+test("app shell mounts the live activity ambient layer", () => {
+  const shellSource = readFileSync(
+    join(process.cwd(), "apps/veltrix-web/src/components/layout/app-shell.tsx"),
+    "utf8"
+  );
+  const ambientSource = readFileSync(
+    join(process.cwd(), "apps/veltrix-web/src/components/activity/live-activity-ambient-layer.tsx"),
+    "utf8"
+  );
+
+  assert.match(shellSource, /LiveActivityAmbientLayer/);
+  assert.match(ambientSource, /buildLiveActivityAmbientEvents/);
+  assert.match(ambientSource, /aria-live="polite"/);
+});

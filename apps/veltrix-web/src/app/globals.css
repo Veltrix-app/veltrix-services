@@ -481,6 +481,10 @@ html.vyntro-route-loading body::after {
   animation: shard-wallet-sheen 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+.live-activity-ambient {
+  animation: live-activity-ambient-in 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 .motion-3d-card {
   --vyntro-card-x: 50%;
   --vyntro-card-y: 18%;
@@ -845,6 +849,19 @@ html.vyntro-route-loading body::after {
   100% {
     opacity: 0;
     transform: translateX(115%);
+  }
+}
+
+@keyframes live-activity-ambient-in {
+  0% {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translate3d(18px, -8px, 0) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0) scale(1);
   }
 }
 

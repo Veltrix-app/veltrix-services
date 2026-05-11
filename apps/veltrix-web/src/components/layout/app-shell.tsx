@@ -33,6 +33,7 @@ import { VyntroCursor } from "@/components/layout/vyntro-cursor";
 import { VyntroMotionLayer } from "@/components/layout/vyntro-motion-layer";
 import { VyntroWalletWidget } from "@/components/layout/vyntro-wallet-widget";
 import { VyntroCommandPalette } from "@/components/layout/vyntro-command-palette";
+import { LiveActivityAmbientLayer } from "@/components/activity/live-activity-ambient-layer";
 
 const primaryNavItems = [
   { href: "/home", label: "Home", icon: Home },
@@ -547,6 +548,7 @@ export function AppShell({
         open={commandPaletteOpen}
         onOpenChange={setCommandPaletteOpen}
       />
+      <LiveActivityAmbientLayer accountReady={accountReady} />
       <div aria-hidden="true" className="vyntro-route-veil" />
       <header className="sticky top-0 z-40 border-b border-white/6 bg-[#030406]/86 backdrop-blur-2xl">
         <div className="mx-auto max-w-[1720px] px-4 py-4 sm:px-6 lg:px-8">
