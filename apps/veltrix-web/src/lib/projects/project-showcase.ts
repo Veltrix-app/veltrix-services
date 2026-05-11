@@ -78,6 +78,24 @@ export type ProjectShowcasePremiumModule = {
   ctaLabel: string;
 };
 
+export type ProjectShowcasePremiumCommand = {
+  statusLabel: string;
+  statusDetail: string;
+  activeCampaignCount: number;
+  openQuestCount: number;
+  liveRaidCount: number;
+  claimableRewardCount: number;
+  shardRewardTotal: number;
+  weeklyShardRewardTotal: number;
+  nextAction: {
+    label: string;
+    title: string;
+    href: string;
+    meta: string;
+  };
+  heroStats: ProjectShowcaseMetric[];
+};
+
 export type ProjectShowcaseModel = {
   project: LiveProject;
   heroImageUrl: string | null;
@@ -88,6 +106,7 @@ export type ProjectShowcaseModel = {
   modules: ProjectShowcaseModule[];
   checks: ProjectShowcaseCheck[];
   premiumModules: ProjectShowcasePremiumModule[];
+  premiumCommand: ProjectShowcasePremiumCommand;
   contractScan: ProjectShowcaseContractScan;
   readinessScore: number;
   nextAction: string;
@@ -554,6 +573,93 @@ function buildProjectPremiumModules(input: {
   ];
 }
 
+function buildProjectPremiumCommand(input: {
+  project: LiveProject;
+  projectCampaigns: LiveCampaign[];
+  projectQuests: LiveQuest[];
+  projectRaids: LiveRaid[];
+  projectRewards: LiveReward[];
+  readinessScore: number;
+}): ProjectShowcasePremiumCommand {
+  const activeCampaigns = input.projectCampaigns.filter(
+    (campaign) => !campaign.endsAt || new Date(campaign.endsAt).getTime() > Date.now()
+  );
+  const openQuests = input.projectQuests.filter((quest) => quest.status !== "approved");
+  const liveRaids = input.projectRaids.filter((raid) => !raid.endsAt || new Date(raid.endsAt).getTime() > Date.now());
+  const claimableRewards = input.projectRewards.filter((reward) => reward.claimable);
+  const shardQuests = openQuests.filter((quest) => Math.max(0, quest.shardRewardAmount ?? 0) > 0);
+  const shardRewardTotal = shardQuests.reduce(
+    (total, quest) => total + Math.max(0, quest.shardRewardAmount ?? 0),
+    0
+  );
+  const weeklyShardRewardTotal = shardQuests
+    .filter((quest) => quest.platformQuestCadence === "weekly" || quest.shardRewardWindow === "weekly")
+    .reduce((total, quest) => total + Math.max(0, quest.shardRewardAmount ?? 0), 0);
+  const bestShardQuest = [...shardQuests].sort(
+    (left, right) => (right.shardRewardAmount ?? 0) - (left.shardRewardAmount ?? 0) || right.xp - left.xp
+  )[0];
+  const nextQuest = bestShardQuest ?? openQuests[0] ?? null;
+  const nextReward = claimableRewards[0] ?? null;
+  const nextCampaign = activeCampaigns[0] ?? input.projectCampaigns[0] ?? null;
+  const nextAction = nextQuest
+    ? {
+        label: nextQuest.shardRewardAmount ? "Earn shards" : "Start mission",
+        title: nextQuest.title,
+        href: `/quests/${nextQuest.id}`,
+        meta:
+          (nextQuest.shardRewardAmount ?? 0) > 0
+            ? `+${nextQuest.shardRewardAmount} shards`
+            : `${nextQuest.xp} XP available`,
+      }
+    : nextReward
+      ? {
+          label: "Claim reward",
+          title: nextReward.title,
+          href: `/rewards/${nextReward.id}`,
+          meta: `${nextReward.rarity} reward ready`,
+        }
+      : nextCampaign
+        ? {
+            label: "Open campaign",
+            title: nextCampaign.title,
+            href: `/campaigns/${nextCampaign.id}`,
+            meta: `${nextCampaign.completionRate}% completion`,
+          }
+        : {
+            label: "Join community",
+            title: input.project.name,
+            href: `/communities/${input.project.id}`,
+            meta: "Community route",
+          };
+  const statusLabel =
+    activeCampaigns.length > 0 || openQuests.length > 0 || liveRaids.length > 0
+      ? "Live launch world"
+      : input.readinessScore >= 75
+        ? "Ready showcase"
+        : "Setup in progress";
+
+  return {
+    statusLabel,
+    statusDetail:
+      statusLabel === "Live launch world"
+        ? "Campaigns, missions and reward loops are visible on one premium project surface."
+        : "Core identity is visible; add more live activation to make this world feel active.",
+    activeCampaignCount: activeCampaigns.length,
+    openQuestCount: openQuests.length,
+    liveRaidCount: liveRaids.length,
+    claimableRewardCount: claimableRewards.length,
+    shardRewardTotal,
+    weeklyShardRewardTotal,
+    nextAction,
+    heroStats: [
+      { label: "Active campaigns", value: String(activeCampaigns.length), sub: "live activation" },
+      { label: "Open missions", value: String(openQuests.length + liveRaids.length), sub: "quests and raids" },
+      { label: "Shard rewards", value: `+${shardRewardTotal}`, sub: `${weeklyShardRewardTotal} weekly` },
+      { label: "Claimable", value: String(claimableRewards.length), sub: "reward lanes" },
+    ],
+  };
+}
+
 function getProjectRewards(params: {
   projectId: string;
   campaignIds: Set<string>;
@@ -688,6 +794,14 @@ export function buildProjectShowcase(input: {
     tokenPrice: input.tokenPrice ?? null,
     contractScan,
   });
+  const premiumCommand = buildProjectPremiumCommand({
+    project,
+    projectCampaigns,
+    projectQuests,
+    projectRaids,
+    projectRewards,
+    readinessScore,
+  });
 
   return {
     project,
@@ -791,6 +905,7 @@ export function buildProjectShowcase(input: {
     ],
     checks,
     premiumModules,
+    premiumCommand,
     contractScan,
     readinessScore,
     nextAction: missingCheck

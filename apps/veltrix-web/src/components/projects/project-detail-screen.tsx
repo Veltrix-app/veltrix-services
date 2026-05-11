@@ -14,6 +14,7 @@ import {
   Crown,
   ExternalLink,
   Gift,
+  Gem,
   Globe2,
   LineChart,
   ShieldCheck,
@@ -319,6 +320,19 @@ export function ProjectDetailScreen() {
         (reward.campaignId ? projectCampaignIds.has(reward.campaignId) : false)
     )
     .slice(0, 4);
+  const projectCampaignRows = showcaseCampaigns
+    .filter((campaign) => campaign.projectId === project.id)
+    .sort(
+      (left, right) =>
+        Number(right.featured) - Number(left.featured) ||
+        right.xpBudget - left.xpBudget ||
+        right.completionRate - left.completionRate
+    )
+    .slice(0, 3);
+  const contributorRows = projectReputation
+    .filter((item) => item.projectId === project.id)
+    .sort((left, right) => right.xp - left.xp || right.trustScore - left.trustScore)
+    .slice(0, 3);
   const memberCount = getProjectMetric(showcase.metrics, "Members", String(project.members));
   const questCount = getProjectMetric(showcase.metrics, "Quests", String(projectQuests.length));
   const rewardCount = getProjectMetric(showcase.metrics, "Rewards", String(projectRewards.length));
@@ -418,6 +432,16 @@ export function ProjectDetailScreen() {
           <WorldRouteLink href="#security" icon={<ShieldCheck className="h-5 w-5" />} label="Trust" detail="Scan and safety" />
         </div>
       </section>
+
+      <PremiumProjectCommandPanel
+        showcase={showcase}
+        campaigns={projectCampaignRows}
+        quests={projectQuests}
+        rewards={projectRewards}
+        raids={projectRaids}
+        contributors={contributorRows}
+        memberCount={memberCount}
+      />
 
       <section className="grid gap-4 xl:grid-cols-[1.08fr_0.92fr_0.96fr_0.96fr]">
         <MissionLaneCard
@@ -639,6 +663,181 @@ function WorldStatusMetric({ label, value, sub }: { label: string; value: string
       </p>
       <p className="mt-2 truncate text-xl font-black text-white">{value}</p>
       <p className="mt-1 truncate text-[11px] font-semibold text-cyan-100/75">{sub}</p>
+    </div>
+  );
+}
+
+function PremiumProjectCommandPanel({
+  showcase,
+  campaigns,
+  quests,
+  rewards,
+  raids,
+  contributors,
+  memberCount,
+}: {
+  showcase: ProjectShowcaseModel;
+  campaigns: LiveCampaign[];
+  quests: LiveQuest[];
+  rewards: LiveReward[];
+  raids: LiveRaid[];
+  contributors: LiveProjectReputation[];
+  memberCount: string;
+}) {
+  const shardQuests = quests.filter((quest) => Math.max(0, quest.shardRewardAmount ?? 0) > 0);
+
+  return (
+    <section className="relative overflow-hidden rounded-[30px] border border-white/7 bg-[radial-gradient(circle_at_6%_0%,rgba(34,211,238,0.13),transparent_30%),radial-gradient(circle_at_94%_18%,rgba(190,255,74,0.1),transparent_28%),linear-gradient(145deg,rgba(12,15,20,0.96),rgba(5,7,11,0.98))] p-4 shadow-[0_24px_84px_rgba(0,0,0,0.32)] sm:p-5">
+      <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+        <div className="max-w-2xl">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusChip label={showcase.premiumCommand.statusLabel} tone="positive" />
+            <StatusChip label={`${showcase.readinessScore}% showcase`} tone="info" />
+            <StatusChip label={`+${showcase.premiumCommand.shardRewardTotal} shards`} tone="warning" />
+          </div>
+          <h2 className="mt-4 text-2xl font-black text-white sm:text-3xl">
+            Premium project command
+          </h2>
+          <p className="mt-3 text-sm leading-6 text-slate-300">
+            {showcase.premiumCommand.statusDetail}
+          </p>
+        </div>
+
+        <Link
+          href={showcase.premiumCommand.nextAction.href}
+          className="motion-press rounded-[24px] border border-lime-300/18 bg-lime-300/[0.075] p-4 transition hover:border-lime-300/30 xl:w-[340px]"
+        >
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-lime-200">
+            {showcase.premiumCommand.nextAction.label}
+          </p>
+          <p className="mt-2 line-clamp-2 text-base font-black leading-6 text-white">
+            {showcase.premiumCommand.nextAction.title}
+          </p>
+          <div className="mt-3 flex items-center justify-between gap-3">
+            <span className="text-[11px] font-black uppercase tracking-[0.14em] text-cyan-100">
+              {showcase.premiumCommand.nextAction.meta}
+            </span>
+            <ArrowRight className="h-4 w-4 text-white/70" />
+          </div>
+        </Link>
+      </div>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {showcase.premiumCommand.heroStats.map((stat) => (
+          <SmallStat key={stat.label} label={stat.label} value={stat.value} />
+        ))}
+      </div>
+
+      <div className="mt-5 grid gap-4 xl:grid-cols-[1fr_1fr_0.9fr]">
+        <PremiumStack
+          icon={<LineChart className="h-4 w-4" />}
+          title="Active campaigns"
+          emptyText="No active project campaigns yet."
+          items={campaigns.map((campaign) => ({
+            id: campaign.id,
+            href: `/campaigns/${campaign.id}`,
+            title: campaign.title,
+            meta: `${campaign.completionRate}% complete`,
+            badge: `${campaign.xpBudget} XP`,
+          }))}
+        />
+        <PremiumStack
+          icon={<Gem className="h-4 w-4" />}
+          title="Shard reward routes"
+          emptyText="No shard routes are attached to this project yet."
+          items={shardQuests.map((quest) => ({
+            id: quest.id,
+            href: `/quests/${quest.id}`,
+            title: quest.title,
+            meta: quest.platformQuestCadence ?? quest.shardRewardWindow ?? "quest",
+            badge: `+${quest.shardRewardAmount ?? 0}`,
+          }))}
+        />
+        <div className="rounded-[24px] border border-white/7 bg-black/20 p-4">
+          <div className="flex items-center gap-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-amber-300/18 bg-amber-300/[0.08] text-amber-200">
+              <Crown className="h-4 w-4" />
+            </span>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+                Community stats
+              </p>
+              <p className="mt-1 text-sm font-black text-white">{memberCount} members</p>
+            </div>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <SmallStat label="Raids" value={String(raids.length)} />
+            <SmallStat label="Rewards" value={String(rewards.length)} />
+          </div>
+          <div className="mt-3 space-y-2">
+            {contributors.length > 0 ? (
+              contributors.map((item) => (
+                <div key={item.projectId} className="rounded-[18px] border border-white/6 bg-white/[0.035] px-3 py-2.5">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="truncate text-sm font-black text-white">{item.projectName}</span>
+                    <StatusChip label={item.rank > 0 ? `#${item.rank}` : "Rank pending"} tone={item.rank > 0 ? "positive" : "info"} />
+                  </div>
+                  <p className="mt-1 text-[11px] font-semibold text-slate-400">
+                    {item.xp} XP / {item.trustScore} trust
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p className="rounded-[18px] border border-white/6 bg-white/[0.035] px-3 py-3 text-[12px] leading-5 text-slate-400">
+                Your leaderboard standing appears here once project reputation is live for this account.
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PremiumStack({
+  icon,
+  title,
+  emptyText,
+  items,
+}: {
+  icon: ReactNode;
+  title: string;
+  emptyText: string;
+  items: Array<{ id: string; href: string; title: string; meta: string; badge: string }>;
+}) {
+  return (
+    <div className="rounded-[24px] border border-white/7 bg-black/20 p-4">
+      <div className="flex items-center gap-3">
+        <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-cyan-300/18 bg-cyan-300/[0.08] text-cyan-100">
+          {icon}
+        </span>
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+          {title}
+        </p>
+      </div>
+      <div className="mt-3 space-y-2">
+        {items.length > 0 ? (
+          items.map((item) => (
+            <Link
+              key={item.id}
+              href={item.href}
+              className="flex items-center justify-between gap-3 rounded-[18px] border border-white/6 bg-white/[0.035] px-3 py-3 transition hover:border-cyan-300/18"
+            >
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-black text-white">{item.title}</span>
+                <span className="mt-1 block truncate text-[11px] font-semibold text-slate-500">{item.meta}</span>
+              </span>
+              <span className="shrink-0 rounded-full border border-lime-300/16 bg-lime-300/[0.07] px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-lime-100">
+                {item.badge}
+              </span>
+            </Link>
+          ))
+        ) : (
+          <p className="rounded-[18px] border border-white/6 bg-white/[0.035] px-3 py-4 text-[13px] text-slate-400">
+            {emptyText}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

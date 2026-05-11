@@ -318,6 +318,114 @@ test("project showcase builds richer premium project page modules", () => {
   assert.equal(showcase.premiumModules.find((module) => module.key === "reward-assurance")?.primaryMetric, "1");
 });
 
+test("project showcase builds a premium command summary for investor grade pages", () => {
+  const showcase = buildProjectShowcase({
+    project: baseProject,
+    campaigns: [
+      {
+        id: "campaign-live",
+        projectId: baseProject.id,
+        title: "Live activation",
+        description: "Main activation campaign.",
+        bannerUrl: null,
+        thumbnailUrl: null,
+        xpBudget: 1000,
+        featured: true,
+        completionRate: 42,
+        endsAt: "2026-06-01T00:00:00.000Z",
+      },
+    ],
+    quests: [
+      {
+        id: "daily-shards",
+        projectId: "project-1",
+        campaignId: "campaign-live",
+        title: "Daily shard route",
+        description: "Complete the daily shard route.",
+        type: "Platform",
+        questType: "daily_platform_action",
+        status: "open",
+        xp: 40,
+        projectPoints: 40,
+        actionLabel: "Open quest",
+        actionUrl: "/quests/daily-shards",
+        proofRequired: false,
+        proofType: "none",
+        verificationType: "event_check",
+        verificationProvider: null,
+        completionMode: "integration_auto",
+        verificationConfig: {},
+        isPlatformQuest: true,
+        shardRewardAmount: 25,
+        shardRewardWindow: "daily",
+        platformQuestCadence: "daily",
+      },
+      {
+        id: "weekly-shards",
+        projectId: "project-1",
+        campaignId: "campaign-live",
+        title: "Weekly activity streak",
+        description: "Complete the weekly route.",
+        type: "Platform",
+        questType: "weekly_activity_streak",
+        status: "open",
+        xp: 100,
+        projectPoints: 100,
+        actionLabel: "Build streak",
+        actionUrl: "/xp",
+        proofRequired: false,
+        proofType: "none",
+        verificationType: "event_check",
+        verificationProvider: null,
+        completionMode: "integration_auto",
+        verificationConfig: {},
+        isPlatformQuest: true,
+        shardRewardAmount: 100,
+        shardRewardWindow: "weekly",
+        platformQuestCadence: "weekly",
+      },
+    ],
+    rewards: [
+      {
+        id: "reward-live",
+        projectId: "project-1",
+        campaignId: "campaign-live",
+        title: "Premium reward",
+        description: "Reward ready.",
+        imageUrl: null,
+        cost: 250,
+        rarity: "epic",
+        claimable: true,
+        rewardType: "token",
+      },
+    ],
+    raids: [
+      {
+        id: "raid-live",
+        projectId: "project-1",
+        campaignId: "campaign-live",
+        title: "Launch raid",
+        community: "VYNTRO",
+        timer: "Live",
+        reward: 140,
+        participants: 240,
+        progress: 70,
+        target: "X",
+        banner: "",
+        instructions: [],
+      },
+    ],
+  });
+
+  assert.equal(showcase.premiumCommand.statusLabel, "Live launch world");
+  assert.equal(showcase.premiumCommand.activeCampaignCount, 1);
+  assert.equal(showcase.premiumCommand.openQuestCount, 2);
+  assert.equal(showcase.premiumCommand.shardRewardTotal, 125);
+  assert.equal(showcase.premiumCommand.weeklyShardRewardTotal, 100);
+  assert.equal(showcase.premiumCommand.nextAction.href, "/quests/weekly-shards");
+  assert.ok(showcase.premiumCommand.heroStats.some((stat) => stat.label === "Shard rewards"));
+});
+
 test("project showcase clearly reports missing premium fields", () => {
   const showcase = buildProjectShowcase({
     project: {
