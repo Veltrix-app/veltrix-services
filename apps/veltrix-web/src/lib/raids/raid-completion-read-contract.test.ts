@@ -22,3 +22,15 @@ test("raid screen requests the raids dataset that carries completion state", () 
   assert.match(source, /datasets:\s*\[\s*"raids"\s*\]/i);
   assert.match(source, /getRaidCardToneClass\(raid\.completed\)/i);
 });
+
+test("raid screen applies completed styling to both spotlight and grid raid cards", () => {
+  const source = readFileSync(raidsScreenPath, "utf8");
+
+  const toneUsages = source.match(/getRaidCardToneClass\(raid\.completed\)/gi) ?? [];
+  const statusUsages = source.match(/getRaidCardStatus\(\{\s*completed:\s*raid\.completed/gi) ?? [];
+  const ctaUsages = source.match(/getRaidCardCtaLabel\(raid\.completed\)/gi) ?? [];
+
+  assert.equal(toneUsages.length, 2);
+  assert.equal(statusUsages.length, 2);
+  assert.equal(ctaUsages.length, 2);
+});

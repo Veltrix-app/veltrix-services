@@ -109,21 +109,39 @@ export function RaidsScreen() {
           <EmptyNotice text={error} tone="error" />
         ) : spotlightRaids.length > 0 ? (
           <div className="grid gap-3.5 xl:grid-cols-[minmax(0,1.5fr)_repeat(2,minmax(0,1fr))]">
-            {spotlightRaids.map((raid, index) => (
+            {spotlightRaids.map((raid, index) =>
+              (() => {
+                const status = getRaidCardStatus({
+                  completed: raid.completed,
+                  progress: raid.progress,
+                });
+
+                return (
               <Link
                 key={raid.id}
                 href={`/raids/${raid.id}`}
                 prefetch={false}
-                className={`motion-surface motion-3d-card motion-light-sweep group relative overflow-hidden rounded-[25px] border border-white/6 bg-[linear-gradient(180deg,rgba(18,20,24,0.98),rgba(9,11,15,0.98))] shadow-[0_18px_52px_rgba(0,0,0,0.26)] transition hover:border-rose-300/18 hover:bg-[linear-gradient(180deg,rgba(24,18,20,0.98),rgba(10,11,14,0.98))] ${
+                className={`motion-surface motion-3d-card motion-light-sweep group relative overflow-hidden rounded-[25px] border transition ${getRaidCardToneClass(raid.completed)} ${
                   index === 0 ? "min-h-[238px] p-4.5 sm:p-5" : "min-h-[200px] p-3.5 sm:p-4"
                 }`}
               >
                 <div className="motion-ambient-grid opacity-[0.1]" />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(251,113,133,0.14),transparent_35%),linear-gradient(180deg,rgba(10,12,15,0.08),rgba(10,12,15,0.88))]" />
+                {raid.completed ? (
+                  <>
+                    <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(52,211,153,0.16),transparent_34%,rgba(186,255,59,0.08)_68%,transparent)] opacity-80" />
+                    <div className="pointer-events-none absolute -inset-px rounded-[25px] border border-emerald-200/18 shadow-[inset_0_0_28px_rgba(52,211,153,0.13)]" />
+                  </>
+                ) : (
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(251,113,133,0.14),transparent_35%),linear-gradient(180deg,rgba(10,12,15,0.08),rgba(10,12,15,0.88))]" />
+                )}
                 <RaidBadgeMark
                   className={`motion-soft-float absolute right-3 top-12 ${
                     index === 0 ? "h-28 w-28 opacity-[0.34]" : "h-20 w-20 opacity-[0.28]"
-                  } transition duration-300 group-hover:opacity-[0.48]`}
+                  } transition duration-300 ${
+                    raid.completed
+                      ? "drop-shadow-[0_0_24px_rgba(52,211,153,0.3)] group-hover:opacity-[0.58]"
+                      : "group-hover:opacity-[0.48]"
+                  }`}
                   imageClassName="rotate-[8deg]"
                 />
                 <div className="relative z-10 flex h-full flex-col">
@@ -132,7 +150,7 @@ export function RaidsScreen() {
                       <CardPill>{raid.community}</CardPill>
                       <CardPill>{raid.timer}</CardPill>
                     </div>
-                    <StatusChip label={`${raid.progress}% live`} tone={raid.progress >= 50 ? "warning" : "info"} />
+                    <StatusChip label={status.label} tone={status.tone} />
                   </div>
 
                   <h3
@@ -152,16 +170,22 @@ export function RaidsScreen() {
 
                   <div className="mt-auto flex items-center justify-between border-t border-white/6 pt-3">
                     <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">
-                      Join lane
+                      {getRaidCardCtaLabel(raid.completed)}
                     </span>
-                    <span className="inline-flex items-center gap-2 text-sm font-semibold text-rose-200 transition group-hover:translate-x-0.5">
+                    <span
+                      className={`inline-flex items-center gap-2 text-sm font-semibold transition group-hover:translate-x-0.5 ${
+                        raid.completed ? "text-emerald-100" : "text-rose-200"
+                      }`}
+                    >
                       View
                       <ArrowRight className="h-4 w-4" />
                     </span>
                   </div>
                 </div>
               </Link>
-            ))}
+                );
+              })()
+            )}
           </div>
         ) : (
           <EmptyNotice text="No live raid spotlights are visible yet." />
