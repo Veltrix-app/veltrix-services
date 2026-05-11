@@ -32,6 +32,7 @@ import {
 import { VyntroCursor } from "@/components/layout/vyntro-cursor";
 import { VyntroMotionLayer } from "@/components/layout/vyntro-motion-layer";
 import { VyntroWalletWidget } from "@/components/layout/vyntro-wallet-widget";
+import { VyntroCommandPalette } from "@/components/layout/vyntro-command-palette";
 
 const primaryNavItems = [
   { href: "/home", label: "Home", icon: Home },
@@ -535,11 +536,17 @@ export function AppShell({
   const walletReady = Boolean(profile?.wallet);
   const mainPageSignalBanner = getMainPageSignalBanner(pathname);
   const hasRaidHero = pathname === "/raids" && !hidePageHeader;
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 
   return (
     <div className="vyntro-shell-background min-h-screen bg-[radial-gradient(circle_at_top,rgba(148,98,255,0.12),transparent_18%),linear-gradient(180deg,#050608_0%,#040507_36%,#020304_100%)] text-white">
       <VyntroCursor />
       <VyntroMotionLayer />
+      <VyntroCommandPalette
+        accountReady={accountReady}
+        open={commandPaletteOpen}
+        onOpenChange={setCommandPaletteOpen}
+      />
       <div aria-hidden="true" className="vyntro-route-veil" />
       <header className="sticky top-0 z-40 border-b border-white/6 bg-[#030406]/86 backdrop-blur-2xl">
         <div className="mx-auto max-w-[1720px] px-4 py-4 sm:px-6 lg:px-8">
@@ -579,6 +586,19 @@ export function AppShell({
 
             <div className="flex shrink-0 items-center justify-end gap-1.5 2xl:gap-2">
               <div className="hidden items-center gap-1.5 sm:flex 2xl:gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCommandPaletteOpen(true)}
+                  aria-label="Open command palette"
+                  title="Open command palette"
+                  className="motion-press hidden h-10 items-center gap-2 rounded-full border border-white/8 bg-white/[0.03] px-3 text-[10px] font-black uppercase tracking-[0.14em] text-slate-300 transition hover:border-lime-300/18 hover:bg-lime-300/[0.08] hover:text-lime-100 lg:inline-flex 2xl:h-11"
+                >
+                  <Search className="h-4 w-4" />
+                  <span className="hidden xl:inline">Command</span>
+                  <kbd className="rounded-[8px] border border-white/10 bg-black/24 px-1.5 py-0.5 text-[9px] text-slate-500">
+                    K
+                  </kbd>
+                </button>
                 {utilityNavItems.map((item) => {
                   if (item.requiresAccount && !accountReady) {
                     return null;
