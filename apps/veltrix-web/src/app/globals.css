@@ -453,6 +453,34 @@ html.vyntro-route-loading body::after {
     0 0 38px rgba(34, 211, 238, 0.035);
 }
 
+.shard-wallet-meter {
+  position: relative;
+  overflow: hidden;
+}
+
+.shard-wallet-meter::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(115deg, transparent 8%, rgba(255, 255, 255, 0.18), transparent 44%);
+  transform: translateX(-115%);
+}
+
+.shard-wallet-pulse-earn {
+  animation: shard-wallet-earn 780ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.shard-wallet-pulse-spend {
+  animation: shard-wallet-spend 780ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.shard-wallet-pulse-earn::after,
+.shard-wallet-pulse-spend::after {
+  animation: shard-wallet-sheen 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 .motion-3d-card {
   --vyntro-card-x: 50%;
   --vyntro-card-y: 18%;
@@ -765,6 +793,58 @@ html.vyntro-route-loading body::after {
   to {
     opacity: 1;
     transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes shard-wallet-earn {
+  0% {
+    border-color: rgba(52, 211, 153, 0.16);
+    box-shadow: none;
+  }
+  34% {
+    border-color: rgba(190, 242, 100, 0.46);
+    box-shadow:
+      0 0 0 1px rgba(190, 242, 100, 0.13),
+      0 0 32px rgba(52, 211, 153, 0.28);
+    transform: translate3d(0, -1px, 0);
+  }
+  100% {
+    border-color: rgba(52, 211, 153, 0.14);
+    box-shadow: none;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes shard-wallet-spend {
+  0% {
+    border-color: rgba(52, 211, 153, 0.16);
+    box-shadow: none;
+  }
+  34% {
+    border-color: rgba(251, 191, 36, 0.42);
+    box-shadow:
+      0 0 0 1px rgba(251, 191, 36, 0.12),
+      0 0 30px rgba(251, 191, 36, 0.2);
+    transform: translate3d(0, 1px, 0);
+  }
+  100% {
+    border-color: rgba(52, 211, 153, 0.14);
+    box-shadow: none;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes shard-wallet-sheen {
+  0% {
+    opacity: 0;
+    transform: translateX(-115%);
+  }
+  22% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(115%);
   }
 }
 

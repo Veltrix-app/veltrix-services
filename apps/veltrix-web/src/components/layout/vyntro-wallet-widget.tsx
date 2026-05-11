@@ -2,14 +2,15 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronLeft, Crown, Gem, ShieldCheck, X, Zap } from "lucide-react";
+import { ArrowRight, ChevronLeft, Crown, Gem, ShieldCheck, X, Zap } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 import { ShardBadge } from "@/components/ui/shard-badge";
 import { XpValue } from "@/components/ui/xp-badge";
 import type { UserProfile } from "@/types/auth";
+import { buildAnimatedShardWalletRead } from "@/lib/lootboxes/animated-shard-wallet";
 
 function compactNumber(value: number) {
   return new Intl.NumberFormat("en", {
@@ -45,15 +46,32 @@ export function VyntroWalletWidget({
   accountReady: boolean;
   profile: UserProfile | null;
 }) {
-  const { leaderboard, shardBalance, loading } = useLiveUserData({
+  const { leaderboard, shardBalance, lootboxTiers, loading } = useLiveUserData({
     datasets: ["leaderboard", "lootboxes"],
   });
   const [collapsed, setCollapsed] = useState(false);
+  const [previousShardBalance, setPreviousShardBalance] = useState<number | null>(null);
 
   const currentLeaderboardRank = useMemo(
     () => leaderboard.findIndex((user) => user.isCurrentUser) + 1,
     [leaderboard]
   );
+  const shardWalletRead = useMemo(
+    () =>
+      buildAnimatedShardWalletRead({
+        shardBalance,
+        previousShardBalance,
+        lootboxTiers,
+      }),
+    [lootboxTiers, previousShardBalance, shardBalance]
+  );
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => setPreviousShardBalance(shardBalance), 900);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [shardBalance]);
+
   const xp = profile?.xp ?? 0;
   const level = profile?.level ?? 1;
   const rank = resolveRank(profile, currentLeaderboardRank);
@@ -135,16 +153,14 @@ export function VyntroWalletWidget({
               </XpValue>
             </WalletStat>
             <WalletStat label="Level" icon={ShieldCheck} value={`Lv ${level}`} />
-            <WalletStat label="Shards" icon={Gem}>
-              <ShardBadge
-                value={loading && accountReady ? "..." : compactNumber(shardBalance)}
-                label=""
-                size="sm"
-                className="border-0 bg-transparent px-0 py-0 shadow-none"
-              />
-            </WalletStat>
             <WalletStat label="Rank" icon={Crown} value={rankLabel} />
+            <WalletStat label="Tier" icon={Gem} value={tier} />
           </div>
+
+          <AnimatedShardWallet
+            loading={loading && accountReady}
+            read={shardWalletRead}
+          />
 
           <div className="mt-2 rounded-[18px] border border-cyan-200/10 bg-cyan-200/[0.045] p-2.5">
             <div className="flex items-center justify-between gap-2">
@@ -166,6 +182,81 @@ export function VyntroWalletWidget({
         </div>
       </div>
     </aside>
+  );
+}
+
+function AnimatedShardWallet({
+  loading,
+  read,
+}: {
+  loading: boolean;
+  read: ReturnType<typeof buildAnimatedShardWalletRead>;
+}) {
+  const pulseClass =
+    read.pulseTone === "earn"
+      ? "shard-wallet-pulse-earn"
+      : read.pulseTone === "spend"
+        ? "shard-wallet-pulse-spend"
+        : "";
+
+  return (
+    <Link
+      href="/lootboxes"
+      key={`${read.balance}-${read.pulseTone}`}
+      className={`motion-press shard-wallet-meter ${pulseClass} group mt-2 block rounded-[20px] border border-emerald-300/14 bg-[radial-gradient(circle_at_14%_0%,rgba(52,211,153,0.14),transparent_35%),linear-gradient(180deg,rgba(6,14,14,0.72),rgba(3,7,10,0.72))] p-3 transition hover:border-emerald-200/26 hover:bg-emerald-300/[0.07]`}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-[8px] font-black uppercase tracking-[0.2em] text-emerald-200/70">
+            Shard wallet
+          </p>
+          <div className="mt-1.5 flex items-center gap-1.5">
+            <ShardBadge
+              value={loading ? "..." : compactNumber(read.balance)}
+              label=""
+              size="sm"
+              className="border-0 bg-transparent px-0 py-0 shadow-none"
+            />
+            {read.deltaLabel ? (
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[8px] font-black ${
+                  read.pulseTone === "earn" ? "bg-lime-300/14 text-lime-100" : "bg-rose-300/14 text-rose-100"
+                }`}
+              >
+                {read.deltaLabel}
+              </span>
+            ) : null}
+          </div>
+        </div>
+        <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-emerald-100/55 transition group-hover:translate-x-0.5 group-hover:text-emerald-100" />
+      </div>
+
+      <div className="mt-3">
+        <div className="flex items-center justify-between gap-2 text-[9px] font-black uppercase tracking-[0.12em]">
+          <span className="truncate text-slate-400">{read.spendForecast}</span>
+          <span className="shrink-0 text-emerald-100">{read.progressPercent}%</span>
+        </div>
+        <div className="mt-2 h-2 overflow-hidden rounded-full border border-white/8 bg-black/38">
+          <div
+            className="h-full rounded-full bg-[linear-gradient(90deg,#34d399,#bef264)] shadow-[0_0_18px_rgba(52,211,153,0.34)] transition-[width] duration-700"
+            style={{ width: `${read.progressPercent}%` }}
+          />
+        </div>
+      </div>
+
+      <div className="mt-2 flex items-center justify-between gap-2 rounded-[14px] border border-white/7 bg-black/22 px-2.5 py-2">
+        <span className="min-w-0 truncate text-[10px] font-bold text-white">
+          {read.nextUnlock ? read.nextUnlock.label : "Lootbox route"}
+        </span>
+        <span className="shrink-0 text-[9px] font-black uppercase tracking-[0.12em] text-slate-400">
+          {read.nextUnlock
+            ? read.nextUnlock.ready
+              ? "Ready"
+              : `${read.nextUnlock.shortfall} left`
+            : "Earn"}
+        </span>
+      </div>
+    </Link>
   );
 }
 

@@ -21,6 +21,8 @@ test("vyntro wallet starts expanded and keeps a visible recall tab", () => {
   assert.match(source, />\s*Wallet\s*</);
   assert.match(source, /aria-label="Open VYNTRO wallet"/);
   assert.match(source, /className="fixed right-0 top-1\/2/);
+  assert.match(source, /AnimatedShardWallet/);
+  assert.match(source, /buildAnimatedShardWalletRead/);
   assert.doesNotMatch(source, /className="motion-press fixed right-0 top-1\/2/);
 });
 
