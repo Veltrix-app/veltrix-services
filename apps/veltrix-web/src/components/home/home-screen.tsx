@@ -17,6 +17,7 @@ import {
   Wallet,
   Zap,
 } from "lucide-react";
+import { LiveActivityFeedPanel } from "@/components/activity/live-activity-feed-panel";
 import { CommunityStatusPanel } from "@/components/community/community-status-panel";
 import { ArtworkImage } from "@/components/ui/artwork-image";
 import { ContributionTierBadge } from "@/components/ui/contribution-tier-badge";
@@ -26,6 +27,7 @@ import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useCommunityJourney } from "@/hooks/use-community-journey";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
+import { buildLiveActivityFeed } from "@/lib/activity/live-activity-feed";
 
 const HOME_HERO_IMAGE = "/assets/home/home-hero.webp";
 
@@ -174,6 +176,14 @@ export function HomeScreen() {
         : "Unranked";
   const strongestProjectRep = [...projectReputation].sort((left, right) => right.xp - left.xp)[0] ?? null;
   const activeShardPoolCount = featuredShardPools.filter((pool) => pool.status === "active").length;
+  const activityFeed = useMemo(
+    () =>
+      buildLiveActivityFeed({
+        notifications,
+        preferredRoute: communitySnapshot.preferredRoute,
+      }),
+    [communitySnapshot.preferredRoute, notifications]
+  );
   const weeklyShardPotential = shardQuestQueue.reduce(
     (total, quest) => total + Math.max(0, quest.shardRewardAmount ?? 0),
     0
@@ -296,6 +306,8 @@ export function HomeScreen() {
         inventoryCount={inventory.length}
         platformQuestCount={quests.filter((quest) => quest.isPlatformQuest).length}
       />
+
+      <LiveActivityFeedPanel feed={activityFeed} compact />
 
       <section className="grid gap-3.5 xl:grid-cols-[minmax(0,1.48fr)_280px]">
         <div className="rounded-[28px] border border-white/6 bg-[radial-gradient(circle_at_top_left,rgba(128,91,255,0.2),transparent_24%),radial-gradient(circle_at_78%_20%,rgba(0,209,255,0.14),transparent_24%),linear-gradient(180deg,rgba(10,11,15,0.995),rgba(6,7,10,0.995))] p-4 shadow-[0_22px_72px_rgba(0,0,0,0.38)]">

@@ -1,14 +1,17 @@
 "use client";
 
 import { useEffect } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { BellRing, Radar, ShieldAlert, Sparkles } from "lucide-react";
+import { LiveActivityFeedPanel } from "@/components/activity/live-activity-feed-panel";
 import { CommunityStatusPanel } from "@/components/community/community-status-panel";
 import { Surface } from "@/components/ui/surface";
 import { StatusChip } from "@/components/ui/status-chip";
 import { VyntroState, resolveVyntroStateVariant } from "@/components/ui/vyntro-state";
 import { useCommunityJourney } from "@/hooks/use-community-journey";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
+import { buildLiveActivityFeed } from "@/lib/activity/live-activity-feed";
 
 function getSignalHref(type: string, preferredRoute: string) {
   if (type === "community") {
@@ -51,6 +54,14 @@ export function NotificationsScreen() {
   const featuredSignalHref = featuredSignal
     ? getSignalHref(featuredSignal.type, communitySnapshot.preferredRoute)
     : null;
+  const liveActivityFeed = useMemo(
+    () =>
+      buildLiveActivityFeed({
+        notifications,
+        preferredRoute: communitySnapshot.preferredRoute,
+      }),
+    [communitySnapshot.preferredRoute, notifications]
+  );
 
   useEffect(() => {
     void markNotificationsRead();
@@ -241,6 +252,8 @@ export function NotificationsScreen() {
           </Surface>
         </div>
       </section>
+
+      <LiveActivityFeedPanel feed={liveActivityFeed} />
 
       <Surface
         eyebrow="Feed Catalog"
