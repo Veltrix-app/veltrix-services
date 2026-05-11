@@ -27,6 +27,11 @@ import { VyntroState, resolveVyntroStateVariant } from "@/components/ui/vyntro-s
 import { XpValue, isXpDisplay } from "@/components/ui/xp-badge";
 import { useLiveUserData } from "@/hooks/use-live-user-data";
 import { resolveBestFeaturedShardPool } from "@/lib/lootboxes/featured-shard-pools";
+import {
+  getQuestCardCtaLabel,
+  getQuestCardStatus,
+  getQuestCardToneClass,
+} from "@/lib/quests/quest-card-state";
 import { buildQuestJourneyMap } from "@/lib/quests/quest-map";
 import type { QuestJourneyLane, QuestJourneyMap } from "@/lib/quests/quest-map";
 import type { LiveFeaturedShardPool } from "@/types/live";
@@ -225,12 +230,16 @@ export function QuestsScreen() {
               <EmptyNotice text={error} tone="error" />
             ) : spotlightQuests.length > 0 ? (
               <div className="grid gap-3.5 xl:grid-cols-[minmax(0,1.5fr)_repeat(2,minmax(0,1fr))]">
-                {spotlightQuests.map((quest, index) => (
+                {spotlightQuests.map((quest, index) =>
+                  (() => {
+                    const status = getQuestCardStatus(quest.status);
+
+                    return (
                   <Link
                     key={quest.id}
                     href={`/quests/${quest.id}`}
                     prefetch={false}
-                    className={`motion-surface motion-3d-card motion-light-sweep group relative overflow-hidden rounded-[28px] border border-white/8 bg-[radial-gradient(circle_at_18%_0%,rgba(34,211,238,0.12),transparent_30%),linear-gradient(180deg,rgba(18,21,27,0.98),rgba(7,9,14,0.99))] shadow-[0_24px_74px_rgba(0,0,0,0.34)] transition hover:border-cyan-300/24 ${
+                    className={`motion-surface motion-3d-card motion-light-sweep group relative overflow-hidden rounded-[28px] border transition ${getQuestCardToneClass(quest.status)} ${
                       index === 0 ? "min-h-[248px] p-4 sm:p-5" : "min-h-[208px] p-3.5 sm:p-4"
                     }`}
                   >
@@ -254,6 +263,12 @@ export function QuestsScreen() {
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(74,217,255,0.18),transparent_34%)]" />
                   </>
                 ) : null}
+                {quest.status === "approved" ? (
+                  <>
+                    <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(52,211,153,0.16),transparent_34%,rgba(186,255,59,0.08)_68%,transparent)] opacity-80" />
+                    <div className="pointer-events-none absolute -inset-px rounded-[28px] border border-emerald-200/18 shadow-[inset_0_0_30px_rgba(52,211,153,0.13)]" />
+                  </>
+                ) : null}
 
                 <div className="relative z-10 flex h-full flex-col">
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -266,7 +281,7 @@ export function QuestsScreen() {
                         </p>
                       </div>
                     </div>
-                    <QuestStatusMark status={quest.status} prominent={index === 0} />
+                    <QuestStatusMark status={status.label} tone={status.tone} prominent={index === 0} completed={quest.status === "approved"} />
                   </div>
 
                   <h3
@@ -294,16 +309,22 @@ export function QuestsScreen() {
 
                   <div className="mt-auto flex items-center justify-between border-t border-white/6 pt-3">
                     <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">
-                      Open mission
+                      {getQuestCardCtaLabel(quest.status)}
                     </span>
-                    <span className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-200 transition group-hover:translate-x-0.5">
+                    <span
+                      className={`inline-flex items-center gap-2 text-sm font-semibold transition group-hover:translate-x-0.5 ${
+                        quest.status === "approved" ? "text-emerald-100" : "text-cyan-200"
+                      }`}
+                    >
                       View
                       <ArrowRight className="h-4 w-4" />
                     </span>
                   </div>
                 </div>
                   </Link>
-                ))}
+                    );
+                  })()
+                )}
               </div>
             ) : (
               <EmptyNotice text="No featured quests are visible yet." />
@@ -323,13 +344,23 @@ export function QuestsScreen() {
               <EmptyNotice text={error} tone="error" />
             ) : filteredQuests.length > 0 ? (
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-6">
-                {filteredQuests.map((quest) => (
+                {filteredQuests.map((quest) =>
+                  (() => {
+                    const status = getQuestCardStatus(quest.status);
+
+                    return (
                   <Link
                     key={quest.id}
                     href={`/quests/${quest.id}`}
                     prefetch={false}
-                    className="motion-surface motion-3d-card motion-light-sweep group relative min-h-[14.5rem] overflow-hidden rounded-[22px] border border-white/8 bg-[radial-gradient(circle_at_15%_0%,rgba(34,211,238,0.08),transparent_28%),linear-gradient(180deg,rgba(15,18,23,0.98),rgba(6,8,12,0.99))] p-3.5 shadow-[0_16px_46px_rgba(0,0,0,0.22)] transition hover:border-cyan-300/18"
+                    className={`motion-surface motion-3d-card motion-light-sweep group relative min-h-[14.5rem] overflow-hidden rounded-[22px] border p-3.5 transition ${getQuestCardToneClass(quest.status)}`}
                   >
+                {quest.status === "approved" ? (
+                  <>
+                    <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(52,211,153,0.16),transparent_34%,rgba(186,255,59,0.08)_68%,transparent)] opacity-80" />
+                    <div className="pointer-events-none absolute -inset-px rounded-[22px] border border-emerald-200/18 shadow-[inset_0_0_28px_rgba(52,211,153,0.13)]" />
+                  </>
+                ) : null}
                 <Image
                   src={XP_ECONOMY_CARD_IMAGE}
                   alt=""
@@ -343,7 +374,7 @@ export function QuestsScreen() {
                   <div className="min-w-0">
                     <ProjectLogoMark name={quest.projectName} logo={quest.projectLogo} />
                   </div>
-                  <QuestStatusMark status={quest.status} compact />
+                  <QuestStatusMark status={status.label} tone={status.tone} compact />
                 </div>
 
                 <div className="relative z-10 mt-3 min-w-0">
@@ -372,15 +403,21 @@ export function QuestsScreen() {
 
                 <div className="relative z-10 mt-4 flex items-center justify-between border-t border-white/6 pt-3">
                   <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
-                    Open mission
+                    {getQuestCardCtaLabel(quest.status)}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-sm font-semibold text-cyan-200">
+                  <span
+                    className={`inline-flex items-center gap-1 text-sm font-semibold ${
+                      quest.status === "approved" ? "text-emerald-100" : "text-cyan-200"
+                    }`}
+                  >
                     View
                     <ArrowRight className="h-3.5 w-3.5" />
                   </span>
                 </div>
                   </Link>
-                ))}
+                    );
+                  })()
+                )}
               </div>
             ) : (
               <EmptyNotice text="No quests match this board filter yet." />
@@ -618,17 +655,21 @@ function MiniJourneyStat({ label, value }: { label: string; value: string }) {
 
 function QuestStatusMark({
   status,
+  tone,
   compact = false,
   prominent = false,
+  completed = false,
 }: {
   status: string;
+  tone?: "default" | "info" | "positive" | "warning" | "danger";
   compact?: boolean;
   prominent?: boolean;
+  completed?: boolean;
 }) {
   if (compact) {
     return (
       <div className="flex shrink-0 flex-col items-end gap-1.5">
-        <StatusChip label={getQuestStatusLabel(status)} tone={getQuestTone(status)} />
+        <StatusChip label={getQuestStatusLabel(status)} tone={tone ?? getQuestTone(status)} />
       </div>
     );
   }
@@ -639,11 +680,11 @@ function QuestStatusMark({
         badge="quest"
         className={`motion-soft-float opacity-[0.92] mix-blend-screen transition duration-300 group-hover:opacity-100 ${
           prominent ? "h-16 w-16" : "h-[52px] w-[52px]"
-        }`}
+        } ${completed ? "drop-shadow-[0_0_24px_rgba(52,211,153,0.32)]" : ""}`}
         imageClassName="rotate-[8deg]"
         sizes={prominent ? "64px" : "52px"}
       />
-      <StatusChip label={getQuestStatusLabel(status)} tone={getQuestTone(status)} />
+      <StatusChip label={getQuestStatusLabel(status)} tone={tone ?? getQuestTone(status)} />
     </div>
   );
 }
