@@ -227,6 +227,7 @@ export async function fetchRecentXUserPosts(params: {
   bearerToken: string;
   limit?: number;
   sinceId?: string | null;
+  excludeRetweets?: boolean;
   apiBaseUrl?: string;
 }) {
   const limit = Math.min(100, Math.max(5, Math.round(params.limit ?? 10)));
@@ -238,7 +239,9 @@ export async function fetchRecentXUserPosts(params: {
   url.searchParams.set("tweet.fields", "attachments,author_id,conversation_id,created_at,referenced_tweets");
   url.searchParams.set("expansions", "attachments.media_keys");
   url.searchParams.set("media.fields", "preview_image_url,type,url");
-  url.searchParams.set("exclude", "retweets");
+  if (params.excludeRetweets !== false) {
+    url.searchParams.set("exclude", "retweets");
+  }
   if (params.sinceId) {
     url.searchParams.set("since_id", params.sinceId);
   }
@@ -277,6 +280,7 @@ export async function fetchRecentPostsForXUsername(params: {
   bearerToken: string;
   limit?: number;
   sinceId?: string | null;
+  excludeRetweets?: boolean;
   apiBaseUrl?: string;
 }) {
   const user = await fetchXUserByUsername({
@@ -291,6 +295,7 @@ export async function fetchRecentPostsForXUsername(params: {
     bearerToken: params.bearerToken,
     limit: params.limit,
     sinceId: params.sinceId,
+    excludeRetweets: params.excludeRetweets,
     apiBaseUrl: params.apiBaseUrl,
   });
 

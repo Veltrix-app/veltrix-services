@@ -4,9 +4,18 @@ import {
   createSupabaseUserServerClient,
 } from "@/lib/supabase/server";
 import { grantRaidShardsWithFeaturedPool } from "@/lib/lootboxes/featured-shard-pool-server";
+import {
+  getRaidAutoVerificationRequirement,
+  getRaidAutoVerificationUrl,
+  isApprovedRaidVerification,
+  type RaidAutoVerificationPayload,
+} from "@/lib/raids/raid-auto-verification";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+
+const communityBotUrl = process.env.COMMUNITY_BOT_URL;
+const communityBotWebhookSecret = process.env.COMMUNITY_BOT_WEBHOOK_SECRET;
 
 type ServiceSupabase = ReturnType<typeof createSupabaseServiceClient>;
 
@@ -40,6 +49,36 @@ async function isCampaignFeatured(params: {
   return Boolean(campaign?.featured);
 }
 
+async function runXRaidCheck(params: { authUserId: string; raidId: string }) {
+  if (!communityBotUrl) {
+    throw new Error("COMMUNITY_BOT_URL is missing for raid verification.");
+  }
+
+  const response = await fetch(getRaidAutoVerificationUrl(communityBotUrl), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(communityBotWebhookSecret
+        ? { "x-community-bot-secret": communityBotWebhookSecret }
+        : {}),
+    },
+    body: JSON.stringify(params),
+    cache: "no-store",
+  });
+  const payload = (await response.json().catch(() => null)) as RaidAutoVerificationPayload | null;
+
+  if (!response.ok) {
+    const errorMessage =
+      payload && typeof payload === "object" && "error" in payload && typeof payload.error === "string"
+        ? payload.error
+        : "X raid verification failed.";
+
+    throw new Error(errorMessage);
+  }
+
+  return payload;
+}
+
 export async function POST(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
@@ -68,7 +107,7 @@ export async function POST(
 
     const { data: raid, error: raidError } = await serviceSupabase
       .from("raids")
-      .select("id, title, campaign_id, project_id, community, timer, generated_by")
+      .select("id, title, campaign_id, project_id, community, timer, generated_by, source_provider, source_url, source_external_id")
       .eq("id", raidId)
       .maybeSingle();
 
@@ -78,6 +117,81 @@ export async function POST(
 
     if (!raid?.id) {
       return NextResponse.json({ ok: false, error: "Raid not found." }, { status: 404 });
+    }
+
+    const verificationRequirement = getRaidAutoVerificationRequirement({
+      source_provider: typeof raid.source_provider === "string" ? raid.source_provider : null,
+      source_url: typeof raid.source_url === "string" ? raid.source_url : null,
+      source_external_id: typeof raid.source_external_id === "string" ? raid.source_external_id : null,
+    });
+
+    if (!verificationRequirement.required) {
+      return NextResponse.json(
+        {
+          ok: false,
+          status: "verification_unavailable",
+          error: verificationRequirement.reason,
+        },
+        { status: 409 }
+      );
+    }
+
+    const [{ data: connectedAccount }, { data: projectIntegration }] = await Promise.all([
+      serviceSupabase
+        .from("user_connected_accounts")
+        .select("id, provider, status, username")
+        .eq("auth_user_id", user.id)
+        .eq("provider", "x")
+        .eq("status", "connected")
+        .maybeSingle(),
+      typeof raid.project_id === "string"
+        ? serviceSupabase
+            .from("project_integrations")
+            .select("id, provider, status")
+            .eq("project_id", raid.project_id)
+            .eq("provider", "x")
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
+
+    if (!connectedAccount) {
+      return NextResponse.json(
+        {
+          ok: false,
+          status: "needs_account_link",
+          error: "Link your X account before VYNTRO can verify this raid automatically.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (typeof raid.project_id === "string" && (!projectIntegration || projectIntegration.status !== "connected")) {
+      return NextResponse.json(
+        {
+          ok: false,
+          status: "needs_project_integration",
+          error: "X raid verification is not connected for this project yet. No XP or shards were awarded.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const botVerification = await runXRaidCheck({
+      authUserId: user.id,
+      raidId,
+    });
+
+    if (!isApprovedRaidVerification(botVerification)) {
+      return NextResponse.json(
+        {
+          ok: false,
+          status: botVerification?.status ?? "pending",
+          error:
+            botVerification?.message ||
+            "VYNTRO could not verify this raid from your connected X account yet. No XP or shards were awarded.",
+        },
+        { status: 409 }
+      );
     }
 
     const { data: existing, error: existingError } = await serviceSupabase

@@ -49,7 +49,7 @@ async function confirmRaidForUser(accessToken: string, raidId: string) {
     | null;
 
   if (!response.ok || !payload?.ok) {
-    throw new Error(payload?.error ?? "Raid confirmation failed.");
+    throw new Error(payload?.error ?? "Raid verification failed.");
   }
 
   return payload.shardAward ?? null;
@@ -79,18 +79,18 @@ export function RaidDetailScreen() {
   });
   const nextRaidMove =
     currentRaid.instructions.length > 0
-      ? `Run the ${currentRaid.instructions.length}-step push first, then confirm the result back into your live progress layer.`
+      ? `Run the ${currentRaid.instructions.length}-step push first, then let VYNTRO verify it from your connected X account.`
       : "This raid still needs clearer execution steps before the push is fully readable.";
   const watchRaidCue = `${currentRaid.timer} is the live timer cue, while ${currentRaid.progress}% progress and ${currentRaid.participants} participants show how crowded the push already is.`;
 
   async function handleConfirm() {
     if (!authUserId) {
-      setMessage({ tone: "error", text: "You need an active session before confirming a raid." });
+      setMessage({ tone: "error", text: "You need an active session before verifying a raid." });
       return;
     }
 
     if (!session?.access_token) {
-      setMessage({ tone: "error", text: "Please sign in again before confirming this raid." });
+      setMessage({ tone: "error", text: "Please sign in again before verifying this raid." });
       return;
     }
 
@@ -118,16 +118,16 @@ export function RaidDetailScreen() {
         xpAwardError =
           error instanceof Error
             ? error.message
-            : "XP sync could not finish for this confirmed raid.";
+            : "XP sync could not finish for this verified raid.";
       }
       await Promise.all([reload(), reloadProfile()]);
       const successText = shardAward?.granted
-        ? `Your raid has been confirmed. +${shardAward.amount} shards added${
+        ? `Your raid has been verified. +${shardAward.amount} shards added${
             shardAward.bonusAmount && shardAward.bonusAmount > 0
               ? `, including +${shardAward.bonusAmount} from the featured boost`
               : ""
           }.`
-        : "Your raid has been confirmed.";
+        : "Your raid has been verified.";
       setMessage({
         tone: "success",
         text: xpAwardError
@@ -149,7 +149,7 @@ export function RaidDetailScreen() {
     } catch (nextError) {
       setMessage({
         tone: "error",
-        text: nextError instanceof Error ? nextError.message : "VYNTRO could not confirm this raid yet.",
+        text: nextError instanceof Error ? nextError.message : "VYNTRO could not verify this raid yet.",
       });
     } finally {
       setBusy(false);
@@ -240,8 +240,8 @@ export function RaidDetailScreen() {
 
         <Surface
           eyebrow="Signal rail"
-          title="Read the live push before you confirm it"
-          description="Start with the current pressure, the next action, and the one timer cue that matters before you write the raid back."
+          title="VYNTRO verifies the push before rewards"
+          description="Finish the X action first. VYNTRO checks your connected account before XP or shards are written."
           className="bg-[radial-gradient(circle_at_top_left,rgba(255,120,120,0.16),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))]"
         >
           <div className="space-y-3.5">
@@ -259,7 +259,7 @@ export function RaidDetailScreen() {
                       Shard boost live
                     </p>
                     <p className="mt-1.5 text-[11px] leading-5 text-slate-200">
-                      Confirm this raid while the pool still has shards available.
+                      Verify this raid while the pool still has shards available.
                     </p>
                   </div>
                   <ShardBoostBadge pool={activeShardPool} compact />
@@ -267,7 +267,7 @@ export function RaidDetailScreen() {
               </div>
             ) : null}
             <div className="metric-card rounded-[16px] p-3 text-[11px] leading-5 text-slate-300">
-              Confirming a raid writes the completion into the same live progress layer used by the mobile app and web board.
+              VYNTRO only writes completion after it finds your X engagement on the source post. No proof means no XP or shards.
             </div>
             {currentRaid.sourceUrl ? (
               <a
@@ -284,7 +284,7 @@ export function RaidDetailScreen() {
               disabled={busy}
               className="rounded-full bg-rose-300 px-3.5 py-2 text-[12px] font-black text-black transition hover:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {busy ? "Confirming..." : "Confirm raid"}
+              {busy ? "Verifying..." : "Verify raid"}
             </button>
           </div>
         </Surface>
